@@ -8,24 +8,25 @@ from renom import precision
 from .parameterized import Parametrized
 from renom.utility.initializer import GlorotNormal
 import renom.cuda as cu
+from renom import Relu
 if cu.has_cuda():
     from renom.cuda.gpuvalue import GPUValue, get_gpu
 
 
 class conv2d(Node):
 
-    def __new__(cls, x, w, b, filter=3, stride=1, padding=0, dilation=1, descriptor=None, algorithms=None):
+    def __new__(cls, x, w, b, filter=3, stride=1, padding=0, dilation=1, descriptor=None, algorithms=None, activation=None):
         filter, stride, padding, dilation = (tuplize(x)
                                              for x in (filter, stride, padding, dilation))
 
         in_shape = x.shape[1:]
         out_shape = [w.shape[0]]
         out_shape.extend(out_size(x.shape[2:], filter, stride, padding, dilation))
-        return cls.calc_value(x, w, b, in_shape, out_shape, filter, stride, padding, dilation, descriptor, algorithms)
+        return cls.calc_value(x, w, b, in_shape, out_shape, filter, stride, padding, dilation, descriptor, algorithms, activation)
 
     @classmethod
     def _oper_cpu(cls, x, w, b, in_shape, out_shape, kernel, stride, padding, dilation,
-                  descriptor=None, algorithms=None):
+                  descriptor=None, algorithms=None, activation=None):
         col = im2col(to_value(x),
                      out_shape[1:], kernel,
                      stride, padding, dilation)
@@ -48,7 +49,7 @@ class conv2d(Node):
 
     @classmethod
     def _oper_gpu(cls, x, w, b, in_shape, out_shape, kernel, stride, padding, dilation,
-                  descriptor=None, algorithms=None):
+                  descriptor=None, algorithms=None, activation=None):
         N = x.shape[0]
         if descriptor is not None:
             conv_desc = descriptor['conv_desc']
@@ -69,12 +70,14 @@ class conv2d(Node):
 
         y = GPUValue(shape=tuple([N, ] + list(out_shape)))
         with cu.cudnn_handler() as handle:
-            #cu.cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc,
-            #                        _x, _w, y, get_gpu(b), algorithms['forward'])
-            cu.cuConvolutionForward(handle, conv_desc, filter_desc,
-                                    _x, _w, y, algorithms['forward'])
-            if b is not None:
-                cu.cu_add_bias(get_gpu(b), y)
+            if isinstance(activation, Relu) and b is not None:
+                cu.cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc,
+                                        _x, _w, y, get_gpu(b), algorithms['forward'])
+            else:
+                cu.cuConvolutionForward(handle, conv_desc, filter_desc,
+                                        _x, _w, y, algorithms['forward'])
+                if b is not None:
+                    cu.cu_add_bias(get_gpu(b), y)
 
         ret = cls._create_node(y)
         ret.attrs._conv_desc = conv_desc
@@ -83,6 +86,7 @@ class conv2d(Node):
         ret.attrs._x = x
         ret.attrs._w = w
         ret.attrs._b = b
+        ret.attrs._activation = activation
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):
@@ -107,7 +111,8 @@ class conv2d(Node):
                       for g in (self.attrs._w, self.attrs._b, self.attrs._x))
 
         with cu.cudnn_handler() as handle:
-            #cu.curelu_backard(get_gpu(self), get_gpu(dy))
+            if isinstance(self.attrs._activation, Relu) and self.attrs._b is not None:
+                cu.cuActivationBackward(handle, get_gpu(self), get_gpu(dy))
             if db is None:
                 db = np.zeros((1, self.attrs._w.shape[0], 1, 1))
             cu.cuConvolutionBackward(handle, self.attrs._conv_desc, self.attrs._filter_desc,
@@ -171,7 +176,8 @@ class Conv2d(Parametrized):
                  input_size=None,
                  ignore_bias=False,
                  initializer=GlorotNormal(),
-                 weight_decay=0):
+                 weight_decay=0,
+                 activation=None):
         self._padding, self._stride, self._kernel, self._dilation = (tuplize(x)
                                                                      for x in (padding, stride, filter, dilation))
         self._channel = channel
@@ -180,6 +186,7 @@ class Conv2d(Parametrized):
         self._descriptors = None
         self._algo = None
         self._weight_decay = weight_decay
+        self._activation = activation
         super(Conv2d, self).__init__(input_size)
 
     def weight_initiallize(self, input_size):
@@ -218,5 +225,8 @@ class Conv2d(Parametrized):
                                                            np.ndarray(tuple([x.shape[0], ] + out_shape),
                                                                       dtype=precision))
                 }
-        return conv2d(x, self.params.w, self.params.get("b", None), self._kernel,
-                      self._stride, self._padding, self._dilation, self._descriptors, self._algo)
+        ret = conv2d(x, self.params.w, self.params.get("b", None), self._kernel,
+                      self._stride, self._padding, self._dilation, self._descriptors, self._algo, self._activation)
+        if cu.is_cuda_active() and self._activation is not None and (not isinstance(self._activation, Relu) or self._ignore_bias):
+            ret = self._activation(ret)
+        return ret

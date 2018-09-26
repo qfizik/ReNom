@@ -558,20 +558,18 @@ def cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc, x, w, y, 
     if not tmp_heap == 0:
       cuda_base_c.c_gpu_allocator.free(tmp_heap)
 
-def cuActivationBackward(handle, y, x, dy, dx):
+def cuActivationBackward(handle, y, dx):
 
     cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
 
-    cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
-    cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
+    cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=y.dtype))
+    cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=y.dtype))
 
     cdef cudnnActivationDescriptor_t activation
     check(cudnnCreateActivationDescriptor(&activation))
     check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, 0))
 
-    cdef TensorDesc dxDesc = TensorDesc(dx.shape, dtype=x.dtype)
-    cdef TensorDesc dyDesc = TensorDesc(dy.shape, dtype=y.dtype)
-    cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
+    cdef TensorDesc dxDesc = TensorDesc(dx.shape, dtype=y.dtype)
     cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
     check(cudnnActivationBackward(
         handler,
@@ -579,10 +577,10 @@ def cuActivationBackward(handle, y, x, dy, dx):
         alf.ptr,
         yDesc.tensor_desc,
         <const void*> <uintptr_t> y._ptr,
-        dyDesc.tensor_desc,
-        <const void*> <uintptr_t> dy._ptr,
-        xDesc.tensor_desc,
-        <const void*> <uintptr_t> x._ptr,
+        dxDesc.tensor_desc,
+        <const void*> <uintptr_t> dx._ptr,
+        yDesc.tensor_desc,
+        <const void*> <uintptr_t> y._ptr,
         bt.ptr,
         dxDesc.tensor_desc,
         <void*> <uintptr_t> dx._ptr

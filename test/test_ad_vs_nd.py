@@ -20,7 +20,7 @@ from renom.core import Variable
 from renom.operation import sum
 from renom.layers.activation.sigmoid import sigmoid
 from renom.layers.activation.tanh import tanh
-from renom.layers.activation.relu import relu
+from renom.layers.activation.relu import relu, Relu
 from renom.layers.activation.maxout import maxout
 from renom.layers.function.dense import Dense
 from renom.layers.function.conv2d import Conv2d
@@ -530,16 +530,22 @@ def test_conv2d(node, use_gpu, ignore_bias):
     node = Variable(node)
     assert_cuda_active(use_gpu)
 
-    layer = Conv2d(channel=3, ignore_bias=ignore_bias)
+    layer = Conv2d(channel=3, ignore_bias=ignore_bias, activation=Relu())
 
     def func(node):
         return sum(layer(node))
-    compare(func, node, node)
-    compare(func, layer.params["w"], node)
-    try:
-        compare(func, layer.params["b"], node)
-    except Exception:
-        assert ignore_bias
+    for trial in range(3):
+        try:
+            compare(func, node, node)
+            compare(func, layer.params["w"], node)
+            try:
+                compare(func, layer.params["b"], node)
+            except Exception:
+                assert ignore_bias
+            return
+        except AssertionError:
+            node = Variable(rand(node.shape))
+    assert False
 
 
 @pytest.mark.parametrize("node, size, raise_error", [
