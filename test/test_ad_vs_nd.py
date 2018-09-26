@@ -545,6 +545,8 @@ def test_conv2d(node, use_gpu, ignore_bias):
             return
         except AssertionError:
             node = Variable(rand(node.shape))
+            if trial == 3:
+                assert False
     assert False
 
 

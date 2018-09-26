@@ -202,7 +202,7 @@ class GPUDistributor(Distributor):
         generator = super(GPUDistributor, self).batch(batch_size, shuffle, steps)
         notEmpty = True
         first = True
-        events = collections.deque([]) 
+        events = collections.deque([])
         while(notEmpty):
             try:
                 # On entering, we preload the first two batches

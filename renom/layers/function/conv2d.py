@@ -15,14 +15,16 @@ if cu.has_cuda():
 
 class conv2d(Node):
 
-    def __new__(cls, x, w, b, filter=3, stride=1, padding=0, dilation=1, descriptor=None, algorithms=None, activation=None):
+    def __new__(cls, x, w, b, filter=3, stride=1, padding=0, dilation=1,
+                descriptor=None, algorithms=None, activation=None):
         filter, stride, padding, dilation = (tuplize(x)
                                              for x in (filter, stride, padding, dilation))
 
         in_shape = x.shape[1:]
         out_shape = [w.shape[0]]
         out_shape.extend(out_size(x.shape[2:], filter, stride, padding, dilation))
-        return cls.calc_value(x, w, b, in_shape, out_shape, filter, stride, padding, dilation, descriptor, algorithms, activation)
+        return cls.calc_value(x, w, b, in_shape, out_shape, filter, stride, padding,
+                                    dilation, descriptor, algorithms, activation)
 
     @classmethod
     def _oper_cpu(cls, x, w, b, in_shape, out_shape, kernel, stride, padding, dilation,
@@ -72,7 +74,7 @@ class conv2d(Node):
         with cu.cudnn_handler() as handle:
             if isinstance(activation, Relu) and b is not None:
                 cu.cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc,
-                                        _x, _w, y, get_gpu(b), algorithms['forward'])
+                                                      _x, _w, y, get_gpu(b), algorithms['forward'])
             else:
                 cu.cuConvolutionForward(handle, conv_desc, filter_desc,
                                         _x, _w, y, algorithms['forward'])
@@ -226,7 +228,9 @@ class Conv2d(Parametrized):
                                                                       dtype=precision))
                 }
         ret = conv2d(x, self.params.w, self.params.get("b", None), self._kernel,
-                      self._stride, self._padding, self._dilation, self._descriptors, self._algo, self._activation)
-        if cu.is_cuda_active() and self._activation is not None and (not isinstance(self._activation, Relu) or self._ignore_bias):
+                     self._stride, self._padding, self._dilation, self._descriptors,
+                     self._algo, self._activation)
+        if cu.is_cuda_active() and self._activation is not None and \
+                (not isinstance(self._activation, Relu) or self._ignore_bias):
             ret = self._activation(ret)
         return ret
