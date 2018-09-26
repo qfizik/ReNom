@@ -6,6 +6,7 @@ import numpy as np
 from renom.core import Node
 from renom.cuda import has_cuda, is_cuda_active
 from renom.config import precision
+import collections
 
 if has_cuda():
     import renom.cuda.base.cuda_base as cu
@@ -201,6 +202,7 @@ class GPUDistributor(Distributor):
         generator = super(GPUDistributor, self).batch(batch_size, shuffle, steps)
         notEmpty = True
         first = True
+        events = collections.deque([]) 
         while(notEmpty):
             try:
                 # On entering, we preload the first two batches
@@ -216,6 +218,9 @@ class GPUDistributor(Distributor):
                 # We continue to preload an extra batch until we are finished
                 # Values yet to be returned are stored in *2
                 x2, y2 = GPUDistributor.preload_pair(b[0], b[1])
+                if len(events) >= 1:
+                    cu.cuConsumeEvent(events.popleft())
+                events.append(cu.cuProduceEvent())
                 yield GPUDistributor.create_return(x1, y1)
                 # Release currently released values and store the next as
                 # next to be yielded in *1

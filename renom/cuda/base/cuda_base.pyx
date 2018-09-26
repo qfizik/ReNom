@@ -5,7 +5,6 @@ import traceback
 import contextlib
 import bisect
 import threading
-cimport cuda_base
 
 from libc.stdio cimport printf
 cimport numpy as np
@@ -16,9 +15,9 @@ from libc.stdlib cimport malloc, free
 from libc.stdint cimport uintptr_t, intptr_t
 from libc.string cimport memcpy
 from cuda_utils cimport _VoidPtr
+import renom
 from renom.config import precision
 import collections
-import renom.cuda
 
 # Indicate Python started shutdown process
 cdef int _python_shutdown = 0
@@ -159,17 +158,41 @@ def cuCreateStream(name = None):
       nvtxNameCudaStreamA(stream, cname)
     return < uintptr_t > stream
 
+def cuProduceEvent():
+  global mainstream
+  cdef cudaEvent_t e
+  runtime_check(cudaEventCreate(&e))
+  runtime_check(cudaEventRecord(e, mainstream))
+  return <uintptr_t> e
+
+def cuConsumeEvent(event):
+  cdef cudaEvent_t e = <cudaEvent_t><uintptr_t> event
+  runtime_check(cudaEventSynchronize(e))
+  runtime_check(cudaEventDestroy(e))
+
+def cuWaitKernels():
+  global mainstream
+  cdef cudaEvent_t e
+  runtime_check(cudaEventCreate(&e))
+  runtime_check(cudaEventRecord(e, mainstream))
+  runtime_check(cudaEventSynchronize(e))
+  runtime_check(cudaEventDestroy(e))
+
+def cuWaitStream(uintptr_t stream):
+  global mainstream
+  cdef cudaEvent_t e
+  cdef cudaStream_t strm = <cudaStream_t> stream
+  runtime_check(cudaEventCreate(&e))
+  runtime_check(cudaEventRecord(e, strm))
+  runtime_check(cudaStreamWaitEvent(mainstream, e, 0))
+  runtime_check(cudaEventDestroy(e))
+
 cdef cudaStream_t mainstream = <cudaStream_t><uintptr_t> 0
-cdef cudaStream_t cudnnstream = <cudaStream_t><uintptr_t> 0
 
 
 def setMainStream(stream):
     global mainstream
     mainstream = <cudaStream_t><uintptr_t> stream
-
-def setCudnnStream(stream):
-  global cudnnstream
-  cudnnstream = <cudaStream_t><uintptr_t> stream
 
 def insertEvent(GPUHeap heap):
   global mainstream

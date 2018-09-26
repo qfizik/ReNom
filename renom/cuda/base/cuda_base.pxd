@@ -198,6 +198,7 @@ cdef extern from "cuda_runtime.h":
     cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream)
     cudaError_t cudaEventSynchronize(cudaEvent_t)
     cudaError_t cudaEventQuery(cudaEvent_t)
+    cudaError_t cudaEventDestroy(cudaEvent_t)
     cudaError_t cudaMalloc(void ** ptr, size_t size)
     #cudaError_t cudaMallocHost(void ** ptr, size_t size, unsigned int flags)
     cudaError_t cudaSetDevice(int size)

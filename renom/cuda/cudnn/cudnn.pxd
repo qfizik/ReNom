@@ -18,6 +18,12 @@ cdef extern from "cudnn.h":
         CUDNN_STATUS_NOT_SUPPORTED,
         CUDNN_STATUS_LICENSE_ERROR
 
+    ctypedef enum cudnnMathType_t:
+
+        CUDNN_DEFAULT_MATH,
+        CUDNN_TENSOR_OP_MATH,
+
+
     size_t cudnnGetVersion()
 
     # human-readable error messages
@@ -295,6 +301,11 @@ cdef extern from "cudnn.h":
         cudnnConvolutionMode_t mode,
         cudnnDataType_t dataType)  # convolution data type
 
+    cudnnStatus_t cudnnSetConvolutionMathType(
+        cudnnConvolutionDescriptor_t convDesc,
+        cudnnMathType_t mathType
+    ) # Permits the use of tensor cores for cudnn
+
     cudnnStatus_t cudnnGetConvolutionNdDescriptor(
         const cudnnConvolutionDescriptor_t convDesc,
         int arrayLengthRequested,
@@ -398,6 +409,26 @@ cdef extern from "cudnn.h":
         const void * beta,
         const cudnnTensorDescriptor_t yDesc,
         void * y)
+
+    cudnnStatus_t cudnnConvolutionBiasActivationForward(
+        cudnnHandle_t                       handle,
+        const void                         *alpha1,
+        const cudnnTensorDescriptor_t       xDesc,
+        const void                         *x,
+        const cudnnFilterDescriptor_t       wDesc,
+        const void                         *w,
+        const cudnnConvolutionDescriptor_t  convDesc,
+        cudnnConvolutionFwdAlgo_t           algo,
+        void                               *workSpace,
+        size_t                              workSpaceSizeInBytes,
+        const void                         *alpha2,
+        const cudnnTensorDescriptor_t       zDesc,
+        const void                         *z,
+        const cudnnTensorDescriptor_t       biasDesc,
+        const void                         *bias,
+        const cudnnActivationDescriptor_t   activationDesc,
+        const cudnnTensorDescriptor_t       yDesc,
+        void                               *y)
 
     cudnnStatus_t cudnnConvolutionBackwardBias(
         cudnnHandle_t handle,

@@ -98,6 +98,7 @@ cdef get_handle(idx = 0):
     tmp = createCublashandler()
     _cublas_handlers[idx] = tmp
     check(cublasSetStream(<cublasHandle_t><uintptr_t>tmp, _stream))
+    check(cublasSetMathMode(<cublasHandle_t><uintptr_t>tmp, CUBLAS_TENSOR_OP_MATH))
 
   return _cublas_handlers[idx]
 
