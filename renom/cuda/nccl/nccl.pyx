@@ -31,10 +31,10 @@ cdef class DeviceCommunicator:
     free(self.devs)
     free(self.comms)
 
-  def AllReduce(gpuvarray):
+  def AllReduce(self, gpuvarray):
       cdef int i
-      size_t elems = 1
-      for i in range(gpuvarray[0].shape):
+      cdef size_t elems = 1
+      for i in range(len(gpuvarray[0].shape)):
         elems *= gpuvarray[0].shape[i]
       ncclCheck(ncclGroupStart())
       for i in range(self.ndev):
