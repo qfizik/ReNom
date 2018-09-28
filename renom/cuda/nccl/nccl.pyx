@@ -31,7 +31,7 @@ cdef class DeviceCommunicator:
     free(self.devs)
     free(self.comms)
 
-  def AllReduce(self, gpuvarray):
+  def allReduce(self, gpuvarray):
       cdef int i
       cdef size_t elems = 1
       for i in range(len(gpuvarray[0].shape)):
@@ -47,4 +47,22 @@ cdef class DeviceCommunicator:
             self.comms[i],
             NULL
         ))
+      ncclCheck(ncclGroupEnd())
+
+  def broadcast(self, gpuvarray, broadcast_device):
+      cdef int i
+      cdef size_t elems = 1
+      for i in range(len(gpuvarray[0].shape)):
+          elems *= gpuvarray[0].shape[i]
+      ncclCheck(ncclGroupStart())
+      for i in range(self.ndev):
+          ncclCheck(ncclBroadcast(
+            <const void*><uintptr_t>gpuvarray[i]._ptr,
+            <void*><uintptr_t>gpuvarray[i]._ptr,
+            elems,
+            ncclFloat,
+            <int>broadcast_device,
+            self.comms[i],
+            NULL
+          ))
       ncclCheck(ncclGroupEnd())
