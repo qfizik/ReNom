@@ -1,13 +1,13 @@
 
-def ncclCheck(err):
+cpdef ncclCheck(err):
   if err != ncclSuccess:
     print("Error in NCCL: {}", err)
     print("{}",ncclGetErrorString(err))
 
-def cuGroupStart(): 
+cpdef cuGroupStart():
   ncclCheck(ncclGroupStart())
 
-def cuGroupEnd():
+cpdef cuGroupEnd():
   ncclCheck(ncclGroupEnd())
 
 cdef class DeviceCommunicator:
@@ -16,7 +16,7 @@ cdef class DeviceCommunicator:
   cdef int *devs
   cdef ncclComm_t *comms
 
-  def __cinit__(self, int num_device): 
+  def __cinit__(self, int num_device):
     cdef int i
     self.ndev = <int>num_device
     self.devs = <int*>malloc(self.ndev * sizeof(int))
@@ -30,3 +30,21 @@ cdef class DeviceCommunicator:
       ncclCheck(ncclCommDestroy(self.comms[i]))
     free(self.devs)
     free(self.comms)
+
+  def AllReduce(gpuvarray):
+      cdef int i
+      size_t elems = 1
+      for i in range(gpuvarray[0].shape):
+        elems *= gpuvarray[0].shape[i]
+      ncclCheck(ncclGroupStart())
+      for i in range(self.ndev):
+        ncclCheck(ncclAllReduce(
+            <const void*><uintptr_t>gpuvarray[i]._ptr,
+            <void*><uintptr_t>gpuvarray[i]._ptr,
+            elems,
+            ncclFloat,
+            ncclSum,
+            self.comms[i],
+            NULL
+        ))
+      ncclCheck(ncclGroupEnd())

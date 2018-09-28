@@ -1,5 +1,8 @@
 from libc.stdlib cimport *
+from libc.stdint cimport uintptr_t
 from renom.cuda.base.cuda_base cimport *
+
+
 
 cdef extern from "nccl.h":
   ctypedef struct ncclComm
