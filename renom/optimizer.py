@@ -323,7 +323,9 @@ class Rmsprop(Optimizer):
 
         r = self._g * pmse + (1 - self._g) * (dy**2)
         k = self._ra * pra + (1 - self._ra) * (dy)
-        v = (r - k**2).as_ndarray()
+        v = (r - k**2)
+        if hasattr(v, "as_ndarray"):
+            v = v.as_ndarray()
         v[v < 0] = 0
         ret = self._lr * dy / sqrt(v + self._epsilon)
 
