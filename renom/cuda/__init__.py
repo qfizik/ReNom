@@ -34,7 +34,6 @@ def set_cuda_active(activate=True, use_stream=False):
     _cuda_is_active = activate
     if use_stream:
         gpu_stream = cuCreateStream("Main Stream")
-        cu_set_stream(gpu_stream)
         cublas_set_stream(gpu_stream)
         cudnn_set_stream(gpu_stream)
         setMainStream(gpu_stream)

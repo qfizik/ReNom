@@ -13,8 +13,6 @@ __device__ VALUE_TYPE atomicAdd(VALUE_TYPE *address, const VALUE_TYPE vlaue);
 
 namespace renom{
 
-	void SET_STREAM_NAME(cudaStream_t stream);
-	cudaStream_t GET_STREAM_NAME();
 
 	// Operation
 	enum Operation {MUL, ADD, DIV, RDIV, SUB, POW, RPOW};
