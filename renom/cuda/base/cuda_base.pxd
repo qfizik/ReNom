@@ -273,3 +273,5 @@ cdef class GpuAllocator(object):
 cpdef GpuAllocator get_gpu_allocator()
 
 cdef GpuAllocator c_gpu_allocator
+
+include "handler_declarations.pxi"

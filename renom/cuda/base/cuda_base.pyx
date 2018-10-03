@@ -592,3 +592,5 @@ cpdef _cuSetLimit(limit, value):
     ret = cuCtxGetLimit(&c_value, limit)
 
     cuCtxSetLimit(limit, value)
+
+include "handler_definitions.pxi"
