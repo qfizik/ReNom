@@ -593,4 +593,3 @@ cpdef _cuSetLimit(limit, value):
 
     cuCtxSetLimit(limit, value)
 
-include "handler_definitions.pxi"

@@ -557,7 +557,8 @@ class GPUValue(object):
     def __iadd__(self, other):
         with use_device(self.device_id):
             assert getattr(self, "shape", (1,)) == getattr(self, "shape", (1,))
-            cublas.cublas_axpy(get_gpu(other), get_gpu(self))
+            with renom.cuda.RenomHandler() as handle:
+                cublas.cublas_axpy(get_gpu(other), get_gpu(self), handle)
             return self
 
     def __mul__(self, other):
@@ -624,7 +625,8 @@ class GPUValue(object):
     def __isub__(self, other):
         with use_device(self.device_id):
             assert getattr(self, "shape", (1,)) == getattr(self, "shape", (1,))
-            cublas.cublas_axpy(-get_gpu(other), get_gpu(self))
+            with renom.cuda.RenomHandler() as handle:
+                cublas.cublas_axpy(-get_gpu(other), get_gpu(self), handle)
             return self
 
     def _oper_pow(self, other):

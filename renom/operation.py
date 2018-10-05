@@ -314,9 +314,10 @@ class dot(BinOp):
     def _oper_gpu(cls, lhs, rhs):
         new_shape = (lhs.shape[0], rhs.shape[1])
         ret = GPUValue(shape=new_shape)
-        cublas_gemm(get_gpu(lhs), 0,
-                    get_gpu(rhs), 0,
-                    get_gpu(ret))
+        with renom.cuda.RenomHandler() as handle:
+            cublas_gemm(get_gpu(lhs), 0,
+                        get_gpu(rhs), 0,
+                        get_gpu(ret), handle)
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):
@@ -332,17 +333,19 @@ class dot(BinOp):
         if isinstance(self.attrs._lhs, Node):
             new_shape = lhs.shape
             ldx = GPUValue(shape=new_shape)
-            cublas_gemm(get_gpu(dy), 0,
-                        get_gpu(rhs), 1,
-                        get_gpu(ldx))
+            with renom.cuda.RenomHandler() as handle:
+                cublas_gemm(get_gpu(dy), 0,
+                            get_gpu(rhs), 1,
+                            get_gpu(ldx), handle)
             self.attrs._lhs._update_diff(context, ldx, **kwargs)
 
         if isinstance(self.attrs._rhs, Node):
             new_shape = rhs.shape
             rdx = GPUValue(shape=new_shape)
-            cublas_gemm(get_gpu(lhs), 1,
-                        get_gpu(dy), 0,
-                        get_gpu(rdx))
+            with renom.cuda.RenomHandler() as handle:
+                cublas_gemm(get_gpu(lhs), 1,
+                            get_gpu(dy), 0,
+                            get_gpu(rdx), handle)
             self.attrs._rhs._update_diff(context, rdx, **kwargs)
 
 

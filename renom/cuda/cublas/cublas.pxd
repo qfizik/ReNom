@@ -626,5 +626,4 @@ cdef extern from "cublas_v2.h":
                                cuDoubleComplex * C,
                                int ldc)
 
-
-cpdef cublas_axpy(gpu_value1, gpu_value2)
+cpdef cublas_axpy(gpuvalue1, gpuvalue2, renomhandle)

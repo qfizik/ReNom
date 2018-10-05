@@ -166,8 +166,6 @@ def setup_cuda():
 
     ext_base = Extension('renom.cuda.base.cuda_base',
                          sources=['renom/cuda/base/cuda_base.pyx'],
-                         depends=['renom/cuda/base/handler_declarations.pxi',
-                                  'renom/cuda/base/handler_definitions.pxi' ],
                          #depends=cuda_depends,
                          libraries=['cublas', 'cuda', 'cudart', 'nvToolsExt'],
                          library_dirs=libraries,
