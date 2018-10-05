@@ -394,6 +394,24 @@ def check_heap_device(*heaps):
         raise RuntimeError('Invalid device_id: %s currennt: %s' % (devices, current))
 
 
+cdef class PinnedMemory(object):
+    def __init__(self, np.ndarray required_arr, int prefetch_buffer_size = 2):
+        cdef int i
+        self.size = required_arr.descr.itemsize*required_arr.size
+        self.prefetch_buffer_size = prefetch_buffer_size
+        self.memory_ptrs = <void**> malloc(prefetch_buffer_size * sizeof(void*))
+        for i in range(prefetch_buffer_size):
+            runtime_check(cudaMallocHost(&(self.memory_ptrs[i]), self.size))
+
+    def __dealloc__(self):
+        cdef int i
+        for i in range(self.prefetch_buffer_size):
+            runtime_check(cudaFreeHost(self.memory_ptrs[i]))
+        free(self.memory_ptrs)
+
+    def get_size(self):
+        return <uintptr_t> self.size
+
 cdef class GPUHeap(object):
     def __init__(self, nbytes, ptr, device_id, stream=0):
         self.ptr = ptr
@@ -592,4 +610,3 @@ cpdef _cuSetLimit(limit, value):
     ret = cuCtxGetLimit(&c_value, limit)
 
     cuCtxSetLimit(limit, value)
-

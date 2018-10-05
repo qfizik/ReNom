@@ -259,6 +259,11 @@ cdef class GPUHeap(object):
     cpdef copy_from(self, other, size_t nbytes)
 
 
+cdef class PinnedMemory(object):
+    cdef size_t size
+    cdef int prefetch_buffer_size
+    cdef void** memory_ptrs
+
 cdef class GpuAllocator(object):
     cpdef object _pool_lists, _all_pools
     cpdef object _memsync_stream
@@ -273,4 +278,3 @@ cdef class GpuAllocator(object):
 cpdef GpuAllocator get_gpu_allocator()
 
 cdef GpuAllocator c_gpu_allocator
-

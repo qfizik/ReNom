@@ -9,7 +9,7 @@ def RenomHandler(device = 0):
     if device not in _renom_handlers:
       _renom_handlers[device] = RenomHandle(device)
     yield _renom_handlers[device]
-    
+
 class RenomHandle:
 
   def __init__(self, device=None):
@@ -17,6 +17,6 @@ class RenomHandle:
     self.device = rm.cuda.cuGetDevice()
     with rm.cuda.use_device(self.device):
       self.stream = rm.cuda.cuCreateStream()
-    self.pin = None
+    self.pinned_memory = None
     self.cublas_handler = rm.cuda.createCublasHandle(self.stream)
     self.cudnn_handler = None
