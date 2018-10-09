@@ -258,7 +258,7 @@ cdef class GPUHeap(object):
     cpdef memcpyD2D(self, gpu_ptr, size_t nbytes)
     cpdef copy_from(self, other, size_t nbytes)
     cdef loadNumpy(self, array, size_t nbytes)
-    cdef loadPinned(self, pinned, size_t nbytes)
+    cdef loadPinned(self, PinnedMemory pinned, size_t nbytes)
 
 
 cdef class PinnedMemory(object):

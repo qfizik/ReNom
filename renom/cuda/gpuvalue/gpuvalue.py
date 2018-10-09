@@ -27,7 +27,7 @@ def get_gpu(array):
     if f:
         return f()
 
-    if isinstance(array, np.ndarray):
+    if isinstance(array, np.ndarray) or isinstance(array, PinnedMemory):
         return GPUValue(array=array)
     elif isinstance(array, Number):
         return array
@@ -494,7 +494,7 @@ class GPUValue(object):
 
         # todo: value.flatten() copies buffer
         with use_device(self.device_id):
-            self._ptr.memcpyH2D(value.ravel(), value.nbytes)
+            self._ptr.memcpyH2D(value, value.nbytes)
 
     def copy_from(self, other):
         self._ptr.copy_from(other._ptr, self.nbytes)

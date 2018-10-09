@@ -276,6 +276,18 @@ cdef class PinnedMemory(object):
     def get_ptr(self):
         return <uintptr_t> self.memory_ptr
 
+    @property
+    def dtype(self):
+        return self.dtype
+
+    @property
+    def shape(self):
+        return self.shape
+
+    @property
+    def nbytes(self):
+        return self.size
+
 cdef void *get_pointer(pyobject):
   cdef void* ptr
   cdef _VoidPtr vptr
@@ -349,10 +361,10 @@ cdef class GPUHeap(object):
       ptr = <void*> vptr.ptr
       cuMemcpyH2D(ptr, self.ptr, nbytes)
 
-    cdef loadPinned(self, pinned_to_load, size_t nbytes):
+    cdef loadPinned(self, PinnedMemory pinned_to_load, size_t nbytes):
       cdef void* ptr
       ptr = <void*><uintptr_t> pinned_to_load
-      cuMemcpyH2DAsync(ptr, self.ptr, nbytes, pinned_to_load.stream)
+      cuMemcpyH2DAsync(ptr, self.ptr, nbytes, <uintptr_t> pinned_to_load.stream)
       streamInsertEvent(<cudaStream_t><uintptr_t> pinned_to_load.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event)
 
 

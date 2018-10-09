@@ -23,18 +23,13 @@ def check(cd.cudnnStatus_t status):
 
 _cudnn_handlers = {}
 
+def createCudnnHandle(stream = None):
+  cdef cudnnHandle_t ret
+  check(cudnnCreate(&ret))
+  if stream is not None:
+    cudnnSetStream(ret, <cudaStream_t><uintptr_t> stream)
+  return <uintptr_t> ret
 
-def cudnn_set_stream(stream):
-  cdef cudnnHandle_t handle
-
-  device_id = cuda_base.cuGetDevice()
-  if device_id not in _cudnn_handlers:
-      check(cudnnCreate(&handle))
-      _cudnn_handlers[device_id] =  <uintptr_t> handle
-
-  handle = <cudnnHandle_t><uintptr_t> _cudnn_handlers[device_id]
-
-  check(cudnnSetStream(handle, (<cudaStream_t><uintptr_t> stream) ))
 
 @contextlib.contextmanager
 def cudnn_handler():
