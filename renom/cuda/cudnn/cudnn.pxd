@@ -1,7 +1,6 @@
 from renom.cuda.base.cuda_base cimport *
 
 cdef extern from "cudnn.h":
-    ctypedef int size_t
     ctypedef struct cudnnContext
     ctypedef cudnnContext * cudnnHandle_t
     ctypedef enum cudnnStatus_t:

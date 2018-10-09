@@ -17,12 +17,12 @@ cdef extern from * namespace "renom":
     cdef void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_copy_memory_stride(VALUE_TYPE *dest, VALUE_TYPE *src, const size_t src_elems,
                              const size_t size_stride, const size_t size_srcblock)
-    cdef void thrust_fill(VALUE_TYPE value, VALUE_TYPE *a, int size)
+    cdef void thrust_fill(VALUE_TYPE value, VALUE_TYPE *a, int size, cudaStream_t stream)
     cdef void thrust_loge(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_exp(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_sqrt(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_sign(VALUE_TYPE *a, VALUE_TYPE *b, int size)
-    cdef void thrust_cross_entropy(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, int size)
+    cdef void thrust_cross_entropy(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, int size, cudaStream_t stream)
     cdef void thrust_abs_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_abs_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef VALUE_TYPE thrust_all_reduce(VALUE_TYPE* a, int size)
@@ -37,21 +37,21 @@ cdef extern from * namespace "renom":
         size_t lhs_strides[16]
         size_t rhs_strides[16]
 
-    void thrust_add(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides);
-    void thrust_mul(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides);
-    void thrust_sub(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides);
-    void thrust_div(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides);
-    void thrust_rdiv(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides);
-    void thrust_pow(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides);
-    void thrust_rpow(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides);
+    void thrust_add(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream);
+    void thrust_mul(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream);
+    void thrust_sub(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream);
+    void thrust_div(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream);
+    void thrust_rdiv(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream);
+    void thrust_pow(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream);
+    void thrust_rpow(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream);
 
-    void thrust_mul_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size);
-    void thrust_add_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size);
-    void thrust_sub_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size);
-    void thrust_div_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size);
-    void thrust_rdiv_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size);
-    void thrust_pow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size);
-    void thrust_rpow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size);
+    void thrust_mul_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream);
+    void thrust_add_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream);
+    void thrust_sub_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream);
+    void thrust_div_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream);
+    void thrust_rdiv_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream);
+    void thrust_pow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream);
+    void thrust_rpow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream);
 
     cdef const unsigned int RENOM_CUDA_MAX_AXIS
 
@@ -68,7 +68,8 @@ cdef extern from * namespace "renom":
         size_t sequence_stride,
         size_t num_axis,
         reduce_shape_infos *reduction_infos,
-        reduce_shape_infos *seq_infos)
+        reduce_shape_infos *seq_infos,
+        cudaStream_t stream)
 
     cdef void thrust_reduce_min(
         size_t num_blocks, size_t num_threads,
@@ -179,7 +180,7 @@ cdef extern from * namespace "renom":
     cdef void thrust_embedding_backward(int N, int K, int M, VALUE_TYPE *a, VALUE_TYPE *dy, VALUE_TYPE *dx);
     cdef void thrust_add_bias(int size, int n, int wh, VALUE_TYPE *bias, VALUE_TYPE *a);
 
-    cdef void thrust_optimizer_sgd(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE momentum, VALUE_TYPE *pdy, VALUE_TYPE *ndy);
+    cdef void thrust_optimizer_sgd(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE momentum, VALUE_TYPE *pdy, VALUE_TYPE *ndy, cudaStream_t stream);
     cdef void thrust_optimizer_adagrad(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE *pdy, VALUE_TYPE *ndy, VALUE_TYPE *r);
     cdef void thrust_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *k, VALUE_TYPE *ndy, VALUE_TYPE *r);
     cdef void thrust_optimizer_adam(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE gamma_orig, VALUE_TYPE beta, VALUE_TYPE beta_orig, VALUE_TYPE min, bool flug, VALUE_TYPE *u, VALUE_TYPE *r, VALUE_TYPE *ndy);

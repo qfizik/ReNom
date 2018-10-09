@@ -228,40 +228,40 @@ namespace renom{
         c[idx] = T::op(a[idx_lhs], b[idx_rhs]);
     }
 
-    void thrust_add(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides) {
+    void thrust_add(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream) {
         if (!size)
             return;
-        if(strides->size == 0)cuda_binop0<BinOP_Add> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 1)cuda_binop1<BinOP_Add> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 2)cuda_binop2<BinOP_Add> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 3)cuda_binop3<BinOP_Add> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 4)cuda_binop4<BinOP_Add> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 5)cuda_binop5<BinOP_Add> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
+        if(strides->size == 0)cuda_binop0<BinOP_Add> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 1)cuda_binop1<BinOP_Add> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 2)cuda_binop2<BinOP_Add> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 3)cuda_binop3<BinOP_Add> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 4)cuda_binop4<BinOP_Add> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 5)cuda_binop5<BinOP_Add> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
         else assert(0);  // never reach here
     }
-    void thrust_mul(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides) {
+    void thrust_mul(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream) {
         if (!size)
             return;
-        if(strides->size == 0)cuda_binop0<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 1)cuda_binop1<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 2)cuda_binop2<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 3)cuda_binop3<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 4)cuda_binop4<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 5)cuda_binop5<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
+        if(strides->size == 0)cuda_binop0<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 2)cuda_binop2<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 1)cuda_binop1<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 3)cuda_binop3<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 4)cuda_binop4<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 5)cuda_binop5<BinOP_Mul> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
         else assert(0);  // never reach here
     }
-    void thrust_sub(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides) {
+    void thrust_sub(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream) {
         if (!size)
             return;
-        if(strides->size == 0)cuda_binop0<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 1)cuda_binop1<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 2)cuda_binop2<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 3)cuda_binop3<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 4)cuda_binop4<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
-        else if(strides->size == 5)cuda_binop5<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
+        if(strides->size == 0)cuda_binop0<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 1)cuda_binop1<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 2)cuda_binop2<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 3)cuda_binop3<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 4)cuda_binop4<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
+        else if(strides->size == 5)cuda_binop5<BinOP_Sub> <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size, *strides);
         else assert(0);  // never reach here
     }
-    void thrust_div(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides) {
+    void thrust_div(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream) {
         if (!size)
             return;
         if(strides->size == 0)cuda_binop0<BinOP_Div> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
@@ -272,7 +272,7 @@ namespace renom{
         else if(strides->size == 5)cuda_binop5<BinOP_Div> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
         else assert(0);  // never reach here
     }
-    void thrust_rdiv(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides) {
+    void thrust_rdiv(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream) {
         if (!size)
             return;
         if(strides->size == 0)cuda_binop0<BinOP_Rdiv> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
@@ -283,7 +283,7 @@ namespace renom{
         else if(strides->size == 5)cuda_binop5<BinOP_Rdiv> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
         else assert(0);  // never reach here
     }
-    void thrust_pow(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides) {
+    void thrust_pow(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream) {
         if (!size)
             return;
         if(strides->size == 0)cuda_binop0<BinOP_Pow> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
@@ -294,7 +294,7 @@ namespace renom{
         else if(strides->size == 5)cuda_binop5<BinOP_Pow> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
         else assert(0);  // never reach here
     }
-    void thrust_rpow(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides) {
+    void thrust_rpow(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, size_t size, binop_strides *strides, cudaStream_t stream) {
         if (!size)
             return;
         if(strides->size == 0)cuda_binop0<BinOP_Rpow> <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size, *strides);
@@ -316,7 +316,7 @@ namespace renom{
         c[idx] = a[idx] + b;
     }
 
-    void thrust_add_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
+    void thrust_add_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream) {
         if (!size)
             return;
         cuda_add_num <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size);
@@ -331,10 +331,10 @@ namespace renom{
         c[idx] = a[idx] * b;
     }
 
-    void thrust_mul_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
+    void thrust_mul_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream) {
         if (!size)
             return;
-        cuda_mul_num <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size);
+        cuda_mul_num <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size);
     }
 
     __global__ static void cuda_sub_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
@@ -346,10 +346,10 @@ namespace renom{
         c[idx] = a[idx] - b;
     }
 
-    void thrust_sub_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
+    void thrust_sub_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream) {
         if (!size)
             return;
-        cuda_sub_num <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size);
+        cuda_sub_num <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size);
     }
 
     __global__ static void cuda_div_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
@@ -361,10 +361,10 @@ namespace renom{
         c[idx] = a[idx] / b;
     }
 
-    void thrust_div_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
+    void thrust_div_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream) {
         if (!size)
             return;
-        cuda_div_num <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size);
+        cuda_div_num <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size);
     }
 
     __global__ static void cuda_rdiv_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
@@ -376,10 +376,10 @@ namespace renom{
         c[idx] = b / a[idx];
     }
 
-    void thrust_rdiv_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
+    void thrust_rdiv_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream) {
         if (!size)
             return;
-        cuda_rdiv_num <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size);
+        cuda_rdiv_num <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size);
     }
 
     __global__ static void cuda_pow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
@@ -391,10 +391,10 @@ namespace renom{
         c[idx] = powf(a[idx], b);
     }
 
-    void thrust_pow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
+    void thrust_pow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream) {
         if (!size)
             return;
-        cuda_pow_num <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size);
+        cuda_pow_num <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size);
     }
 
 
@@ -407,10 +407,10 @@ namespace renom{
         c[idx] = powf(b, a[idx]);
     }
 
-    void thrust_rpow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size) {
+    void thrust_rpow_num(VALUE_TYPE *a, VALUE_TYPE b, VALUE_TYPE *c, size_t size, cudaStream_t stream) {
         if (!size)
             return;
-        cuda_rpow_num <<<ceil((size)/256.0), 256, 0, NULL>>> (a, b, c, size);
+        cuda_rpow_num <<<ceil((size)/256.0), 256, 0, stream>>> (a, b, c, size);
     }
 
         __global__ void cuda_copy_memory_stride(VALUE_TYPE *dest, VALUE_TYPE *src, const size_t src_elems,
@@ -726,10 +726,11 @@ namespace renom{
             size_t sequence_stride,
             size_t num_axis,
             reduce_shape_infos *reduction_infos,
-            reduce_shape_infos *seq_infos, const T &adapter) {
+            reduce_shape_infos *seq_infos, const T &adapter,
+            cudaStream_t stream = 0) {
 
             if (num_blocks) {
-                cuda_reduce_array<T><<<num_blocks, num_threads, 0, NULL>>> (
+                cuda_reduce_array<T><<<num_blocks, num_threads, 0, stream>>> (
                     num_blocks , num_threads, src, src_size, result, result_size,
                     src_per_result,
                     sequence_stride,
@@ -745,10 +746,11 @@ namespace renom{
             size_t sequence_stride,
             size_t num_axis,
             reduce_shape_infos *reduction_infos,
-            reduce_shape_infos *seq_infos)
+            reduce_shape_infos *seq_infos,
+            cudaStream_t stream)
         {
             reduce_array<Reduce_Add<VALUE_TYPE> >(num_blocks, num_threads, src, src_size, result, result_size,
-                src_per_result, sequence_stride, num_axis, reduction_infos, seq_infos, Reduce_Add<VALUE_TYPE>());
+                src_per_result, sequence_stride, num_axis, reduction_infos, seq_infos, Reduce_Add<VALUE_TYPE>(), stream);
         }
 
         void thrust_reduce_min(
@@ -1152,10 +1154,10 @@ namespace renom{
 	}
 
 	//fill
-	void thrust_fill(VALUE_TYPE value, VALUE_TYPE *a, int size)
+	void thrust_fill(VALUE_TYPE value, VALUE_TYPE *a, int size, cudaStream_t stream)
 	{
 		thrust::device_ptr<VALUE_TYPE> dev_ptr(a);
-		thrust::fill(thrust::cuda::par.on(NULL), dev_ptr, dev_ptr + size, value);
+		thrust::fill(thrust::cuda::par.on(stream), dev_ptr, dev_ptr + size, value);
 	}
 
 	// loge function
@@ -1227,11 +1229,11 @@ namespace renom{
 	        }
 	};
 
-	void thrust_cross_entropy(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, int size){
+	void thrust_cross_entropy(VALUE_TYPE *a, VALUE_TYPE *b, VALUE_TYPE *c, int size, cudaStream_t stream){
 		thrust::device_ptr<VALUE_TYPE> dev_a(a);
 		thrust::device_ptr<VALUE_TYPE> dev_b(b);
 		thrust::device_ptr<VALUE_TYPE> dev_c(c);
-		thrust::transform(thrust::cuda::par.on(NULL), dev_a, dev_a+size, dev_b, dev_c, cross_entropy_function());
+		thrust::transform(thrust::cuda::par.on(stream), dev_a, dev_a+size, dev_b, dev_c, cross_entropy_function());
 	}
 
 
@@ -1872,10 +1874,10 @@ namespace renom{
       }
     }
 
-    void thrust_optimizer_sgd(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE momentum, VALUE_TYPE *pdy, VALUE_TYPE *ndy)
+    void thrust_optimizer_sgd(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE momentum, VALUE_TYPE *pdy, VALUE_TYPE *ndy, cudaStream_t stream)
     {
       if(Elems) {
-        cuda_optimizer_sgd <<<ceil(Elems/256.0), 256, 0, NULL>>> (Elems, learning_rate, dy, momentum, pdy, ndy);
+        cuda_optimizer_sgd <<<ceil(Elems/256.0), 256, 0, stream>>> (Elems, learning_rate, dy, momentum, pdy, ndy);
       }
     }
 

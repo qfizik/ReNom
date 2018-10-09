@@ -462,12 +462,14 @@ class GPUValue(object):
 
     def zeros_like_me(self):
         ret = self.empty_like_me()
-        cufill(0., ret)
+        with renom.cuda.RenomHandler() as handle:
+            cufill(0., ret, handle)
         return ret
 
     def ones_like_me(self):
         ret = self.empty_like_me()
-        cufill(1., ret)
+        with renom.cuda.RenomHandler() as handle:
+            cufill(1., ret, handle)
         return ret
 
     def new_array(self):
@@ -538,20 +540,22 @@ class GPUValue(object):
 
     def __pos__(self):
         ret = self.empty_like_me()
-        cumul(self, 1, ret)
+        with renom.cuda.RenomHandler() as handle:
+            cumul(self, 1, ret, handle)
         return ret
 
     def __neg__(self):
         ret = self.empty_like_me()
-        cumul(self, -1, ret)
+        with renom.cuda.RenomHandler() as handle:
+            cumul(self, -1, ret, handle)
         return ret
 
     def __add__(self, other):
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
             # Only data type float32 is acceptable.
-            cuadd(self, other, ret)
+            cuadd(self, other, ret, handle)
             return ret
 
     def __iadd__(self, other):
@@ -565,10 +569,10 @@ class GPUValue(object):
         if not isinstance(self, GPUValue):
             return other.__rmul__(self)
 
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cumul(self, other, ret)
+            cumul(self, other, ret, handle)
             return ret
 
     def __rmul__(self, other):
@@ -594,10 +598,10 @@ class GPUValue(object):
         if not isinstance(self, GPUValue):
             return other.__rtruediv__(self)
 
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cudiv(self, other, ret)
+            cudiv(self, other, ret, handle)
             return ret
 
     def __rtruediv__(self, other):
@@ -616,10 +620,10 @@ class GPUValue(object):
             return ret
 
     def __sub__(self, other):
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cusub(self, other, ret)
+            cusub(self, other, ret, handle)
             return ret
 
     def __isub__(self, other):

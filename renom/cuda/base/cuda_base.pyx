@@ -422,7 +422,6 @@ cdef class GpuAllocator(object):
     def __init__(self):
         self._pool_lists = collections.defaultdict(list)
         # We create one stream for all the GPUHeaps to share
-        self._memsync_stream = cuCreateStream("Memcpy Stream")
         self._rlock = threading.RLock()
 
     @property

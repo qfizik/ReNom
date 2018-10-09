@@ -71,7 +71,7 @@ class conv2d(Node):
         _x, _w = map(lambda x: get_gpu(x), [x, w])
 
         y = GPUValue(shape=tuple([N, ] + list(out_shape)))
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             if isinstance(activation, Relu) and b is not None:
                 cu.cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc,
                                                       _x, _w, y, get_gpu(b), algorithms['forward'])
@@ -112,7 +112,7 @@ class conv2d(Node):
         dw, db, dx = (get_gpu(g).empty_like_me() if g is not None else None
                       for g in (self.attrs._w, self.attrs._b, self.attrs._x))
 
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             if isinstance(self.attrs._activation, Relu) and self.attrs._b is not None:
                 cu.cuActivationBackward(handle, get_gpu(self), get_gpu(dy))
             if db is None:
@@ -216,7 +216,7 @@ class Conv2d(Parametrized):
             out_shape = [self.params.w.shape[0]]
             out_shape.extend(out_size(x.shape[2:], self._kernel,
                                       self._stride, self._padding, self._dilation))
-            with cu.cudnn_handler() as handle:
+            with cu.RenomHandler() as handle:
                 self._algo = {
                     'forward': cu.cuGetConvolutionFwdAlgo(handle, self._descriptors['conv_desc'],
                                                           self._descriptors['filter_desc'], x,

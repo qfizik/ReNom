@@ -19,6 +19,7 @@ class RenomHandle:
     self.device = rm.cuda.cuGetDevice()
     with rm.cuda.use_device(self.device):
       self.stream = rm.cuda.cuCreateStream()
+      self.memstream = rm.cuda.cuCreateStream()
     self.pinned_memory = {}
     self.cublas_handler = rm.cuda.createCublasHandle(self.stream)
     self.cudnn_handler = rm.cuda.createCudnnHandle(self.stream)
@@ -34,4 +35,4 @@ class RenomHandle:
   def _preparePins(self, array):
     self.pinned_memory[array.size] = collections.deque(maxlen = self.prefetch_length)
     for pin in range(self.prefetch_length):
-      self.pinned_memory[array.size].append(rm.cuda.PinnedMemory(array, self.stream))
+      self.pinned_memory[array.size].append(rm.cuda.PinnedMemory(array, self.memstream))
