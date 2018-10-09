@@ -23,7 +23,7 @@ _cuda_is_active = False
 _cuda_is_disabled = False
 
 
-def set_cuda_active(activate=True, use_stream=False):
+def set_cuda_active(activate=True):
     '''If True is given, cuda will be activated.
 
     Args:
@@ -33,11 +33,6 @@ def set_cuda_active(activate=True, use_stream=False):
     if not has_cuda() and activate:
         warnings.warn("Couldn't find cuda modules.")
     _cuda_is_active = activate
-    if use_stream:
-        gpu_stream = cuCreateStream("Main Stream")
-        cublas_set_stream(gpu_stream)
-        cudnn_set_stream(gpu_stream)
-        setMainStream(gpu_stream)
 
 
 def is_cuda_active():

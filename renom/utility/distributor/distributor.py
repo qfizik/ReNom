@@ -183,10 +183,8 @@ class GPUDistributor(Distributor):
 
     @staticmethod
     def preload_single(batch):
-        with cu.asyncBehaviour():
-            batch = batch.astype(np.dtype(precision))
-            cu.pinNumpy(batch)
-            ret = Node(get_gpu(batch))
+        batch = batch.astype(np.dtype(precision))
+        ret = Node(get_gpu(batch))
         return ret
 
     @staticmethod
@@ -208,9 +206,6 @@ class GPUDistributor(Distributor):
                 # On entering, we preload the first two batches
                 if first:
                     b = next(generator)
-                    example_batch = b[0] if b[0].size * \
-                        b[0].itemsize >= b[1].size * b[1].itemsize else b[1]
-                    cu.initPinnedMemory(example_batch.astype(np.dtype(precision)))
                     x1, y1 = GPUDistributor.preload_pair(b[0], b[1])
                     first = False
                 b = next(generator)
@@ -234,7 +229,6 @@ class GPUDistributor(Distributor):
             yield GPUDistributor.create_return(x2, y2)
         else:
             yield GPUDistributor.create_return(x1, y1)
-        cu.freePinnedMemory()
 
 
 class TimeSeriesDistributor(NdarrayDistributor):

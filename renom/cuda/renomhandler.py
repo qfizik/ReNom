@@ -1,3 +1,4 @@
+import numpy as np
 import renom as rm
 import contextlib as cl
 
@@ -17,6 +18,10 @@ class RenomHandle:
     self.device = rm.cuda.cuGetDevice()
     with rm.cuda.use_device(self.device):
       self.stream = rm.cuda.cuCreateStream()
-    self.pinned_memory = None
+    self.pinned_memory = {}
     self.cublas_handler = rm.cuda.createCublasHandle(self.stream)
     self.cudnn_handler = None
+
+  def pin(self, array):
+    if isinstance(array, np.ndarray):
+        

@@ -257,12 +257,17 @@ cdef class GPUHeap(object):
     cpdef memcpyD2H(self, cpu_ptr, size_t nbytes)
     cpdef memcpyD2D(self, gpu_ptr, size_t nbytes)
     cpdef copy_from(self, other, size_t nbytes)
+    cdef loadNumpy(self, array, size_t nbytes)
+    cdef loadPinned(self, pinned, size_t nbytes)
 
 
 cdef class PinnedMemory(object):
     cdef size_t size
-    cdef int prefetch_buffer_size
-    cdef void** memory_ptrs
+    cdef void* memory_ptr
+    cpdef object shape
+    cpdef object dtype
+    cdef cudaStream_t stream
+    cdef cudaEvent_t event
 
 cdef class GpuAllocator(object):
     cpdef object _pool_lists, _all_pools
