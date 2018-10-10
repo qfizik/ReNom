@@ -268,6 +268,7 @@ cdef class PinnedMemory(object):
         cdef size_t sz = arr.descr.itemsize * arr.size
         if sz != self.size:
           raise ValueError("Trying to pin array of different size than originally initialized")
+        runtime_check(cudaEventSynchronize(self.event))
         memcpy(self.memory_ptr, <void*> arr.data, self.size)
 
     def __int__(self):
@@ -366,6 +367,8 @@ cdef class GPUHeap(object):
       ptr = <void*><uintptr_t> pinned_to_load
       cuMemcpyH2DAsync(ptr, self.ptr, nbytes, <uintptr_t> pinned_to_load.stream)
       streamInsertEvent(<cudaStream_t><uintptr_t> pinned_to_load.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event)
+      with renom.cuda.RenomHandler() as handle:
+        cudaStreamWaitEvent(<cudaStream_t><uintptr_t> handle.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event, 0)
 
 
     cpdef memcpyD2H(self, cpu_ptr, size_t nbytes):
@@ -444,7 +447,10 @@ cdef class GpuAllocator(object):
         '''
         if _python_shutdown:
             return
-
+        cdef cudaStream_t strm
+        with renom.cuda.RenomHandler(pool.device_id) as handle:
+            strm = <cudaStream_t><uintptr_t> handle.stream
+            streamInsertEvent(strm, pool.event)
 
         if pool.nbytes:
             device_id = pool.device_id

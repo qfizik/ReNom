@@ -6,7 +6,9 @@ import collections
 _renom_handlers = {}
 
 @cl.contextmanager
-def RenomHandler(device = 0):
+def RenomHandler(device = None):
+  if device is None:
+    device = rm.cuda.cuGetDevice()
   with rm.cuda.use_device(device):
     if device not in _renom_handlers:
       _renom_handlers[device] = RenomHandle(device)
@@ -30,6 +32,7 @@ class RenomHandle:
       self._preparePins(array)
     ret = self.pinned_memory[array.size][0]
     self.pinned_memory[array.size].rotate(-1)
+    ret.pin(array)
     return ret
 
   def _preparePins(self, array):
