@@ -637,10 +637,10 @@ class GPUValue(object):
         if not isinstance(self, GPUValue):
             return other.__rpow__(self, modulo)
 
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cupow(self, other, ret)
+            cupow(self, other, ret, handle)
             return ret
 
     def __pow__(self, other, modulo):

@@ -181,11 +181,12 @@ class Trainer(object):
         self.train_loss_list = []
         self.test_loss_list = []
 
-        models = [self.model]
-        if self.num_gpu > 1:
-            models.extend([self.model.__class__() for _ in range(self.num_gpu - 1)])
-            for n in range(self.num_gpu):
-                models[n].set_gpu(n)
+        models = self.model
+        #models = [self.model]
+        #if self.num_gpu > 1:
+        #    models.extend([self.model.__class__() for _ in range(self.num_gpu - 1)])
+        #    for n in range(self.num_gpu):
+        #        models[n].set_gpu(n)
 
         while self.epoch < self.num_epoch:
             self.on_event('start_epoch')

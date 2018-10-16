@@ -145,7 +145,7 @@ cpdef calc_int_prod(arr):
     return ret
 
 
-cdef bin_operation(BINOP_FUNC func, lhs, rhs, ret, cudaStream_t stream = <cudaStream_t> 0):
+cdef bin_operation(BINOP_FUNC func, lhs, rhs, ret, cudaStream_t stream):
 
     cuda_base.check_heap_device(lhs, rhs, ret)
 
@@ -199,7 +199,7 @@ ctypedef void(*BINOP_FUNC_NUM)(
     size_t size, cudaStream_t stream)
 
 
-cdef bin_operation_num(BINOP_FUNC_NUM func, lhs, rhs, ret, cudaStream_t stream = <cudaStream_t> 0):
+cdef bin_operation_num(BINOP_FUNC_NUM func, lhs, rhs, ret, cudaStream_t stream):
     cuda_base.check_heap_device(lhs, ret)
 
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > lhs._ptr
@@ -247,31 +247,31 @@ def cudiv(gpu_value1, gpu_value2, gpu_value3, handle):
         bin_operation_num(thrust_div_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
 
 
-def curdiv(gpu_value1, gpu_value2, gpu_value3):
+def curdiv(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_rdiv, gpu_value1, gpu_value2, gpu_value3)
+        bin_operation(thrust_rdiv, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
     else:
-        bin_operation_num(thrust_rdiv_num, gpu_value1, gpu_value2, gpu_value3)
+        bin_operation_num(thrust_rdiv_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
 
 
-def cupow(gpu_value1, gpu_value2, gpu_value3):
+def cupow(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_pow, gpu_value1, gpu_value2, gpu_value3)
+        bin_operation(thrust_pow, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
     else:
-        bin_operation_num(thrust_pow_num, gpu_value1, gpu_value2, gpu_value3)
+        bin_operation_num(thrust_pow_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
 
 
-def curpow(gpu_value1, gpu_value2, gpu_value3):
+def curpow(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_rpow, gpu_value1, gpu_value2, gpu_value3)
+        bin_operation(thrust_rpow, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
     else:
-        bin_operation_num(thrust_rpow_num, gpu_value1, gpu_value2, gpu_value3)
+        bin_operation_num(thrust_rpow_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
 
 
 def cufill(value, gpu_value, handle):
@@ -1056,7 +1056,7 @@ def cu_optimizer_sgd(learning_rate, momentum, dy, previous_dy, new_dy, handle):
     cdef VALUE_TYPE lr = learning_rate
     cdef VALUE_TYPE mo = momentum
     cdef VALUE_TYPE * ptr_dy = <VALUE_TYPE * > < uintptr_t > dy._ptr
-    cdef VALUE_TYPE * ptr_pdy = <VALUE_TYPE * > < uintptr_t > previous_dy._ptr
+    cdef VALUE_TYPE * ptr_pdy = <VALUE_TYPE * > < uintptr_t > previous_dy._ptr if previous_dy is not None else <VALUE_TYPE * > 0
     cdef VALUE_TYPE * ptr_ndy = <VALUE_TYPE * > < uintptr_t > new_dy._ptr
     thrust_optimizer_sgd(Elems, lr, ptr_dy, mo, ptr_pdy, ptr_ndy, <cudaStream_t><uintptr_t> handle.stream)
 

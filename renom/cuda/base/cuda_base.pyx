@@ -319,6 +319,7 @@ cdef class GPUHeap(object):
     def __int__(self):
         return self.ptr
 
+
     def __dealloc__(self):
         # Python functions should be avoided as far as we can
 
@@ -368,7 +369,8 @@ cdef class GPUHeap(object):
       cuMemcpyH2DAsync(ptr, self.ptr, nbytes, <uintptr_t> pinned_to_load.stream)
       streamInsertEvent(<cudaStream_t><uintptr_t> pinned_to_load.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event)
       with renom.cuda.RenomHandler() as handle:
-        cudaStreamWaitEvent(<cudaStream_t><uintptr_t> handle.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event, 0)
+        pass
+        #cudaStreamWaitEvent(<cudaStream_t><uintptr_t> handle.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event, 0)
 
 
     cpdef memcpyD2H(self, cpu_ptr, size_t nbytes):
