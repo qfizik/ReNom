@@ -16,7 +16,7 @@ def RenomHandler(device = None):
 
 class RenomHandle:
 
-  def __init__(self, device=None, prefetch_length = 2):
+  def __init__(self, device=None, prefetch_length = 4):
     assert rm.cuda.is_cuda_active(), 'Cuda should be active before building cuda-related objects.'
     self.device = rm.cuda.cuGetDevice()
     with rm.cuda.use_device(self.device):
@@ -39,3 +39,10 @@ class RenomHandle:
     self.pinned_memory[array.size] = collections.deque(maxlen = self.prefetch_length)
     for pin in range(self.prefetch_length):
       self.pinned_memory[array.size].append(rm.cuda.PinnedMemory(array, self.memstream))
+
+def RenomHandlers(gpus):
+  if isinstance(gpus, int):
+    gpus = range(gpus)
+  for gpu in gpus:
+    with RenomHandler(gpu) as handle:
+      yield handle
