@@ -4,7 +4,8 @@ class learnable_graph_element(graph_element):
   '''
     A learnable graph element is responsible for storing and performing the forward, backward and update operations in a normal neural-network setting.
   '''
-  def __init__(self, forward_graph, backward_graph, previous_elements = []): pass
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs) 
     
     
 
