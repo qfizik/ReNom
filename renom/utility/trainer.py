@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-from renom.cuda import use_device, is_cuda_active
+from renom.cuda import use_device, is_cuda_active, get_gpu
 from renom.core import Node
 
 
@@ -98,6 +98,9 @@ DEFAULT_EVENTS = {
 }
 
 
+def share_gradient(communicator, gradients):
+    communicator.allReduce(gradients)
+
 class Trainer(object):
     """Trainer class.
 
@@ -140,6 +143,7 @@ class Trainer(object):
     def __init__(self, model, num_epoch, loss_func, batch_size,
                  optimizer=None, shuffle=True, events=None, num_gpu=1, regularization=None):
 
+        assert len(model) == num_gpu
         self.model = model
         self.num_epoch = num_epoch
         self.loss_func = loss_func
@@ -148,6 +152,7 @@ class Trainer(object):
         self.regularization = regularization
         self.shuffle = shuffle
         self.num_gpu = num_gpu
+        self.communicator = renom.cuda.DeviceCommunicator(num_gpu)
         self.train_loss_list = []
         self.test_loss_list = []
 
@@ -182,11 +187,7 @@ class Trainer(object):
         self.test_loss_list = []
 
         models = self.model
-        #models = [self.model]
-        #if self.num_gpu > 1:
-        #    models.extend([self.model.__class__() for _ in range(self.num_gpu - 1)])
-        #    for n in range(self.num_gpu):
-        #        models[n].set_gpu(n)
+        if self.num_gpu > 1:
 
         while self.epoch < self.num_epoch:
             self.on_event('start_epoch')
@@ -197,6 +198,7 @@ class Trainer(object):
                 datalen = len(data) // len(models)
                 if not datalen:
                     continue
+                # TODO: Spreading batches over devices should be done by the distributor
                 self.data = [data[i:i + datalen] for i in range(0, datalen * len(models), datalen)]
                 if is_cuda_active():
                     self.data = [Node(d) if not isinstance(d, Node) else d for d in self.data]
@@ -205,6 +207,7 @@ class Trainer(object):
                             with use_device(n):
                                 d.to_gpu()
 
+                # TODO: Same as above with labels
                 targetlen = len(target) // len(models)
                 self.targets = [target[i:i + targetlen]
                                 for i in range(0, targetlen * len(models), targetlen)]
@@ -215,6 +218,9 @@ class Trainer(object):
                             with use_device(n):
                                 d.to_gpu()
 
+                # TODO broadcast model parameters?
+                # This could possibly be done by simply
+                # sharing gradients
                 for gpu in range(1, self.num_gpu):
                     models[gpu].copy_params(models[0])
 
@@ -247,14 +253,22 @@ class Trainer(object):
 
                 for gpu in range(self.num_gpu):
                     model = models[gpu]
+                    # TODO does this part even work?
                     with use_device(gpu):
                         self.grads.append(self.losses[gpu].grad())
 
                 self.on_event('grad')
 
-                if self.num_gpu > 1:
-                    models[0].join_grads(self.grads[0], zip(models[1:], self.grads[1:]))
+                # TODO This should be done by all reduce followed by broadcast
+                grads_list = [None for _ in range(self.num_gpu)]
+                for var in self.grads[0].variables:
+                    for gpu in range(self.num_gpu):
+                        grads_list[gpu] = self.grads[gpu].variables[var]
+                    self.communicate.allReduce(grads_list)
+                #if self.num_gpu > 1:
+                #    models[0].join_grads(self.grads[0], zip(models[1:], self.grads[1:]))
 
+                # TODO should a single device do this or each device?
                 self.grads[0].update(self.optimizer)
 
                 self.on_event('updated')

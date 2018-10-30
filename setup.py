@@ -236,6 +236,16 @@ def setup_cuda():
                              include_dirs=includes,
                              )
 
+
+    ext_nccl = Extension('renom.cuda.nccl.nccl',
+                             sources=['renom/cuda/nccl/nccl.pyx'],
+                             depends=[],
+                             libraries=['cuda', 'nccl'],
+                             library_dirs=libraries,
+                             language='c++',
+                             include_dirs=includes,
+                             )
+
     global ext_modules, cuda_sources
 
     ext_modules = [ext_base,
@@ -246,6 +256,7 @@ def setup_cuda():
                    ext_thrust_float,
                    ext_thrust_double,
                    ext_gpuvalue,
+                   ext_nccl,
                    ]
 
     cuda_sources = [('cuda_misc_a',
