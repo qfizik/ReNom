@@ -1,4 +1,6 @@
 
+import renom as rm
+
 cpdef ncclCheck(err):
   if err != ncclSuccess:
     print("Error in NCCL: {}", err)
@@ -24,6 +26,7 @@ cdef class DeviceCommunicator:
       self.devs[i] = i
     self.comms = <ncclComm_t*>malloc(self.ndev * sizeof(ncclComm_t))
     ncclCheck(ncclCommInitAll(self.comms, self.ndev, self.devs))
+    
 
   def __dealloc__(self):
     for i in range(self.ndev):
@@ -38,31 +41,15 @@ cdef class DeviceCommunicator:
         elems *= gpuvarray[0].shape[i]
       ncclCheck(ncclGroupStart())
       for i in range(self.ndev):
-        ncclCheck(ncclAllReduce(
-            <const void*><uintptr_t>gpuvarray[i]._ptr,
-            <void*><uintptr_t>gpuvarray[i]._ptr,
-            elems,
-            ncclFloat,
-            ncclSum,
-            self.comms[i],
-            NULL
-        ))
-      ncclCheck(ncclGroupEnd())
-
-  def broadcast(self, gpuvarray, broadcast_device):
-      cdef int i
-      cdef size_t elems = 1
-      for i in range(len(gpuvarray[0].shape)):
-          elems *= gpuvarray[0].shape[i]
-      ncclCheck(ncclGroupStart())
-      for i in range(self.ndev):
-          ncclCheck(ncclBroadcast(
-            <const void*><uintptr_t>gpuvarray[i]._ptr,
-            <void*><uintptr_t>gpuvarray[i]._ptr,
-            elems,
-            ncclFloat,
-            <int>broadcast_device,
-            self.comms[i],
-            NULL
+        with rm.cuda.RenomHandler(i) as handle:
+          ncclCheck(ncclAllReduce(
+              <const void*><uintptr_t>gpuvarray[i]._ptr,
+              <void*><uintptr_t>gpuvarray[i]._ptr,
+              elems,
+              ncclFloat,
+              ncclSum,
+              self.comms[i],
+              <cudaStream_t><uintptr_t> handle.stream
           ))
       ncclCheck(ncclGroupEnd())
+

@@ -443,6 +443,15 @@ class GPUValue(object):
         ret = GPUValue(ptr=self._ptr, shape=a.shape)
         return ret
 
+    def batch_slice(self, num_batches):
+        shp = list(self.shape)
+        shp[0] = num_batches 
+        sz = calc_int_prod(shp)
+        new_bytes = sz * self.itemsize
+        assert new_bytes <= self.nbytes
+        ret = GPUValue(ptr=self._ptr, shape=tuple(shp))
+        return ret
+
     def get_gpu(self):
         return self
 
