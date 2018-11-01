@@ -9,7 +9,7 @@ class mul_forward(operation):
 
   def setup(self, inputs):
     a = inputs[0]['y']
-    b = inputs[0]['y']
+    b = inputs[1]['y']
     assert len(a) == len(b)
     for _a, _b in zip(a, b):
       assert _a.shape == _b.shape 
