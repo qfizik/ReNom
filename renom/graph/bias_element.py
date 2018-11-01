@@ -1,8 +1,4 @@
-from learnable_graph import learnable_graph_element
-from graph_element import operational_element
-from operation import operation
-from update_graph import update_operation
-from new_gpu import multi_gpu_variable
+from .core import learnable_graph_element, operational_element, operation, multi_gpu_variable
 import renom.utility.initializer as init
 import renom as rm
 
@@ -35,9 +31,6 @@ class bias_forward(operation):
     for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
       rm.cuda.cuadd(self._inputs[gpu], self._biases[gpu], self._outputs[gpu], handle)
 
-  def as_ndarray(self): return self._outputs.as_ndarray()
-
-  def __repr__(self): return self._outputs.__repr__()
 
 
 class bias_backward(operation):
@@ -52,8 +45,8 @@ class bias_backward(operation):
     self._storage = storage
     self._num_gpus = self._fwd_op._num_gpus
     self._bias_back = multi_gpu_variable(shape = self._fwd_op.get_key('b').get_shape(), gpus = self._fwd_op._num_gpus)
-    inputs = inputs[0]
-    self._vars = { 'dy' : inputs , 'b' : self._bias_back }
+    inputs = inputs[0]['dy']
+    self._vars = { 'y' : inputs, 'dy' : inputs , 'b' : self._bias_back }
     self._inputs = inputs
 
   def perform(self):
@@ -61,7 +54,6 @@ class bias_backward(operation):
       ret = rm.cuda.cusum(self._inputs[gpu], handle, axis = 0, keepdims = True)
       self._bias_back[gpu] = ret
 
-  def get_output_signature(self): return self._inputs
 
 class BiasElement(learnable_graph_element):
 

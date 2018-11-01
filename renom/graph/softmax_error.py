@@ -1,5 +1,5 @@
 import renom as rm
-from .core import operation, learnable_graph_element, graph_element, new_gpu
+from .core import operation, learnable_graph_element, graph_element, multi_gpu_variable 
 
 class softmax_forward(operation):
 
@@ -32,6 +32,7 @@ class softmax_backward(operation):
     output = multi_gpu_variable(shape = predictions.get_shape(), gpus = gpus)
 
     self._outputs = output
+    self._vars = { 'y' : output ,'dy' : output }
 
   def perform(self):
     for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
@@ -39,11 +40,6 @@ class softmax_backward(operation):
       rm.cuda.cusub(self._outputs[gpu], self._label_input[gpu], self._outputs[gpu], handle)
       rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
 
-
-  def get_output_signature(self):
-    return self._outputs
-
-  def __repr__(self): return self._outputs.__repr__()
 
 class SoftmaxElement(learnable_graph_element):
 
@@ -54,7 +50,7 @@ class SoftmaxElement(learnable_graph_element):
     self._backward_operations = [ softmax_backward()  ]
 
     super().__init__(previous_elements = previous_element)
-    self._calls = {}
+    self._calls = None
 
   def connect(self, *previous_elements):
     super().connect(*previous_elements)
@@ -65,12 +61,10 @@ class SoftmaxElement(learnable_graph_element):
   def connect_back(self, previous_element): assert False
 
   def update(self):
-    if self._bwd_graphs[0].is_setup() is False:
-      self._bwd_graphs[0]._start_points[0].setup(tag = 'Update')
-      self._bwd_graphs[0]._start_points[1].setup(tag = 'Update')
-      self._bwd_graphs[0]._start_points[0].gather_calls(self._calls, tag = 'Update')
-      self._bwd_graphs[0]._start_points[1].gather_calls(self._calls, tag = 'Update')
-      self._bwd_graphs[0].cleanup()
+    if self._calls is None:
+      self._bwd_graphs[0].setup(tag = 'Update')
+      self._calls = self._bwd_graphs[0].get_call_dict(tag = 'Update')
+      
     for depth in self._calls:
       for call in self._calls[depth]:
         call()
@@ -79,5 +73,3 @@ class SoftmaxElement(learnable_graph_element):
 
   def __repr__(self): return self._bwd.__repr__()
 
-  def print_tree(self):
-    self._bwd._start_points[0].print_tree()

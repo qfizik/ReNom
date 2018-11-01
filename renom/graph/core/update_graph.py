@@ -17,15 +17,14 @@ class update_operation(operation):
   def setup(self, inputs, storage):
     self._dy = self._producer.get_key(self._shared_key)
     self._outputs = self._consumer.get_key(self._shared_key)
+    assert len(self._dy) == len(self._outputs)
     gpus = self._outputs._num_gpus
     self._num_gpus = gpus
     if update_operation._communicator is None and self._num_gpus > 1:
       update_operation._communicator = rm.cuda.DeviceCommunicator(gpus)
-    self._dy = inputs[0]
     self._setup = True    
 
   def perform(self):
-    assert self._setup
     if self._num_gpus > 1:
       update_operation._communicator.allReduce(self._dy)
     for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):

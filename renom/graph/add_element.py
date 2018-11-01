@@ -1,11 +1,7 @@
 import renom as rm
-import numpy as np
-from operation import operation
-from new_gpu import multi_gpu_variable
-from graph_element import graph_element, operational_element
-from learnable_graph import learnable_graph_element
+from .core import operation, multi_gpu_variable, operational_element, learnable_graph_element
 
-class add(operation):
+class add_forward(operation):
  
   name = 'Add (F)'
  
@@ -13,9 +9,9 @@ class add(operation):
     self._a = None
     self._b = None
 
-  def setup(self, inputs):
-    a = inputs[0]
-    b = inputs[1]
+  def setup(self, inputs, storage):
+    a = inputs[0]['y']
+    b = inputs[1]['y']
     assert len(a) == len(b)
     for _a, _b in zip(a, b):
       assert _a.shape == _b.shape
@@ -23,41 +19,39 @@ class add(operation):
     self._gpus = [gpu for gpu in range(self._num_gpus)]
     self._a = a
     self._b = b
-    self._c = multi_gpu_variable(shape=a[0].shape, gpus=self._num_gpus, allocate_backward=True) 
+    self._c = multi_gpu_variable(shape=a.get_shape(), gpus=self._num_gpus) 
+    self._vars = { 'a' : a, 'b' : b, 'y' : self._c }
 
   def perform(self):
     for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._gpus)):
       rm.cuda.cuadd(self._a[gpu], self._b[gpu], self._c[gpu], handle)
   
-  def get_output_signature(self): return self._c
-  def __repr__(self): return self._c.__repr__()
-  def as_ndarray(self): return self._c.as_ndarray()
 
 class add_back(operation):
 
   name = 'Add (B)'
 
-  def setup(self, inputs):
-    self._outputs = inputs[0]
+  def setup(self, inputs, storage):
+    self._outputs = inputs[0]['dy']
+    self._vars = { 'y' : self._outputs, 'dy' : self._outputs } 
 
   def perform(self): pass
 
-  def get_output_signature(self): return self._outputs
 
 
-class add_element(learnable_graph_element):
+class AddElement(learnable_graph_element):
 
   has_back = True
 
   def __init__(self):
   
-    fwd_op = add()
+    fwd_op = add_forward()
     self._forward_operations = [ fwd_op ]
     self._backward_operations = [ add_back(), add_back() ]
     super().__init__()
  
 def _add(self, other):
-  ret = add_element()
+  ret = AddElement()
   ret.connect(self, other)
   return ret
 

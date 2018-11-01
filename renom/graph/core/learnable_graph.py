@@ -49,10 +49,13 @@ class learnable_graph_element(graph_element):
       graph.add_input(backward_graph_input)
     
   def __call__(self, *args, **kwargs): return self.connect(*args, **kwargs)
-  def __repr__(self): return self._fwd.__repr__()
+  def __repr__(self):
+    self.forward()
+    return self._fwd.__repr__()
+
   def forward(self):
     self._fwd.setup(tag = 'Forward')
-    self._fwd.forward()
+    self._fwd.forward(tag = 'Forward')
 
   def print_tree(self): self._fwd.print_tree()
 

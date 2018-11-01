@@ -1,7 +1,4 @@
-from operation import operation
-from graph_element import operational_element
-from learnable_graph import learnable_graph_element
-from new_gpu import multi_gpu_variable
+from .core import operation, operational_element, learnable_graph_element, multi_gpu_variable
 import renom as rm
 
 class reshape_op(operation):
@@ -38,7 +35,7 @@ class reshape_op_back(operation):
 
   def __repr__(self): return self._outputs.__repr__()
 
-class reshape_element(learnable_graph_element):
+class ReshapeElement(learnable_graph_element):
 
   has_back = True
 

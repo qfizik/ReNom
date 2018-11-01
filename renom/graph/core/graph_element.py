@@ -1,5 +1,6 @@
 import numpy as np
 import abc
+import functools
 
 class graph_element(abc.ABC):
   '''
@@ -17,7 +18,6 @@ class graph_element(abc.ABC):
       previous_elements = [ previous_elements ]
     elif previous_elements is None:
       previous_elements = []
-    self._start_points = []
 
     depth = 0
     for prev in previous_elements:
@@ -26,29 +26,14 @@ class graph_element(abc.ABC):
     self._depth = depth
     self._next_elements = []
     self.update_depth()
-    self.update_start()
-
-
 
   def add_input(self, new_input):
-
     self._previous_elements.append(new_input)
     new_input.add_next(self)
     self.update_depth()
-    self.update_start()
 
   def add_next(self, new_next):
     self._next_elements.append(new_next)
-
-  def update_start(self):
-    starts = [ ]
-    for prev in self._previous_elements:
-      starts.extend(prev._start_points)
-    if len(starts) == 0:
-      starts.append(self)
-    self._start_points = starts
-    for next_element in self._next_elements:
-      next_element.update_start()
 
   def update_depth(self):
     for prev in self._previous_elements:
@@ -58,11 +43,8 @@ class graph_element(abc.ABC):
           next_element.update_depth()
 
 
-  def print_tree(self):
-    for start in self._start_points:
-      start.print_tree()
-    for next_element in self._next_elements:
-      next_element.print_tree()
+  def __lt__(self, other):
+    return self._depth < other._depth
 
   @abc.abstractmethod
   def forward(self): pass
@@ -88,12 +70,25 @@ class graph_storage:
     self._vars[key] = value
 
   def retrieve(self, key):
-    return self._vars[key]
+    return self._vars.get(key, None)
 
   def merge(self, other):
     for key in other._vars.keys():
       self._vars[key] = other._vars[key]
     other._vars = self._vars
+
+
+  '''
+    There is currently a bug in Python when attempting to delete function references in a list.
+    Manually setting each element to be None prevents the list from trying to do anything with
+    with the reference upon deletion.
+  '''
+  def __del__(self):
+    if 'CallDict' in self._vars:
+      dct = self._vars['CallDict']
+      for depth in dct:
+        for op in range(len(dct[depth])):
+          dct[depth][op] = None
 
 class operational_element(graph_element):
   '''
@@ -106,55 +101,17 @@ class operational_element(graph_element):
 
     self._op = operation
     self._visited = False 
-    self._called = False
-    self._called_setup = False
 
     self._tags = []
     if tags is not None:
       self.add_tags(new_tags = tags)
 
-  def is_setup(self): return self._called_setup
 
   def add_input(self, new_input):
     super().add_input(new_input)
     self._storage.merge(new_input._storage)
 
-  def visit_once(func):
-    def ret_func(self, *args, **kwargs):
-      if self._visited:
-        return
-      self._visited = True
-      func(self, *args, **kwargs)
-    return ret_func
 
-  def cleanup(self):
-    if self._visited is False:
-      return
-    self._visited = False
-    for start in self._start_points:
-      start.cleanup()
-    for elem in self._next_elements:
-      elem.cleanup()
-
-  def forward(self, tag = None):
-    if tag is None:
-      self._op.perform()
-    if tag not in self._tags:
-      return
-    self._op.perform()
-    for next_elem in self._next_elements:
-      next_elem.forward(tag)
-
-  def gather_calls(self, call_list, tag):
-    if tag not in self._tags:
-      return
-    assert self.is_setup()
-    if self._depth not in call_list:
-      call_list[self._depth] = []
-    if self._op.perform not in call_list[self._depth]:
-      call_list[self._depth].append(self._op.perform)
-    for next_elem in self._next_elements:
-      next_elem.gather_calls(call_list, tag)
 
   def add_tags(self, new_tags):
     for tag in new_tags:
@@ -163,29 +120,75 @@ class operational_element(graph_element):
         for prev in self._previous_elements:
           prev.add_tags([ tag ])
 
-  @visit_once
-  def setup(self, tag = None):
-    for start in self._start_points:
-      start.setup(tag = tag)
-    if tag in self._tags or tag is None:
-      inputs = []
-      self._called_setup = True
+
+  def walk_tree(func):
+    def cleanup(self):
+      if self._visited is False:
+        return
+      self._visited = False
       for prev in self._previous_elements:
-        if prev.is_setup() is False:
-          prev.setup(tag)
-        inputs.append(prev.get_output())
-      self._op.setup(inputs, self._storage)
-      for next_element in self._next_elements:
-        if next_element._depth == self._depth + 1:
-          next_element.setup(tag = tag)
+        cleanup(prev)
+      for elem in self._next_elements:
+        cleanup(elem)
 
+    def walk_func(self, func, *args, **kwargs):
+      if self._visited is True:
+        return
+      self._visited = True 
+      for prev in self._previous_elements:
+        walk_func(prev, func, *args, **kwargs)
+      func(self, *args, **kwargs)
+      self._next_elements.sort()
+      for elem in self._next_elements:
+        walk_func(elem, func, *args, **kwargs)
 
-  @visit_once
-  def print_tree(self):
+    @functools.wraps(func)
+    def ret_func(self, *args, **kwargs):
+      walk_func(self, func, *args, **kwargs)
+      cleanup(self)
+    return ret_func
+
+  def check_tags(func):
+    @functools.wraps(func)
+    def ret_func(self, *args, tag = None, **kwargs):
+      if tag in  self._tags or tag is None:
+        func(self, *args, **kwargs)
+    return ret_func
+
+  def get_call_dict(self, tag):
+    dct = self._storage.retrieve('CallDict')
+    if dct is None:
+      self._storage.register('CallDict', {})
+      self._create_call_dict(tag = tag)
+      dct = self._storage.retrieve('CallDict')
+    return dct
+
+  @walk_tree
+  @check_tags
+  def _create_call_dict(self):
+    dct = self._storage.retrieve('CallDict')
+    if self._depth not in dct:
+      dct[self._depth] = [ ]
+    dct[self._depth].append(self._op.perform)
+
+  @walk_tree
+  @check_tags
+  def forward(self):
+    self._op.perform()
+
+  @walk_tree
+  @check_tags
+  def setup(self):
+    inputs = []
+    for prev in self._previous_elements:
+      inputs.append(prev.get_output())
+    self._op.setup(inputs, self._storage)
+
+  @walk_tree
+  def print_tree(self): 
     print('I am a {:s} at depth {:d}'.format(self._op.name, self._depth))
-    #print('My tags are {}'.format(self._tags))
-    #print('My starting points are: {}'.format([e._op.name for e in self._start_points]))
-    super().print_tree()
+    print('My storage id is {}'.format(id(self._storage._vars)))
+
 
   def add_next(self, new_next):
     assert isinstance(new_next, operational_element)
@@ -193,10 +196,7 @@ class operational_element(graph_element):
     self.add_tags(new_tags)
     super().add_next(new_next)
 
-  def get_output(self):# return self._op.get_output_signature()
-    ret = self._op.get_output_signature()
-    assert ret is not None
-    return ret
+  def get_output(self): return self._op.get_output_signature()
 
   def as_ndarray(self): return self._op.as_ndarray()
 

@@ -3,9 +3,9 @@ import renom as rm
 
 class multi_gpu_variable:
 
-  def __init__(self, shape = None, gpus = 1, allocate_backward = True, initializer = None, ptrs = None):
+  def __init__(self, shape = None, gpus = 1, initializer = None, ptrs = None):
     self._num_gpus = gpus
-    self._forwards = []
+    self._gpuvalues = []
     self._shape = shape
     self._initializer = initializer
     self._finished_setup = False
@@ -30,30 +30,27 @@ class multi_gpu_variable:
           arr = self._initializer(self._shape)
         else:
           arr = np.ones(self._shape)
-        self._forwards.append(rm.GPUValue(array=arr, shape=self._shape, ptr = self._ptrs[gpu]._ptr if self._ptrs is not None else None))
+        self._gpuvalues.append(rm.GPUValue(array=arr, shape=self._shape, ptr = self._ptrs[gpu]._ptr if self._ptrs is not None else None))
 
     self._finished_setup = True
     
   def get_shape(self): return self._shape
 
-  def get_forwards(self, gpu_id):
-    return self._forwards[gpu_id]
-
   def __iter__(self):
-    for _fwd in self._forwards:
+    for _fwd in self._gpuvalues:
       yield _fwd
 
   def __len__(self):
     return self._num_gpus
 
   def __getitem__(self, index):
-    return self._forwards[index]
+    return self._gpuvalues[index]
 
   def __setitem__(self, index, value):
-    self._forwards[index] = value
+    self._gpuvalues[index] = value
       
   def __repr__(self):
     assert self._finished_setup is True
-    return self._forwards[0].new_array().__repr__()
+    return self._gpuvalues[0].new_array().__repr__()
 
-  def as_ndarray(self): return self._forwards[0].new_array()
+  def as_ndarray(self): return self._gpuvalues[0].new_array()

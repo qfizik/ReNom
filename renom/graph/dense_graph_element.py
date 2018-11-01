@@ -33,11 +33,6 @@ class dense_forward(operation):
     for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
       rm.cuda.cublas_gemm(self._inputs[gpu], 0, self._weights[gpu], 0, self._outputs[gpu], handle)
 
-  def as_ndarray(self): return self._outputs.as_ndarray()
-
-  def __repr__(self):
-    return self._outputs.__repr__()
-
 
 class dense_backward(operation):
 
@@ -48,7 +43,7 @@ class dense_backward(operation):
 
   def setup(self, inputs, storage):
 
-    inputs = inputs[0]
+    inputs = inputs[0]['dy']
     gpus = inputs._num_gpus
     self._num_gpus = gpus
     weights = self._fwd_op.get_key('w')
@@ -60,13 +55,13 @@ class dense_backward(operation):
 
     outputs = multi_gpu_variable(shape = output_shape, gpus = gpus, initializer = None)
 
+    self._vars = { 'y' : outputs, 'dy' : outputs }
     self._outputs = outputs
 
   def perform(self):
     for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
       rm.cuda.cublas_gemm(self._inputs[gpu], 0, self._weights[gpu], 1, self._outputs[gpu], handle)
 
-  def get_output_signature(self): return self._outputs
 
 
 class dense_weight_backward(operation):
@@ -79,7 +74,7 @@ class dense_weight_backward(operation):
 
 
   def setup(self, inputs, storage):
-    inputs = inputs[0]
+    inputs = inputs[0]['dy']
     self._inputs = inputs
 
     gpus = inputs._num_gpus
@@ -90,7 +85,7 @@ class dense_weight_backward(operation):
 
     outputs = multi_gpu_variable(shape = output_shape, gpus = gpus, initializer = None)
 
-    self._vars = {'w' : outputs}
+    self._vars = { 'y' : outputs, 'w' : outputs }
 
     self._fwd_ins = fwd_ins
     self._outputs = outputs
@@ -99,8 +94,6 @@ class dense_weight_backward(operation):
     for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
       rm.cuda.cublas_gemm(self._fwd_ins[gpu], 1, self._inputs[gpu], 0, self._outputs[gpu], handle)
 
-  def get_key(self, key): return self._vars[key]
-  def get_output_signature(self): return self._outputs
 
 class DenseGraphElement(learnable_graph_element):
 
