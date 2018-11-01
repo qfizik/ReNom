@@ -1,8 +1,4 @@
-from learnable_graph import learnable_graph_element
-from graph_element import operational_element
-from operation import operation
-from update_graph import update_operation
-from new_gpu import multi_gpu_variable
+from .core import learnable_graph_element, operational_element, operation, multi_gpu_variable
 import renom.utility.initializer as init
 import renom as rm
 
@@ -106,7 +102,7 @@ class dense_weight_backward(operation):
   def get_key(self, key): return self._vars[key]
   def get_output_signature(self): return self._outputs
 
-class dense_graph_element(learnable_graph_element):
+class DenseGraphElement(learnable_graph_element):
 
   has_back = True
 

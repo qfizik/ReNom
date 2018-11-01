@@ -1,6 +1,6 @@
 import renom as rm
-from operation import operation
-from graph_element import operational_element
+from .operation import operation
+from .graph_element import operational_element
 
 class update_operation(operation):
 

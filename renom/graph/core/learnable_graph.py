@@ -1,5 +1,5 @@
-from graph_element import graph_element, operational_element
-from update_graph import update_operation
+from .graph_element import graph_element, operational_element
+from .update_graph import update_operation
 
 class learnable_graph_element(graph_element):
   '''

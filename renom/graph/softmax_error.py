@@ -1,8 +1,5 @@
 import renom as rm
-from operation import operation
-from learnable_graph import learnable_graph_element
-from graph_element import operational_element
-from new_gpu import multi_gpu_variable
+from .core import operation, learnable_graph_element, graph_element, new_gpu
 
 class softmax_forward(operation):
 
@@ -48,7 +45,7 @@ class softmax_backward(operation):
 
   def __repr__(self): return self._outputs.__repr__()
 
-class softmax_element(learnable_graph_element):
+class SoftmaxElement(learnable_graph_element):
 
   is_connector_element = True
 

@@ -84,7 +84,7 @@ class convo_backward(operation):
 
 
 
-class convolutional_graph_element(learnable_graph_element):
+class ConvolutionalGraphElement(learnable_graph_element):
    
   has_back = True
 

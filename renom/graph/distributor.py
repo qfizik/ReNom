@@ -1,9 +1,6 @@
 import numpy as np
 import renom as rm
-from graph_element import operational_element
-from learnable_graph import learnable_graph_element
-from operation import operation
-from new_gpu import multi_gpu_variable
+from .core import operational_element, learnable_graph_element, operation, multi_gpu_variable
 
 class dispatch(operation):
 
@@ -44,11 +41,11 @@ class data_entry_element(learnable_graph_element):
 
     super().__init__(previous_elements = previous_element)
 
-class distributor:
+class DistributorElement:
 
 
   def __init__(self, data, labels, batch_size = 64, num_gpus = 1):
-    super(distributor, self).__init__()
+    super().__init__()
     self._data = data
     self._labels = labels
     self._batch_size = batch_size

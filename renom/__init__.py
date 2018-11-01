@@ -54,6 +54,7 @@ from renom.layers.activation import *
 from renom.layers.function import *
 from renom.layers.loss import *
 from renom.optimizer import *
+from renom import graph
 import numpy as np
 
 

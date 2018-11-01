@@ -1,9 +1,6 @@
 import numpy as np
 import renom as rm
-from new_gpu import multi_gpu_variable
-from graph_element import graph_element, operational_element
-from learnable_graph import learnable_graph_element
-from operation import operation
+from .core import multi_gpu_variable, operational_element, learnable_graph_element, operation
 
 class static_value(operation):
 
@@ -21,7 +18,7 @@ class static_value(operation):
 
   def __repr__(self): return self._outputs.__repr__()
 
-class static_variable(learnable_graph_element):
+class StaticVariableElement(learnable_graph_element):
 
   has_back = False
 

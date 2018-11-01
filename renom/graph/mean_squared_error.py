@@ -1,8 +1,5 @@
 import renom as rm
-from operation import operation
-from learnable_graph import learnable_graph_element
-from graph_element import operational_element
-from new_gpu import multi_gpu_variable
+from .core import learnable_graph_element, operation, operational_element, multi_gpu_variable
 
 class mean_squared_forward(operation):
 
@@ -61,7 +58,7 @@ class mean_squared_backward(operation):
   def get_output_signature(self): return self._outputs
 
 
-class mean_squared_element(learnable_graph_element):
+class MeanSquaredElement(learnable_graph_element):
 
   def __init__(self, previous_elements = None):
     self._calls = {}

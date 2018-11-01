@@ -63,7 +63,7 @@ class bias_backward(operation):
 
   def get_output_signature(self): return self._inputs
 
-class bias_element(learnable_graph_element):
+class BiasElement(learnable_graph_element):
 
   has_back = True
 
