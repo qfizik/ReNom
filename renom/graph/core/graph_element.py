@@ -12,8 +12,6 @@ class graph_element(abc.ABC):
   
   def __init__(self, previous_elements = None):
 
-    if previous_elements is not None:
-      print('Creating node {} with children {}'.format(id(self), [id(p) for p in previous_elements]))
     if isinstance(previous_elements, graph_element):
       previous_elements = [ previous_elements ]
     elif previous_elements is None:
@@ -23,7 +21,7 @@ class graph_element(abc.ABC):
     for prev in previous_elements:
       prev.add_next(self)
     self._previous_elements = previous_elements
-    self._depth = depth
+    self.depth = depth
     self._next_elements = []
     self.update_depth()
 
@@ -37,14 +35,14 @@ class graph_element(abc.ABC):
 
   def update_depth(self):
     for prev in self._previous_elements:
-      if prev._depth >= self._depth:
-        self._depth = prev._depth + 1
+      if prev.depth >= self.depth:
+        self.depth = prev.depth + 1
         for next_element in self._next_elements:
           next_element.update_depth()
 
 
   def __lt__(self, other):
-    return self._depth < other._depth
+    return self.depth < other.depth
 
   @abc.abstractmethod
   def forward(self): pass
@@ -56,7 +54,7 @@ class graph_element(abc.ABC):
     for elem in self._previous_elements:
       elem.remove_next(self)
     self._previous_elements = []
-    self._depth = 0
+    self.depth = 0
     self._start_points = []
     for elem in self._next_elements:
       elem.remove_input(self)
@@ -140,7 +138,8 @@ class operational_element(graph_element):
       func(self, *args, **kwargs)
       self._next_elements.sort()
       for elem in self._next_elements:
-        walk_func(elem, func, *args, **kwargs)
+        if elem.depth == self.depth + 1:
+          walk_func(elem, func, *args, **kwargs)
 
     @functools.wraps(func)
     def ret_func(self, *args, **kwargs):
@@ -167,9 +166,9 @@ class operational_element(graph_element):
   @check_tags
   def _create_call_dict(self):
     dct = self._storage.retrieve('CallDict')
-    if self._depth not in dct:
-      dct[self._depth] = [ ]
-    dct[self._depth].append(self._op.perform)
+    if self.depth not in dct:
+      dct[self.depth] = [ ]
+    dct[self.depth].append(self._op.perform)
 
   @walk_tree
   @check_tags
@@ -186,8 +185,7 @@ class operational_element(graph_element):
 
   @walk_tree
   def print_tree(self): 
-    print('I am a {:s} at depth {:d}'.format(self._op.name, self._depth))
-    print('My storage id is {}'.format(id(self._storage._vars)))
+    print('I am a {:s} at depth {:d}'.format(self._op.name, self.depth))
 
 
   def add_next(self, new_next):

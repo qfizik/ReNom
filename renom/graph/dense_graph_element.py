@@ -51,7 +51,7 @@ class dense_backward(operation):
     self._weights = weights
 
     fwd_ins = self._fwd_op.get_key('x')
-    output_shape = fwd_ins.get_shape()
+    output_shape = fwd_ins.shape
 
     outputs = multi_gpu_variable(shape = output_shape, gpus = gpus, initializer = None)
 
@@ -81,7 +81,7 @@ class dense_weight_backward(operation):
     self._num_gpus = gpus
     fwd_ins = self._fwd_op.get_key('x')
     fwd_weights = self._fwd_op.get_key('w')
-    output_shape = fwd_weights.get_shape()
+    output_shape = fwd_weights.shape
 
     outputs = multi_gpu_variable(shape = output_shape, gpus = gpus, initializer = None)
 

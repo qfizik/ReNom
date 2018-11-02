@@ -8,5 +8,7 @@ from .reshape_element import ReshapeElement
 from .mean_squared_error import MeanSquaredElement
 from .add_element import AddElement
 from .mul_element import MulElement
+from .convolutional_element import ConvolutionalGraphElement
+from .pool_element import MaxPoolElement
 
 

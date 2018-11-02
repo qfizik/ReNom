@@ -7,7 +7,7 @@ class mul_forward(operation):
 
   def __init__(self): pass
 
-  def setup(self, inputs):
+  def setup(self, inputs, storage):
     a = inputs[0]['y']
     b = inputs[1]['y']
     assert len(a) == len(b)
@@ -16,7 +16,7 @@ class mul_forward(operation):
     self._num_gpus = len(a)
     self._a = a
     self._b = b
-    self._c = multi_gpu_variable(shape=a.get_shape(), gpus = self._num_gpus)
+    self._c = multi_gpu_variable(shape=a.shape, gpus = self._num_gpus)
     self._vars = { 'a' : a, 'b' : b, 'y' : self._c }
 
   def perform(self):
@@ -32,11 +32,11 @@ class mul_backward(operation):
     self._fwd_op = associated_forward
     self._key = key
 
-  def setup(self, inputs):
+  def setup(self, inputs, storage):
     self._dy = inputs[0]['dy']
     other = self._fwd_op.get_key(self._key)
     self._other = other
-    self._outputs = multi_gpu_variable(shape = other.get_shape(), gpus = other._num_gpus)
+    self._outputs = multi_gpu_variable(shape = other.shape, gpus = other._num_gpus)
     self._vars = { 'y' : self._outputs, 'dy' : self._outputs }
 
 

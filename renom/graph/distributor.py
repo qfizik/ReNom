@@ -51,9 +51,11 @@ class DistributorElement:
     self._batch_size = batch_size
     self._num_gpus = num_gpus
 
-    data_op = dispatch(data, num_gpus = num_gpus)
-    lbls_op = dispatch(labels, num_gpus = num_gpus)
+    data_op = dispatch(data, num_gpus = num_gpus, batch_size = batch_size)
+    lbls_op = dispatch(labels, num_gpus = num_gpus, batch_size = batch_size)
 
+    self._dt_op = data_op
+    self._lb_op = lbls_op
     self._data_graph = data_entry_element(data_op)
     self._label_graph = data_entry_element(lbls_op)
 
@@ -62,8 +64,8 @@ class DistributorElement:
   def get_output_graphs(self): return self._data_graph, self._label_graph
 
   def reset(self):
-    self._data_graph._batch_num = 0
-    self._label_graph._batch_num = 0
+    self._dt_op._batch_num = 0
+    self._lb_op._batch_num = 0
 
   def __repr__(self): return self._data_graph.__repr__()
 

@@ -21,15 +21,15 @@ class softmax_backward(operation):
 
     predictions = inputs[0]['y']
     labels = inputs[1]['y']
-    for a, b in zip(predictions.get_shape(), labels.get_shape()):
+    for a, b in zip(predictions.shape, labels.shape):
       assert a == b, '{} / {}'.format(a, b)
-    self._N = predictions.get_shape()[0]
+    self._N = predictions.shape[0]
     self._graph_input = predictions
     self._label_input = labels
 
     gpus = predictions._num_gpus
     self._num_gpus = gpus
-    output = multi_gpu_variable(shape = predictions.get_shape(), gpus = gpus)
+    output = multi_gpu_variable(shape = predictions.shape, gpus = gpus)
 
     self._outputs = output
     self._vars = { 'y' : output ,'dy' : output }

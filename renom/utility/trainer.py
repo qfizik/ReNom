@@ -187,7 +187,6 @@ class Trainer(object):
         self.test_loss_list = []
 
         models = self.model
-        if self.num_gpu > 1:
 
         while self.epoch < self.num_epoch:
             self.on_event('start_epoch')

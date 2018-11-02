@@ -19,7 +19,7 @@ class add_forward(operation):
     self._gpus = [gpu for gpu in range(self._num_gpus)]
     self._a = a
     self._b = b
-    self._c = multi_gpu_variable(shape=a.get_shape(), gpus=self._num_gpus) 
+    self._c = multi_gpu_variable(shape=a.shape, gpus=self._num_gpus) 
     self._vars = { 'a' : a, 'b' : b, 'y' : self._c }
 
   def perform(self):

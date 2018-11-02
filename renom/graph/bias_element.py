@@ -16,7 +16,7 @@ class bias_forward(operation):
     assert isinstance(inputs, multi_gpu_variable)
     self._inputs = inputs
 
-    in_shape = inputs.get_shape()
+    in_shape = inputs.shape
     bias_shape = ( 1 , in_shape[1] )
     gpus = inputs._num_gpus
     self._num_gpus = gpus
@@ -44,7 +44,7 @@ class bias_backward(operation):
   def setup(self, inputs, storage):
     self._storage = storage
     self._num_gpus = self._fwd_op._num_gpus
-    self._bias_back = multi_gpu_variable(shape = self._fwd_op.get_key('b').get_shape(), gpus = self._fwd_op._num_gpus)
+    self._bias_back = multi_gpu_variable(shape = self._fwd_op.get_key('b').shape, gpus = self._fwd_op._num_gpus)
     inputs = inputs[0]['dy']
     self._vars = { 'y' : inputs, 'dy' : inputs , 'b' : self._bias_back }
     self._inputs = inputs
