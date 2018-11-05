@@ -16,10 +16,12 @@ class static_value(operation):
 
 class StaticVariableElement(learnable_graph_element):
 
-  has_back = False
+  _has_back = False
+  _name = 'Static Element'
 
   def __init__(self, value, num_gpus = 1):
-    val = multi_gpu_variable(shape = value.shape, gpus = num_gpus)
+    gpu_list = [gpu for gpu in range(num_gpus)]
+    val = multi_gpu_variable(shape = value.shape, gpus = gpu_list)
     for gpuv in val:
       gpuv.to_gpu(value)
     self._forward_operations = [ static_value(val) ]

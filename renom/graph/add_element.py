@@ -15,15 +15,15 @@ class add_forward(operation):
     assert len(a) == len(b)
     for _a, _b in zip(a, b):
       assert _a.shape == _b.shape
-    self._num_gpus = len(a)
-    self._gpus = [gpu for gpu in range(self._num_gpus)]
+    #self._num_gpus = len(a)
+    self.gpus = a.gpus
     self._a = a
     self._b = b
-    self._c = multi_gpu_variable(shape=a.shape, gpus=self._num_gpus) 
+    self._c = multi_gpu_variable(shape=a.shape, gpus=self.gpus)
     self._vars = { 'a' : a, 'b' : b, 'y' : self._c }
 
   def perform(self):
-    for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._gpus)):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cuadd(self._a[gpu], self._b[gpu], self._c[gpu], handle)
   
 
@@ -41,7 +41,9 @@ class add_back(operation):
 
 class AddElement(learnable_graph_element):
 
-  has_back = True
+  _has_back = True
+  _name = 'Add Element'
+  
 
   def __init__(self):
   

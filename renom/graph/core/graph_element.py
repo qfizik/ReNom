@@ -17,6 +17,7 @@ class graph_element(abc.ABC):
     elif previous_elements is None:
       previous_elements = []
 
+    self._visited = False 
     depth = 0
     for prev in previous_elements:
       prev.add_next(self)
@@ -32,6 +33,14 @@ class graph_element(abc.ABC):
 
   def add_next(self, new_next):
     self._next_elements.append(new_next)
+
+  def remove_input(self, prev_input):
+    if prev_input in self._previous_elements:
+      self._previous_elements.remove(prev_input)
+
+  def remove_next(self, prev_next):
+    if prev_next in self._next_elements:
+      self._next_elements.remove(prev_next)
 
   def update_depth(self):
     for prev in self._previous_elements:
@@ -49,6 +58,34 @@ class graph_element(abc.ABC):
 
   @abc.abstractmethod
   def __repr__(self): pass
+
+  def walk_tree(func):
+    def cleanup(self):
+      if self._visited is False:
+        return
+      self._visited = False
+      for prev in self._previous_elements:
+        cleanup(prev)
+      for elem in self._next_elements:
+        cleanup(elem)
+
+    def walk_func(self, func, *args, **kwargs):
+      if self._visited is True:
+        return
+      self._visited = True 
+      for prev in self._previous_elements:
+        walk_func(prev, func, *args, **kwargs)
+      func(self, *args, **kwargs)
+      self._next_elements.sort()
+      for elem in self._next_elements:
+        if elem.depth == self.depth + 1:
+          walk_func(elem, func, *args, **kwargs)
+    @functools.wraps(func)
+    def ret_func(self, *args, **kwargs):
+      walk_func(self, func, *args, **kwargs)
+      cleanup(self)
+    return ret_func
+
 
   def clear(self):
     for elem in self._previous_elements:
@@ -98,7 +135,6 @@ class operational_element(graph_element):
     self._storage = graph_storage()
 
     self._op = operation
-    self._visited = False 
 
     self._tags = []
     if tags is not None:
@@ -119,34 +155,6 @@ class operational_element(graph_element):
           prev.add_tags([ tag ])
 
 
-  def walk_tree(func):
-    def cleanup(self):
-      if self._visited is False:
-        return
-      self._visited = False
-      for prev in self._previous_elements:
-        cleanup(prev)
-      for elem in self._next_elements:
-        cleanup(elem)
-
-    def walk_func(self, func, *args, **kwargs):
-      if self._visited is True:
-        return
-      self._visited = True 
-      for prev in self._previous_elements:
-        walk_func(prev, func, *args, **kwargs)
-      func(self, *args, **kwargs)
-      self._next_elements.sort()
-      for elem in self._next_elements:
-        if elem.depth == self.depth + 1:
-          walk_func(elem, func, *args, **kwargs)
-
-    @functools.wraps(func)
-    def ret_func(self, *args, **kwargs):
-      walk_func(self, func, *args, **kwargs)
-      cleanup(self)
-    return ret_func
-
   def check_tags(func):
     @functools.wraps(func)
     def ret_func(self, *args, tag = None, **kwargs):
@@ -162,7 +170,7 @@ class operational_element(graph_element):
       dct = self._storage.retrieve('CallDict')
     return dct
 
-  @walk_tree
+  @graph_element.walk_tree
   @check_tags
   def _create_call_dict(self):
     dct = self._storage.retrieve('CallDict')
@@ -170,12 +178,12 @@ class operational_element(graph_element):
       dct[self.depth] = [ ]
     dct[self.depth].append(self._op.perform)
 
-  @walk_tree
+  @graph_element.walk_tree
   @check_tags
   def forward(self):
     self._op.perform()
 
-  @walk_tree
+  @graph_element.walk_tree
   @check_tags
   def setup(self):
     inputs = []
@@ -183,7 +191,7 @@ class operational_element(graph_element):
       inputs.append(prev.get_output())
     self._op.setup(inputs, self._storage)
 
-  @walk_tree
+  @graph_element.walk_tree
   def print_tree(self): 
     print('I am a {:s} at depth {:d}'.format(self._op.name, self.depth))
 

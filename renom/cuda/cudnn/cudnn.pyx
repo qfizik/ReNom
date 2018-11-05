@@ -225,6 +225,8 @@ cdef class LRNDescriptor:
 
 def cuPoolingForward(handle, pool_desc, x, y):
 
+    if x.shape[0] == 0: return
+
     cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
@@ -247,6 +249,7 @@ def cuPoolingForward(handle, pool_desc, x, y):
 
 def cuPoolingBackward(handle, pool_desc, x, y, dy, dx):
 
+    if x.shape[0] == 0: return
     cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
@@ -483,6 +486,9 @@ def cuConvolutionForward(handle, conv_desc, filter_desc, x, w, y, algorithm):
 
 def cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc, x, w, y, b, algorithm):
 
+    if x.shape[0] == 0:
+      return
+
     cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
@@ -538,6 +544,7 @@ def cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc, x, w, y, 
 
 def cuActivationBackward(handle, y, dx):
 
+    if y.shape[0] == 0: return
     cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=y.dtype))
@@ -602,6 +609,7 @@ def cuGetConvolutionBwdAlgo(handle, conv_desc, filter_desc, x, y):
     return {'data' : <int>result_data.algo, 'filter' : <int>result_data.algo}
 
 def cuConvolutionBackward(handle, conv_desc, filter_desc, x, w, dy, dw, db, dx, algorithms):
+    if x.shape[0] == 0: return
     if db is None:
         cuda_base.check_heap_device(x, w, dy, dw, dx)
     else:
@@ -779,6 +787,7 @@ def cuConvolutionBackwardBias(handle, dy, db):
 
 
 def cuSoftmaxForward(handle, x, y, mode=0):
+    if x.shape[0] == 0: return
 
     cdef _VoidPtr a = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr b = _VoidPtr(np.array([0.0], dtype=x.dtype))

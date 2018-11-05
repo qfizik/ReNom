@@ -6,7 +6,8 @@ class learnable_graph_element(graph_element):
     A learnable graph element is responsible for storing and performing the forward, backward and update operations in a normal neural-network setting.
   '''
 
-  has_back = False
+  _has_back = False
+  _name = 'Undefined'
 
   def __init__(self, *args, **kwargs):
     assert len(self._forward_operations) == 1
@@ -48,6 +49,15 @@ class learnable_graph_element(graph_element):
     for graph in self._bwd_graphs:
       graph.add_input(backward_graph_input)
     
+
+  @property
+  def has_back(self):
+    return self._has_back
+
+  @property
+  def name(self):
+    return self._name
+
   def __call__(self, *args, **kwargs): return self.connect(*args, **kwargs)
   def __repr__(self):
     self.forward()
@@ -57,7 +67,10 @@ class learnable_graph_element(graph_element):
     self._fwd.setup(tag = 'Forward')
     self._fwd.forward(tag = 'Forward')
 
-  def print_tree(self): self._fwd.print_tree()
+  @graph_element.walk_tree
+  def print_tree(self):
+    print('I am a {0:s} at depth {1:d}'.format(self.name, self.depth))
+  #def print_tree(self): self._fwd.print_tree()
 
   def get_forward_output(self): return self._fwd
   def get_backward_output(self, num = 0): return self._bwd_graphs[num]

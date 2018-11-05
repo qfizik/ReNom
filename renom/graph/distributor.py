@@ -13,24 +13,33 @@ class dispatch(operation):
     out_shape = [ batch_size ]
     out_shape.extend(value.shape[1:])
     self._num_gpus = num_gpus
-    self._outputs = multi_gpu_variable(shape = out_shape, gpus = num_gpus)
+    self.gpus = [gpu for gpu in range(num_gpus)]
+    self._outputs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._vars = { 'y' : self._outputs }
+    self._finished = False
 
   def setup(self, inputs, storage):
     self._storage = storage
+    self._batch_vars = [v.shape[0] for v in self._outputs]
 
   def perform(self):
-    #if self._batch_num * self._batch_size > len(self._value):
-    #  raise StopIteration
-    for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
+    if self._finished:
+      raise StopIteration
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       cur_slice = slice(self._batch_num * self._batch_size, (1 + self._batch_num) * self._batch_size)
       arr = self._value[cur_slice]
+      self._outputs[gpu].shape[0].value = len(arr)
+      assert self._outputs[gpu].shape == arr.shape
       if len(arr) < self._batch_size:
-        #self._outputs[gpu] = self._outputs[gpu].batch_slice(len(arr))
-        raise StopIteration
+        self._finished = True
       pin = handle.getPinnedMemory(arr)
+      assert pin.shape == self._outputs[gpu].shape
       self._outputs[gpu].to_gpu(pin)
       self._batch_num += 1
+
+  def reset(self):
+    self._batch_num = 0
+    self._finished = False
 
 class data_entry_element(learnable_graph_element):
 
@@ -64,8 +73,8 @@ class DistributorElement:
   def get_output_graphs(self): return self._data_graph, self._label_graph
 
   def reset(self):
-    self._dt_op._batch_num = 0
-    self._lb_op._batch_num = 0
+    self._dt_op.reset()
+    self._lb_op.reset()
 
   def __repr__(self): return self._data_graph.__repr__()
 

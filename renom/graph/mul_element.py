@@ -13,14 +13,14 @@ class mul_forward(operation):
     assert len(a) == len(b)
     for _a, _b in zip(a, b):
       assert _a.shape == _b.shape 
-    self._num_gpus = len(a)
+    self.gpus = a.gpus
     self._a = a
     self._b = b
-    self._c = multi_gpu_variable(shape=a.shape, gpus = self._num_gpus)
+    self._c = multi_gpu_variable(shape=a.shape, gpus = self.gpus)
     self._vars = { 'a' : a, 'b' : b, 'y' : self._c }
 
   def perform(self):
-    for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cumul(self._a[gpu], self._b[gpu], self._c[gpu], handle)
 
 
@@ -41,14 +41,15 @@ class mul_backward(operation):
 
 
   def perform(self):
-    for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cumul(self._dy[gpu], self._other[gpu], self._outputs[gpu], handle)
 
 
 
 class MulElement(learnable_graph_element):
   
-  has_back = True
+  _has_back = True
+  _name = 'Mul Element'
 
   def __init__(self):
 

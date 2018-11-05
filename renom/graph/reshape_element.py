@@ -12,7 +12,8 @@ class reshape_op(operation):
     new_shape = [ self._inputs.shape[0] ]
     new_shape.extend(self._new_shape)
     new_shape = np.empty(self._inputs.shape).reshape(new_shape).shape
-    self._outputs = multi_gpu_variable(shape = new_shape, ptrs = self._inputs)
+    gpus = self._inputs.gpus
+    self._outputs = multi_gpu_variable(shape = new_shape, gpus = gpus, ptrs = self._inputs)
     self._vars = {'y' : self._outputs }
 
   def perform(self): pass
@@ -27,7 +28,8 @@ class reshape_op_back(operation):
   def setup(self, inputs, storage):
     self._inputs = inputs[0]['y']
     shape = self._fwd_op._inputs.shape
-    self._outputs = multi_gpu_variable(shape = shape, ptrs = self._inputs)
+    gpus = self._inputs.gpus
+    self._outputs = multi_gpu_variable(shape = shape, gpus = gpus, ptrs = self._inputs)
 
   def perform(self): pass
 

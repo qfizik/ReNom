@@ -22,16 +22,19 @@ class pool_forward(operation):
 
     imgs = (input_shape[2] + self._padding[0] * 2 - self._kernel[0]) // self._stride[0] + 1
     out_shape = [input_shape[0], input_shape[1], imgs, imgs]
-    outs = multi_gpu_variable(shape = out_shape)
+    self.gpus = inputs.gpus
+    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = {'y' : outs}
 
   def perform(self):
-    with rm.cuda.RenomHandler() as handle:
-      rm.cuda.cuPoolingForward(handle, self._pool_desc, self._inputs[0], self._outputs[0])
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      rm.cuda.cuPoolingForward(handle, self._pool_desc, self._inputs[gpu], self._outputs[gpu])
     
 
 class pool_backward(operation):
+
+  name = 'Pool (B)'
 
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
@@ -43,13 +46,14 @@ class pool_backward(operation):
     out_shape = self._fwd_op._inputs.shape
     self._fwd_in = self._fwd_op._inputs
     self._fwd_out = self._fwd_op._outputs
-    outs = multi_gpu_variable(shape = out_shape)
+    self.gpus = inputs.gpus
+    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     
 
   def perform(self):
-    with rm.cuda.RenomHandler() as handle:
-      rm.cuda.cuPoolingBackward(handle, self._fwd_op._pool_desc, self._fwd_in[0], self._fwd_out[0], self._inputs[0], self._outputs[0]) 
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      rm.cuda.cuPoolingBackward(handle, self._fwd_op._pool_desc, self._fwd_in[gpu], self._fwd_out[gpu], self._inputs[gpu], self._outputs[gpu]) 
 
   def get_output_signature(self): return self._outputs    
  

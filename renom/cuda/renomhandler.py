@@ -28,21 +28,21 @@ class RenomHandle:
     self.prefetch_length = prefetch_length
 
   def getPinnedMemory(self, array):
-    if array.size not in self.pinned_memory:
+    if array.shape not in self.pinned_memory:
       self._preparePins(array)
-    ret = self.pinned_memory[array.size][0]
-    self.pinned_memory[array.size].rotate(-1)
+    ret = self.pinned_memory[array.shape][0]
+    self.pinned_memory[array.shape].rotate(-1)
     ret.pin(array)
     return ret
 
   def _preparePins(self, array):
-    self.pinned_memory[array.size] = collections.deque(maxlen = self.prefetch_length)
+    self.pinned_memory[array.shape] = collections.deque(maxlen = self.prefetch_length)
     for pin in range(self.prefetch_length):
-      self.pinned_memory[array.size].append(rm.cuda.PinnedMemory(array, self.memstream))
+      self.pinned_memory[array.shape].append(rm.cuda.PinnedMemory(array, self.memstream))
 
 def RenomHandlers(gpus):
   if isinstance(gpus, int):
     gpus = range(gpus)
   for gpu in gpus:
     with RenomHandler(gpu) as handle:
-      yield handle
+      yield gpu, handle

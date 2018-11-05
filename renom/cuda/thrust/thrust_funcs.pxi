@@ -141,7 +141,7 @@ cpdef calc_int_prod(arr):
 
     cdef int n
     for i in range(0, arrlen):
-        ret *= arr[i]
+        ret *= int(arr[i])
     return ret
 
 
@@ -206,7 +206,7 @@ cdef bin_operation_num(BINOP_FUNC_NUM func, lhs, rhs, ret, cudaStream_t stream):
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > ret._ptr
     size = calc_int_prod(ret.shape)
 
-    cdef VALUE_TYPE num = rhs
+    cdef VALUE_TYPE num = <VALUE_TYPE> rhs
 
     func(ptr1, num, ptr2, size, stream)
 

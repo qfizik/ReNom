@@ -1,39 +1,50 @@
 import numpy as np
 import renom as rm
 
-class shared_val(int):
-  def __new__(cls, val):
-    return int.__new__(cls, val)
+class shared_val:
+  def __new__(cls, val, m = None):
+    return super().__new__(cls)
   def __init__(self, val):
     self._val = val
+    self._max = val
   @property
   def value(self):
     return self._val
   @value.setter
   def value(self, val):
-    self._val = val
-  def __int__(self): return self._val
+    if val <= self._max:
+      self._val = val
 
+  def __int__(self): return self._val
+  def __float__(self): return float(self._val)
+  def __mul__(self, other): return self._val * int(other)
+  def __add__(self, other): return self._val + int(other)
+  def __eq__(self, other): return self._val == int(other)
+  def __index__(self): return self._val
+  def __repr__(self): return self._val.__repr__()
 
 class multi_gpu_variable:
 
-  def __init__(self, shape = None, gpus = 1, initializer = None, ptrs = None):
-    self._num_gpus = gpus
-    self._gpuvalues = []
+  def __init__(self, shape = None, gpus = [ 0 ], initializer = None, ptrs = None):
+    assert isinstance(gpus, list)
+    self.gpus = gpus
+    self._gpuvalues = {}
     self._initializer = initializer
     self._finished_setup = False
+    if ptrs is not None:
+      assert isinstance(ptrs, multi_gpu_variable)
     self._ptrs = ptrs
     self.shape = shape
     self._create_values()
 
   def _create_values(self):
-    for gpu in range(self._num_gpus):
+    for gpu in self.gpus:
       with rm.cuda.RenomHandler(gpu) as handle:
         if self._initializer is not None:
           arr = self._initializer(self.shape)
         else:
           arr = np.ones(self.shape)
-        self._gpuvalues.append(rm.GPUValue(array=arr, shape=self.shape, ptr = self._ptrs[gpu]._ptr if self._ptrs is not None else None))
+        self[gpu] = rm.GPUValue(array=arr, shape=self.shape, ptr = self._ptrs[gpu]._ptr if self._ptrs is not None else None)
 
     self._finished_setup = True
     
@@ -51,13 +62,22 @@ class multi_gpu_variable:
     assert isinstance(val[0], shared_val)
     self._shape = val
 
+  @property
+  def gpus(self):
+    return self._gpus
+
+  @gpus.setter
+  def gpus(self, val):
+    assert isinstance(val, list)
+    self._gpus = val
+
 
   def __iter__(self):
-    for _fwd in self._gpuvalues:
-      yield _fwd
+    for key in self._gpuvalues.keys():
+      yield self[key]
 
   def __len__(self):
-    return self._num_gpus
+    return len(self._gpus)
 
   def __getitem__(self, index):
     return self._gpuvalues[index]

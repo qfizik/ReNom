@@ -16,21 +16,21 @@ class dense_forward(operation):
     inputs = inputs[0]['y']
     assert isinstance(inputs, multi_gpu_variable)
 
-    self._num_gpus = inputs._num_gpus
+    self.gpus = inputs.gpus
     self._init = init.GlorotNormal()
 
     self._inputs = inputs
     weight_shape = ( inputs[0].shape[1] , self._output_size )
-    weights = multi_gpu_variable( shape = weight_shape , gpus = self._num_gpus, initializer = self._init)
+    weights = multi_gpu_variable( shape = weight_shape , gpus = self.gpus, initializer = self._init)
     output_shape = ( inputs[0].shape[0] , self._output_size )
-    outputs = multi_gpu_variable( shape = output_shape, gpus = self._num_gpus)
+    outputs = multi_gpu_variable( shape = output_shape, gpus = self.gpus)
 
     self._vars = {'x' : inputs, 'w' : weights, 'y' : outputs}
     self._weights = weights
     self._outputs = outputs
 
   def perform(self):
-    for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cublas_gemm(self._inputs[gpu], 0, self._weights[gpu], 0, self._outputs[gpu], handle)
 
 
@@ -44,8 +44,8 @@ class dense_backward(operation):
   def setup(self, inputs, storage):
 
     inputs = inputs[0]['dy']
-    gpus = inputs._num_gpus
-    self._num_gpus = gpus
+    gpus = inputs.gpus
+    self.gpus = gpus
     weights = self._fwd_op.get_key('w')
     self._inputs = inputs
     self._weights = weights
@@ -59,7 +59,7 @@ class dense_backward(operation):
     self._outputs = outputs
 
   def perform(self):
-    for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cublas_gemm(self._inputs[gpu], 0, self._weights[gpu], 1, self._outputs[gpu], handle)
 
 
@@ -77,8 +77,8 @@ class dense_weight_backward(operation):
     inputs = inputs[0]['dy']
     self._inputs = inputs
 
-    gpus = inputs._num_gpus
-    self._num_gpus = gpus
+    gpus = inputs.gpus
+    self.gpus = gpus
     fwd_ins = self._fwd_op.get_key('x')
     fwd_weights = self._fwd_op.get_key('w')
     output_shape = fwd_weights.shape
@@ -91,7 +91,7 @@ class dense_weight_backward(operation):
     self._outputs = outputs
     
   def perform(self):
-    for gpu, handle in enumerate(rm.cuda.RenomHandlers(self._num_gpus)):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cublas_gemm(self._fwd_ins[gpu], 1, self._inputs[gpu], 0, self._outputs[gpu], handle)
 
 
