@@ -14,7 +14,7 @@ class dense_forward(operation):
   def setup(self, inputs, storage):
     
     inputs = inputs[0]['y']
-    assert isinstance(inputs, multi_gpu_variable)
+    assert isinstance(inputs, multi_gpu_variable), 'Received {}'.format(type(inputs))
 
     self.gpus = inputs.gpus
     self._init = init.GlorotNormal()
@@ -112,3 +112,7 @@ class DenseGraphElement(learnable_graph_element):
   @property
   def weights(self):
     return self._fwd._op.get_key('w')
+
+  @property
+  def weights_back(self):
+    return self._bwd_graphs[1].get_key('w')

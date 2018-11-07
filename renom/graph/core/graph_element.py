@@ -36,6 +36,7 @@ class graph_element(abc.ABC):
 
   def remove_input(self, prev_input):
     if prev_input in self._previous_elements:
+      prev_input.remove_next(self)
       self._previous_elements.remove(prev_input)
 
   def remove_next(self, prev_next):
@@ -133,12 +134,13 @@ class operational_element(graph_element):
     super(operational_element, self).__init__(previous_elements = previous_elements)
   
     self._storage = graph_storage()
-
+    self.prev_inputs = [] 
     self._op = operation
 
     self._tags = []
     if tags is not None:
       self.add_tags(new_tags = tags)
+    else: assert False
 
 
   def add_input(self, new_input):
@@ -163,7 +165,9 @@ class operational_element(graph_element):
     return ret_func
 
   def get_call_dict(self, tag):
+    self._storage.register('CallDict', None)
     dct = self._storage.retrieve('CallDict')
+    assert dct is None
     if dct is None:
       self._storage.register('CallDict', {})
       self._create_call_dict(tag = tag)
@@ -188,7 +192,18 @@ class operational_element(graph_element):
   def setup(self):
     inputs = []
     for prev in self._previous_elements:
-      inputs.append(prev.get_output())
+      prev_inp = prev.get_output()
+      if prev_inp['y'] is None:
+        raise Exception
+      inputs.append(prev_inp)
+    unchanged = True
+    for inp in inputs:
+      if inp not in self.prev_inputs:
+        unchanged = False
+        break
+    if unchanged:
+      return
+    self.prev_inputs = inputs
     self._op.setup(inputs, self._storage)
 
   @graph_element.walk_tree

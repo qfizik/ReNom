@@ -39,6 +39,7 @@ class softmax_backward(operation):
       rm.cuda.cuSoftmaxForward(handle, self._graph_input[gpu], self._outputs[gpu], mode = 1)
       rm.cuda.cusub(self._outputs[gpu], self._label_input[gpu], self._outputs[gpu], handle)
       rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
+      #handle.registerWait()
 
 
 class SoftmaxElement(learnable_graph_element):
@@ -59,17 +60,7 @@ class SoftmaxElement(learnable_graph_element):
       self._bwd_graphs[0].add_input(prev_graph_input)
 
   def connect_back(self, previous_element): assert False
-
-  def update(self):
-    if self._calls is None:
-      self._bwd_graphs[0].setup(tag = 'Update')
-      self._calls = self._bwd_graphs[0].get_call_dict(tag = 'Update')
-      
-    for depth in self._calls:
-      for call in self._calls[depth]:
-        call()
-
-  def forward(self): pass
-
-  def __repr__(self): return self._bwd_graphs[0].__repr__()
+  
+  def print_tree(self):
+    self._fwd.print_tree()
 

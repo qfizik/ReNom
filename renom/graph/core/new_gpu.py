@@ -14,6 +14,8 @@ class shared_val:
   def value(self, val):
     if val <= self._max:
       self._val = val
+    else:
+      raise AttributeError('Setting val above initial value')
 
   def __int__(self): return self._val
   def __float__(self): return float(self._val)
@@ -31,10 +33,13 @@ class multi_gpu_variable:
     self._gpuvalues = {}
     self._initializer = initializer
     self._finished_setup = False
-    if ptrs is not None:
-      assert isinstance(ptrs, multi_gpu_variable)
     self._ptrs = ptrs
     self.shape = shape
+    if ptrs is not None:
+      assert isinstance(ptrs, multi_gpu_variable)
+      shp = list(self.shape)
+      shp[0] = ptrs.shape[0]
+      self.shape = shp
     self._create_values()
 
   def _create_values(self):

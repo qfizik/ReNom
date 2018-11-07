@@ -22,10 +22,18 @@ class dispatch(operation):
     self._storage = storage
     self._batch_vars = [v.shape[0] for v in self._outputs]
 
+  @property
+  def value(self):
+    return self._value
+  @value.setter
+  def value(self, new_val):
+    self._value = new_val
+
   def perform(self):
     if self._finished:
       raise StopIteration
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      #handle.wait()
       cur_slice = slice(self._batch_num * self._batch_size, (1 + self._batch_num) * self._batch_size)
       arr = self._value[cur_slice]
       self._outputs[gpu].shape[0].value = len(arr)
@@ -71,6 +79,9 @@ class DistributorElement:
   def forward(self): pass
 
   def get_output_graphs(self): return self._data_graph, self._label_graph
+
+  def change_data(self, new_data): self._dt_op.value = new_data
+  def change_label(self, new_label): self._lb_op.value = new_label
 
   def reset(self):
     self._dt_op.reset()

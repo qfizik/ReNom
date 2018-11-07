@@ -24,6 +24,22 @@ class StaticVariableElement(learnable_graph_element):
     val = multi_gpu_variable(shape = value.shape, gpus = gpu_list)
     for gpuv in val:
       gpuv.to_gpu(value)
+    self._value = val
     self._forward_operations = [ static_value(val) ]
     super().__init__()
+
+  @property
+  def value(self):
+    return self._value
+  
+  @value.setter
+  def value(self, val):
+    assert isinstance(val, np.ndarray)    
+    if self._value.shape == val.shape:
+      for gpuv in self._value:
+        gpuv.to_gpu(val)  
+    else:
+      #TODO: FIX THIS
+      assert False
+    
 

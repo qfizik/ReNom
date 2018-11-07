@@ -4,6 +4,8 @@ import numpy as np
 
 class reshape_op(operation):
 
+  name = 'Reshape (F)'
+
   def __init__(self, shape):
     self._new_shape = shape
 
@@ -16,11 +18,13 @@ class reshape_op(operation):
     self._outputs = multi_gpu_variable(shape = new_shape, gpus = gpus, ptrs = self._inputs)
     self._vars = {'y' : self._outputs }
 
-  def perform(self): pass
+  def perform(self): pass 
 
 
 
 class reshape_op_back(operation):
+
+  name = 'Reshape (B)'
 
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward

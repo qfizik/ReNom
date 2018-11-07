@@ -74,10 +74,20 @@ def cuCreateStream(name = None):
       nvtxNameCudaStreamA(stream, cname)
     return < uintptr_t > stream
 
+def cuCreateEvent():
+  cdef cudaEvent_t event
+  runtime_check(cudaEventCreate( & event))
+  return < uintptr_t > event
 
 
-cdef streamInsertEvent(cudaStream_t stream, cudaEvent_t event):
-  runtime_check(cudaEventRecord(event, stream))
+cpdef streamInsertEvent(stream, event):
+  cdef cudaStream_t s = <cudaStream_t><uintptr_t> stream
+  cdef cudaEvent_t e = <cudaEvent_t><uintptr_t> event
+  runtime_check(cudaEventRecord(e, s))
+
+cpdef streamWaitEvent(event):
+  cdef cudaEvent_t e = <cudaEvent_t><uintptr_t> event
+  runtime_check(cudaEventSynchronize(e))
 
 
 def heapReady(GPUHeap heap):
@@ -367,10 +377,10 @@ cdef class GPUHeap(object):
       cdef void* ptr
       ptr = <void*><uintptr_t> pinned_to_load
       cuMemcpyH2DAsync(ptr, self.ptr, nbytes, <uintptr_t> pinned_to_load.stream)
-      streamInsertEvent(<cudaStream_t><uintptr_t> pinned_to_load.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event)
       with renom.cuda.RenomHandler() as handle:
-        pass
-        #cudaStreamWaitEvent(<cudaStream_t><uintptr_t> handle.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event, 0)
+        #pass
+        streamInsertEvent(<uintptr_t> handle.stream, <uintptr_t> pinned_to_load.event)
+        runtime_check(cudaStreamWaitEvent(<cudaStream_t><uintptr_t> handle.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event, 0))
 
 
     cpdef memcpyD2H(self, cpu_ptr, size_t nbytes):
@@ -379,6 +389,7 @@ cdef class GPUHeap(object):
 
         cdef _VoidPtr ptr = _VoidPtr(cpu_ptr)
 
+        assert nbytes <= self.nbytes, '{} / {}'.format(nbytes, self.nbytes)
         with renom.cuda.use_device(self.device_id):
             cuMemcpyD2H(self.ptr, ptr.ptr, nbytes)
 
@@ -452,7 +463,7 @@ cdef class GpuAllocator(object):
         cdef cudaStream_t strm
         with renom.cuda.RenomHandler(pool.device_id) as handle:
             strm = <cudaStream_t><uintptr_t> handle.stream
-            streamInsertEvent(strm, pool.event)
+            streamInsertEvent(<uintptr_t> strm, <uintptr_t> pool.event)
 
         if pool.nbytes:
             device_id = pool.device_id
