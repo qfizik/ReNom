@@ -17,11 +17,14 @@ class update_operation(operation):
     self._shared_key = key
 
   def setup(self, inputs, storage):
+    self._storage = storage
     self._dy = self._producer.get_key(self._shared_key)
     self._outputs = self._consumer.get_key(self._shared_key)
-    self._running_average = multi_gpu_variable(shape = self._dy.shape, gpus = self._dy.gpus, initializer = init.Constant(0))
     gpus = self._outputs.gpus
+    self._running_average = multi_gpu_variable(shape = self._dy.shape, gpus = self._dy.gpus, initializer = init.Constant(0))
     self.gpus = gpus
+    self._method = 'sgd'
+    self._prepared_methods = {}
     if update_operation._communicator is None and len(self.gpus) > 1:
       update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))
     self._setup = True    

@@ -12,5 +12,6 @@ from .convolutional_element import ConvolutionalGraphElement
 from .pool_element import MaxPoolElement
 from .constant_loss import ConstantLossElement
 from .sequential_mixer import SequentialSubGraph
+from .lstm_element import LstmElement
 
 
