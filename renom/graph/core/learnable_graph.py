@@ -38,8 +38,10 @@ class learnable_graph_element(graph_element):
   def connect(self, *previous_elements):
 
     prvs = []
+    should_run = True 
     for num, elem in enumerate(previous_elements):
       if isinstance(elem, np.ndarray):
+        should_run = True
         if len(self._previous_elements) > num and isinstance(self._previous_elements[num], rm.graph.StaticVariableElement):
           self._previous_elements[num].value = elem
           elem = self._previous_elements[num]
@@ -59,6 +61,11 @@ class learnable_graph_element(graph_element):
     for num, elem in enumerate(previous_elements):
       if elem.has_back:
         elem.connect_back(self, pos = num)
+
+
+    if should_run is True:
+      self.forward()
+
     return self
 
   def connect_back(self, previous_element, pos = 0):
@@ -93,6 +100,7 @@ class learnable_graph_element(graph_element):
     for depth in call_dict.keys():
       for call in call_dict[depth]:
         call()
+    return self
 
   def forward(self):
     if 'Forward' not in self.call_lists:
@@ -103,7 +111,18 @@ class learnable_graph_element(graph_element):
       for call in call_dict[depth]:
         call()
     self.call_lists = {}
+    return self
 
+  def backward(self):
+    if 'Backward' not in self.call_lists:
+      self._bwd_graphs[0].setup(tag = 'Backward')
+      self.call_lists['Backward'] = self._bwd_graphs[0].get_call_dict(tag = 'Backward')
+    call_dict = self.call_lists['Backward']
+    for depth in call_dict.keys():
+      for call in call_dict[depth]:
+        call()
+    self.call_lists = { }
+    return self
   #@graph_element.walk_tree
   def print_tree(self):
     #print('I am a {0:s} at depth {1:d}'.format(self.name, self.depth))
@@ -112,4 +131,31 @@ class learnable_graph_element(graph_element):
   def get_forward_output(self): return self._fwd
   def get_backward_output(self, num = 0): return self._bwd_graphs[num]
 
-  def as_ndarray(self): return self._fwd.as_ndarray()
+  def as_ndarray(self):
+    self.forward()
+    return self._fwd.as_ndarray()
+
+  @property
+  def weights(self):
+    ret = self._fwd._op.get_key('w')
+    if ret is None:
+      raise AttributeError('{} does not define a weight (w)'.format(self._fwd._op.name))
+    return ret
+
+  @property
+  def weights_back(self):
+    self.backward()
+    for grph in self._bwd_graphs:
+      ret = grph._op.get_key('w')
+      if ret is not None:
+        return ret
+    raise AttributeError('No backward graph defines a weight (w)'.format(self._fwd._op.name))
+ 
+  @property
+  def back(self):
+    self.backward()
+    for grph in self._bwd_graphs:
+      ret = grph._op.get_key('dy')
+      if ret is not None:
+        return ret
+    raise AttributeError('No backward graph defines backward (dy)'.format(self._fwd._op.name))

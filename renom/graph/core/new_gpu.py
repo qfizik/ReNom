@@ -24,6 +24,7 @@ class shared_val:
   def __eq__(self, other): return self._val == int(other)
   def __index__(self): return self._val
   def __repr__(self): return self._val.__repr__()
+  def __lt__(self, other): return self._val < int(other)
 
 class multi_gpu_variable:
 
@@ -45,10 +46,9 @@ class multi_gpu_variable:
   def _create_values(self):
     for gpu in self.gpus:
       with rm.cuda.RenomHandler(gpu) as handle:
+        arr = None
         if self._initializer is not None:
           arr = self._initializer(self.shape)
-        else:
-          arr = np.ones(self.shape)
         self[gpu] = rm.GPUValue(array=arr, shape=self.shape, ptr = self._ptrs[gpu]._ptr if self._ptrs is not None else None)
 
     self._finished_setup = True

@@ -30,7 +30,7 @@ class StaticVariableElement(learnable_graph_element):
 
   @property
   def value(self):
-    return self._value
+    return self._fwd._op.get_key('y')
   
   @value.setter
   def value(self, val):

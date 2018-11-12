@@ -1,12 +1,8 @@
 import renom as rm
 from .core import operation, operational_element, learnable_graph_element, multi_gpu_variable
+from .sum_element import sum_forward
+import renom.utility.initializer as init 
 
-class constant_loss_forward(operation):
-  
-  name = 'Constant (F)'
-
-  def setup(self, inputs, storage): pass
-  def perform(self): pass
 
 class constant_loss_backward(operation):
   
@@ -16,7 +12,7 @@ class constant_loss_backward(operation):
   
     inputs = inputs[0]['y']
     gpus = inputs.gpus
-    outputs = multi_gpu_variable(shape = inputs.shape, gpus = gpus)
+    outputs = multi_gpu_variable(shape = inputs.shape, gpus = gpus, initializer = init.Constant(1))
     self._outputs = outputs
     self._vars = { 'y' : outputs , 'dy' : outputs}
 
@@ -27,7 +23,7 @@ class ConstantLossElement(learnable_graph_element):
   is_connector_element = True
 
   def __init__(self, previous_element = None):
-    self._forward_operations = [ constant_loss_forward() ]
+    self._forward_operations = [ sum_forward() ]
     self._backward_operations = [ constant_loss_backward() ]
 
     super().__init__(previous_elements = previous_element)
@@ -38,5 +34,6 @@ class ConstantLossElement(learnable_graph_element):
     for elem in self._previous_elements:
       prev_graph_input = elem.get_forward_output()
       self._bwd_graphs[0].add_input(prev_graph_input)
+    return self
 
   def connect_back(self): assert False

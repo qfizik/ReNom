@@ -208,7 +208,7 @@ class operational_element(graph_element):
 
   @graph_element.walk_tree
   def print_tree(self): 
-    print('I am a {:s} at depth {:d}'.format(self._op.name, self.depth))
+    print('I am a {:s} at depth {:d} with tags: {}'.format(self._op.name, self.depth, self._tags))
 
 
   def add_next(self, new_next):

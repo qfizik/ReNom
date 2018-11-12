@@ -108,11 +108,3 @@ class DenseGraphElement(learnable_graph_element):
     self._output_size = output_size
 
     super().__init__(previous_elements = previous_element)
-
-  @property
-  def weights(self):
-    return self._fwd._op.get_key('w')
-
-  @property
-  def weights_back(self):
-    return self._bwd_graphs[1].get_key('w')
