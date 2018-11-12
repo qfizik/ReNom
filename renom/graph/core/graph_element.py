@@ -125,6 +125,10 @@ class graph_storage:
       for depth in dct:
         for op in range(len(dct[depth])):
           dct[depth][op] = None
+    if 'Updates' in self._vars:
+      updts = self._vars['Updates']
+      for i in range(len(updts)):
+        updts[i] = None
 
 class operational_element(graph_element):
   '''
