@@ -14,9 +14,10 @@ class mean_squared_forward(operation):
     assert predictions.shape == real_values.shape
     output = multi_gpu_variable(shape = predictions.shape, gpus = predictions._num_gpus)
 
+    self._vars = { 'y' : output }
     self._outputs = output
 
-  def perform(self): pass
+  def perform(self): pass 
 
   def get_output_signature(self): raise AttributeError
 

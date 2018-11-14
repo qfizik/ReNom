@@ -8,6 +8,7 @@ class operation(abc.ABC):
   produces = []
   consumes = []
   _vars = { 'y' : None }
+  ready = False
 
 
   @abc.abstractmethod
@@ -20,4 +21,5 @@ class operation(abc.ABC):
   def __repr__(self): return self._vars['y'].__repr__()
   def as_ndarray(self): return self._vars['y'].as_ndarray()
   def get_key(self, key): return self._vars.get(key, None)
+  def set_alias(self, key, alias): self._vars[alias] = self._vars[key]
 

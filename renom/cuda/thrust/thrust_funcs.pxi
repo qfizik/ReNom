@@ -595,17 +595,18 @@ cdef _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, REDUCE_FU
     if (max(axis) >= len(gpu_value1.shape)) or (min(axis) < 0):
         raise ValueError('Invalid axis: %s' % (axis,))
 
-    if len(axis) == len(gpu_value1.shape):
+    tmp_shape = tuple(int(v) for v in gpu_value1.shape)
+    if len(axis) == len(tmp_shape):
         reduce_axis = [0]
-        src_shape = (gpu_value1.size,)
-        src_size = gpu_value1.size
+        src_shape = (np.prod(tmp_shape),)
+        src_size = np.prod(tmp_shape)
 
         result_shape = ()
         result_size = 1
     else:
         reduce_axis = axis
-        src_shape = gpu_value1.shape
-        src_size = gpu_value1.size
+        src_shape = tmp_shape
+        src_size = np.prod(tmp_shape)
 
         result_shape = _del_items(src_shape, reduce_axis)
         result_size = functools.reduce(operator.__mul__, result_shape, 1)
@@ -661,7 +662,7 @@ cdef _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, REDUCE_FU
     if not keepdims:
         ret_shape = result_shape
     else:
-        ret_shape = list(gpu_value1.shape)
+        ret_shape = list(tmp_shape)
         for s in axis:
             ret_shape[s] = 1
 

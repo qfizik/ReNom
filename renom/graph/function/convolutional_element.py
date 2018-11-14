@@ -59,7 +59,7 @@ class convo_backward(operation):
 
   def setup(self, inputs, storage):
     
-    inputs = inputs[0]
+    inputs = inputs[0]['y']
     self._inputs = inputs
     self._fwd_w = self._fwd_op._weights
     self._fwd_b = self._fwd_op._bias
@@ -78,7 +78,6 @@ class convo_backward(operation):
       rm.cuda.cuActivationBackward(handle, self._fwd_op._outputs[gpu], self._inputs[gpu])
       rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc, self._fwd_in[gpu], self._fwd_w[gpu], self._inputs[gpu], self._weights_out[gpu], self._bias_out[gpu], self._outputs[gpu], self._algo)
 
-  def get_output_signature(self): return self._outputs
 
 
 

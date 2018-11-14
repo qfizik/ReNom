@@ -4,6 +4,10 @@ rm.set_cuda_active()
 #np.set_printoptions(precision = 2, suppress = True)
 
 def compare(nd_value, ad_value):
+  print('nd=')
+  print(nd_value)
+  print('ad=')
+  print(ad_value)
   assert np.allclose(nd_value, ad_value)
 
 def getNumericalDiff( lossMethod, testValue ):
@@ -45,16 +49,21 @@ def getNumericalDiff( lossMethod, testValue ):
 def test_dense():
 
   v = np.random.rand(1,2)
-  val = rm.graph.StaticVariableElement(v)
+  val = rm.graph.StaticVariable(v)
   model = rm.graph.DenseGraphElement(output_size = 2)
   l = rm.graph.ConstantLossElement()
-  loss = l(model(val))
+  m = model(val)
+  loss = l(m)
 
+  ad = loss.backward().get_gradient(val.value).as_ndarray()
   def func():
-    return loss.as_ndarray()
+    m.forward()
+    loss.forward()
+    ret = loss.as_ndarray()
+    return ret
   
-  compare( getNumericalDiff( func , val.value ) , model.back.as_ndarray() )
-  compare( getNumericalDiff( func , model.weights) , model.weights_back.as_ndarray() )
+  compare( getNumericalDiff( func , val.value ) , ad )
+  compare( getNumericalDiff( func , model.weights) , loss.backward().get_gradient(model.weights).as_ndarray())
   
 
 

@@ -41,7 +41,7 @@ class pool_backward(operation):
 
   def setup(self, inputs, storage):
     
-    inputs = inputs[0]
+    inputs = inputs[0]['y']
     self._inputs = inputs
     out_shape = self._fwd_op._inputs.shape
     self._fwd_in = self._fwd_op._inputs
@@ -49,13 +49,13 @@ class pool_backward(operation):
     self.gpus = inputs.gpus
     outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
+    self._vars = { 'y' : outs }
     
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cuPoolingBackward(handle, self._fwd_op._pool_desc, self._fwd_in[gpu], self._fwd_out[gpu], self._inputs[gpu], self._outputs[gpu]) 
 
-  def get_output_signature(self): return self._outputs    
  
 
 class MaxPoolElement(learnable_graph_element):

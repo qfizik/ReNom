@@ -34,10 +34,9 @@ class reshape_op_back(operation):
     shape = self._fwd_op._inputs.shape
     gpus = self._inputs.gpus
     self._outputs = multi_gpu_variable(shape = shape, gpus = gpus, ptrs = self._inputs)
+    self._vars = { 'y' : self._outputs }
 
   def perform(self): pass
-
-  def get_output_signature(self): return self._outputs
 
   def __repr__(self): return self._outputs.__repr__()
 

@@ -55,7 +55,6 @@ class data_entry_element(learnable_graph_element):
 
   def __init__(self, data_op, previous_element = None):
     self._forward_operations = [ data_op ]
-
     super().__init__(previous_elements = previous_element)
 
 class DistributorElement:
@@ -78,7 +77,7 @@ class DistributorElement:
 
   def forward(self): pass
 
-  def get_output_graphs(self): return self._data_graph, self._label_graph
+  def getOutputGraphs(self): return self._data_graph, self._label_graph
 
   def change_data(self, new_data): self._dt_op.value = new_data
   def change_label(self, new_label): self._lb_op.value = new_label

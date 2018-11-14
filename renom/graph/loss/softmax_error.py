@@ -1,17 +1,35 @@
 import renom as rm
-from .core import operation, learnable_graph_element, graph_element, multi_gpu_variable 
+from .core import operation, learnable_graph_element, graph_element, multi_gpu_variable, GraphFactory 
 
 class softmax_forward(operation):
 
   name = 'Softmax (F)'
 
-  def setup(self, inputs, storage): pass
+  def setup(self, inputs, storage): 
+    assert isinstance(inputs[1], dict)
+     
+    labels = inputs[1]['y']
+    inputs = inputs[0]['y']
+    out_shape = ( 1, )
+    gpus = inputs.gpus
+    act_out = multi_gpu_variable(shape = inputs.shape, gpus = gpus)
+    outs = multi_gpu_variable(shape = out_shape, gpus = gpus)
+    self.gpus = gpus
+    self._outputs = outs
+    self._vars = { 'y' : outs }
+    self._lbls = labels
+    self._act_out = act_out
+    self._N = inputs.shape[0]
+    self._inputs = inputs
 
-  def perform(self): pass
+  def perform(self): 
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      rm.cuda.cuSoftmaxForward(handle, self._inputs[gpu], self._act_out[gpu], mode = 1)
+      rm.cuda.cucross_entropy(self._act_out[gpu], self._lbls[gpu], self._act_out[gpu], handle)
+      tmp = rm.cuda.cusum(self._act_out[gpu], handle)
+      rm.cuda.cudiv(tmp, -self._N, tmp, handle)
+      self._outputs[gpu].copy_from(tmp)
 
-  def get_output_signature(self): return None
-
-  def __repr__(self): return None
 
 class softmax_backward(operation):
 
@@ -42,7 +60,7 @@ class softmax_backward(operation):
       #handle.registerWait()
 
 
-class SoftmaxElement(learnable_graph_element):
+class Softmax(learnable_graph_element):
 
   is_connector_element = True
 
@@ -58,9 +76,16 @@ class SoftmaxElement(learnable_graph_element):
     for elem in previous_elements:
       prev_graph_input = elem.get_forward_output()
       self._bwd_graphs[0].add_input(prev_graph_input)
+    return self
 
   def connect_back(self, previous_element): assert False
   
-  def print_tree(self):
-    self._fwd.print_tree()
+  @property
+  def loss(self):
+    self._fwd.setup()
+    self._fwd.forward()
+    return self._fwd.get_output()['y']
 
+class SoftmaxElement(GraphFactory):
+
+  def __init__(self): raise NotImplementedError()

@@ -1,5 +1,5 @@
 import renom as rm
-from .core import learnable_graph_element, multi_gpu_variable, operation
+from renom.graph.core import learnable_graph_element, multi_gpu_variable, operation
 import renom.utility.initializer as init
 
 class sum_forward(operation):
@@ -15,6 +15,7 @@ class sum_forward(operation):
     outs = multi_gpu_variable(shape = out_shape, gpus = gpus)
     self._outputs = outs
     self._vars = { 'y' : outs }
+    self.ready = True
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):

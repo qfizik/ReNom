@@ -3,6 +3,7 @@ from .operation import operation
 from .graph_element import operational_element
 from .new_gpu import multi_gpu_variable
 import renom.utility.initializer as init
+import types
 
 class update_operation(operation):
 
@@ -21,11 +22,6 @@ class update_operation(operation):
       self._extras = { }
       self._extras['running_average'] = multi_gpu_variable(shape = self._dy.shape, gpus = self._dy.gpus, initializer = init.Constant(0))
 
-      def perform():
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-          rm.cuda.cu_optimizer_sgd(self._lr, 0, self._dy[gpu], self._extras['running_average'][gpu], self._outputs[gpu], handle)
-
-      self.perform = perform
     else:
       raise Exception('Unknown method {}'.format(method))
 
@@ -50,7 +46,9 @@ class update_operation(operation):
     if update_operation._communicator is None and len(self.gpus) > 1:
       update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))
 
-  def perform(self): raise NotImplementedError
+  def perform(self):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      rm.cuda.cu_optimizer_sgd(self._lr, 0, self._dy[gpu], self._extras['running_average'][gpu], self._outputs[gpu], handle)
 
   def get_output_signature(self): return self._outputs
 

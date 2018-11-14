@@ -1,6 +1,6 @@
 import numpy as np
 import renom as rm
-from .core import multi_gpu_variable, operational_element, learnable_graph_element, operation
+from renom.graph.core import multi_gpu_variable, operational_element, learnable_graph_element, operation
 
 class static_value(operation):
 
@@ -14,7 +14,7 @@ class static_value(operation):
   def perform(self): pass
 
 
-class StaticVariableElement(learnable_graph_element):
+class StaticVariable(learnable_graph_element):
 
   _has_back = False
   _name = 'Static Element'
@@ -25,8 +25,8 @@ class StaticVariableElement(learnable_graph_element):
     for gpuv in val:
       gpuv.to_gpu(value)
     self._value = val
-    self._forward_operations = [ static_value(val) ]
-    super().__init__()
+    fwd_op = static_value(val)
+    super().__init__(forward_operation = fwd_op)
 
   @property
   def value(self):
@@ -42,4 +42,3 @@ class StaticVariableElement(learnable_graph_element):
       #TODO: FIX THIS
       assert False
     
-
