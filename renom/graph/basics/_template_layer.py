@@ -26,6 +26,8 @@ class _backward_operation(operation):
 
 class _graph_element(learnable_graph_element):
 
+  has_back = True
+
   def __init__(self, previous_elements = None):
     fwd_op = _forward_operation()
     bwd_ops = [ _backward_operation(fwd_op) ]
