@@ -35,6 +35,9 @@ class softmax_backward(operation):
 
   name = 'Softmax (B)'
 
+  def __init__(self, associated_forward):
+    self._fwd_op = associated_forward
+
   def setup(self, inputs, storage):
 
     predictions = inputs[0]['y']
@@ -50,7 +53,7 @@ class softmax_backward(operation):
     output = multi_gpu_variable(shape = predictions.shape, gpus = gpus)
 
     self._outputs = output
-    self._vars = { 'y' : output ,'dy' : output }
+    self._vars = { 'y' : output ,'dy' : output , id(self._fwd_op._inputs) : output}
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -66,7 +69,7 @@ class SoftmaxElement(learnable_graph_element):
 
   def __init__(self, previous_element = None):
     fwd_op = softmax_forward()
-    bwd_ops = [ softmax_backward()  ]
+    bwd_ops = [ softmax_backward(fwd_op)  ]
 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
 
@@ -76,6 +79,7 @@ class SoftmaxElement(learnable_graph_element):
     for elem in previous_elements:
       prev_graph_input = elem.get_forward_output()
       self._bwd_graphs[0].add_input(prev_graph_input)
+    self._bwd_graphs[0].add_input(self._fwd)
     return self
 
   def connect_back(self, previous_element): assert False

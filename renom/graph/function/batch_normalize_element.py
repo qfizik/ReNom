@@ -96,6 +96,10 @@ class BatchNormalizeElement(GraphFactory):
   def weights(self):
     return self._weights.output
 
+  @property
+  def bias(self):
+    return self._bias.output
+
   def connect(self, other):
     ret = BatchNormalizer(previous_elements = [ other, self._weights, self._bias ])
     return ret

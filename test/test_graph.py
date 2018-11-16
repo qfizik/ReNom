@@ -12,6 +12,19 @@ def compare(nd_value, ad_value):
   print(ad_value)
   assert np.allclose(nd_value, ad_value, atol = 1e-3, rtol = 1e-5)
 
+def onehot(shape):
+    N = shape[0]
+    D = shape[1]
+    ret = np.zeros(shape, dtype=np.float64)
+    if D > 1:
+        for n in range(N):
+            r = np.random.randint(0, D)
+            ret[n, r] = 1.
+    else:
+        ret[np.random.randint(0, N)] = 1
+    return ret
+
+
 def getNumericalDiff( lossMethod, testValue ):
   assert isinstance(testValue, rm.graph.core.multi_gpu_variable)
   coefficients1 = [ 1, -8, 8, -1 ]
@@ -108,6 +121,39 @@ def test_pool():
 
 
 @test_utility.skipgpu
+def test_softmax():
+  v = np.random.rand(1,3)
+  v2 = onehot((1,3))
+  val = rm.graph.StaticVariable(v)
+  val2 = rm.graph.StaticVariable(v2)
+  model = rm.graph.SoftmaxElement()
+  m = model(val, val2)
+
+  def func():
+    m.forward()
+    ret = m.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
+
+
+@test_utility.skipgpu
+def test_mean_squared():
+  v = np.random.rand(1,3)
+  v2 = np.random.rand(1,3)
+  val = rm.graph.StaticVariable(v)
+  val2 = rm.graph.StaticVariable(v2)
+  model = rm.graph.MeanSquaredElement()
+  m = model(val, val2)
+
+  def func():
+    m.forward()
+    ret = m.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
+
+@test_utility.skipgpu
 def test_lstm():
   v = np.random.rand(2,3)
   val = rm.graph.StaticVariable(v)
@@ -150,6 +196,7 @@ def test_batch_norm():
 
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
   compare( getNumericalDiff( func , model.weights) ,  l.backward().get_gradient(model.weights).as_ndarray() )
+  compare( getNumericalDiff( func , model.bias) ,  l.backward().get_gradient(model.bias).as_ndarray() )
 
 
 
