@@ -138,6 +138,24 @@ def test_softmax():
 
 
 @test_utility.skipgpu
+def test_softmaxGraph():
+  v = np.random.rand(1,3)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.SoftmaxGraphElement()
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
+
+@test_utility.skipgpu
 def test_mean_squared():
   v = np.random.rand(1,3)
   v2 = np.random.rand(1,3)
