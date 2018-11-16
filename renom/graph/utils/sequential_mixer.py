@@ -1,9 +1,5 @@
-from .core import learnable_graph_element
+from renom.graph.core import learnable_graph_element, GraphFactory
 
-def _connect_list(graph_list):
-  assert isinstance(graph_list, list)
-  for g in range(1, len(graph_list)):
-    graph_list[g].connect(graph_list[g-1])
 
 class SequentialSubGraph(learnable_graph_element):
 
@@ -11,19 +7,20 @@ class SequentialSubGraph(learnable_graph_element):
 
   def __init__(self, graphs):
     assert isinstance(graphs, list)
-    self._forward_operations = []
-    self._backward_operations = []
-    super().__init__()
-    _connect_list(graphs)
-    first_element = graphs[0]
-    last_element = graphs[len(graphs) - 1]
-    self._fwd = first_element._fwd
-    self._fwd_op = None
-    self._fwd_in = first_element._fwd
-    self._bwd_graphs = last_element._bwd_graphs
-    self.first = first_element
-    self.last = last_element
+    self._connect_list(graphs)
+    fwd_op = self.first_element._fwd
+    super().__init__(forward_operation = fwd_op)
+    self._bwd_graphs = self.last_element._bwd_graphs
 
 
   def __repr__(self): return self.last.__repr__()
-  def get_forward_output(self): return self.last._fwd
+  def get_forward_output(self): return self.last_element._fwd
+
+  def _connect_list(self, graph_list):
+    assert isinstance(graph_list, list)
+    prev = graph_list[0]
+    self.first_element = prev
+    assert isinstance(prev, learnable_graph_element)
+    for g in range(1, len(graph_list)):
+      prev = graph_list[g].connect(prev)
+    self.last_element = prev

@@ -192,6 +192,18 @@ class operational_element(graph_element):
     if self._op.perform not in dct[self.depth]:
       dct[self.depth].append(self._op.perform)
 
+  def gather_operations(self, op, tag = None):
+    self._storage.register('Operations', [])
+    self._gather_ops(op)
+    return self._storage.retrieve('Operations')
+
+  @graph_element.walk_tree
+  @check_tags
+  def _gather_ops(self, op):
+    if isinstance(self._op, op):
+      lst = self._storage.retrieve('Operations')
+      lst.append(self._op)
+
   def inputs_changed(self):
     inputs = []
     for prev in self._previous_elements:

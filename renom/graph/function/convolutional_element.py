@@ -1,5 +1,5 @@
 import renom as rm
-from .core import operation, learnable_graph_element, operational_element, multi_gpu_variable
+from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory, graph_variable
 import renom.utility.initializer as init
 
 class convo_forward(operation):
@@ -16,23 +16,33 @@ class convo_forward(operation):
 
   def setup(self, inputs, storage):
 
+    weights = inputs[1]['y']
+    bias = inputs[2]['y']
     inputs = inputs[0]['y']
     input_shape = inputs.shape
     
     self._inputs = inputs
     self._init = init.GlorotNormal()
+    gpus = inputs.gpus
+    self.gpus = gpus
 
     weight_shape = (self._channels, input_shape[1], self._kernel[0], self._kernel[1])
     bias_shape = (1, self._channels, 1, 1)
     
     self._conv_desc = rm.cuda.ConvolutionDescriptor(self._padding, self._stride, (1, 1), rm.precision)
     self._filter_desc = rm.cuda.FilterDescriptor(weight_shape, rm.precision)
+    
+    if weights.ready is False:
+      weights.__init__(shape = weight_shape, gpus = gpus, initializer = self._init)
+    else:
+      assert weights.shape == weight_shape
+    if bias.ready is False:
+      bias.__init__(shape = bias_shape, gpus = gpus, initializer = init.Constant(0))
+    else:
+      assert bias.shape == bias_shape
 
-
-    gpus = inputs.gpus
-    self.gpus = gpus
-    self._weights = multi_gpu_variable(shape = weight_shape, gpus = gpus, initializer = self._init)
-    self._bias = multi_gpu_variable(shape = bias_shape, gpus = gpus)
+    self._weights = weights
+    self._bias = bias
 
     imgs = (input_shape[2] + self._padding[0] * 2 - self._kernel[0]) // self._stride[0] + 1
     output_shape = [input_shape[0], self._channels, imgs, imgs]
@@ -70,7 +80,11 @@ class convo_backward(operation):
     self._bias_out = multi_gpu_variable(shape = self._fwd_b.shape, gpus = self.gpus)
     self._weights_out = multi_gpu_variable(shape = self._fwd_w.shape, gpus = self.gpus)
 
-    self._vars = {'w' : self._weights_out, 'b' : self._bias_out, 'y' : self._outputs}
+    self._vars = { 'w' : self._weights_out, 'b' : self._bias_out, 'y' : self._outputs,
+                  id(self._fwd_in) : self._outputs,
+                  id(self._fwd_w) : self._weights_out,
+                  id(self._fwd_b) : self._bias_out,
+                 }
     self._algo = self._fwd_op._bwd_algo
 
   def perform(self):
@@ -82,7 +96,7 @@ class convo_backward(operation):
 
 
 
-class ConvolutionalGraphElement(learnable_graph_element):
+class ConvolutionalGraph(learnable_graph_element):
    
   has_back = True
 
@@ -93,7 +107,27 @@ class ConvolutionalGraphElement(learnable_graph_element):
     self._pdng = padding
     self._strd = stride
     fwd_op = convo_forward(channels, kernel, padding, stride)
-    self._forward_operations = [ fwd_op ]
-    self._backward_operations = [ convo_backward(fwd_op) ]
+    bwd_ops = [ convo_backward(fwd_op) ]
 
-    super().__init__(previous_elements = previous_element)
+    super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
+
+
+class ConvolutionalGraphElement(GraphFactory):
+
+  def __init__(self, channels = 3, kernel = 3, padding = 0, stride = 1):
+    self._chnls = channels
+    self._krnl = kernel
+    self._pdng = padding
+    self._strd = stride
+    self._weights = graph_variable()
+    self._bias = graph_variable()
+
+  @property
+  def weights(self): return self._weights.output
+
+  @property
+  def bias(self): return self._bias.output
+
+  def connect(self, other):
+    ret = ConvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, previous_element = [ other, self._weights, self._bias ])
+    return ret

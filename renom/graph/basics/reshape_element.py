@@ -1,4 +1,4 @@
-from .core import operation, operational_element, learnable_graph_element, multi_gpu_variable
+from renom.graph.core import operation, operational_element, learnable_graph_element, multi_gpu_variable
 import renom as rm
 import numpy as np
 
@@ -47,6 +47,5 @@ class ReshapeElement(learnable_graph_element):
   def __init__(self, shape, previous_element = None):
     self._shape = shape
     fwd_op = reshape_op(shape)
-    self._forward_operations = [ fwd_op ]
-    self._backward_operations = [ reshape_op_back(fwd_op) ]
-    super().__init__(previous_elements = previous_element)
+    bwd_ops = [ reshape_op_back(fwd_op) ]
+    super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)

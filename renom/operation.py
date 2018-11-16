@@ -233,7 +233,8 @@ class sum(Node):
 
     @classmethod
     def _oper_gpu(cls, arg, axis=None, keepdims=False):
-        return cusum(get_gpu(arg), axis=axis, keepdims=keepdims)
+        with RenomHandler() as handle:
+            return cusum(get_gpu(arg), handle, axis=axis, keepdims=keepdims)
 
     def __new__(cls, arg, axis=None, keepdims=False):
         value = cls.calc_value(arg, axis, keepdims=keepdims)

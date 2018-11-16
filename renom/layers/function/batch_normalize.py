@@ -74,7 +74,7 @@ class batch_normalize(Node):
         mv_m = mov_m if isinstance(mov_m, GPUValue) else get_gpu(w).zeros_like_me()
         mv_v = mov_s if isinstance(mov_s, GPUValue) else get_gpu(w).zeros_like_me()
 
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuBatchNormalizatoinForward(handle, get_gpu(x), mv_m, mv_v, get_gpu(w), get_gpu(b),
                                            y, mean, sq_var, momentum=momentum,
                                            mode=axs, inference=inference, eps=epsilon)
@@ -117,7 +117,7 @@ class batch_normalize(Node):
         dx, dw, db = (g.ones_like_me() for g in (gx, gw, gw))
         ax = self.attrs._axs
 
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuBatchNormalizatoinBackward(handle, gx, gw, gdy, gm, gv, dx, dw, db, mode=ax)
 
         if isinstance(self.attrs._x, Node):

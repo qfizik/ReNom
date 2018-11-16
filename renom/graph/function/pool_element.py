@@ -1,5 +1,5 @@
 import renom as rm
-from .core import operation, learnable_graph_element, operational_element, multi_gpu_variable
+from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory
 
 
 class pool_forward(operation):
@@ -49,7 +49,7 @@ class pool_backward(operation):
     self.gpus = inputs.gpus
     outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
-    self._vars = { 'y' : outs }
+    self._vars = { 'y' : outs , id(self._fwd_in) : outs}
     
 
   def perform(self):
@@ -62,11 +62,23 @@ class MaxPoolElement(learnable_graph_element):
 
   has_back = True
 
-  def __init__(self, kernel, padding, stride):
+  def __init__(self, kernel, padding, stride, previous_element = None):
     self._krnl = kernel
     self._pad = padding
     self._strd = stride
     fwd_op = pool_forward(kernel, padding, stride)
-    self._forward_operations = [ fwd_op ]
-    self._backward_operations = [ pool_backward(fwd_op) ]
-    super().__init__()
+    bwd_ops = [ pool_backward(fwd_op) ]
+    super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
+
+
+class MaxPoolElemental(GraphFactory):
+
+  
+  def __init__(self, kernel, padding, stride):
+    self._krnl = kernel
+    self._pad = padding
+    self._strd = stride
+
+
+  def connect(self, other):
+    ret = MaxPool(self._krnl, self._pad, self._strd, previous_element = [ other ])

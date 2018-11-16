@@ -19,10 +19,7 @@ class dense_forward(operation):
     self._init = init.GlorotNormal()
     self._inputs = inputs
     weight_shape = ( inputs[0].shape[1] , self._output_size )
-    if weights.ready is False:
-      weights.__init__( shape = weight_shape , gpus = self.gpus, initializer = self._init)
-    else:
-      assert weights.shape == weight_shape
+    weights.__init__( shape = weight_shape , gpus = self.gpus, initializer = self._init)
     output_shape = ( inputs[0].shape[0] , self._output_size )
     outputs = multi_gpu_variable( shape = output_shape, gpus = self.gpus)
     self._vars = {'x' : inputs, 'w' : weights, 'y' : outputs}
@@ -115,13 +112,6 @@ class DenseGraphElement(GraphFactory):
 
   @property
   def weights(self): return self._weights.output
-
-  def save(self):
-    save(self._weights)
-
-  def load(self, weight_file):
-    self._weights = graph_variable()
-    self._weights.load(weight_file)
 
   def connect(self, other):
     ret = DenseGraph(output_size = self.output_size, previous_element = [ other, self._weights])

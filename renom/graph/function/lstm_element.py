@@ -1,5 +1,5 @@
 import renom as rm
-from .core import operational_element, operation, learnable_graph_element, multi_gpu_variable
+from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory, graph_variable
 import renom.utility.initializer as init 
 import numpy as np
 
@@ -13,6 +13,9 @@ class lstm_forward(operation):
     
 
   def setup(self, inputs, storage):
+    bias = inputs[3]['y']
+    weight_recursive = inputs[2]['y']
+    weight = inputs[1]['y']
     inputs = inputs[0]['y']
     shape = inputs.shape
     gpus = inputs.gpus
@@ -28,9 +31,9 @@ class lstm_forward(operation):
     it = init.GlorotNormal()
     #it = init.Constant(1)
     it2 = init.Constant(0)
-    weight = multi_gpu_variable(shape = w_shape, gpus = gpus, initializer = it)
-    weight_recursive = multi_gpu_variable(shape = wr_shape, gpus = gpus, initializer = it)
-    bias = multi_gpu_variable(shape = b_shape, gpus = gpus, initializer = it2)
+    weight.__init__(shape = w_shape, gpus = gpus, initializer = it)
+    weight_recursive.__init__(shape = wr_shape, gpus = gpus, initializer = it)
+    bias.__init__(shape = b_shape, gpus = gpus, initializer = it2)
     outs = multi_gpu_variable(shape = out_shape, gpus = gpus)
     self._prevs = [multi_gpu_variable(shape = out_shape, gpus = gpus, initializer = it2)]
     self._states = [multi_gpu_variable(shape = out_shape, gpus = gpus, initializer = it2)]
@@ -118,12 +121,13 @@ class lstm_backward(operation):
     self._outputs = outs
     self._inputs = inputs
 
-    self._vars = { 'w' : weights_back, 'wr' : weights_recursive_back, 'b' : bias_back }
+    self._vars = { 'y' : self._outputs,  'w' : weights_back, 'wr' : weights_recursive_back, 'b' : bias_back, id(fwd._inputs) : self._outputs, id(weights) : weights_back, id(weights_recursive) : weights_recursive_back, id(bias) : bias_back, }
     
 
   def perform(self):
 
     self.reset()
+    print('Going back')
     time = self._fwd_op._current_time - 1
     tmps = self._fwd_op._tmps
     prevs = self._fwd_op._prevs
@@ -174,21 +178,27 @@ class lstm_backward(operation):
 
 
 
-class LstmElement(learnable_graph_element):
+class Lstm(learnable_graph_element):
 
   has_back = True
 
-  def __init__(self, output_size):
+  def __init__(self, output_size, previous_element = None):
     self._output_size = output_size
     fwd_op = lstm_forward(output_size)
-    self._forward_operations = [ fwd_op ]
-    self._backward_operations = [ lstm_backward(fwd_op) ]
-    super().__init__()
+    bwd_ops = [ lstm_backward(fwd_op) ]
+    super().__init__(fwd_op, bwd_ops, previous_element)
 
   def reset(self):
     self._fwd._op.reset()
     #self._bwd_graphs[0]._op.reset()
   
-  @property
-  def back(self):
-    return self._bwd_graphs[0]._op._outputs
+class LstmElement(GraphFactory):
+
+  def __init__(self, output_size):
+    self._output_size = output_size
+    self._weights = graph_variable()
+    self._weights_r = graph_variable()
+    self._bias = graph_variable()
+
+  def connect(self, other):
+    return Lstm(self._output_size, [ other, self._weights, self._weights_r, self._bias ])

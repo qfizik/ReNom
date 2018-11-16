@@ -420,10 +420,11 @@ def test_batch_normalize(node, use_gpu, ignore_bias):
     node = Variable(node)
     assert_cuda_active(use_gpu)
 
+    l2 = Dense(output_size = 3)
     layer = BatchNormalize(ignore_bias=ignore_bias)
 
     def func(node):
-        return sum(layer(node))
+        return sum(layer(l2(node)))
     compare(func, node, node)
     compare(func, layer.params["w"], node)
     try:

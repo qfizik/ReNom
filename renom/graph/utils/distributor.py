@@ -1,6 +1,6 @@
 import numpy as np
 import renom as rm
-from .core import operational_element, learnable_graph_element, operation, multi_gpu_variable
+from renom.graph.core import operational_element, learnable_graph_element, operation, multi_gpu_variable
 
 class dispatch(operation):
 
@@ -49,13 +49,16 @@ class dispatch(operation):
     self._batch_num = 0
     self._finished = False
 
+  def set_batch_size(self, batch_size):
+    self._batch_size = batch_size
+
 class data_entry_element(learnable_graph_element):
 
   has_back = False
 
   def __init__(self, data_op, previous_element = None):
-    self._forward_operations = [ data_op ]
-    super().__init__(previous_elements = previous_element)
+    fwd_op = data_op
+    super().__init__(forward_operation = fwd_op, previous_elements = previous_element)
 
 class DistributorElement:
 

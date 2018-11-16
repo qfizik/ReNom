@@ -1,5 +1,5 @@
 import renom as rm
-from .core import operation, learnable_graph_element, graph_element, multi_gpu_variable, GraphFactory 
+from renom.graph.core import operation, learnable_graph_element, graph_element, multi_gpu_variable, GraphFactory 
 
 class softmax_forward(operation):
 
@@ -60,19 +60,19 @@ class softmax_backward(operation):
       #handle.registerWait()
 
 
-class Softmax(learnable_graph_element):
+class SoftmaxElement(learnable_graph_element):
 
   is_connector_element = True
 
   def __init__(self, previous_element = None):
-    self._forward_operations = [ softmax_forward()  ]
-    self._backward_operations = [ softmax_backward()  ]
+    fwd_op = softmax_forward()
+    bwd_ops = [ softmax_backward()  ]
 
-    super().__init__(previous_elements = previous_element)
-    self._calls = None
+    super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
 
   def connect(self, *previous_elements):
-    super().connect(*previous_elements)
+    previous_elements = list(previous_elements)
+    super().connect(previous_elements)
     for elem in previous_elements:
       prev_graph_input = elem.get_forward_output()
       self._bwd_graphs[0].add_input(prev_graph_input)
@@ -86,6 +86,6 @@ class Softmax(learnable_graph_element):
     self._fwd.forward()
     return self._fwd.get_output()['y']
 
-class SoftmaxElement(GraphFactory):
+class SoftmaxElemental(GraphFactory):
 
   def __init__(self): raise NotImplementedError()

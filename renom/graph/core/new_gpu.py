@@ -27,12 +27,15 @@ class shared_val:
   def __lt__(self, other): return self._val < int(other)
   def __neg__(self): return -self._val
   def __floordiv__(self, other): return self._val // int(other)
-  def __floordiv__(self, other): return self._val // int(other)
 
 class multi_gpu_variable:
 
+  ready = False
+
   def __init__(self, shape = None, gpus = None, initializer = None, ptrs = None):
-    self.ready = False
+    if self.ready is True:
+      assert self.shape == shape 
+      return
     if shape is None:
       return
     if gpus is None:

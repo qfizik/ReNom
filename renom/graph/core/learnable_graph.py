@@ -13,6 +13,7 @@ class learnable_graph_element(graph_element):
   _name = 'Undefined'
 
   def __init__(self, forward_operation, backward_operations = None, previous_elements = None):
+    self.connected = False
     if previous_elements is not None:
       if not isinstance(previous_elements, list):
         previous_elements = [ previous_elements ] 
@@ -21,28 +22,35 @@ class learnable_graph_element(graph_element):
         if isinstance(prev, np.ndarray):
           previous_elements[i] = rm.graph.StaticVariable(prev)
     super().__init__(previous_elements = previous_elements) 
-    assert isinstance(forward_operation, operation)
     if backward_operations is None:
       backward_operations = [ ]
-    forward_graph =  operational_element(operation = forward_operation, tags = ['Forward'])
-    self._fwd = forward_graph
     self._bwd_graphs = [] 
     for op in backward_operations:
       bwd_graph = operational_element(op, tags = ['Backward'])
       self._bwd_graphs.append(bwd_graph)
-
-    for consumed in forward_operation.consumes:
-      for op_num, op in enumerate(backward_operations):
-        if consumed in op.produces:
-          upd = update_operation(0.01, consumer = forward_operation, producer = op, key = consumed)
-          upd_g = operational_element(upd, tags = ['Update'])
-          upd_g.add_input(self._bwd_graphs[op_num])
+    assert isinstance(forward_operation, operation) or isinstance(forward_operation, operational_element)
+    if isinstance(forward_operation, operation):
+      forward_graph =  operational_element(operation = forward_operation, tags = ['Forward'])
+      for consumed in forward_operation.consumes:
+        for op_num, op in enumerate(backward_operations):
+          if consumed in op.produces:
+            upd = update_operation(0.01, consumer = forward_operation, producer = op, key = consumed)
+            upd_g = operational_element(upd, tags = ['Update'])
+            upd_g.add_input(self._bwd_graphs[op_num])
+    elif isinstance(forward_operation, operational_element):
+      forward_graph = forward_operation
+    self._fwd = forward_graph
 
     if previous_elements is not None:
       self.connect(previous_elements = previous_elements)
     
     
   def connect(self, previous_elements):
+    if self.connected is True:
+      self.disconnect()
+
+    if isinstance(previous_elements, learnable_graph_element):
+      previous_elements = [ previous_elements ]
 
     for elem in previous_elements:
       prev_graph_input = elem.get_forward_output()
@@ -51,8 +59,16 @@ class learnable_graph_element(graph_element):
     for num, elem in enumerate(previous_elements):
       if elem.has_back:
         elem.connect_back(self, pos = num)
-
+    self.connected = True
     self.forward()
+    return self
+
+  def disconnect(self):
+    for elem in self._fwd._previous_elements:
+      self._fwd.remove_input(elem)
+    for graph in self._bwd_graphs:
+      for elem in graph._previous_elements:
+        graph.remove_input(elem)
 
   def connect_back(self, previous_element, pos = 0):
     backward_graph_input = previous_element.get_backward_output(pos)
@@ -78,19 +94,31 @@ class learnable_graph_element(graph_element):
     self.forward()
     return self._fwd.__repr__()
 
-
   class Executor:
     
-    def __init__(self, call_list):
+    def __init__(self, call_list, graph_inputs, losses):
       self.call_list = call_list
+      self.dispatchers = graph_inputs
+      self.loss = losses
 
     def execute(self, epochs = None, steps = 1):
-      while(steps > 0):
+      if epochs is None:
+        return
+      while(epochs > 0):
         try:
-          self.perform_step()
-          steps -= 1
+          loss = 0
+          while(True):
+            self.perform_step()
+            loss += self.loss[0].as_ndarray()
         except StopIteration:
-          raise NotImplementedError()
+          print(loss)
+          for disp in self.dispatchers: disp.reset()
+          epochs -= 1
+
+    def __del__(self):
+      for i in range(len(self.dispatchers)): self.dispatchers[i] = None
+      for i in range(len(self.loss)): self.loss[i] = None
+      
     
     def perform_step(self):
       for depth in self.call_list.keys():
@@ -101,9 +129,11 @@ class learnable_graph_element(graph_element):
       return self.loss_func
 
   def getTrainingExecutor(self):
-    self._bwd_graphs[0].setup(tag = 'Update')
+    ins = self._bwd_graphs[0].gather_operations(rm.graph.utils.dispatch)
+    lss = self._bwd_graphs[0].gather_operations(rm.graph.loss.softmax_forward)
+    self._bwd_graphs[0].setup()
     dct = self._bwd_graphs[0].get_call_dict()
-    ret = learnable_graph_element.Executor(dct)
+    ret = learnable_graph_element.Executor(dct, ins, lss)
     return ret
     
 
