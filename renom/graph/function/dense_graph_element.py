@@ -107,13 +107,14 @@ class DenseGraph(learnable_graph_element):
 class DenseGraphElement(GraphFactory):
 
   def __init__(self, output_size):    
+    super().__init__()
     self.output_size = output_size
-    self._weights = graph_variable()
-
-  @property
-  def weights(self): return self._weights.output
+    self.params['w'] = graph_variable()
+    self._bias = rm.graph.BiasGraphElement()
+    self.params['b'] = self._bias.params['b']
 
   def connect(self, other):
-    ret = DenseGraph(output_size = self.output_size, previous_element = [ other, self._weights])
+    ret = DenseGraph(output_size = self.output_size, previous_element = [ other, self.params['w']])
+    ret = self._bias(ret)
     return ret
 

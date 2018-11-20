@@ -1,26 +1,21 @@
 from renom.graph.core import learnable_graph_element, GraphFactory
 
 
-class SequentialSubGraph(learnable_graph_element):
-
-  has_back = True
+class SequentialSubGraph(GraphFactory):
 
   def __init__(self, graphs):
-    assert isinstance(graphs, list)
-    self._connect_list(graphs)
-    fwd_op = self.first_element._fwd
-    super().__init__(forward_operation = fwd_op)
-    self._bwd_graphs = self.last_element._bwd_graphs
+    super().__init__()
+    for lvl in range(len(graphs)):
+      setattr(self, 'l{:d}'.format(lvl), graphs[lvl])
+    self.graphs = graphs
 
+  def connect(self, other):
+    assert isinstance(other, learnable_graph_element)
+    ret = self._connect_graphs(other)
+    return ret
 
-  def __repr__(self): return self.last.__repr__()
-  def get_forward_output(self): return self.last_element._fwd
-
-  def _connect_list(self, graph_list):
-    assert isinstance(graph_list, list)
-    prev = graph_list[0]
-    self.first_element = prev
-    assert isinstance(prev, learnable_graph_element)
-    for g in range(1, len(graph_list)):
-      prev = graph_list[g].connect(prev)
-    self.last_element = prev
+  def _connect_graphs(self, init):
+    prev = init
+    for graph in self.graphs:
+      prev = graph(prev)
+    return prev

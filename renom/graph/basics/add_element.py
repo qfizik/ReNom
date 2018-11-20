@@ -1,5 +1,5 @@
 import renom as rm
-from .core import operation, multi_gpu_variable, operational_element, learnable_graph_element
+from renom.graph.core import operation, multi_gpu_variable, operational_element, learnable_graph_element
 
 class add_forward(operation):
  
@@ -15,7 +15,6 @@ class add_forward(operation):
     assert len(a) == len(b)
     for _a, _b in zip(a, b):
       assert _a.shape == _b.shape
-    #self._num_gpus = len(a)
     self.gpus = a.gpus
     self._a = a
     self._b = b
@@ -45,16 +44,14 @@ class AddElement(learnable_graph_element):
   _name = 'Add Element'
   
 
-  def __init__(self):
+  def __init__(self, previous_elements = None):
   
     fwd_op = add_forward()
-    self._forward_operations = [ fwd_op ]
-    self._backward_operations = [ add_back(), add_back() ]
-    super().__init__()
+    bwd_ops = [ add_back(), add_back() ]
+    super().__init__(fwd_op, bwd_ops, previous_elements)
  
 def _add(self, other):
-  ret = AddElement()
-  ret.connect(self, other)
+  ret = AddElement([self, other])
   return ret
 
 learnable_graph_element.__add__ = _add

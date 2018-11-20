@@ -64,7 +64,7 @@ def getNumericalDiff( lossMethod, testValue ):
 @test_utility.skipgpu
 def test_dense():
 
-  v = np.random.rand(1,2)
+  v = np.random.rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.DenseGraphElement(output_size = 2)
   l = rm.graph.ConstantLossElement()
@@ -73,13 +73,13 @@ def test_dense():
 
   ad = loss.backward().get_gradient(val.value).as_ndarray()
   def func():
-    m.forward()
-    loss.forward()
+    val.forward()
     ret = loss.as_ndarray()
     return ret
   
   compare( getNumericalDiff( func , val.value ) , ad )
   compare( getNumericalDiff( func , model.weights) , loss.backward().get_gradient(model.weights).as_ndarray())
+  compare( getNumericalDiff( func , model.bias) , loss.backward().get_gradient(model.bias).as_ndarray())
 
 @test_utility.skipgpu
 def test_conv():

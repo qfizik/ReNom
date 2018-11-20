@@ -115,19 +115,15 @@ class ConvolutionalGraph(learnable_graph_element):
 class ConvolutionalGraphElement(GraphFactory):
 
   def __init__(self, channels = 3, kernel = 3, padding = 0, stride = 1):
+    super().__init__()
     self._chnls = channels
     self._krnl = kernel
     self._pdng = padding
     self._strd = stride
-    self._weights = graph_variable()
-    self._bias = graph_variable()
+    self.params['w'] = graph_variable()
+    self.params['b'] = graph_variable()
 
-  @property
-  def weights(self): return self._weights.output
-
-  @property
-  def bias(self): return self._bias.output
 
   def connect(self, other):
-    ret = ConvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, previous_element = [ other, self._weights, self._bias ])
+    ret = ConvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, previous_element = [ other, self.params['w'], self.params['b']])
     return ret

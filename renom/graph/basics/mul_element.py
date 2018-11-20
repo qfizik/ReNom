@@ -1,5 +1,5 @@
 import renom as rm
-from .core import operation, multi_gpu_variable, operational_element, learnable_graph_element
+from renom.graph.core import operation, multi_gpu_variable, operational_element, learnable_graph_element
 
 class mul_forward(operation):
   
@@ -51,16 +51,14 @@ class MulElement(learnable_graph_element):
   _has_back = True
   _name = 'Mul Element'
 
-  def __init__(self):
+  def __init__(self, previous_elements = None):
 
     fwd_op = mul_forward()
-    self._forward_operations = [ fwd_op ]
-    self._backward_operations = [ mul_backward(fwd_op, 'b'), mul_backward(fwd_op, 'a') ]
-    super().__init__()
+    bwd_ops = [ mul_backward(fwd_op, 'b'), mul_backward(fwd_op, 'a') ]
+    super().__init__(fwd_op, bwd_ops, previous_elements)
 
 def _mul(self, other):
-  ret = MulElement()
-  ret.connect(self, other)
+  ret = MulElement([self, other])
   return ret
 
 learnable_graph_element.__mul__ = _mul

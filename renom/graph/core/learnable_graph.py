@@ -138,7 +138,7 @@ class learnable_graph_element(graph_element):
     
 
   def forward(self):
-    self._fwd.forward()
+    self._fwd.continue_forward(tag = 'Forward')
     return self
 
   def backward(self):

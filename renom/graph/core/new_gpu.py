@@ -106,4 +106,8 @@ class multi_gpu_variable:
     assert self._finished_setup is True
     return self._gpuvalues[0].new_array().__repr__()
 
-  def as_ndarray(self): return self._gpuvalues[0].new_array()
+  def as_ndarray(self):
+    ret = 0
+    for gpu in self.gpus:
+      ret += self._gpuvalues[gpu].new_array()
+    return ret
