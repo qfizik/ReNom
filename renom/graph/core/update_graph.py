@@ -5,6 +5,9 @@ from .new_gpu import multi_gpu_variable
 import renom.utility.initializer as init
 import types
 
+T = True
+F = False
+
 class update_operation(operation):
 
   name = 'Update Operation'
@@ -39,6 +42,7 @@ class update_operation(operation):
     self._outputs = self._consumer.get_key(self._shared_key)
     gpus = self._outputs.gpus
     self.gpus = gpus
+    self.updates = 0
     method = storage.retrieve('Update_Method')
     if method is None:
       method = 'sgd'
@@ -47,8 +51,16 @@ class update_operation(operation):
       update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))
 
   def perform(self):
+    if len(self.gpus) > 1 and F:
+      update_operation._communicator.allReduce(self._dy)
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cu_optimizer_sgd(self._lr, 0, self._dy[gpu], self._extras['running_average'][gpu], self._outputs[gpu], handle)
+    self.updates += 1
+    if len(self.gpus) > 10 and self.updates >= 1 and T:
+      update_operation._communicator.allReduce(self._outputs)
+      for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+        rm.cuda.cudiv(self._outputs[gpu], 2, self._outputs[gpu], handle)
+      self.updates = 0
 
   def get_output_signature(self): return self._outputs
 

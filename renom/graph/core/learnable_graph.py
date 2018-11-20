@@ -109,9 +109,9 @@ class learnable_graph_element(graph_element):
           loss = 0
           while(True):
             self.perform_step()
-            #loss += self.loss[0].as_ndarray()
+            loss += self.loss[0].as_ndarray()
         except StopIteration:
-          #print(loss)
+          print(loss)
           for disp in self.dispatchers: disp.reset()
           epochs -= 1
 

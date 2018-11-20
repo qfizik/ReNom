@@ -16,7 +16,7 @@ def RenomHandler(device = None):
 
 class RenomHandle:
 
-  def __init__(self, device=None, prefetch_length = 2):
+  def __init__(self, device=None, prefetch_length = 4):
     assert rm.cuda.is_cuda_active(), 'Cuda should be active before building cuda-related objects.'
     self.device = rm.cuda.cuGetDevice()
     with rm.cuda.use_device(self.device):

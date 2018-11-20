@@ -38,7 +38,7 @@ cdef class DeviceCommunicator:
       cdef int i
       cdef size_t elems = 1
       for i in range(len(gpuvarray[0].shape)):
-        elems *= gpuvarray[0].shape[i]
+        elems *= int(gpuvarray[0].shape[i])
       ncclCheck(ncclGroupStart())
       for i in range(self.ndev):
         with rm.cuda.RenomHandler(i) as handle:

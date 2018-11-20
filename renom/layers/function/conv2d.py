@@ -212,7 +212,7 @@ class Conv2d(Parametrized):
         assert all([s > 0 for s in x.shape[2:]]), \
             "The shape of input array {} is small. Please give an array which size is lager than 0.".format(
                 x.shape)
-        if self._algo is None and self._descriptors is not None:
+        if self._algo is None and self._descriptors is not None and cu.is_cuda_active():
             out_shape = [self.params.w.shape[0]]
             out_shape.extend(out_size(x.shape[2:], self._kernel,
                                       self._stride, self._padding, self._dilation))

@@ -239,9 +239,9 @@ cdef void cuMemcpyH2DAsync(void* cpu_ptr, uintptr_t gpu_ptr, int size, uintptr_t
 
 
 
-def cuMemcpyD2HAsync(uintptr_t gpu_ptr, np.ndarray[float, ndim=1, mode="c"] cpu_ptr, int size, int stream=0):
+cdef cuMemcpyD2HAsync(void* cpu_ptr, uintptr_t gpu_ptr, int size, uintptr_t stream):
     # gpu to cpu
-    runtime_check(cudaMemcpyAsync( & cpu_ptr[0], < const void*>gpu_ptr, size, cudaMemcpyDeviceToHost, < cudaStream_t > stream))
+    runtime_check(cudaMemcpyAsync(cpu_ptr, <void*> gpu_ptr, size, cudaMemcpyDeviceToHost, < cudaStream_t > stream))
     return
 
 
@@ -390,8 +390,9 @@ cdef class GPUHeap(object):
         cdef _VoidPtr ptr = _VoidPtr(cpu_ptr)
 
         assert nbytes <= self.nbytes, '{} / {}'.format(nbytes, self.nbytes)
-        with renom.cuda.use_device(self.device_id):
-            cuMemcpyD2H(self.ptr, ptr.ptr, nbytes)
+        with renom.cuda.RenomHandler(self.device_id) as handle:
+            cuMemcpyD2HAsync(ptr.ptr, self.ptr, nbytes, <uintptr_t> handle.stream)
+            #cuMemcpyD2H(self.ptr, ptr.ptr, nbytes)
 
         pnp.reshape(cpu_ptr, shape)
 
