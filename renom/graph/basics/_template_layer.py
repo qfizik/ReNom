@@ -5,7 +5,9 @@ from renom.graph.core import learnable_graph_element, operation, GraphFactory, g
 class _forward_operation(operation):
 
   def setup(self, inputs, storage):
-    pass
+    inputs = inputs[0]['y']
+    gpus = inputs.gpus
+    self.gpus = gpus
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -17,14 +19,16 @@ class _backward_operation(operation):
     self._fwd_op = associated_forward
 
   def setup(self, inputs, storage):
-    pass
+    inputs = inputs[0]['y']
+    gpus = inputs.gpus
+    self.gpus = gpus
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       pass
 
 
-class _graph_element(learnable_graph_element):
+class _element(learnable_graph_element):
 
   has_back = True
 
@@ -33,4 +37,8 @@ class _graph_element(learnable_graph_element):
     bwd_ops = [ _backward_operation(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
+class _graph_element(GraphFactory):
 
+  def connect(self, other):
+    ret = _element(previous_elements = other)
+    return ret

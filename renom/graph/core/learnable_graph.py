@@ -4,6 +4,17 @@ from .operation import operation
 import renom as rm
 import numpy as np
 
+def _prepare_prevs(previous_elements):
+  if not isinstance(previous_elements, list):
+    previous_elements = [ previous_elements ] 
+  for i, prev in enumerate(previous_elements):
+    assert isinstance(prev, np.ndarray) or isinstance(prev, learnable_graph_element)
+    if isinstance(prev, np.ndarray):
+      previous_elements[i] = rm.graph.StaticVariable(prev)
+  return previous_elements
+
+
+
 class learnable_graph_element(graph_element):
   '''
     A learnable graph element is responsible for storing and performing the forward, backward and update operations in a normal neural-network setting.
@@ -14,36 +25,49 @@ class learnable_graph_element(graph_element):
 
   def __init__(self, forward_operation, backward_operations = None, previous_elements = None):
     self.connected = False
-    if previous_elements is not None:
-      if not isinstance(previous_elements, list):
-        previous_elements = [ previous_elements ] 
-      for i, prev in enumerate(previous_elements):
-        assert isinstance(prev, np.ndarray) or isinstance(prev, learnable_graph_element)
-        if isinstance(prev, np.ndarray):
-          previous_elements[i] = rm.graph.StaticVariable(prev)
-    super().__init__(previous_elements = previous_elements) 
     if backward_operations is None:
       backward_operations = [ ]
+
+    if previous_elements is not None:
+      previous_elements = _prepare_prevs(previous_elements)
+
+    super().__init__(previous_elements = previous_elements) 
+
+    self._create_fwd_graph(forward_operation)
+    self._create_bwd_graphs(backward_operations)
+    self._create_update_graphs(forward_operation, backward_operations)
+
+    if previous_elements is not None:
+      self.connect(previous_elements = previous_elements)
+    
+
+  # Some helper functions to divide the __init__ method into smaller parts
+  def _create_bwd_graphs(self, backward_operations):
     self._bwd_graphs = [] 
     for op in backward_operations:
       bwd_graph = operational_element(op, tags = ['Backward'])
       self._bwd_graphs.append(bwd_graph)
+
+  def _create_fwd_graph(self, forward_operation):
     assert isinstance(forward_operation, operation) or isinstance(forward_operation, operational_element)
     if isinstance(forward_operation, operation):
-      forward_graph =  operational_element(operation = forward_operation, tags = ['Forward'])
+      self._fwd = operational_element(operation = forward_operation, tags = ['Forward'])
+    elif isinstance(forward_operation, operational_element):
+      forward_graph = forward_operation
+    else:
+      raise AttributeError('Uknown forward operation type')
+
+
+  def _create_update_graphs(self, forward_operation, backward_operations):
+    if isinstance(forward_operation, operation):
+      assert len(backward_operations) == len(self._bwd_graphs)
       for consumed in forward_operation.consumes:
         for op_num, op in enumerate(backward_operations):
           if consumed in op.produces:
             upd = update_operation(consumer = forward_operation, producer = op, key = consumed)
             upd_g = operational_element(upd, tags = ['Update'])
             upd_g.add_input(self._bwd_graphs[op_num])
-    elif isinstance(forward_operation, operational_element):
-      forward_graph = forward_operation
-    self._fwd = forward_graph
 
-    if previous_elements is not None:
-      self.connect(previous_elements = previous_elements)
-    
     
   def connect(self, previous_elements):
     if self.connected is True:

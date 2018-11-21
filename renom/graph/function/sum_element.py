@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, multi_gpu_variable, operation
+from renom.graph.core import learnable_graph_element, multi_gpu_variable, operation, GraphFactory
 import renom.utility.initializer as init
 
 class sum_forward(operation):
@@ -48,10 +48,13 @@ class SumElement(learnable_graph_element):
   
   name = 'Sum'
 
-  def __init__(self):
-    self._forward_operations = [ sum_forward() ]
-    self._backward_operations = [ ]
-    super().__init__()
+  def __init__(self, previous_elements = None):
+    fwd_op = sum_forward()
+    bwd_ops = [ ]
+    super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
+class SumGraphElement(GraphFactory):
 
+  def connect(self, other):
+    ret = SumElement(other)

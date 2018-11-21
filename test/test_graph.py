@@ -78,8 +78,8 @@ def test_dense():
     return ret
   
   compare( getNumericalDiff( func , val.value ) , ad )
-  compare( getNumericalDiff( func , model.weights) , loss.backward().get_gradient(model.weights).as_ndarray())
-  compare( getNumericalDiff( func , model.bias) , loss.backward().get_gradient(model.bias).as_ndarray())
+  compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
+  compare( getNumericalDiff( func , model.params['b'].output) , loss.backward().get_gradient(model.params['b'].output).as_ndarray())
 
 @test_utility.skipgpu
 def test_conv():
@@ -98,8 +98,8 @@ def test_conv():
     return ret
 
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
-  compare( getNumericalDiff( func , model.weights ) ,  l.backward().get_gradient(model.weights).as_ndarray() )
-  compare( getNumericalDiff( func , model.bias ) ,  l.backward().get_gradient(model.bias).as_ndarray() )
+  compare( getNumericalDiff( func , model.params['w'].output ) ,  l.backward().get_gradient(model.params['w'].output).as_ndarray() )
+  compare( getNumericalDiff( func , model.params['b'].output ) ,  l.backward().get_gradient(model.params['b'].output).as_ndarray() )
 
 
 @test_utility.skipgpu
@@ -172,6 +172,24 @@ def test_relu():
 
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
 
+@test_utility.skipgpu
+def test_dropout():
+  v = np.random.rand(3,4)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.DropoutGraphElement()
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    rm.cuda.curand_generator().set_seed(15)
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  rm.cuda.curand_generator().set_seed(15)
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
 
 
 @test_utility.skipgpu
