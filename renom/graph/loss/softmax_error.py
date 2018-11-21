@@ -66,7 +66,7 @@ class softmax_backward(operation):
       #handle.registerWait()
 
 
-class SoftmaxElement(learnable_graph_element):
+class SoftmaxCrossEntropyElement(learnable_graph_element):
 
   is_connector_element = True
 

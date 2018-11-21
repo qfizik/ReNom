@@ -136,9 +136,25 @@ def test_softmax():
 
   compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
 
+@test_utility.skipgpu
+def test_softplus():
+  v = np.random.rand(1,3)
+  v2 = onehot((1,3))
+  val = rm.graph.StaticVariable(v)
+  val2 = rm.graph.StaticVariable(v2)
+  model = rm.graph.SoftplusGraphElement()
+  m = model(val, val2)
+
+  def func():
+    m.forward()
+    ret = m.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
+
 
 @test_utility.skipgpu
-def test_softmaxGraph():
+def maklsdflktest_softmax_cross_entropy():
   v = np.random.rand(1,3)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.SoftmaxGraphElement()
@@ -173,6 +189,57 @@ def test_relu():
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
 
 @test_utility.skipgpu
+def test_elu():
+  v = np.random.rand(3,4)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.EluGraphElement()
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
+@test_utility.skipgpu
+def test_selu():
+  v = np.random.rand(3,4)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.SeluGraphElement()
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
+@test_utility.skipgpu
+def test_leaky_relu():
+  v = np.random.rand(3,4)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.LeakyReluGraphElement()
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
+@test_utility.skipgpu
 def test_tanh():
   v = np.random.rand(3,4)
   val = rm.graph.StaticVariable(v)
@@ -188,6 +255,24 @@ def test_tanh():
     return ret
 
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
+@test_utility.skipgpu
+def test_sigmoid():
+  v = np.random.rand(3,4)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.SigmoidGraphElement()
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
 @test_utility.skipgpu
 def test_dropout():
   v = np.random.rand(3,4)

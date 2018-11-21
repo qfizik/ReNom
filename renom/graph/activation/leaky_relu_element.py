@@ -1,0 +1,65 @@
+import renom as rm
+from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
+
+
+class leaky_reluforward(operation):
+
+  def __init__(self, slope):
+    self._slope = slope
+
+  def setup(self, inputs, storage):
+    inputs = inputs[0]['y']
+    gpus = inputs.gpus
+    self.gpus = gpus
+    in_shape = inputs.shape
+    outs = multi_gpu_variable(shape = in_shape, gpus = gpus)
+    self._inputs = inputs
+    self._outputs = outs
+    self._vars = { 'y' : outs }
+
+  def perform(self):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      rm.cuda.culeaky_leru_forward(self._slope, self._inputs[gpu], self._outputs[gpu]) 
+
+class leaky_relubackward(operation):
+
+  def __init__(self, associated_forward):
+    self._fwd_op = associated_forward
+    self._slope = self._fwd_op._slope
+
+  def setup(self, inputs, storage):
+    inputs = inputs[0]['y']
+    gpus = inputs.gpus
+    self.gpus = gpus
+    in_shape = inputs.shape
+    outs = multi_gpu_variable(shape = in_shape, gpus = gpus)
+    self._inputs = inputs
+    self._outputs = outs
+    self._fwd_in = self._fwd_op._inputs
+    self._vars = { 'y' : outs , id(self._fwd_op._inputs) : outs}
+
+  def perform(self):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      rm.cuda.culeaky_leru_backward(self._slope, self._fwd_in[gpu], self._outputs[gpu])
+      rm.cu.cumul(self._outputs[gpu], self._inputs[gpu], self._outputs[gpu], handle)
+
+
+class LeakyReluElement(learnable_graph_element):
+
+  has_back = True
+
+  def __init__(self, slope = 0.01, previous_elements = None):
+    fwd_op = leaky_reluforward(slope)
+    bwd_ops = [ leaky_relubackward(fwd_op) ]
+    super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
+
+class LeakyReluGraphElement(GraphFactory):
+
+  def __init__(self, slope = 0.01):
+    super().__init__()
+    self._slope = slope
+
+  def connect(self, other):
+    ret = LeakyReluElement(slope = self._slope, previous_elements = other)
+    return ret
+
