@@ -27,7 +27,10 @@ class softmax_forward(operation):
       rm.cuda.cuSoftmaxForward(handle, self._inputs[gpu], self._act_out[gpu], mode = 1)
       rm.cuda.cucross_entropy(self._act_out[gpu], self._lbls[gpu], self._act_out[gpu], handle)
       tmp = rm.cuda.cusum(self._act_out[gpu], handle)
-      rm.cuda.cudiv(tmp, -self._N, tmp, handle)
+      if self._act_out[gpu].shape[0] > 0:
+        rm.cuda.cudiv(tmp, -self._N, tmp, handle)
+      else:
+        rm.cuda.cusub(tmp, tmp, tmp, handle)
       self._outputs[gpu].copy_from(tmp)
 
 

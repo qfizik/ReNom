@@ -25,6 +25,7 @@ class shared_val:
   def __index__(self): return self._val
   def __repr__(self): return self._val.__repr__()
   def __lt__(self, other): return self._val < int(other)
+  def __gt__(self, other): return self._val > int(other)
   def __neg__(self): return -self._val
   def __floordiv__(self, other): return self._val // int(other)
 

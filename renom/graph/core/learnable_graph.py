@@ -34,7 +34,7 @@ class learnable_graph_element(graph_element):
       for consumed in forward_operation.consumes:
         for op_num, op in enumerate(backward_operations):
           if consumed in op.produces:
-            upd = update_operation(0.01, consumer = forward_operation, producer = op, key = consumed)
+            upd = update_operation(consumer = forward_operation, producer = op, key = consumed)
             upd_g = operational_element(upd, tags = ['Update'])
             upd_g.add_input(self._bwd_graphs[op_num])
     elif isinstance(forward_operation, operational_element):

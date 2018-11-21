@@ -26,11 +26,12 @@ class graph_variable(learnable_graph_element):
     bwd_ops = [ ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops)
   
-  def set_value(self, arr):
+  def set_value(self, arr, gpus = None):
     assert isinstance(arr, np.ndarray)
     v = self._fwd_op.get_key('y')
-    v.__init__(shape = arr.shape)
-    v[0].to_gpu(arr)
+    v.__init__(shape = arr.shape, gpus = gpus)
+    for gpu in v.gpus:
+      v[gpu].to_gpu(arr)
    
 
 
@@ -145,7 +146,7 @@ class GraphFactory(abc.ABC):
           else:
             g['__dict__.' + propname] = propvalue
 
-  def load(self, filename):
+  def load(self, filename, gpus = None):
       """Load saved weights to model.
 
       Args:
@@ -186,6 +187,6 @@ class GraphFactory(abc.ABC):
                   name = k
 
               tmp = obj[name]
-              tmp.set_value(v)
+              tmp.set_value(v, gpus = gpus)
 
       f.close()
