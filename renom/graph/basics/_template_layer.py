@@ -39,6 +39,9 @@ class _element(learnable_graph_element):
 
 class _graph_element(GraphFactory):
 
+  def __init__(self):
+    super().__init__()
+
   def connect(self, other):
     ret = _element(previous_elements = other)
     return ret
