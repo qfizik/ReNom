@@ -1,4 +1,5 @@
-from .dense_graph_element import DenseGraphElement
+from .dense_element import DenseGraphElement
+from .embedding_element import EmbeddingGraphElement
 from .convolutional_element import ConvolutionalGraphElement
 from .pool_element import MaxPoolElement
 from .lstm_element import LstmElement

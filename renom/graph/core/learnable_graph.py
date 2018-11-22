@@ -201,3 +201,17 @@ class learnable_graph_element(graph_element):
   def as_ndarray(self):
     self.forward()
     return self._fwd.as_ndarray()
+
+
+class loss_graph_element(learnable_graph_element):
+
+  def connect(self, previous_elements):
+    assert isinstance(previous_elements, list) and len(previous_elements) == 2
+    super().connect(previous_elements)
+    for elem in previous_elements:
+      prev = elem.get_forward_output()
+      self._bwd_graphs[0].add_input(prev)
+    self._bwd_graphs[0].add_input(self._fwd)
+    return self
+
+  def disconnect(self): raise NotImplementedError()

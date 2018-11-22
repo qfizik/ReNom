@@ -12,7 +12,13 @@ def compare(nd_value, ad_value):
   print(ad_value)
   assert np.allclose(nd_value, ad_value, atol = 1e-3, rtol = 1e-5)
 
-def onehot(shape):
+def rand(*shape):
+    return np.array(np.random.rand(*shape), dtype=np.float64)
+
+def randInteger(*shape):
+    return np.array(np.random.randint(0, 2, shape), dtype=np.float64)
+
+def onehot(*shape):
     N = shape[0]
     D = shape[1]
     ret = np.zeros(shape, dtype=np.float64)
@@ -64,27 +70,44 @@ def getNumericalDiff( lossMethod, testValue ):
 @test_utility.skipgpu
 def test_dense():
 
-  v = np.random.rand(3,4)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.DenseGraphElement(output_size = 2)
   l = rm.graph.ConstantLossElement()
   m = model(val)
   loss = l(m)
 
-  ad = loss.backward().get_gradient(val.value).as_ndarray()
   def func():
     val.forward()
     ret = loss.as_ndarray()
     return ret
   
-  compare( getNumericalDiff( func , val.value ) , ad )
+  compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
+  compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
+  compare( getNumericalDiff( func , model.params['b'].output) , loss.backward().get_gradient(model.params['b'].output).as_ndarray())
+
+@test_utility.skipgpu
+def test_embedding():
+
+  v = rand(3,1)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.EmbeddingGraphElement(output_size = 2)
+  l = rm.graph.ConstantLossElement()
+  m = model(val)
+  loss = l(m)
+
+  def func():
+    val.forward()
+    ret = loss.as_ndarray()
+    return ret
+  
   compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
   compare( getNumericalDiff( func , model.params['b'].output) , loss.backward().get_gradient(model.params['b'].output).as_ndarray())
 
 @test_utility.skipgpu
 def test_conv():
 
-  v = np.random.rand(1,1,5,5)
+  v = rand(1,1,5,5)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.ConvolutionalGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -104,7 +127,7 @@ def test_conv():
 
 @test_utility.skipgpu
 def test_pool():
-  v = np.random.rand(1,1,5,5)
+  v = rand(1,1,5,5)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.MaxPoolElement(kernel = 3, padding = 0, stride = 1)
   loss = rm.graph.ConstantLossElement()
@@ -121,41 +144,59 @@ def test_pool():
 
 
 @test_utility.skipgpu
+def test_cross_entropy():
+  v = rand(2,3)
+  v2 = onehot(2,3)
+  val = rm.graph.StaticVariable(v)
+  val2 = rm.graph.StaticVariable(v2)
+  model = rm.graph.CrossEntropyGraphElement()
+  m = model(val, val2)
+
+  def func():
+    m.forward()
+    ret = m.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
+
+
+@test_utility.skipgpu
+def test_softmax_cross_entropy():
+  v = rand(2,3)
+  v2 = onehot(2,3)
+  val = rm.graph.StaticVariable(v)
+  val2 = rm.graph.StaticVariable(v2)
+  model = rm.graph.SoftmaxCrossEntropyGraphElement()
+  m = model(val, val2)
+
+  def func():
+    m.forward()
+    ret = m.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
+
+
+@test_utility.skipgpu
+def test_sigmoid_cross_entropy():
+  v = rand(2,3)
+  v2 = randInteger(2,3)
+  val = rm.graph.StaticVariable(v)
+  val2 = rm.graph.StaticVariable(v2)
+  model = rm.graph.SigmoidCrossEntropyGraphElement()
+  m = model(val, val2)
+
+  def func():
+    m.forward()
+    ret = m.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
+
+
+@test_utility.skipgpu
 def test_softmax():
-  v = np.random.rand(1,3)
-  v2 = onehot((1,3))
-  val = rm.graph.StaticVariable(v)
-  val2 = rm.graph.StaticVariable(v2)
-  model = rm.graph.SoftmaxElement()
-  m = model(val, val2)
-
-  def func():
-    m.forward()
-    ret = m.as_ndarray()
-    return ret
-
-  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
-
-@test_utility.skipgpu
-def test_softplus():
-  v = np.random.rand(1,3)
-  v2 = onehot((1,3))
-  val = rm.graph.StaticVariable(v)
-  val2 = rm.graph.StaticVariable(v2)
-  model = rm.graph.SoftplusGraphElement()
-  m = model(val, val2)
-
-  def func():
-    m.forward()
-    ret = m.as_ndarray()
-    return ret
-
-  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
-
-
-@test_utility.skipgpu
-def maklsdflktest_softmax_cross_entropy():
-  v = np.random.rand(1,3)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.SoftmaxGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -168,12 +209,25 @@ def maklsdflktest_softmax_cross_entropy():
     ret = l.as_ndarray()
     return ret
 
-  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+@test_utility.skipgpu
+def test_softplus():
+  v = rand(3,4)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.SoftplusGraphElement()
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
 
 
 @test_utility.skipgpu
 def test_relu():
-  v = np.random.rand(3,4)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.ReluGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -190,7 +244,7 @@ def test_relu():
 
 @test_utility.skipgpu
 def test_elu():
-  v = np.random.rand(3,4)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.EluGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -207,7 +261,7 @@ def test_elu():
 
 @test_utility.skipgpu
 def test_selu():
-  v = np.random.rand(3,4)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.SeluGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -224,7 +278,7 @@ def test_selu():
 
 @test_utility.skipgpu
 def test_leaky_relu():
-  v = np.random.rand(3,4)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.LeakyReluGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -241,7 +295,7 @@ def test_leaky_relu():
 
 @test_utility.skipgpu
 def test_tanh():
-  v = np.random.rand(3,4)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.TanhGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -258,7 +312,7 @@ def test_tanh():
 
 @test_utility.skipgpu
 def test_sigmoid():
-  v = np.random.rand(3,4)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.SigmoidGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -275,7 +329,7 @@ def test_sigmoid():
 
 @test_utility.skipgpu
 def test_dropout():
-  v = np.random.rand(3,4)
+  v = rand(3,4)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.DropoutGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -295,11 +349,11 @@ def test_dropout():
 
 @test_utility.skipgpu
 def test_mean_squared():
-  v = np.random.rand(1,3)
-  v2 = np.random.rand(1,3)
+  v = rand(2,3)
+  v2 = rand(2,3)
   val = rm.graph.StaticVariable(v)
   val2 = rm.graph.StaticVariable(v2)
-  model = rm.graph.MeanSquaredElement()
+  model = rm.graph.MeanSquaredGraphElement()
   m = model(val, val2)
 
   def func():
@@ -311,7 +365,7 @@ def test_mean_squared():
 
 @test_utility.skipgpu
 def test_lstm():
-  v = np.random.rand(2,3)
+  v = rand(2,3)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.LstmElement(output_size = 4)
   loss = rm.graph.ConstantLossElement()
@@ -334,7 +388,7 @@ def test_lstm():
 
 @test_utility.skipgpu
 def test_batch_norm():
-  v = np.random.rand(2,3)
+  v = rand(2,3)
   val = rm.graph.StaticVariable(v)
   m1 = rm.graph.DenseGraphElement(output_size = 3)
   model = rm.graph.BatchNormalizeElement()

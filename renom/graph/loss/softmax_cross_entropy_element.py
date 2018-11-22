@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, learnable_graph_element, graph_element, multi_gpu_variable, GraphFactory 
+from renom.graph.core import operation, loss_graph_element, graph_element, multi_gpu_variable, GraphFactory 
 
 class softmax_forward(operation):
 
@@ -27,10 +27,8 @@ class softmax_forward(operation):
       rm.cuda.cuSoftmaxForward(handle, self._inputs[gpu], self._act_out[gpu], mode = 1)
       rm.cuda.cucross_entropy(self._act_out[gpu], self._lbls[gpu], self._act_out[gpu], handle)
       tmp = rm.cuda.cusum(self._act_out[gpu], handle)
-      if self._act_out[gpu].shape[0] > 0:
-        rm.cuda.cudiv(tmp, -self._N, tmp, handle)
-      else:
-        rm.cuda.cusub(tmp, tmp, tmp, handle)
+      rm.cuda.cumul(tmp, -1, tmp, handle)
+      rm.cuda.cudiv(tmp, self._N, tmp, handle)
       self._outputs[gpu].copy_from(tmp)
 
 
@@ -63,36 +61,18 @@ class softmax_backward(operation):
       rm.cuda.cuSoftmaxForward(handle, self._graph_input[gpu], self._outputs[gpu], mode = 1)
       rm.cuda.cusub(self._outputs[gpu], self._label_input[gpu], self._outputs[gpu], handle)
       rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
-      #handle.registerWait()
 
 
-class SoftmaxCrossEntropyElement(learnable_graph_element):
+class SoftmaxCrossEntropyElement(loss_graph_element):
 
-  is_connector_element = True
 
-  def __init__(self, previous_element = None):
+  def __init__(self, previous_elements = None):
     fwd_op = softmax_forward()
     bwd_ops = [ softmax_backward(fwd_op)  ]
+    super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
-    super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
+class SoftmaxCrossEntropyGraphElement(GraphFactory):
 
-  def connect(self, *previous_elements):
-    previous_elements = list(previous_elements)
-    super().connect(previous_elements)
-    for elem in previous_elements:
-      prev_graph_input = elem.get_forward_output()
-      self._bwd_graphs[0].add_input(prev_graph_input)
-    self._bwd_graphs[0].add_input(self._fwd)
-    return self
-
-  def connect_back(self, previous_element): assert False
-  
-  @property
-  def loss(self):
-    self._fwd.setup()
-    self._fwd.forward()
-    return self._fwd.get_output()['y']
-
-class SoftmaxElemental(GraphFactory):
-
-  def __init__(self): raise NotImplementedError()
+  def connect(self, predictions, true_values):
+    ret = SoftmaxCrossEntropyElement(previous_elements = [predictions, true_values])
+    return ret

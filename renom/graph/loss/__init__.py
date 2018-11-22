@@ -1,3 +1,5 @@
-from .constant_loss import ConstantLossElement, ConstantLoss
-from .softmax_error import SoftmaxCrossEntropyElement, softmax_forward
-from .mean_squared_error import MeanSquaredElement
+from .constant_loss_element import ConstantLossElement, ConstantLoss
+from .cross_entropy_element import CrossEntropyGraphElement
+from .softmax_cross_entropy_element import SoftmaxCrossEntropyGraphElement, softmax_forward
+from .sigmoid_cross_entropy_element import SigmoidCrossEntropyGraphElement
+from .mean_squared_element import MeanSquaredGraphElement
