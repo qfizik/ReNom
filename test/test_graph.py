@@ -6,11 +6,11 @@ import pytest
 import test_utility
 
 def compare(nd_value, ad_value):
-  print('nd=')
-  print(nd_value)
   print('ad=')
   print(ad_value)
-  assert np.allclose(nd_value, ad_value, atol = 1e-3, rtol = 1e-5)
+  print('nd=')
+  print(nd_value)
+  assert np.allclose(nd_value, ad_value, atol = 1e-5, rtol = 1e-3)
 
 def rand(*shape):
     return np.array(np.random.rand(*shape), dtype=np.float64)
@@ -40,19 +40,19 @@ def getNumericalDiff( lossMethod, testValue ):
 
   def store_value(index, storage, value):
     v = storage[0]
-    tmp = np.empty(v.shape, dtype = rm.precision)
+    tmp = np.empty(v.shape, dtype = np.float64)
     v.to_cpu(tmp)
     tmp[index] += value
     v.to_gpu(tmp)
 
   def retrieve_value(index, storage):
     v = storage[0]
-    tmp = np.empty(v.shape, dtype = rm.precision)
+    tmp = np.empty(v.shape, dtype = np.float64)
     v.to_cpu(tmp)
     return tmp[index]
 
 
-  diff = np.zeros(testValue.shape)
+  diff = np.zeros(testValue.shape, dtype = np.float64)
   for nindex in np.ndindex(diff.shape):
     loss = 0
     for i in range(len(coefficients1)):
@@ -62,7 +62,6 @@ def getNumericalDiff( lossMethod, testValue ):
       ret = lossMethod() * coefficients1[i]
       store_value(nindex, testValue, -coefficients2[i] * dx)
       loss += ret
-
     v = loss / (dx * c)
     diff[nindex] = v
   return diff
@@ -124,6 +123,24 @@ def test_conv():
   compare( getNumericalDiff( func , model.params['w'].output ) ,  l.backward().get_gradient(model.params['w'].output).as_ndarray() )
   compare( getNumericalDiff( func , model.params['b'].output ) ,  l.backward().get_gradient(model.params['b'].output).as_ndarray() )
 
+@test_utility.skipgpu
+def test_l2_norm():
+
+  v = np.array([[[[5.5, 1.1],
+                  [2.3, 3.2]]]])
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.L2NormGraphElement()
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+  compare( getNumericalDiff( func , model.params['w'].output ) ,  l.backward().get_gradient(model.params['w'].output).as_ndarray() )
 
 @test_utility.skipgpu
 def test_pool():

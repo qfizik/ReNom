@@ -1,5 +1,6 @@
 from .dense_element import DenseGraphElement
 from .embedding_element import EmbeddingGraphElement
+from .l2_norm_element import L2NormGraphElement
 from .convolutional_element import ConvolutionalGraphElement
 from .pool_element import MaxPoolElement
 from .lstm_element import LstmElement
