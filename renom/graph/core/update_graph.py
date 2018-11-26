@@ -49,7 +49,7 @@ class update_operation(operation):
 
     self._update_op.setup(self._dy, self._outputs)
 
-    if update_operation._communicator is None and len(self.gpus) > 1:
+    if update_operation._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1:
       update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))
 
   def perform(self):

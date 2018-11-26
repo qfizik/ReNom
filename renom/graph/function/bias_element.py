@@ -1,6 +1,7 @@
 from renom.graph.core import learnable_graph_element, operation, multi_gpu_variable, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
+import numpy as np
 
 class bias_forward(operation):
 
@@ -32,6 +33,11 @@ class bias_forward(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cuadd(self._inputs[gpu], self._biases[gpu], self._outputs[gpu], handle)
 
+class bias_forward_cpu(bias_forward):
+
+  def perform(self):
+    ret = self._inputs['cpu'] + self._biases['cpu']
+    self._outputs['cpu'] = ret
 
 
 class bias_backward(operation):
@@ -55,6 +61,12 @@ class bias_backward(operation):
       ret = rm.cuda.cusum(self._inputs[gpu], handle, axis = 0, keepdims = True)
       self._bias_back[gpu].copy_from(ret)
 
+class bias_backward_cpu(bias_backward):
+
+  def perform(self):
+    ret = np.sum(self._inputs['cpu'], axis = 0, keepdims = True)
+    self._bias_back['cpu'] = ret
+
 
 class BiasElement(learnable_graph_element):
 
@@ -62,8 +74,8 @@ class BiasElement(learnable_graph_element):
 
   def __init__(self, previous_element = None):
   
-    fwd_op = bias_forward()
-    bwd_graphs = [ bias_backward(fwd_op) ]
+    fwd_op = bias_forward() if rm.is_cuda_active() else bias_forward_cpu()
+    bwd_graphs = [ bias_backward(fwd_op) if rm.is_cuda_active() else bias_backward_cpu(fwd_op)]
 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_graphs, previous_elements = previous_element)
 

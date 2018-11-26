@@ -1,6 +1,8 @@
 import renom as rm
+from renom.layers.function.utils import im2col, col2im
 from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory, graph_variable
 import renom.utility.initializer as init
+import numpy as np
 
 class convo_forward(operation):
 
@@ -12,6 +14,7 @@ class convo_forward(operation):
     self._kernel = (kernel, kernel)
     self._padding = (padding, padding)
     self._stride = (stride, stride)
+    self._dilation = (1, 1)
 
 
   def setup(self, inputs, storage):
@@ -29,17 +32,9 @@ class convo_forward(operation):
     weight_shape = (self._channels, input_shape[1], self._kernel[0], self._kernel[1])
     bias_shape = (1, self._channels, 1, 1)
     
-    self._conv_desc = rm.cuda.ConvolutionDescriptor(self._padding, self._stride, (1, 1), rm.precision)
-    self._filter_desc = rm.cuda.FilterDescriptor(weight_shape, rm.precision)
     
-    if weights.ready is False:
-      weights.__init__(shape = weight_shape, gpus = gpus, initializer = self._init)
-    else:
-      assert weights.shape == weight_shape
-    if bias.ready is False:
-      bias.__init__(shape = bias_shape, gpus = gpus, initializer = init.Constant(0))
-    else:
-      assert bias.shape == bias_shape
+    weights.__init__(shape = weight_shape, gpus = gpus, initializer = self._init)
+    bias.__init__(shape = bias_shape, gpus = gpus, initializer = init.Constant(0))
 
     self._weights = weights
     self._bias = bias
@@ -49,14 +44,26 @@ class convo_forward(operation):
     self._outputs = multi_gpu_variable(shape = output_shape, gpus = gpus)
     self._vars = {'w' : self._weights, 'b' : self._bias, 'y' : self._outputs}
 
-    with rm.cuda.RenomHandler() as handle:
-      self._algo = rm.cuda.cuGetConvolutionFwdAlgo(handle, self._conv_desc, self._filter_desc, inputs[0], self._outputs[0])
-      self._bwd_algo = rm.cuda.cuGetConvolutionBwdAlgo(handle, self._conv_desc, self._filter_desc, inputs[0], self._outputs[0])
+    if rm.is_cuda_active():
+      with rm.cuda.RenomHandler() as handle:
+        self._conv_desc = rm.cuda.ConvolutionDescriptor(self._padding, self._stride, (1, 1), rm.precision)
+        self._filter_desc = rm.cuda.FilterDescriptor(weight_shape, rm.precision)
+        self._algo = rm.cuda.cuGetConvolutionFwdAlgo(handle, self._conv_desc, self._filter_desc, inputs[0], self._outputs[0])
+        self._bwd_algo = rm.cuda.cuGetConvolutionBwdAlgo(handle, self._conv_desc, self._filter_desc, inputs[0], self._outputs[0])
 
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cuConvolutionForwardBiasActivation(handle, self._conv_desc, self._filter_desc, self._inputs[gpu], self._weights[gpu], self._outputs[gpu], self._bias[gpu], self._algo)
+
+class convo_forward_cpu(convo_forward):
+
+  def perform(self):
+    col = im2col(self._inputs['cpu'], self._outputs.shape[2:], self._kernel, self._stride, self._padding, self._dilation)
+    self._col = col
+    val = np.rollaxis(np.tensordot(col, self._weights['cpu'], ([1, 2, 3], [1, 2, 3])), 3, 1)
+    val = val + self._bias['cpu']
+    self._outputs['cpu'] = val
 
 
 class convo_backward(operation):
@@ -85,7 +92,9 @@ class convo_backward(operation):
                   id(self._fwd_w) : self._weights_out,
                   id(self._fwd_b) : self._bias_out,
                  }
-    self._algo = self._fwd_op._bwd_algo
+
+    if rm.is_cuda_active():
+      self._algo = self._fwd_op._bwd_algo
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -93,6 +102,21 @@ class convo_backward(operation):
       rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc, self._fwd_in[gpu], self._fwd_w[gpu], self._inputs[gpu], self._weights_out[gpu], self._bias_out[gpu], self._outputs[gpu], self._algo)
 
 
+class convo_backward_cpu(convo_backward):
+
+  def perform(self):
+    dy = self._inputs['cpu']
+
+    dx = np.tensordot(self._fwd_w['cpu'], dy, (0, 1))
+    dx = np.rollaxis(dx, 3)
+    dx = col2im(dx, self._fwd_in.shape[2:], self._fwd_op._stride, self._fwd_op._padding, self._fwd_op._dilation)
+    self._outputs['cpu'] = dx
+
+    dw = np.tensordot(dy, self._fwd_op._col, ([0, 2, 3], [0, 4, 5]))
+    self._weights_out['cpu'] = dw
+    
+    db = np.sum(dy, (0, 2, 3), keepdims = True)
+    self._bias_out['cpu'] = db
 
 
 
@@ -106,8 +130,8 @@ class ConvolutionalGraph(learnable_graph_element):
     self._krnl = kernel
     self._pdng = padding
     self._strd = stride
-    fwd_op = convo_forward(channels, kernel, padding, stride)
-    bwd_ops = [ convo_backward(fwd_op) ]
+    fwd_op = convo_forward(channels, kernel, padding, stride) if rm.is_cuda_active() else convo_forward_cpu(channels, kernel, padding, stride)
+    bwd_ops = [ convo_backward(fwd_op) if rm.is_cuda_active() else convo_backward_cpu(fwd_op) ]
 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
 

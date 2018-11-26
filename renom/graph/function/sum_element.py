@@ -1,6 +1,7 @@
 import renom as rm
 from renom.graph.core import learnable_graph_element, multi_gpu_variable, operation, GraphFactory
 import renom.utility.initializer as init
+import numpy as np
 
 class sum_forward(operation):
 
@@ -21,6 +22,13 @@ class sum_forward(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       r = rm.cuda.cusum(self._inputs[gpu], handle)
       self._outputs[gpu].copy_from(r)
+
+class sum_forward_cpu(sum_forward):
+
+  def perform(self):
+    ret = np.sum(self._inputs['cpu'])
+    self._outputs['cpu'] = ret
+
 
 class sum_backward(operation):
 
@@ -49,7 +57,7 @@ class SumElement(learnable_graph_element):
   name = 'Sum'
 
   def __init__(self, previous_elements = None):
-    fwd_op = sum_forward()
+    fwd_op = sum_forward() if rm.is_cuda_active() else sum_forward_cpu()
     bwd_ops = [ ]
     super().__init__(fwd_op, bwd_ops, previous_elements)
 

@@ -41,7 +41,6 @@ class multi_gpu_variable:
       return
     if gpus is None:
       gpus = [ 0 ]
-    assert isinstance(gpus, list)
     self.gpus = gpus
     self._gpuvalues = {}
     self._initializer = initializer
@@ -57,6 +56,13 @@ class multi_gpu_variable:
     self.ready = True
 
   def _create_values(self):
+    if self.gpus == 'cpu':
+      if self._initializer is not None:
+        self['cpu'] = self._initializer(self.shape)
+      else:
+        self['cpu'] = np.empty(self.shape)
+      return
+
     for gpu in self.gpus:
       with rm.cuda.RenomHandler(gpu) as handle:
         arr = None
@@ -86,7 +92,9 @@ class multi_gpu_variable:
 
   @gpus.setter
   def gpus(self, val):
-    assert isinstance(val, list)
+    assert isinstance(val, list) or isinstance(val, str)
+    if isinstance(val, str):
+      assert val == 'cpu'
     self._gpus = val
 
 
@@ -95,6 +103,8 @@ class multi_gpu_variable:
       yield self[key]
 
   def __len__(self):
+    if isinstance(self._gpus, str):
+      return -1
     return len(self._gpus)
 
   def __getitem__(self, index):
@@ -108,6 +118,8 @@ class multi_gpu_variable:
     return self._gpuvalues[0].new_array().__repr__()
 
   def as_ndarray(self):
+    if not rm.is_cuda_active():
+      return self._gpuvalues['cpu']
     ret = 0
     for gpu in self.gpus:
       ret += self._gpuvalues[gpu].new_array()

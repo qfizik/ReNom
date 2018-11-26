@@ -1,6 +1,6 @@
 import renom as rm
 from renom.graph.core import operation, operational_element, learnable_graph_element, multi_gpu_variable, GraphFactory
-from renom.graph.function.sum_element import sum_forward
+from renom.graph.function.sum_element import sum_forward, sum_forward_cpu
 import renom.utility.initializer as init 
 
 
@@ -24,7 +24,9 @@ class ConstantLoss(learnable_graph_element):
   is_connector_element = True
 
   def __init__(self, previous_element = None):
-    super().__init__(forward_operation = sum_forward(), backward_operations = [ constant_loss_backward()], previous_elements = previous_element)
+    fwd_op = sum_forward() if rm.is_cuda_active() else sum_forward_cpu()
+    bwd_ops = [ constant_loss_backward() ]
+    super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
     self._bwd_graphs[0].add_input(previous_element.get_forward_output())
     self._bwd_graphs[0].add_input(self._fwd)
 

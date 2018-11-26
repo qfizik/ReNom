@@ -20,10 +20,16 @@ class StaticVariable(learnable_graph_element):
   _name = 'Static Element'
 
   def __init__(self, value, num_gpus = 1):
-    gpu_list = [gpu for gpu in range(num_gpus)]
+    if rm.is_cuda_active():
+      gpu_list = [gpu for gpu in range(num_gpus)]
+    else:
+      gpu_list = 'cpu'
     val = multi_gpu_variable(shape = value.shape, gpus = gpu_list)
-    for gpuv in val:
-      gpuv.to_gpu(value)
+    if rm.is_cuda_active():
+      for gpuv in val:
+        gpuv.to_gpu(value)
+    else:
+      val['cpu'] = value
     self._value = val
     fwd_op = static_value(val)
     super().__init__(forward_operation = fwd_op)

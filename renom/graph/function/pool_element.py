@@ -1,6 +1,7 @@
 import renom as rm
+from renom.layers.function.utils import im2col, col2im
 from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory
-
+import numpy as np
 
 class pool_forward(operation):
 
@@ -17,8 +18,6 @@ class pool_forward(operation):
     input_shape = inputs.shape
     self._inputs = inputs
     
-    pd = rm.cuda.PoolingDescriptor(self._kernel, self._padding, self._stride, pool_mode = 0)
-    self._pool_desc = pd
 
     imgs = (input_shape[2] + self._padding[0] * 2 - self._kernel[0]) // self._stride[0] + 1
     out_shape = [input_shape[0], input_shape[1], imgs, imgs]
@@ -26,10 +25,24 @@ class pool_forward(operation):
     outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = {'y' : outs}
+    if rm.is_cuda_active():
+      pd = rm.cuda.PoolingDescriptor(self._kernel, self._padding, self._stride, pool_mode = 0)
+      self._pool_desc = pd
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cuPoolingForward(handle, self._pool_desc, self._inputs[gpu], self._outputs[gpu])
+
+class pool_forward_cpu(pool_forward):
+
+  def perform(self):
+    col = im2col(self._inputs['cpu'], self._outputs.shape[2:], self._kernel, self._stride, self._padding)
+    n, ic, kh, kw, oh, ow = col.shape
+    col = col.reshape(n, ic, kh * kw, oh, ow)
+    index = np.argmax(col, axis=2)
+    self._index = index
+    value = np.max(col, axis=2)
+    self._outputs['cpu'] = value
     
 
 class pool_backward(operation):
@@ -56,6 +69,23 @@ class pool_backward(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cuPoolingBackward(handle, self._fwd_op._pool_desc, self._fwd_in[gpu], self._fwd_out[gpu], self._inputs[gpu], self._outputs[gpu]) 
 
+class pool_backward_cpu(pool_backward):
+
+  def perform(self):
+    dy = self._inputs['cpu']
+    N = len(dy)
+    index = self._fwd_op._index
+    in_shape = self._fwd_op._inputs.shape
+    out_shape = self._fwd_op._outputs.shape
+    col = np.zeros((N, in_shape[1], self._fwd_op._kernel[0], self._fwd_op._kernel[1],
+                       out_shape[2], out_shape[3]))
+    col_k = np.rollaxis(col.reshape(N, in_shape[1], -1,
+                          out_shape[2], out_shape[3]), 2)
+    for i in np.ndindex(N, in_shape[1], out_shape[2], out_shape[3]):
+      col_k[index[i]][i] = dy[i]
+    dx = col2im(col, in_shape[2:], self._fwd_op._stride, self._fwd_op._padding)
+    self._outputs['cpu'] = dx
+
  
 
 class MaxPoolElement(learnable_graph_element):
@@ -66,12 +96,12 @@ class MaxPoolElement(learnable_graph_element):
     self._krnl = kernel
     self._pad = padding
     self._strd = stride
-    fwd_op = pool_forward(kernel, padding, stride)
-    bwd_ops = [ pool_backward(fwd_op) ]
+    fwd_op = pool_forward(kernel, padding, stride) if rm.is_cuda_active() else pool_forward_cpu(kernel, padding, stride)
+    bwd_ops = [ pool_backward(fwd_op) if rm.is_cuda_active() else pool_backward_cpu(fwd_op)]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
 
 
-class MaxPoolElemental(GraphFactory):
+class MaxPoolGraphElement(GraphFactory):
 
   
   def __init__(self, kernel, padding, stride):
@@ -81,4 +111,5 @@ class MaxPoolElemental(GraphFactory):
 
 
   def connect(self, other):
-    ret = MaxPool(self._krnl, self._pad, self._strd, previous_element = [ other ])
+    ret = MaxPoolElement(self._krnl, self._pad, self._strd, previous_element = [ other ])
+    return ret
