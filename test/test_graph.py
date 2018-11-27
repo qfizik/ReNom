@@ -258,11 +258,16 @@ def test_pool(test_shape, use_gpu):
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
 
 
-def test_cross_entropy():
-  use_gpu = True
+@pytest.mark.parametrize("test_shape", [
+    (1, 8),
+    (2, 5),
+    (6,1),
+    (2, 20),
+])
+def test_cross_entropy(test_shape, use_gpu):
   rm.set_cuda_active(use_gpu)
-  v = rand(2,3)
-  v2 = onehot(2,3)
+  v = rand(test_shape)
+  v2 = onehot(test_shape)
   val = rm.graph.StaticVariable(v)
   val2 = rm.graph.StaticVariable(v2)
   model = rm.graph.CrossEntropyGraphElement()
@@ -276,11 +281,15 @@ def test_cross_entropy():
   compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
 
 
-def test_softmax_cross_entropy():
-  use_gpu = True
+@pytest.mark.parametrize("test_shape", [
+    (1, 4),
+    (2, 2),
+    (2, 2, 2, 2),
+])
+def test_softmax_cross_entropy(test_shape, use_gpu):
   rm.set_cuda_active(use_gpu)
-  v = rand(2,3)
-  v2 = onehot(2,3)
+  v = rand(test_shape)
+  v2 = onehot(test_shape)
   val = rm.graph.StaticVariable(v)
   val2 = rm.graph.StaticVariable(v2)
   model = rm.graph.SoftmaxCrossEntropyGraphElement()
@@ -294,11 +303,16 @@ def test_softmax_cross_entropy():
   compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
 
 
-def test_sigmoid_cross_entropy():
-  use_gpu = True
+
+@pytest.mark.parametrize("test_shape", [
+    (2, 1),
+    (2, 2),
+    (2, 2, 2, 2),
+])
+def test_sigmoid_cross_entropy(test_shape, use_gpu):
   rm.set_cuda_active(use_gpu)
-  v = rand(2,3)
-  v2 = randInteger(2,3)
+  v = rand(test_shape)
+  v2 = randInteger(test_shape)
   val = rm.graph.StaticVariable(v)
   val2 = rm.graph.StaticVariable(v2)
   model = rm.graph.SigmoidCrossEntropyGraphElement()
@@ -311,6 +325,28 @@ def test_sigmoid_cross_entropy():
 
   compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
 
+
+@pytest.mark.parametrize("test_shape", [
+    (2, 1),
+    (2, 2),
+    (2, 2, 2, 2),
+])
+def test_smoothed_l1(test_shape, use_gpu):
+  rm.set_cuda_active(use_gpu)
+  v = rand(test_shape)
+  v2 = randInteger(test_shape)
+  val = rm.graph.StaticVariable(v)
+  val2 = rm.graph.StaticVariable(v2)
+  model = rm.graph.SmoothedL1GraphElement()
+  m = model(val, val2)
+
+  def func():
+    m.forward()
+    ret = m.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
+ 
 
 @pytest.mark.parametrize("test_shape", [
     (2, 1),
@@ -332,10 +368,15 @@ def test_softmax(test_shape, use_gpu):
     ret = l.as_ndarray()
     return ret
 
-def test_softplus():
-  use_gpu = True
+@pytest.mark.parametrize("test_shape", [
+    (2, 1),
+    (2, 2),
+    (2,),
+    (2, 2, 2, 2),
+])
+def test_softplus(test_shape, use_gpu):
   rm.set_cuda_active(use_gpu)
-  v = rand(3,4)
+  v = rand(test_shape)
   val = rm.graph.StaticVariable(v)
   model = rm.graph.SoftplusGraphElement()
   loss = rm.graph.ConstantLossElement()
@@ -514,11 +555,16 @@ def test_dropout(test_shape, use_gpu):
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
 
 
-def test_mean_squared():
-  use_gpu = True
+@pytest.mark.parametrize("test_shape", [
+    (1, 8),
+    (2, 5),
+    (6,),
+    (2, 20),
+])
+def test_mean_squared(test_shape, use_gpu):
   rm.set_cuda_active(use_gpu)
-  v = rand(2,3)
-  v2 = rand(2,3)
+  v = rand(test_shape)
+  v2 = rand(test_shape)
   val = rm.graph.StaticVariable(v)
   val2 = rm.graph.StaticVariable(v2)
   model = rm.graph.MeanSquaredGraphElement()
@@ -531,28 +577,6 @@ def test_mean_squared():
 
   compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
 
-def test_lstm():
-  use_gpu = True
-  rm.set_cuda_active(use_gpu)
-  v = rand(2,3)
-  val = rm.graph.StaticVariable(v)
-  model = rm.graph.LstmElement(output_size = 4)
-  loss = rm.graph.ConstantLossElement()
-  m = model(val)
-  l = loss(m)
-
-  def func():
-    m.reset()
-    m.forward()
-    m.forward()
-    m.forward()
-    l.forward()
-    ret = l.as_ndarray()
-    return ret
-  m.forward()
-  m.forward()
-  m.forward()
-  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
 
 
 @pytest.mark.parametrize("test_shape", [

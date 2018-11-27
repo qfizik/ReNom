@@ -1,7 +1,8 @@
 import renom as rm
 from renom.graph.core import operation, loss_graph_element, graph_element, multi_gpu_variable, GraphFactory 
+import numpy as np
 
-class softmax_forward(operation):
+class softmax_cross_entropy_forward(operation):
 
   name = 'Softmax (F)'
 
@@ -31,8 +32,21 @@ class softmax_forward(operation):
       rm.cuda.cudiv(tmp, self._N, tmp, handle)
       self._outputs[gpu].copy_from(tmp)
 
+class softmax_cross_entropy_forward_cpu(softmax_cross_entropy_forward):
 
-class softmax_backward(operation):
+  def perform(self):
+    x = self._inputs['cpu']
+    y = self._lbls['cpu']
+    N = len(x)
+    maxes = np.max(x, axis=1, keepdims=True)
+    u = np.exp(x - maxes)
+    summed = np.sum(u, axis=1, keepdims=True)
+    z = u / (summed + 1e-8)
+    self._z = z
+    ret = -np.sum(y * np.log(z + 1e-8)) / N
+    self._outputs['cpu'] = ret 
+
+class softmax_cross_entropy_backward(operation):
 
   name = 'Softmax (B)'
 
@@ -62,13 +76,21 @@ class softmax_backward(operation):
       rm.cuda.cusub(self._outputs[gpu], self._label_input[gpu], self._outputs[gpu], handle)
       rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
 
+class softmax_cross_entropy_backward_cpu(softmax_cross_entropy_backward):
+
+  def perform(self):
+    y = self._label_input['cpu']
+    z = self._fwd_op._z
+    N = len(z)
+    ret = (z - y) / N
+    self._outputs['cpu'] = ret
 
 class SoftmaxCrossEntropyElement(loss_graph_element):
 
 
   def __init__(self, previous_elements = None):
-    fwd_op = softmax_forward()
-    bwd_ops = [ softmax_backward(fwd_op)  ]
+    fwd_op = softmax_cross_entropy_forward() if rm.is_cuda_active() else softmax_cross_entropy_forward_cpu()
+    bwd_ops = [ softmax_cross_entropy_backward(fwd_op) if rm.is_cuda_active() else softmax_cross_entropy_backward_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 class SoftmaxCrossEntropyGraphElement(GraphFactory):

@@ -1,5 +1,6 @@
 import renom as rm
 from renom.graph.core import operation, loss_graph_element, graph_element, multi_gpu_variable, GraphFactory 
+import numpy as np
 
 class cross_entropy_forward(operation):
 
@@ -30,6 +31,15 @@ class cross_entropy_forward(operation):
       tmp = rm.cuda.cusum(self._act_out[gpu], handle)
       rm.cuda.cudiv(tmp, self._N, tmp, handle)
       self._outputs[gpu].copy_from(tmp)
+
+class cross_entropy_forward_cpu(cross_entropy_forward):
+
+  def perform(self):
+    pred = self._inputs['cpu']
+    real = self._lbls['cpu']
+    log_pred = np.log(pred + 1e-8)
+    ret = -np.sum(real * log_pred) 
+    self._outputs['cpu'] = ret
 
 
 class cross_entropy_backward(operation):
@@ -62,13 +72,21 @@ class cross_entropy_backward(operation):
       rm.cuda.cudiv(self._label_input[gpu], self._graph_input[gpu], self._outputs[gpu], handle)
       rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
 
+class cross_entropy_backward_cpu(cross_entropy_backward):
+
+  def perform(self):
+    pred = self._graph_input['cpu']
+    real = self._label_input['cpu']
+
+    ret = -real / pred
+    self._outputs['cpu'] = ret
 
 class CrossEntropyElement(loss_graph_element):
 
 
   def __init__(self, previous_elements = None):
-    fwd_op = cross_entropy_forward()
-    bwd_ops = [ cross_entropy_backward(fwd_op)  ]
+    fwd_op = cross_entropy_forward() if rm.is_cuda_active() else cross_entropy_forward_cpu()
+    bwd_ops = [ cross_entropy_backward(fwd_op) if rm.is_cuda_active() else cross_entropy_backward_cpu(fwd_op) ] 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 class CrossEntropyGraphElement(GraphFactory):

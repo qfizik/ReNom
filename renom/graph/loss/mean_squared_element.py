@@ -1,5 +1,6 @@
 import renom as rm
 from renom.graph.core import loss_graph_element, operation, multi_gpu_variable, GraphFactory
+import numpy as np
 
 class mean_squared_forward(operation):
 
@@ -31,6 +32,14 @@ class mean_squared_forward(operation):
       rm.cuda.cudiv(tmp, self._N, tmp, handle)
       self._outputs[gpu].copy_from(tmp)
 
+class mean_squared_forward_cpu(mean_squared_forward):
+
+  def perform(self):
+    pred = self._graph_input['cpu']
+    real = self._label_input['cpu']
+    N = len(pred)
+    ret = np.sum((pred - real) ** 2) / (N * 2)
+    self._outputs['cpu'] = ret
 
 class mean_squared_backward(operation):
 
@@ -58,13 +67,22 @@ class mean_squared_backward(operation):
       rm.cuda.cumul(self._outputs[gpu], 2, self._outputs[gpu], handle)
       rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
 
+class mean_squared_backward_cpu(mean_squared_backward):
+
+  def perform(self):
+    #dy = self._inputs['cpu']
+    pred = self._graph_input['cpu']
+    real = self._label_input['cpu']
+    N = len(pred)
+    ret = (pred - real) / N
+    self._outputs['cpu'] = ret
 
 class MeanSquaredElement(loss_graph_element):
 
   def __init__(self, previous_elements = None):
 
-    fwd_op = mean_squared_forward()
-    bwd_ops = [ mean_squared_backward(fwd_op) ] 
+    fwd_op = mean_squared_forward() if rm.is_cuda_active() else mean_squared_forward_cpu()
+    bwd_ops = [ mean_squared_backward(fwd_op) if rm.is_cuda_active() else mean_squared_backward_cpu(fwd_op) ] 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 

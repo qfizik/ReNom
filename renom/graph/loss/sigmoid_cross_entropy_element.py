@@ -1,5 +1,6 @@
 import renom as rm
 from renom.graph.core import operation, loss_graph_element, graph_element, multi_gpu_variable, GraphFactory 
+import numpy as np
 
 class sigmoid_forward(operation):
 
@@ -12,44 +13,39 @@ class sigmoid_forward(operation):
     inputs = inputs[0]['y']
     out_shape = ( 1, )
     gpus = inputs.gpus
-    act_out1 = multi_gpu_variable(shape = inputs.shape, gpus = gpus)
-    act_out2 = multi_gpu_variable(shape = inputs.shape, gpus = gpus)
-    act_out3 = multi_gpu_variable(shape = inputs.shape, gpus = gpus)
     outs = multi_gpu_variable(shape = out_shape, gpus = gpus)
     self.gpus = gpus
     self._outputs = outs
     self._vars = { 'y' : outs }
     self._lbls = labels
-    self._act_out1 = act_out1
-    self._act_out2 = act_out2
-    self._act_out3 = act_out3
     self._N = inputs.shape[0]
     self._inputs = inputs
 
   def perform(self): 
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      # tmp1 = sigmoid(predictions)
-      rm.cuda.cusigmoid(self._inputs[gpu], self._act_out1[gpu])
-      # tmp2 = cross_entropy(tmp1, true_values)
-      rm.cuda.cucross_entropy(self._act_out1[gpu], self._lbls[gpu], self._act_out2[gpu], handle)
-      # tmp1 = tmp1 * -1
-      rm.cuda.cumul(self._act_out1[gpu], -1, self._act_out1[gpu], handle)
-      # tmp1 = tmp1 + 1
-      rm.cuda.cuadd(self._act_out1[gpu], 1, self._act_out1[gpu], handle)
-      # tmp3 = true_values * -1
-      rm.cuda.cumul(self._lbls[gpu], -1, self._act_out3[gpu], handle)
-      # tmp3 = tmp3 + 1
-      rm.cuda.cuadd(self._act_out3[gpu], 1, self._act_out3[gpu], handle)
-      # tmp3 = cross_entropy(tmp1, tmp3)
-      rm.cuda.cucross_entropy(self._act_out1[gpu], self._act_out3[gpu], self._act_out3[gpu], handle)
-      # tmp2 = tmp2 + tmp3
-      rm.cuda.cuadd(self._act_out2[gpu], self._act_out3[gpu], self._act_out2[gpu], handle)
-      # tmp2 = tmp2 * -1
-      rm.cuda.cumul(self._act_out2[gpu], -1, self._act_out2[gpu], handle)
-      tmp = rm.cuda.cusum(self._act_out2[gpu], handle)
-      self._outputs[gpu].copy_from(tmp)
-      rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
+      x = self._inputs[gpu]
+      N = x.shape[0]
+      y = self._lbls[gpu]
+      tmp1 = x.empty_like_me()
+      tmp2 = x.empty_like_me()
+      tmp3 = x.empty_like_me()
+      rm.cuda.cusigmoid(x, tmp1)
+      rm.cuda.cucross_entropy(tmp1, y, tmp2, handle)
+      rm.cuda.cucross_entropy(-tmp1 + 1, -y + 1, tmp3, handle)
+      tmp = rm.cuda.cusum(-(tmp2 + tmp3), handle)
+      self._outputs[gpu] = tmp
+      rm.cuda.cudiv(self._outputs[gpu], N, self._outputs[gpu], handle)
 
+class sigmoid_forward_cpu(sigmoid_forward):
+
+  def perform(self):
+    x = self._inputs['cpu']
+    y = self._lbls['cpu']
+    N = len(x)
+    z = 1 / (1 + np.exp(-x))
+    self._z = z
+    ret = -np.sum(y * np.log(z + 1e-8) + (1 - y) * np.log(1 - z + 1e-8)) / N
+    self._outputs['cpu'] = ret
 
 class sigmoid_backward(operation):
 
@@ -81,13 +77,21 @@ class sigmoid_backward(operation):
       rm.cuda.cusub(self._act_out1[gpu], self._label_input[gpu], self._outputs[gpu], handle)
       rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
 
+class sigmoid_backward_cpu(sigmoid_backward):
+
+  def perform(self):
+    z = self._fwd_op._z
+    y = self._label_input['cpu']
+    N = len(z)
+    ret = (z - y) / N
+    self._outputs['cpu'] = ret
 
 class SigmoidCrossEntropyElement(loss_graph_element):
 
 
   def __init__(self, previous_elements = None):
-    fwd_op = sigmoid_forward()
-    bwd_ops = [ sigmoid_backward(fwd_op)  ]
+    fwd_op = sigmoid_forward() if rm.is_cuda_active() else sigmoid_forward_cpu()
+    bwd_ops = [ sigmoid_backward(fwd_op) if rm.is_cuda_active() else sigmoid_backward_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 class SigmoidCrossEntropyGraphElement(GraphFactory):

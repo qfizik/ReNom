@@ -1,9 +1,13 @@
 import renom as rm
 from renom.graph.core import loss_graph_element, operation, multi_gpu_variable, GraphFactory
+import numpy as np
 
 class smoothed_l1_forward(operation):
 
   name = 'Mean Squared (F)'
+
+  def __init__(self, delta = 1.0):
+    self._delta = delta
 
   def setup(self, inputs, storage):
     predictions = inputs[0]['y']
@@ -13,24 +17,44 @@ class smoothed_l1_forward(operation):
     self._label_input = real_values
 
     out_shape = ( 1, )
-    self._N = predictions.shape[0]
     assert predictions.shape == real_values.shape
-    tmp = multi_gpu_variable(shape = predictions.shape, gpus = self.gpus)
     output = multi_gpu_variable(shape = out_shape, gpus = predictions.gpus)
 
     self._vars = { 'y' : output }
     self._outputs = output
     self._N = predictions.shape[0]
-    self._tmp = tmp
 
   def perform(self):
+    self._d = multi_gpu_variable(shape = self._graph_input.shape, gpus = self.gpus)
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      rm.cuda.cusub(self._graph_input[gpu], self._label_input[gpu], self._tmp[gpu], handle)
-      rm.cuda.cumul(self._tmp[gpu], self._tmp[gpu], self._tmp[gpu], handle)
-      tmp = rm.cu.cusum(self._tmp[gpu], handle)
-      rm.cuda.cudiv(tmp, self._N, tmp, handle)
-      self._outputs[gpu].copy_from(tmp)
+      x = self._graph_input[gpu].new_array()
+      y = self._label_input[gpu].new_array()
+      N = len(x)
+      d = x - y
+      delta = self._delta
+      abs_d = abs(d)
+      flag = abs_d < delta
+      ret = np.sum(flag * 0.5 * (d * d) + 
+                            (1 - flag) * (abs_d - 0.5 * delta) * delta)
+      ret = ret.reshape(1,) / N
+      self._d[gpu] = d
+      self._outputs[gpu].to_gpu(ret)
 
+class smoothed_l1_forward_cpu(smoothed_l1_forward):
+
+  def perform(self):
+    x = self._graph_input['cpu']
+    y = self._label_input['cpu']
+    N = len(x)
+    d = x - y
+    delta = self._delta
+    abs_d = abs(d)
+    flag = abs_d < delta
+    ret = np.sum(flag * 0.5 * (d * d) + 
+                          (1 - flag) * (abs_d - 0.5 * delta) * delta)
+    ret = ret.reshape(1,) / N
+    self._d = d
+    self._outputs['cpu'] = ret
 
 class smoothed_l1_backward(operation):
 
@@ -38,6 +62,7 @@ class smoothed_l1_backward(operation):
 
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
+    self._delta = self._fwd_op._delta
 
   def setup(self, inputs, storage):
   
@@ -54,21 +79,43 @@ class smoothed_l1_backward(operation):
     
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
+      d = self._fwd_op._d[gpu]
+      N = len(d)
+      delta = self._delta
+      mask = abs(d) <= delta
+      sign = (d > 0) * 2 - 1
+      dx = mask * d + (1 - mask) * sign * delta
+      ret = dx / N
+      self._outputs[gpu].to_gpu(ret)
 
+class smoothed_l1_backward_cpu(smoothed_l1_backward):
+
+  def perform(self):
+    d = self._fwd_op._d
+    N = len(d)
+    delta = self._delta
+    mask = abs(d) <= delta
+    sign = (d > 0) * 2 - 1
+    dx = mask * d + (1 - mask) * sign * delta
+    ret = dx / N
+    self._outputs['cpu'] = ret
+  
 
 class SmoothedL1Element(loss_graph_element):
 
-  def __init__(self, previous_elements = None):
-
-    fwd_op = smoothed_l1_forward()
-    bwd_ops = [ smoothed_l1_backward(fwd_op) ] 
+  def __init__(self, delta = 1.0, previous_elements = None):
+    self._delta = delta
+    fwd_op = smoothed_l1_forward(delta) if rm.is_cuda_active() else smoothed_l1_forward_cpu(delta)
+    bwd_ops = [ smoothed_l1_backward(fwd_op) if rm.is_cuda_active() else smoothed_l1_backward_cpu(fwd_op)] 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 
-class SmoothL1GraphElement(GraphFactory):
+class SmoothedL1GraphElement(GraphFactory):
+
+  def __init__(self, delta = 1.0):
+    self._delta = delta
 
   def connect(self, predictions, true_values):
-    ret = SmoothedL1Element(previous_elements = [predictions, true_values])
+    ret = SmoothedL1Element(self._delta, previous_elements = [predictions, true_values])
     return ret
 
