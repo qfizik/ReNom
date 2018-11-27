@@ -49,7 +49,7 @@ class sum_backward(operation):
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      pass
+      raise NotImplementedError()
       
 
 class SumElement(learnable_graph_element):

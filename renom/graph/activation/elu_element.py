@@ -1,6 +1,6 @@
 import renom as rm
 from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
-
+import numpy as np
 
 class elu_forward(operation):
 
@@ -20,6 +20,13 @@ class elu_forward(operation):
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cueru_forward(self._alpha, self._inputs[gpu], self._outputs[gpu]) 
+
+class elu_forward_cpu(elu_forward):
+
+  def perform(self):
+    x = self._inputs['cpu']
+    ret = np.where(x > 0, x, (np.exp(x) - 1) * self._alpha)
+    self._outputs['cpu'] = ret
 
 class elu_backward(operation):
 
@@ -43,14 +50,23 @@ class elu_backward(operation):
       rm.cuda.cueru_backward(self._alpha, self._fwd_in[gpu], self._outputs[gpu])
       rm.cu.cumul(self._outputs[gpu], self._inputs[gpu], self._outputs[gpu], handle)
 
+class elu_backward_cpu(elu_backward):
+
+  def perform(self):
+    dy = self._inputs['cpu']
+    y = self._fwd_op._outputs['cpu']
+    alpha = self._alpha
+    ret = np.where(y > 0, dy, (alpha + y) * dy)
+    self._outputs['cpu'] = ret
+
 
 class EluElement(learnable_graph_element):
 
   has_back = True
 
   def __init__(self, alpha = 0.01, previous_elements = None):
-    fwd_op = elu_forward(alpha)
-    bwd_ops = [ elu_backward(fwd_op) ]
+    fwd_op = elu_forward(alpha) if rm.is_cuda_active() else elu_forward_cpu(alpha)
+    bwd_ops = [ elu_backward(fwd_op) if rm.is_cuda_active() else elu_backward_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 class EluGraphElement(GraphFactory):

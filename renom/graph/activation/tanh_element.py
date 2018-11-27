@@ -1,6 +1,7 @@
 import renom as rm
 from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
 import renom.utility.initializer as init
+import numpy as np
 
 class tanh_forward(operation):
 
@@ -16,6 +17,13 @@ class tanh_forward(operation):
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cutanh(self._inputs[gpu], self._outputs[gpu])
+
+class tanh_forward_cpu(tanh_forward):
+  
+  def perform(self):
+    x = self._inputs['cpu']
+    ret = np.tanh(x)
+    self._outputs['cpu'] = ret
 
 class tanh_backward(operation):
 
@@ -40,14 +48,22 @@ class tanh_backward(operation):
       rm.cuda.cusub(self._one[gpu], self._outputs[gpu], self._outputs[gpu], handle)
       rm.cuda.cumul(self._inputs[gpu], self._outputs[gpu], self._outputs[gpu], handle)
 
+class tanh_backward_cpu(tanh_backward):
+
+  def perform(self):
+    y = self._fwd_out['cpu']
+    dy = self._inputs['cpu']
+    ret = (1.0 - y ** 2) * dy
+    self._outputs['cpu'] = ret
+
 
 class TanhElement(learnable_graph_element):
 
   has_back = True
 
   def __init__(self, previous_elements = None):
-    fwd_op = tanh_forward()
-    bwd_ops = [ tanh_backward(fwd_op) ]
+    fwd_op = tanh_forward() if rm.is_cuda_active() else tanh_forward_cpu()
+    bwd_ops = [ tanh_backward(fwd_op) if rm.is_cuda_active() else tanh_backward_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 class TanhGraphElement(GraphFactory):

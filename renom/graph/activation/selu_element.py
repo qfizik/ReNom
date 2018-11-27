@@ -1,6 +1,6 @@
 import renom as rm
 from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
-
+import numpy as np
 
 class selu_forward(operation):
 
@@ -24,6 +24,15 @@ class selu_forward(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cueru_forward(self._alpha, self._inputs[gpu], self._outputs[gpu]) 
       rm.cuda.cumul(self._outputs[gpu], self._lamda, self._outputs[gpu], handle)
+
+class selu_forward_cpu(selu_forward):
+
+  def perform(self):
+    x = self._inputs['cpu']
+    alpha = self._alpha
+    lamda = self._lamda
+    ret = np.where(x > 0, x, (np.exp(x) - 1) * alpha) * lamda
+    self._outputs['cpu'] = ret
 
 class selu_backward(operation):
 
@@ -49,14 +58,23 @@ class selu_backward(operation):
       rm.cu.cumul(self._outputs[gpu], self._inputs[gpu], self._outputs[gpu], handle)
       rm.cuda.cumul(self._outputs[gpu], self._lamda, self._outputs[gpu], handle)
 
+class selu_backward_cpu(selu_backward):
+
+  def perform(self):
+    y = self._fwd_op._outputs['cpu']
+    alpha = self._alpha
+    lamda = self._lamda
+    dy = self._inputs['cpu']
+    ret = np.where(y > 0, dy, dy * (alpha + y)) * lamda
+    self._outputs['cpu'] = ret
 
 class SeluElement(learnable_graph_element):
 
   has_back = True
 
   def __init__(self, previous_elements = None):
-    fwd_op = selu_forward()
-    bwd_ops = [ selu_backward(fwd_op) ]
+    fwd_op = selu_forward() if rm.is_cuda_active() else selu_forward_cpu()
+    bwd_ops = [ selu_backward(fwd_op) if rm.is_cuda_active() else selu_backward_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 class SeluGraphElement(GraphFactory):

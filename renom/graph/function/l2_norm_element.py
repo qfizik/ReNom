@@ -1,6 +1,7 @@
 from renom.graph.core import learnable_graph_element, operational_element, operation, multi_gpu_variable, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
+import numpy as np
 
 class l2norm_forward(operation):
 
@@ -17,7 +18,7 @@ class l2norm_forward(operation):
     assert isinstance(inputs, multi_gpu_variable), 'Received {}'.format(type(inputs))
     self.gpus = inputs.gpus
     self._inputs = inputs
-    weight_shape = ( inputs[0].shape[1] , 1, 1)
+    weight_shape = ( inputs.shape[1] , 1, 1)
     weights.__init__( shape = weight_shape , gpus = self.gpus, initializer = init.Constant(self._scale))
     output_shape = inputs.shape
     outputs = multi_gpu_variable( shape = output_shape, gpus = self.gpus)
@@ -32,6 +33,18 @@ class l2norm_forward(operation):
       rm.cuda.cuadd(norm, 1e-7, norm, handle)
       z = (self._inputs[gpu] / norm) * self._weights[gpu]
       self._outputs[gpu].copy_from(z)
+
+class l2norm_forward_cpu(l2norm_forward):
+
+  def perform(self):
+    x = self._inputs['cpu']
+    w = self._weights['cpu']
+    scale = self._scale
+
+    norm = np.sqrt(np.sum(x * x, axis = 1, keepdims=True)) + 1e-7
+    self._norm = norm
+    ret = (x / norm) * w
+    self._outputs['cpu'] = ret
 
 class l2norm_backward(operation):
 
@@ -71,6 +84,18 @@ class l2norm_backward(operation):
       dx = dx * self._weights[gpu]
       self._outputs[gpu].copy_from(dx)
 
+class l2norm_backward_cpu(l2norm_backward):
+
+  def perform(self):
+    dy = self._inputs['cpu']
+    w = self._weights['cpu']
+    x = self._fwd_ins['cpu']
+    norm = self._fwd_op._norm
+    dx = dy * norm - (np.sum(x * dy, axis = 1, keepdims=True) * x) / norm
+    dx = dx / (norm * norm)
+    ret = dx * w
+    self._outputs['cpu'] = ret
+
 class l2norm_weight_backward(operation):
 
   name = 'L2Norm Weight (B)'
@@ -106,6 +131,15 @@ class l2norm_weight_backward(operation):
       tmp = rm.cuda.cusum(dl, handle, axis=(0, 2, 3), keepdims=True)
       self._outputs[gpu].copy_from(tmp)
 
+class l2norm_weight_backward_cpu(l2norm_weight_backward):
+  
+  def perform(self):
+    x = self._fwd_ins['cpu']
+    dy = self._inputs['cpu']
+    norm = self._fwd_op._norm
+    dl = dy * (x / norm)
+    ret = np.sum(dl, axis=(0,2,3), keepdims=True)
+    self._outputs['cpu'] = ret
 
 class L2NormGraph(learnable_graph_element):
 
@@ -113,9 +147,9 @@ class L2NormGraph(learnable_graph_element):
 
   def __init__(self, scale, previous_element = None):
     
-    fwd_op = l2norm_forward(scale)
-    bwd_ops = [ l2norm_backward(associated_forward = fwd_op),
-                l2norm_weight_backward(associated_forward = fwd_op),
+    fwd_op = l2norm_forward(scale) if rm.is_cuda_active() else l2norm_forward_cpu(scale)
+    bwd_ops = [ l2norm_backward(associated_forward = fwd_op) if rm.is_cuda_active() else l2norm_backward_cpu(fwd_op),
+                l2norm_weight_backward(associated_forward = fwd_op) if rm.is_cuda_active() else l2norm_weight_backward_cpu(fwd_op)
               ]
     self.scale = scale
 

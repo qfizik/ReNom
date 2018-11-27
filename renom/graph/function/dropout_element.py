@@ -1,5 +1,6 @@
 import renom as rm
 from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
+import numpy as np
 
 
 class dropout_forward(operation):
@@ -26,6 +27,18 @@ class dropout_forward(operation):
       rm.cuda.cudiv(self._mask[gpu], self._dropout_rate, self._mask[gpu], handle)
       rm.cuda.cumul(self._mask[gpu], self._inputs[gpu], self._outputs[gpu], handle)
 
+class dropout_forward_cpu(dropout_forward):
+
+  def perform(self):
+    x = self._inputs['cpu']
+    dropout_ratio = 1 - self._dropout_rate
+    mask = np.array(np.random.rand(*x.shape) < dropout_ratio, dtype = rm.precision) / dropout_ratio 
+    ret = x * mask
+    self._mask['cpu'] = mask
+    self._outputs['cpu'] = ret
+    print(mask)
+    print(ret)
+
 class dropout_backward(operation):
 
   def __init__(self, associated_forward):
@@ -45,6 +58,14 @@ class dropout_backward(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cumul(self._inputs[gpu], self._fwd_mask[gpu], self._outputs[gpu], handle)
       
+class dropout_backward_cpu(dropout_backward):
+
+  def perform(self):
+
+    dy = self._inputs['cpu']
+    mask = self._fwd_mask['cpu']
+    ret = dy * mask
+    self._outputs['cpu'] = ret
 
 
 class DropoutElement(learnable_graph_element):
@@ -53,8 +74,8 @@ class DropoutElement(learnable_graph_element):
 
   def __init__(self, dropout_rate = 0.5, previous_elements = None):
     self.dropout_ratio = dropout_rate
-    fwd_op = dropout_forward(dropout_rate)
-    bwd_ops = [ dropout_backward(fwd_op) ]
+    fwd_op = dropout_forward() if rm.is_cuda_active() else dropout_forward_cpu()
+    bwd_ops = [ dropout_backward(fwd_op) if rm.is_cuda_active() else dropout_backward_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 class DropoutGraphElement(GraphFactory):

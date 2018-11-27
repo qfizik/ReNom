@@ -8,10 +8,19 @@ class _forward_operation(operation):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
+    self.inputs = inputs['cpu']
+
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       pass
+
+class _forward_operation_cpu(_forward_operation):
+
+  def perform(self):
+    x = self._inputs['cpu']
+    # Calculate ret
+    self._outputs['cpu'] = ret
 
 class _backward_operation(operation):
 
@@ -22,19 +31,26 @@ class _backward_operation(operation):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
+    self._inputs = inputs
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       pass
 
+class _backward_operation_cpu(_backward_operation):
+
+  def perform(self):
+    dy = self._inputs['cpu']
+    # Calculate ret
+    self._outputs['cpu'] = ret
 
 class _element(learnable_graph_element):
 
   has_back = True
 
   def __init__(self, previous_elements = None):
-    fwd_op = _forward_operation()
-    bwd_ops = [ _backward_operation(fwd_op) ]
+    fwd_op = _forward_operation() if rm.is_cuda_active() else _forward_operation_cpu()
+    bwd_ops = [ _backward_operation(fwd_op) if rm.is_cuda_active() else _backward_operation_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 class _graph_element(GraphFactory):

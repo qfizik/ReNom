@@ -1,6 +1,7 @@
 from renom.graph.core import learnable_graph_element, operational_element, operation, multi_gpu_variable, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
+import numpy as np
 
 class embedding_forward(operation):
 
@@ -18,9 +19,9 @@ class embedding_forward(operation):
     self.gpus = inputs.gpus
     self._init = init.GlorotNormal()
     self._inputs = inputs
-    weight_shape = ( inputs[0].shape[1] , self._output_size )
+    weight_shape = ( inputs.shape[1] , self._output_size )
     weights.__init__( shape = weight_shape , gpus = self.gpus, initializer = self._init)
-    output_shape = ( inputs[0].shape[0] , self._output_size )
+    output_shape = ( inputs.shape[0] , self._output_size )
     outputs = multi_gpu_variable( shape = output_shape, gpus = self.gpus)
     self._vars = {'x' : inputs, 'w' : weights, 'y' : outputs}
     self._weights = weights
@@ -29,6 +30,16 @@ class embedding_forward(operation):
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cuembedding_forward(self._inputs[gpu], self._weights[gpu], self._outputs[gpu])
+
+class embedding_forward_cpu(embedding_forward):
+
+  def perform(self):
+    x = self._inputs['cpu']
+    w = self._weights['cpu']
+    index = x.astype(np.int)[:, 0]
+    self._index = index
+    ret = w[index]
+    self._outputs['cpu'] = ret
 
 
 class embedding_weight_backward(operation):
@@ -59,7 +70,22 @@ class embedding_weight_backward(operation):
     
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      dy = self._outputs[gpu]
+      rm.cuda.cusub(dy, dy, dy, handle)
       rm.cuda.cuembedding_backward(self._fwd_ins[gpu], self._inputs[gpu], self._outputs[gpu])
+
+class embedding_weight_backward_cpu(embedding_weight_backward):
+
+  def perform(self):
+    index = self._fwd_op._index
+    N = len(index)
+    w = self._fwd_op._weights['cpu']
+    dx = np.zeros(w.shape, dtype = w.dtype)
+    dy = self._inputs['cpu']
+    for i in range(N):
+      dx[index[i]] += dy[i]
+    self._outputs['cpu'] = dx
+    
 
 class EmbeddingGraph(learnable_graph_element):
 
@@ -67,8 +93,8 @@ class EmbeddingGraph(learnable_graph_element):
 
   def __init__(self, output_size, previous_element = None):
     
-    fwd_op = embedding_forward(output_size)
-    bwd_ops = [ embedding_weight_backward(associated_forward = fwd_op),]
+    fwd_op = embedding_forward(output_size) if rm.is_cuda_active() else embedding_forward_cpu(output_size)
+    bwd_ops = [ embedding_weight_backward(associated_forward = fwd_op) if rm.is_cuda_active() else embedding_weight_backward_cpu(fwd_op) ]
     self.output_size = output_size
 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)

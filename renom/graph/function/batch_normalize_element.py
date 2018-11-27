@@ -1,12 +1,13 @@
 import renom as rm
 from renom.graph.core import learnable_graph_element, operation, GraphFactory, multi_gpu_variable, graph_variable
 import renom.utility.initializer as init
+import numpy as np
 
 class batch_norm_forward(operation):
 
   name = 'Batch Normalize (F)'
 
-  def __init__(self, momentum = 0.99, mode = 0, epsilon = 1e-5):
+  def __init__(self, momentum = 0.99, epsilon = 1e-5, mode = 'activation'):
     self._momentum = momentum
     self._mode = mode
     self._epsilon = epsilon
@@ -45,10 +46,37 @@ class batch_norm_forward(operation):
 
 
   def perform(self): 
+    if self._mode == 'activation':
+      mode = 0
+    else:
+      raise NotImplementedError()
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       #rm.cuda.cusub(self._mv_m[gpu], self._mv_m[gpu], self._mv_m[gpu], handle)
       #rm.cuda.cusub(self._mv_v[gpu], self._mv_v[gpu], self._mv_v[gpu], handle)
-      rm.cuda.cuBatchNormalizatoinForward(handle, self._inputs[gpu], self._mv_m[gpu], self._mv_v[gpu], self._weights[gpu], self._bias[gpu], self._outputs[gpu], self._mean[gpu], self._sq_var[gpu], self._momentum, self._mode, self._inference, self._epsilon)
+      rm.cuda.cuBatchNormalizatoinForward(handle, self._inputs[gpu], self._mv_m[gpu], self._mv_v[gpu], self._weights[gpu], self._bias[gpu], self._outputs[gpu], self._mean[gpu], self._sq_var[gpu], self._momentum, mode, self._inference, self._epsilon)
+
+class batch_norm_forward_cpu(batch_norm_forward):
+
+  def perform(self):
+    if self._mode == 'activation':
+      axs = (0,)
+    x = self._inputs['cpu']
+    w = self._weights['cpu']
+    b = self._bias['cpu']
+    epsilon = self._epsilon
+
+    mean = np.mean(x, axis = axs, keepdims = True)
+    var = np.var(x, axis = axs, keepdims = True)
+
+    sq_var = 1.0 / np.sqrt(var + epsilon)
+    xh = (x - mean) * sq_var
+    z = w * xh
+    ret = z + b
+    self._sq_var['cpu'] = sq_var
+    self._mean['cpu'] = mean
+    self._outputs['cpu'] = ret
+    
+
 
 class batch_norm_backward(operation):
 
@@ -74,32 +102,54 @@ class batch_norm_backward(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cuBatchNormalizatoinBackward(handle, self._fwd_ins[gpu], self._fwd_w[gpu], self._inputs[gpu], self._mean[gpu], self._var[gpu], self._outputs[gpu], self._weights_back[gpu], self._bias_back[gpu], 0)
 
-    
+
+class batch_norm_backward_cpu(batch_norm_backward):
+
+  def perform(self):
+    if self._fwd_op._mode == 'activation':
+      axs = (0,)
+    sq_var = self._var['cpu']
+    mean = self._mean['cpu']
+    x = self._fwd_ins['cpu']
+    w = self._fwd_w['cpu']
+    dy = self._inputs['cpu']    
+
+    meaned = x - mean
+    N = np.prod([x.shape[s] for s in axs])
+
+    dxh = dy * w
+    ds = np.sum(dxh * meaned * -np.power(sq_var, 3) / 2, axis = axs, keepdims = True)
+    du = np.sum(-dxh * sq_var, axis = axs, keepdims=True)
+    dx = dxh * sq_var + (ds * 2 * meaned + du) / N
+    self._outputs['cpu'] = dx
+
+    xh = meaned * sq_var
+    dw = np.sum(xh * dy, axis = axs, keepdims=True)
+    self._weights_back['cpu'] = dw
+
+    db = np.sum(dy, axis = axs, keepdims=True)
+    self._bias_back['cpu'] = db
 
 class BatchNormalizer(learnable_graph_element):
 
   has_back = True
 
-  def __init__(self, previous_elements = None):
-    fwd_op = batch_norm_forward()
-    bwd_ops = [ batch_norm_backward(fwd_op) ]
+  def __init__(self, momentum = 0.99, epsilon = 1e-5, mode = 'activation', previous_elements = None):
+    fwd_op = batch_norm_forward() if rm.is_cuda_active() else batch_norm_forward_cpu()
+    bwd_ops = [ batch_norm_backward(fwd_op) if rm.is_cuda_active() else batch_norm_backward_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 
 class BatchNormalizeElement(GraphFactory):
 
-  def __init__(self):
-    self._weights = graph_variable()
-    self._bias = graph_variable()
-
-  @property
-  def weights(self):
-    return self._weights.output
-
-  @property
-  def bias(self):
-    return self._bias.output
+  def __init__(self, momentum = 0.99, epsilon = 1e-5, mode = 'activation'):
+    super().__init__()
+    self._mom = momentum
+    self._eps = epsilon
+    self._mod = mode
+    self.params['w'] = graph_variable()
+    self.params['b'] = graph_variable()
 
   def connect(self, other):
-    ret = BatchNormalizer(previous_elements = [ other, self._weights, self._bias ])
+    ret = BatchNormalizer(self._mom, self._eps, self._mod, previous_elements = [ other, self.params['w'], self.params['b']])
     return ret
