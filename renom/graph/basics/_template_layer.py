@@ -1,6 +1,6 @@
 import renom as rm
 from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
-
+import numpy as np
 
 class _forward_operation(operation):
 

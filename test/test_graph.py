@@ -86,9 +86,9 @@ def getNumericalDiff( lossMethod, testValue ):
   diff = np.zeros(testValue.shape, dtype = np.float64)
   for nindex in np.ndindex(diff.shape):
     loss = 0
+    k = retrieve_value(nindex, testValue)
+    dx = eps * k if k != 0 else eps
     for i in range(len(coefficients1)):
-      k = retrieve_value(nindex, testValue)
-      dx = eps * k if k != 0 else eps
       store_value(nindex, testValue, coefficients2[i] * dx)
       ret = lossMethod() * coefficients1[i]
       store_value(nindex, testValue, -coefficients2[i] * dx)
@@ -121,6 +121,57 @@ def test_dense(test_shape, use_gpu):
   compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
   compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
   compare( getNumericalDiff( func , model.params['b'].output) , loss.backward().get_gradient(model.params['b'].output).as_ndarray())
+
+
+@pytest.mark.parametrize("test_shape", [
+    (1, 8),
+    (2, 1),
+    (1, 2),
+    (4, 5),
+])
+def test_weight_norm(test_shape, use_gpu):
+  rm.set_cuda_active(use_gpu)
+
+  v = rand(*test_shape)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.WeightNormGraphElement(output_size = 3)
+  l = rm.graph.ConstantLossElement()
+  m = model(val)
+  loss = l(m)
+
+  def func():
+    val.forward()
+    ret = loss.as_ndarray()
+    return ret
+  
+  compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
+  compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
+  compare( getNumericalDiff( func , model.params['g'].output) , loss.backward().get_gradient(model.params['g'].output).as_ndarray())
+
+
+@pytest.mark.parametrize("test_shape", [
+    (1, 8),
+    (2, 1),
+    (1, 2),
+    (4, 5),
+])
+def test_layer_norm(test_shape, use_gpu):
+  rm.set_cuda_active(use_gpu)
+
+  v = rand(*test_shape)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.LayerNormGraphElement()
+  l = rm.graph.ConstantLossElement()
+  m = model(val)
+  loss = l(m)
+
+  def func():
+    val.forward()
+    ret = loss.as_ndarray()
+    return ret
+  
+  compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
+  compare( getNumericalDiff( func , model.params['g'].output) , loss.backward().get_gradient(model.params['g'].output).as_ndarray())
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -481,6 +532,30 @@ def test_leaky_relu(test_shape, use_gpu):
     return ret
 
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
+
+@pytest.mark.parametrize("test_shape", [
+    (2, 2),
+    (2, 3),
+    (3, 2),
+])
+def test_maxout(test_shape, use_gpu):
+  rm.set_cuda_active(use_gpu)
+  v = rand(test_shape)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.MaxoutGraphElement(slice_size = 2)
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
 
 @pytest.mark.parametrize("test_shape", [
     (2, 1),
