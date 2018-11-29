@@ -111,6 +111,7 @@ class multi_gpu_variable:
     return self._gpuvalues[index]
 
   def __setitem__(self, index, value):
+    #assert tuple(value.shape[1:]) == tuple(self.shape[1:])
     self._gpuvalues[index] = value
       
   def __repr__(self):

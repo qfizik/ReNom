@@ -39,15 +39,8 @@ class unpool_forward_cpu(unpool_forward):
 
   def perform(self):
     x = self._inputs['cpu']
-    if self._dims == 2:
-      col = im2col(x, self._outputs.shape[2:], self._kernel, self._stride, self._padding)
-      n, ic, kh, kw, oh, ow = col.shape
-      col = col.reshape(n, ic, kh * kw, oh, ow)
-      index = np.argmax(col, axis=2)
-      self._index = index
-      ret = np.max(col, axis=2)
-    else:
-      ret = imnpool(x, self._kernel, self._stride, self._padding, mode = 'max')
+    px = self._prev_in['cpu']
+    ret = poolnim(px, x, self._prev_pool._kernel, self._prev_pool._stride, self._prev_pool._padding, mode = 'max')
     self._outputs['cpu'] = ret 
     
 
@@ -69,7 +62,8 @@ class unpool_backward(operation):
     outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = { 'y' : outs , id(self._fwd_in) : outs}
-    
+    self._prev_pool = self._fwd_op._prev_pool   
+ 
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -78,20 +72,13 @@ class unpool_backward(operation):
 class unpool_backward_cpu(unpool_backward):
 
   def perform(self):
-    dims = self._fwd_op._dims
     dy = self._inputs['cpu']
-    N = len(dy)
     x = self._fwd_op._inputs['cpu']
-    index = self._fwd_op._index
-    in_shape = self._fwd_op._inputs.shape
-    out_shape = self._fwd_op._outputs.shape
-    col = np.zeros((N, in_shape[1], self._fwd_op._kernel[0], self._fwd_op._kernel[1],
-                       out_shape[2], out_shape[3]))
-    col_k = np.rollaxis(col.reshape(N, in_shape[1], -1,
-                          out_shape[2], out_shape[3]), 2)
-    for i in np.ndindex(N, in_shape[1], out_shape[2], out_shape[3]):
-      col_k[index[i]][i] = dy[i]
-    dx = col2im(col, in_shape[2:], self._fwd_op._stride, self._fwd_op._padding)
+    px = self._prev_pool._inputs['cpu']    
+
+    dx = imnpool(px, self._prev_pool._kernel, self._prev_pool._stride,
+                     self._prev_pool._padding, mode = 'max', alternate_input = dy)
+
     self._outputs['cpu'] = dx
 
  
@@ -113,5 +100,5 @@ class MaxUnPoolGraphElement(GraphFactory):
     self._prev = prev_pool._fwd._op
 
   def connect(self, other):
-    ret = MaxPoolElement(self._prev, previous_element = [ other ])
+    ret = MaxUnPoolElement(self._prev, previous_element = [ other ])
     return ret

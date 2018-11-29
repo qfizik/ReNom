@@ -1111,7 +1111,7 @@ namespace renom{
 	{
 		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
 		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
-		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, softsign_forward_function());
+		thrust::transform(thrust::cuda::par.on(NULL), dev_a, dev_a+size, dev_b, dev_b, softsign_forward_function());
 	}
 
 	// Softsign backward
@@ -1127,7 +1127,7 @@ namespace renom{
 	{
 		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
 		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
-		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, softsign_backward_function());
+		thrust::transform(thrust::cuda::par.on(NULL), dev_a, dev_a+size, dev_b, dev_b, softsign_backward_function());
 	}
 
   // Swish forward
@@ -1147,7 +1147,7 @@ namespace renom{
   {
     thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
     thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
-    thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, swish_forward_function(s));
+    thrust::transform(thrust::cuda::par.on(NULL), dev_a, dev_a+size, dev_b, dev_b, swish_forward_function(s));
   }
 
   // Swish backward
@@ -1166,7 +1166,7 @@ namespace renom{
   {
     thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
     thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
-    thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, swish_backward_function(s));
+    thrust::transform(thrust::cuda::par.on(NULL), dev_a, dev_a+size, dev_b, dev_b, swish_backward_function(s));
   }
 
   __global__ void cuda_softplus_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)

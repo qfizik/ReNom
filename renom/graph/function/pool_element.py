@@ -101,7 +101,7 @@ class pool_backward_cpu(pool_backward):
         col_k[index[i]][i] = dy[i]
       dx = col2im(col, in_shape[2:], self._fwd_op._stride, self._fwd_op._padding)
     else:
-      dx = poolnim(x, dy, self._fwd_op._kernel, self._fwd_op._stride, mode = 'max')
+      dx = poolnim(x, dy, self._fwd_op._kernel, self._fwd_op._stride, self._fwd_op._padding, mode = 'max')
     self._outputs['cpu'] = dx
 
  

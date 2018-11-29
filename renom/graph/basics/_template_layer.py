@@ -8,11 +8,13 @@ class _forward_operation(operation):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
-    self.inputs = inputs['cpu']
+    self._inputs = inputs
 
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      dx = self._inputs[gpu]
+      y = self._outputs[gpu]
       pass
 
 class _forward_operation_cpu(_forward_operation):

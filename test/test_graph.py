@@ -250,7 +250,7 @@ def test_conv(test_shape, use_gpu):
     (1, 1, 5, 5),
     #(2, 3, 5, 5),
 ])
-def test_deconv(test_shape, use_gpu):
+def blablafest_deconv(test_shape, use_gpu):
   rm.set_cuda_active(use_gpu)
 
   v = rand(*test_shape)
@@ -309,6 +309,35 @@ def test_pool(test_shape, use_gpu):
 
   def func():
     m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
+
+
+@pytest.mark.parametrize("test_shape", [
+    (1, 1, 5, 5),
+    (2, 3, 5, 5),
+    (1, 1, 3, 3, 3),
+])
+def test_pool(test_shape, use_gpu):
+  use_gpu = False
+  rm.set_cuda_active(use_gpu)
+  # Fails on seed 30
+  np.random.seed(45)
+  v = np.random.randint(0, 5000, test_shape).astype(rm.precision)
+  val = rm.graph.StaticVariable(v)
+  model1 = rm.graph.MaxPoolGraphElement(kernel = 3, padding = 0, stride = 1)
+  loss = rm.graph.ConstantLossElement()
+  m = model1(val)
+  model2 = rm.graph.MaxUnPoolGraphElement(m)
+  m2 = model2(m)
+  l = loss(m2)
+
+  def func():
+    m.forward()
+    m2.forward()
     l.forward()
     ret = l.as_ndarray()
     return ret

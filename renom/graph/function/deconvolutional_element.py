@@ -11,10 +11,10 @@ class deconvo_forward(operation):
 
   def __init__(self, channels, kernel = 3, padding = 0, stride = 1):
     self._channels = channels
-    self._kernel = (kernel, kernel)
-    self._padding = (padding, padding)
-    self._stride = (stride, stride)
-    self._dilation = (1, 1)
+    self._k = kernel
+    self._p = padding
+    self._s = stride
+    self._d = 1
 
 
   def setup(self, inputs, storage):
@@ -23,14 +23,21 @@ class deconvo_forward(operation):
     bias = inputs[2]['y']
     inputs = inputs[0]['y']
     input_shape = inputs.shape
+    dims = len(input_shape[2:])
+    self._dims = dims
     
+    self._kernel =   np.array(list(self._k for i in range(dims))).astype(np.int32)
+    self._padding =  np.array(list(self._p for i in range(dims))).astype(np.int32)
+    self._stride =   np.array(list(self._s for i in range(dims))).astype(np.int32)
+    self._dilation = np.array(list(self._d for i in range(dims))).astype(np.int32)
+
     self._inputs = inputs
     self._init = init.GlorotNormal()
     gpus = inputs.gpus
     self.gpus = gpus
 
-    weight_shape = (input_shape[1], self._channels, self._kernel[0], self._kernel[1])
-    bias_shape = (1, self._channels, 1, 1)
+    weight_shape = (input_shape[1], self._channels, *self._kernel)
+    bias_shape = (1, self._channels, *(1 for i in range(dims)))
     
     
     weights.__init__(shape = weight_shape, gpus = gpus, initializer = self._init)
@@ -39,15 +46,19 @@ class deconvo_forward(operation):
     self._weights = weights
     self._bias = bias
 
-    imgs = (self._stride[0] * (input_shape[2] - 1) + self._kernel[0] - 2 * self._padding[0])
-    output_shape = [input_shape[0], self._channels, imgs, imgs]
+    imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
+    output_shape = [input_shape[0], self._channels, *imgs]
     self._outputs = multi_gpu_variable(shape = output_shape, gpus = gpus)
     self._vars = {'w' : self._weights, 'b' : self._bias, 'y' : self._outputs}
 
     if rm.is_cuda_active():
       with rm.cuda.RenomHandler() as handle:
-        self._conv_desc = rm.cuda.ConvolutionDescriptor(self._padding, self._stride, (1, 1), rm.precision)
-        self._filter_desc = rm.cuda.FilterDescriptor(weight_shape, rm.precision)
+        if dims == 2:
+          self._conv_desc = rm.cuda.ConvolutionDescriptor(self._padding, self._stride, self._dilation, rm.precision)
+          self._filter_desc = rm.cuda.FilterDescriptor(weight_shape, rm.precision)
+        else:
+          self._conv_desc = rm.cuda.ConvolutionNDescriptor(self._padding, self._stride, rm.precision)
+          self._filter_desc = rm.cuda.NdFilterDescriptor(weight_shape, rm.precision)
         self._algo = rm.cuda.cuGetConvolutionFwdAlgo(handle, self._conv_desc, self._filter_desc, inputs[0], self._outputs[0])
         self._bwd_algo = rm.cuda.cuGetConvolutionBwdAlgo(handle, self._conv_desc, self._filter_desc, inputs[0], self._outputs[0])
 
