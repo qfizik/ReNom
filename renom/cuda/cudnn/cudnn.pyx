@@ -8,6 +8,7 @@ from libc.stdint cimport uintptr_t, intptr_t
 from renom.config import precision
 from renom.cuda.base.cuda_utils cimport _VoidPtr
 from renom.cuda.base import cuda_base
+cimport renom.cuda.base.cuda_base as cuda_base_c
 
 cdef cudnnTensorFormat_t tensor_format = cd.cudnnTensorFormat_t.CUDNN_TENSOR_NCHW
 
@@ -20,34 +21,12 @@ def check(cd.cudnnStatus_t status):
         raise Exception(error)
 
 
-_cudnn_handlers = {}
-
-
-def cudnn_set_stream(stream):
-  cdef cudnnHandle_t handle
-
-  device_id = cuda_base.cuGetDevice()
-  if device_id not in _cudnn_handlers:
-      check(cudnnCreate(&handle))
-      _cudnn_handlers[device_id] =  <uintptr_t> handle
-
-  handle = <cudnnHandle_t><uintptr_t> _cudnn_handlers[device_id]
-
-  check(cudnnSetStream(handle, (<cudaStream_t><uintptr_t> stream) ))
-
-@contextlib.contextmanager
-def cudnn_handler():
-    cdef cudnnHandle_t handle
-
-    device_id = cuda_base.cuGetDevice()
-    if device_id not in _cudnn_handlers:
-        check(cudnnCreate(&handle))
-        _cudnn_handlers[device_id] =  <uintptr_t> handle
-
-    try:
-        yield _cudnn_handlers[device_id]
-    finally:
-        pass
+def createCudnnHandle(stream = None):
+  cdef cudnnHandle_t ret
+  check(cudnnCreate(&ret))
+  if stream is not None:
+    cudnnSetStream(ret, <cudaStream_t><uintptr_t> stream)
+  return <uintptr_t> ret
 
 
 cdef data_type(dtype):
@@ -65,7 +44,7 @@ cdef class TensorDesc(object):
 
     cdef cudnnTensorDescriptor_t tensor_desc
 
-    def __init__(self, shape, dtype=precision):
+    def __init__(self, shape, dtype):
         cdef int n, c, h, w
         cdef int ndims = len(shape)
         cdef int *size
@@ -172,6 +151,7 @@ cdef class ConvolutionDescriptor(BaseConvolutionDescriptor):
         check(cudnnCreateConvolutionDescriptor(&(self.conv_desc)))
         check(cudnnSetConvolution2dDescriptor(
             self.conv_desc, pad_h, pad_w, u, v, upscalex, upscaley, mode, data_type(dtype)))
+        check(cudnnSetConvolutionMathType(self.conv_desc, CUDNN_TENSOR_OP_MATH))
 
 
 cdef class GroupConvolutionDescriptor(BaseConvolutionDescriptor):
@@ -256,7 +236,9 @@ cdef class LRNDescriptor:
 
 def cuPoolingForward(handle, pool_desc, x, y):
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    if x.shape[0] == 0: return
+
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
@@ -278,7 +260,8 @@ def cuPoolingForward(handle, pool_desc, x, y):
 
 def cuPoolingBackward(handle, pool_desc, x, y, dy, dx):
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    if x.shape[0] == 0: return
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
@@ -350,7 +333,7 @@ cdef class FilterDescriptor:
 
 def cuBatchNormalizatoinForward(handle, x, mean, var, w, b, y, rm, rv, momentum=0.0, mode=None, inference=False, eps=1e-5):
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
@@ -408,7 +391,7 @@ def cuBatchNormalizatoinForward(handle, x, mean, var, w, b, y, rm, rv, momentum=
 
 def cuBatchNormalizatoinBackward(handle, x, w, dy, saved_mean, saved_var, dx, dw, db, mode=None):
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
@@ -446,41 +429,55 @@ def cuBatchNormalizatoinBackward(handle, x, w, dy, saved_mean, saved_var, dx, dw
 
 def cuGetConvolutionFwdAlgo(handle, conv_desc, filter_desc, x, y):
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
-    cdef cudnnConvolutionFwdAlgo_t algo
-    cdef cudnnConvolutionFwdPreference_t pref = cudnnConvolutionFwdPreference_t.CUDNN_CONVOLUTION_FWD_NO_WORKSPACE
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
-    cdef cudnnFilterDescriptor_t wDesc = <cudnnFilterDescriptor_t> <uintptr_t> filter_desc
     cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
+    cdef cudnnFilterDescriptor_t wDesc = <cudnnFilterDescriptor_t> <uintptr_t> filter_desc
     cdef cudnnConvolutionDescriptor_t convDesc = <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc
+    cdef int requested_algorithms = 1
+    cdef int returned_algorithms = 0
+    cdef cudnnConvolutionFwdAlgoPerf_t result
 
-    check(cudnnGetConvolutionForwardAlgorithm(
+    check(cudnnFindConvolutionForwardAlgorithm(
         handler,
         xDesc.tensor_desc,
         wDesc,
         convDesc,
         yDesc.tensor_desc,
-        pref,
-        0,
-        & algo))
-    return <uintptr_t> algo
+        requested_algorithms,
+        &returned_algorithms,
+        &result))
+    return <uintptr_t> result.algo
 
 
-def cuConvolutionForward(handle, conv_desc, filter_desc, x, w, y):
+def cuConvolutionForward(handle, conv_desc, filter_desc, x, w, y, algorithm):
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
 
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
 
     cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
     cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
-    # cdef cudnnConvolutionFwdAlgo_t algo = <cudnnConvolutionFwdAlgo_t><uintptr_t>cuGetConvolutionFwdAlgo(handle, conv_desc, filter_desc, x, y)
-    # output of CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM is not deterministic
-    cdef cudnnConvolutionFwdAlgo_t algo = cudnnConvolutionFwdAlgo_t.CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_GEMM
-    cdef int workSpace = 0
+    cdef cudnnConvolutionFwdAlgo_t algo = <cudnnConvolutionFwdAlgo_t><uintptr_t> algorithm
+
+
+    cdef size_t workspaceSize
 
     cuda_base.check_heap_device(x, w, y)
+    check(cudnnGetConvolutionForwardWorkspaceSize(
+        handler,
+        xDesc.tensor_desc,
+        <cudnnFilterDescriptor_t> <uintptr_t> filter_desc,
+        <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc,
+        yDesc.tensor_desc,
+        algo,
+        &workspaceSize,
+    ))
+    tmp_heap = 0
+    if (workspaceSize > 0):
+        tmp_heap = cuda_base_c.c_gpu_allocator.malloc(workspaceSize)
+
     check(cudnnConvolutionForward(
         handler,
         alf.ptr,
@@ -490,14 +487,140 @@ def cuConvolutionForward(handle, conv_desc, filter_desc, x, w, y):
         <void *> <uintptr_t> w._ptr,
         <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc,
         algo,
-        <void *>workSpace,
-        0,
+        <void *> <uintptr_t> tmp_heap,
+        <size_t> workspaceSize,
         bt.ptr,
         yDesc.tensor_desc,
         <void *> <uintptr_t> y._ptr))
+    if not tmp_heap == 0:
+      cuda_base_c.c_gpu_allocator.free(tmp_heap)
+
+def cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc, x, w, y, b, algorithm):
+
+    if x.shape[0] == 0:
+      return
+
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
+
+    cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
+    cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
+
+    cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
+    cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
+    cdef TensorDesc bDesc = TensorDesc(b.shape, dtype=b.dtype)
+    cdef cudnnActivationDescriptor_t activation
+    check(cudnnCreateActivationDescriptor(&activation))
+    check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, 0))
+    cdef cudnnConvolutionFwdAlgo_t algo = <cudnnConvolutionFwdAlgo_t><uintptr_t> algorithm
 
 
-def cuConvolutionBackward(handle, conv_desc, filter_desc, x, w, dy, dw, db, dx):
+    cdef size_t workspaceSize
+
+    cuda_base.check_heap_device(x, w, y)
+    check(cudnnGetConvolutionForwardWorkspaceSize(
+        handler,
+        xDesc.tensor_desc,
+        <cudnnFilterDescriptor_t> <uintptr_t> filter_desc,
+        <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc,
+        yDesc.tensor_desc,
+        algo,
+        &workspaceSize,
+    ))
+    tmp_heap = 0
+    if (workspaceSize > 0):
+        tmp_heap = cuda_base_c.c_gpu_allocator.malloc(workspaceSize)
+
+    check(cudnnConvolutionBiasActivationForward(
+        handler,
+        alf.ptr,
+        xDesc.tensor_desc,
+        <const void *> <uintptr_t> x._ptr,
+        <cudnnFilterDescriptor_t> <uintptr_t> filter_desc,
+        <void *> <uintptr_t> w._ptr,
+        <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc,
+        algo,
+        <void *> <uintptr_t> tmp_heap,
+        <size_t> workspaceSize,
+        bt.ptr,
+        yDesc.tensor_desc,
+        <const void*> <uintptr_t> y._ptr,
+        bDesc.tensor_desc,
+        <const void*> <uintptr_t> b._ptr,
+        activation,
+        yDesc.tensor_desc,
+        <void *> <uintptr_t> y._ptr))
+
+    if not tmp_heap == 0:
+      cuda_base_c.c_gpu_allocator.free(tmp_heap)
+
+def cuActivationBackward(handle, y, dx):
+
+    if y.shape[0] == 0: return
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
+
+    cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=y.dtype))
+    cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=y.dtype))
+
+    cdef cudnnActivationDescriptor_t activation
+    check(cudnnCreateActivationDescriptor(&activation))
+    check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, 0))
+
+    cdef TensorDesc dxDesc = TensorDesc(dx.shape, dtype=y.dtype)
+    cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
+    check(cudnnActivationBackward(
+        handler,
+        activation,
+        alf.ptr,
+        yDesc.tensor_desc,
+        <const void*> <uintptr_t> y._ptr,
+        dxDesc.tensor_desc,
+        <const void*> <uintptr_t> dx._ptr,
+        yDesc.tensor_desc,
+        <const void*> <uintptr_t> y._ptr,
+        bt.ptr,
+        dxDesc.tensor_desc,
+        <void*> <uintptr_t> dx._ptr
+    ))
+
+
+def cuGetConvolutionBwdAlgo(handle, conv_desc, filter_desc, x, y):
+
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
+    cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
+    cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
+    cdef cudnnFilterDescriptor_t wDesc = <cudnnFilterDescriptor_t> <uintptr_t> filter_desc
+    cdef cudnnConvolutionDescriptor_t convDesc = <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc
+    cdef int requested_algorithms = 1
+    cdef int returned_algorithms = 0
+    cdef cudnnConvolutionBwdDataAlgoPerf_t result_data
+    cdef cudnnConvolutionBwdFilterAlgoPerf_t result_filter
+
+    check(cudnnFindConvolutionBackwardDataAlgorithm(
+        handler,
+        wDesc,
+        yDesc.tensor_desc,
+        convDesc,
+        xDesc.tensor_desc,
+        requested_algorithms,
+        &returned_algorithms,
+        &result_data
+    ))
+
+    check(cudnnFindConvolutionBackwardFilterAlgorithm(
+        handler,
+        xDesc.tensor_desc,
+        yDesc.tensor_desc,
+        convDesc,
+        wDesc,
+        requested_algorithms,
+        &returned_algorithms,
+        &result_filter
+    ))
+
+    return {'data' : <int>result_data.algo, 'filter' : <int>result_data.algo}
+
+def cuConvolutionBackward(handle, conv_desc, filter_desc, x, w, dy, dw, db, dx, algorithms):
+    if x.shape[0] == 0: return
     if db is None:
         cuda_base.check_heap_device(x, w, dy, dw, dx)
     else:
@@ -506,7 +629,7 @@ def cuConvolutionBackward(handle, conv_desc, filter_desc, x, w, dy, dw, db, dx):
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
     cdef TensorDesc dyDesc = TensorDesc(dy.shape, dtype=dy.dtype)
     cdef TensorDesc dbDesc
@@ -514,9 +637,26 @@ def cuConvolutionBackward(handle, conv_desc, filter_desc, x, w, dy, dw, db, dx):
     if db is not None:
         dbDesc = TensorDesc(db.shape, dtype=db.dtype)
 
-    cdef cudnnConvolutionBwdFilterAlgo_t algo_filter = cudnnConvolutionBwdFilterAlgo_t.CUDNN_CONVOLUTION_BWD_FILTER_ALGO_0
-    cdef cudnnConvolutionBwdDataAlgo_t algo_data = cudnnConvolutionBwdDataAlgo_t.CUDNN_CONVOLUTION_BWD_DATA_ALGO_0
-    cdef int workSpace = 0
+    cdef cudnnConvolutionBwdDataAlgo_t algo_data = <cudnnConvolutionBwdDataAlgo_t><int> algorithms['data']
+    cdef cudnnConvolutionBwdFilterAlgo_t algo_filter = <cudnnConvolutionBwdFilterAlgo_t><int> algorithms['filter']
+
+
+    cdef size_t workspaceSize
+    tmp_heap = 0
+
+    check(cudnnGetConvolutionBackwardFilterWorkspaceSize(
+        handler,
+        xDesc.tensor_desc,
+        dyDesc.tensor_desc,
+        <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc,
+        <cudnnFilterDescriptor_t> <uintptr_t> filter_desc,
+        algo_filter,
+        &workspaceSize,
+    ))
+
+    if (workspaceSize > 0):
+        tmp_heap = cuda_base_c.get_gpu_allocator().malloc(workspaceSize)
+
     check(cudnnConvolutionBackwardFilter(
         handler,
         alf.ptr,
@@ -526,11 +666,30 @@ def cuConvolutionBackward(handle, conv_desc, filter_desc, x, w, dy, dw, db, dx):
         <const void *> <uintptr_t> dy._ptr,
         <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc,
         algo_filter,
-        <void *>workSpace,
-        0,
+        <void*> <uintptr_t> tmp_heap,
+        workspaceSize,
         bt.ptr,
         <cudnnFilterDescriptor_t> <uintptr_t> filter_desc,
         <void *> <uintptr_t> dw._ptr))
+
+    if not tmp_heap == 0:
+      cuda_base_c.get_gpu_allocator().free(tmp_heap)
+      tmp_heap = 0
+      workspaceSize = 0
+
+
+    check(cudnnGetConvolutionBackwardDataWorkspaceSize(
+        handler,
+        <cudnnFilterDescriptor_t> <uintptr_t> filter_desc,
+        dyDesc.tensor_desc,
+        <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc,
+        xDesc.tensor_desc,
+        algo_data,
+        &workspaceSize,
+    ))
+    if (workspaceSize > 0):
+        tmp_heap = cuda_base_c.get_gpu_allocator().malloc(workspaceSize)
+
     check(cudnnConvolutionBackwardData(
         handler,
         alf.ptr,
@@ -540,11 +699,16 @@ def cuConvolutionBackward(handle, conv_desc, filter_desc, x, w, dy, dw, db, dx):
         <const void *> <uintptr_t> dy._ptr,
         <cudnnConvolutionDescriptor_t> <uintptr_t> conv_desc,
         algo_data,
-        <void *>workSpace,
-        0,
+        <void*><uintptr_t> tmp_heap,
+        workspaceSize,
         bt.ptr,
         xDesc.tensor_desc,
         <void *> <uintptr_t> dx._ptr))
+
+    if not tmp_heap == 0:
+      cuda_base_c.get_gpu_allocator().free(tmp_heap)
+      tmp_heap = 0
+      workspaceSize = 0
 
     if db is not None:
         check(cudnnConvolutionBackwardBias(
@@ -562,7 +726,7 @@ def cuConvolutionBackwardData(handle, conv_desc, filter_desc, w, dy, dx):
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=w.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=w.dtype))
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef TensorDesc xDesc = TensorDesc(dx.shape, dtype=dx.dtype)
     cdef TensorDesc dyDesc = TensorDesc(dy.shape, dtype=dy.dtype)
     cdef cudnnConvolutionBwdDataAlgo_t algo_data = cudnnConvolutionBwdDataAlgo_t.CUDNN_CONVOLUTION_BWD_DATA_ALGO_0
@@ -590,7 +754,7 @@ def cuConvolutionBackwardFilter(handle, conv_desc, filter_desc, x, dy, dw):
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=x.dtype))
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
     cdef TensorDesc dyDesc = TensorDesc(dy.shape, dtype=dy.dtype)
     cdef cudnnConvolutionBwdFilterAlgo_t algo_filter = cudnnConvolutionBwdFilterAlgo_t.CUDNN_CONVOLUTION_BWD_FILTER_ALGO_0
@@ -618,7 +782,7 @@ def cuConvolutionBackwardBias(handle, dy, db):
     cdef _VoidPtr alf = _VoidPtr(np.array([1.0], dtype=dy.dtype))
     cdef _VoidPtr bt = _VoidPtr(np.array([0.0], dtype=dy.dtype))
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef TensorDesc dyDesc = TensorDesc(dy.shape, dtype=dy.dtype)
     cdef TensorDesc dbDesc = TensorDesc(db.shape, dtype=db.dtype)
 
@@ -634,11 +798,12 @@ def cuConvolutionBackwardBias(handle, dy, db):
 
 
 def cuSoftmaxForward(handle, x, y, mode=0):
+    if x.shape[0] == 0: return
 
     cdef _VoidPtr a = _VoidPtr(np.array([1.0], dtype=x.dtype))
     cdef _VoidPtr b = _VoidPtr(np.array([0.0], dtype=x.dtype))
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
     cdef cd.cudnnSoftmaxMode_t md = cd.cudnnSoftmaxMode_t.CUDNN_SOFTMAX_MODE_CHANNEL if mode == 1 else cd.cudnnSoftmaxMode_t.CUDNN_SOFTMAX_MODE_INSTANCE
 
@@ -660,7 +825,7 @@ def cuSoftmaxBackward(handle, y, dy, dx, mode=0):
     cdef _VoidPtr a = _VoidPtr(np.array([1.0], dtype=dy.dtype))
     cdef _VoidPtr b = _VoidPtr(np.array([0.0], dtype=dy.dtype))
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef TensorDesc dyDesc = TensorDesc(dy.shape, dtype=dy.dtype)
     cdef cd.cudnnSoftmaxMode_t md = cd.cudnnSoftmaxMode_t.CUDNN_SOFTMAX_MODE_CHANNEL if mode == 1 else cd.cudnnSoftmaxMode_t.CUDNN_SOFTMAX_MODE_INSTANCE
 
@@ -681,7 +846,7 @@ def cuSoftmaxBackward(handle, y, dy, dx, mode=0):
 
 def cuLocalResponseNormalizationForward(handle, lrn_desc, x, y):
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef cudnnLRNMode_t mode = cudnnLRNMode_t.CUDNN_LRN_CROSS_CHANNEL_DIM1
     cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
     cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
@@ -704,7 +869,7 @@ def cuLocalResponseNormalizationForward(handle, lrn_desc, x, y):
 
 def cuLocalResponseNormalizationBackward(handle, lrn_desc, x, y, dx, dy):
 
-    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle
+    cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
     cdef cudnnLRNMode_t mode = cudnnLRNMode_t.CUDNN_LRN_CROSS_CHANNEL_DIM1
     cdef TensorDesc xDesc = TensorDesc(x.shape, dtype=x.dtype)
     cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)
