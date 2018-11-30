@@ -481,6 +481,9 @@ class GPUValue(object):
             cufill(1., ret, handle)
         return ret
 
+    def __repr__(self):
+      return self.new_array().__repr__()
+
     def new_array(self):
         em = np.empty(self.shape, dtype=self.dtype)
         self._ptr.memcpyD2H(em, em.nbytes)
@@ -566,6 +569,15 @@ class GPUValue(object):
             # Only data type float32 is acceptable.
             cuadd(self, other, ret, handle)
             return ret
+
+    def dot(self, other):
+      assert len(self.shape) == 2 and len(other.shape) == 2
+      assert self.shape[1] == other.shape[0]
+      new_shape = (self.shape[0], other.shape[1])
+      ret = GPUValue(shape=new_shape)
+      with renom.cuda.RenomHandler(self.device_id) as handle:
+        cublas.cublas_gemm(self, 0, other, 0, ret, handle)
+      return ret
 
     def __iadd__(self, other):
         with use_device(self.device_id):

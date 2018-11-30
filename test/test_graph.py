@@ -124,6 +124,35 @@ def test_dense(test_shape, use_gpu):
 
 
 @pytest.mark.parametrize("test_shape", [
+    (2, 2),
+    (2, 1),
+    (1, 2),
+    (4, 5),
+])
+def test_lstm(test_shape):#, use_gpu):
+  use_gpu=False
+  rm.set_cuda_active(use_gpu)
+
+  v = rand(*test_shape)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.LstmGraphElement(output_size = 4)
+  l = rm.graph.ConstantLossElement()
+  m = model(val)
+  loss = l(m)
+
+  def func():
+    m._fwd._op.reset()
+    val.forward()
+    val.forward()
+    ret = loss.as_ndarray()
+    return ret
+  
+  compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
+  compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
+  compare( getNumericalDiff( func , model.params['wr'].output) , loss.backward().get_gradient(model.params['wr'].output).as_ndarray())
+
+
+@pytest.mark.parametrize("test_shape", [
     (1, 8),
     (2, 1),
     (1, 2),

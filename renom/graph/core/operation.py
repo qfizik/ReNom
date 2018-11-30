@@ -3,6 +3,38 @@ import renom as rm
 import abc
 import functools
 
+class StateHolder:
+
+  def __init__(self, null_state):
+    self._null_state = null_state
+    self._states = [ null_state ]
+    self._cur_time = 0
+
+  def get_prev(self, key):
+    state = self._states[self._cur_time]
+    if key in state:
+      return state[key]
+    else:
+      return self._null_state[key]
+
+  def set_prev(self, key, val):
+    self._states[self._cur_time][key] = val
+
+  def register(self, key, val):
+    self._null_state[key] = val
+  
+  def peek(self):
+    return {**self._null_state, **self._states[self._cur_time]}
+
+  def push(self, state):
+    self._states.append(state)
+    self._cur_time += 1
+
+  def pop(self):
+    self._cur_time -= 1
+    return self._states[self._cur_time+1]
+
+
 class operation(abc.ABC):
 
   produces = []
