@@ -7,10 +7,11 @@ class pool_forward(operation):
 
   name = 'Pool (F)'
 
-  def __init__(self, kernel = 3, padding = 0, stride = 1):
+  def __init__(self, kernel = 3, padding = 0, stride = 1, mode = 'max'):
     self._k = kernel
     self._p = padding
     self._s = stride
+    self._mode = mode
 
   def setup(self, inputs, storage):
 
@@ -33,9 +34,9 @@ class pool_forward(operation):
     self._vars = {'y' : outs}
     if rm.is_cuda_active():
       if dims == 2:
-        pd = rm.cuda.PoolingDescriptor(self._kernel, self._padding, self._stride, pool_mode = 0)
+        pd = rm.cuda.PoolingDescriptor(self._kernel, self._padding, self._stride, pool_mode = 0 if self._mode == 'max' else 1)
       else:
-        pd = rm.cuda.PoolingNDescriptor(self._kernel, self._padding, self._stride, pool_mode = 0)
+        pd = rm.cuda.PoolingNDescriptor(self._kernel, self._padding, self._stride, pool_mode = 0 if self._mode == 'max' else 1)
       self._pool_desc = pd
 
   def perform(self):
@@ -46,7 +47,7 @@ class pool_forward_cpu(pool_forward):
 
   def perform(self):
     x = self._inputs['cpu']
-    if self._dims == 2:
+    if self._dims == 2 and False:
       col = im2col(x, self._outputs.shape[2:], self._kernel, self._stride, self._padding)
       n, ic, kh, kw, oh, ow = col.shape
       col = col.reshape(n, ic, kh * kw, oh, ow)
@@ -54,7 +55,7 @@ class pool_forward_cpu(pool_forward):
       self._index = index
       ret = np.max(col, axis=2)
     else:
-      ret = imnpool(x, self._kernel, self._stride, self._padding, mode = 'max')
+      ret = imnpool(x, self._kernel, self._stride, self._padding, mode = self._mode)
     self._outputs['cpu'] = ret 
     
 
@@ -89,7 +90,7 @@ class pool_backward_cpu(pool_backward):
     dy = self._inputs['cpu']
     N = len(dy)
     x = self._fwd_op._inputs['cpu']
-    if dims == 2:
+    if dims == 2 and False:
       index = self._fwd_op._index
       in_shape = self._fwd_op._inputs.shape
       out_shape = self._fwd_op._outputs.shape
@@ -101,20 +102,22 @@ class pool_backward_cpu(pool_backward):
         col_k[index[i]][i] = dy[i]
       dx = col2im(col, in_shape[2:], self._fwd_op._stride, self._fwd_op._padding)
     else:
-      dx = poolnim(x, dy, self._fwd_op._kernel, self._fwd_op._stride, self._fwd_op._padding, mode = 'max')
+      dx = poolnim(x, dy, self._fwd_op._kernel, self._fwd_op._stride, self._fwd_op._padding, mode = self._fwd_op._mode)
     self._outputs['cpu'] = dx
 
  
 
-class MaxPoolElement(learnable_graph_element):
+class PoolElement(learnable_graph_element):
 
   has_back = True
 
-  def __init__(self, kernel, padding, stride, previous_element = None):
+  def __init__(self, kernel, padding, stride, mode, previous_element = None):
     self._krnl = kernel
     self._pad = padding
     self._strd = stride
-    fwd_op = pool_forward(kernel, padding, stride) if rm.is_cuda_active() else pool_forward_cpu(kernel, padding, stride)
+    fwd_op = pool_forward(kernel, padding, stride, mode) if rm.is_cuda_active() \
+        else pool_forward_cpu(kernel, padding, stride, mode)
+
     bwd_ops = [ pool_backward(fwd_op) if rm.is_cuda_active() else pool_backward_cpu(fwd_op)]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
 
@@ -129,5 +132,18 @@ class MaxPoolGraphElement(GraphFactory):
 
 
   def connect(self, other):
-    ret = MaxPoolElement(self._krnl, self._pad, self._strd, previous_element = [ other ])
+    ret = PoolElement(self._krnl, self._pad, self._strd, mode = 'max' ,previous_element = [ other ])
+    return ret
+
+class AvgPoolGraphElement(GraphFactory):
+
+  
+  def __init__(self, kernel, padding, stride):
+    self._krnl = kernel
+    self._pad = padding
+    self._strd = stride
+
+
+  def connect(self, other):
+    ret = PoolElement(self._krnl, self._pad, self._strd, mode = 'average' ,previous_element = [ other ])
     return ret

@@ -144,6 +144,38 @@ def test_lstm(test_shape, use_gpu):
     m._fwd._op.reset()
     val.forward()
     val.forward()
+    val.forward()
+    ret = loss.as_ndarray()
+    return ret
+  
+  compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
+  compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
+  compare( getNumericalDiff( func , model.params['wr'].output) , loss.backward().get_gradient(model.params['wr'].output).as_ndarray())
+
+
+@pytest.mark.parametrize("test_shape", [
+    (2, 3),
+    #(2, 1),
+    #(1, 2),
+    #(4, 5),
+])
+def test_gru(test_shape):#, use_gpu):
+  use_gpu = False
+  np.random.seed(44)
+  rm.set_cuda_active(use_gpu)
+
+  v = rand(*test_shape)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.GruGraphElement(output_size = 4)
+  l = rm.graph.ConstantLossElement()
+  m = model(val)
+  loss = l(m)
+
+  def func():
+    m._fwd._op.reset()
+    val.forward()
+    val.forward()
+    val.forward()
     ret = loss.as_ndarray()
     return ret
   
@@ -326,7 +358,7 @@ def test_l2_norm(use_gpu):
     (2, 3, 5, 5),
     (2, 3, 4, 4, 4),
 ])
-def test_pool(test_shape, use_gpu):
+def test_max_pool(test_shape, use_gpu):
   rm.set_cuda_active(use_gpu)
   # Fails on seed 30
   np.random.seed(45)
@@ -345,6 +377,29 @@ def test_pool(test_shape, use_gpu):
 
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
 
+@pytest.mark.parametrize("test_shape", [
+    (1, 1, 5, 5),
+    (2, 3, 5, 5),
+    (2, 3, 4, 4, 4),
+])
+def test_avg_pool(test_shape, use_gpu):
+  rm.set_cuda_active(use_gpu)
+  # Fails on seed 30
+  np.random.seed(45)
+  v = np.random.randint(0, 5000, test_shape).astype(rm.precision)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.AvgPoolGraphElement(kernel = 3, padding = 0, stride = 1)
+  loss = rm.graph.ConstantLossElement()
+  m = model(val)
+  l = loss(m)
+
+  def func():
+    m.forward()
+    l.forward()
+    ret = l.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
 
 @pytest.mark.parametrize("test_shape", [
     (1, 1, 5, 5),
