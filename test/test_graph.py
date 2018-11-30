@@ -216,6 +216,7 @@ def test_weight_norm(test_shape, use_gpu):
     (4, 5),
 ])
 def test_layer_norm(test_shape, use_gpu):
+  use_gpu = True
   rm.set_cuda_active(use_gpu)
 
   v = rand(*test_shape)

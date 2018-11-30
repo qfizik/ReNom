@@ -626,10 +626,10 @@ class GPUValue(object):
             return ret
 
     def __rtruediv__(self, other):
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            curdiv(self, other, ret)
+            curdiv(self, other, ret, handle)
             return ret
 
     def __itruediv__(self, other):

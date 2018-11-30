@@ -60,11 +60,18 @@ class layer_norm_forward(operation):
     self._mu = { }
     self._sigma = { }
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      x = self._inputs[gpu].new_array()
-      gain = self._gain[gpu].new_array()
-  
-      mu = get_mu(x)
-      sigma = get_sigma(x, mu) + 1e-8
+      x = self._inputs[gpu]
+      gain = self._gain[gpu]
+      _ax = tuple([r for r in range(1, len(x.shape[1:]) + 1)])
+      H = float(np.prod(x.shape[1:]))
+
+      sum1 = rm.cuda.cusum(x, handle, axis = _ax, keepdims=True)
+      mu = sum1 / H
+
+      sum2 = rm.cuda.cusum((x - mu) ** 2, handle, axis=_ax, keepdims=True)
+      sigma = sum2.empty_like_me()
+      rm.cuda.cusqrt(sum2, sigma)
+      sigma = (sigma / H) + 1e-5
       normalized = (x - mu) / sigma
   
       self._normalized[gpu] = normalized
@@ -72,7 +79,7 @@ class layer_norm_forward(operation):
       self._sigma[gpu] = sigma
   
       ret = normalized * gain
-      self._outputs[gpu].to_gpu(ret)
+      self._outputs[gpu] = ret
 
 
 
@@ -114,25 +121,30 @@ class layer_norm_backward(operation):
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      dy = self._inputs[gpu].new_array()
-      x = self._fwd_op._inputs[gpu].new_array()
+      dy = self._inputs[gpu]
+      x = self._fwd_op._inputs[gpu]
       mu = self._fwd_op._mu[gpu]
       sigma = self._fwd_op._sigma[gpu]
-      gain = self._gain[gpu].new_array()
-      sigma_diff = get_sigma_diff(x)
-      mu_diff = get_mu_diff(x)
+      gain = self._gain[gpu]
       normalized = self._fwd_op._normalized[gpu]
       _ax = tuple([r for r in range(1, len(x.shape[1:]) + 1)])
+ 
+      H = float(np.prod(x.shape[1:]))
+      mu_diff = 1 / H
+
+      inside = (2 * x + H * (2 * mu / H) - 2 * (rm.cuda.cusum(x, handle, axis=_ax, keepdims=True) / H + mu)) / H 
+      sigma_diff = 1 / (2 * sigma) * inside
+      
   
       dx = dy / sigma \
-          - sigma_diff * np.sum(x * dy, axis=_ax, keepdims=True) / np.power(sigma, 2) \
-          - np.sum(mu_diff * dy, axis=_ax, keepdims=True) / sigma \
-          + sigma_diff * np.sum(dy, axis=_ax, keepdims=True) * mu / np.power(sigma, 2)
+          - sigma_diff * rm.cuda.cusum(x * dy, handle, axis=_ax, keepdims=True) / (sigma ** 2) \
+          - rm.cuda.cusum(mu_diff * dy, handle, axis=_ax, keepdims=True) / sigma \
+          + sigma_diff * rm.cuda.cusum(dy, handle, axis=_ax, keepdims=True) * mu / (sigma ** 2) 
       dx *= gain
-      dgain = np.sum(normalized * dy, axis=0, keepdims=True)
+      dgain = rm.cuda.cusum(normalized * dy, handle, axis=0, keepdims=True)
   
-      self._outputs[gpu].to_gpu(dx)
-      self._gain_out[gpu].to_gpu(dgain)
+      self._outputs[gpu] = dx
+      self._gain_out[gpu] = dgain
 
 class layer_norm_backward_cpu(layer_norm_backward):
 
