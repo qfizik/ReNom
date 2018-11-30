@@ -277,9 +277,10 @@ def test_conv(test_shape, use_gpu):
 
 @pytest.mark.parametrize("test_shape", [
     (1, 1, 5, 5),
-    #(2, 3, 5, 5),
+    (2, 3, 5, 5),
 ])
-def blablafest_deconv(test_shape, use_gpu):
+def test_deconv(test_shape, use_gpu):
+  np.random.seed(45)
   rm.set_cuda_active(use_gpu)
 
   v = rand(*test_shape)
@@ -350,8 +351,7 @@ def test_pool(test_shape, use_gpu):
     (2, 3, 5, 5),
     (1, 1, 3, 3, 3),
 ])
-def test_pool(test_shape, use_gpu):
-  use_gpu = False
+def test_unpool(test_shape, use_gpu):
   rm.set_cuda_active(use_gpu)
   # Fails on seed 30
   np.random.seed(45)

@@ -67,7 +67,14 @@ class unpool_backward(operation):
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      rm.cuda.cuPoolingBackward(handle, self._fwd_op._pool_desc, self._fwd_in[gpu], self._fwd_out[gpu], self._inputs[gpu], self._outputs[gpu]) 
+      dy = self._inputs[gpu].new_array()
+      x = self._fwd_op._inputs[gpu].new_array()
+      px = self._prev_pool._inputs[gpu].new_array()
+
+      dx = imnpool(px, self._prev_pool._kernel, self._prev_pool._stride,
+                       self._prev_pool._padding, mode = 'max', alternate_input = dy)
+
+      self._outputs[gpu] = rm.GPUValue(dx)
 
 class unpool_backward_cpu(unpool_backward):
 

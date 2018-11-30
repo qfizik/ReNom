@@ -1,5 +1,5 @@
 import renom as rm
-from renom.layers.function.utils import im2col, col2im
+from renom.layers.function.utils import im2col, col2im, colnim, imncol
 from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import numpy as np
@@ -46,7 +46,8 @@ class deconvo_forward(operation):
     self._weights = weights
     self._bias = bias
 
-    imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
+    #imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
+    imgs = tuple(self._stride[i] * (input_shape[i + 2] - 1) + self._kernel[i] - 2 * self._padding[i] for i in range(dims))
     output_shape = [input_shape[0], self._channels, *imgs]
     self._outputs = multi_gpu_variable(shape = output_shape, gpus = gpus)
     self._vars = {'w' : self._weights, 'b' : self._bias, 'y' : self._outputs}
@@ -75,10 +76,12 @@ class deconvo_forward_cpu(deconvo_forward):
     x = self._inputs['cpu']
     w = self._weights['cpu']
     b = self._bias['cpu']
-    z = np.tensordot(w, x, (0, 1))
-    z = np.rollaxis(z, 3)
-    z = col2im(z, self._outputs.shape[2:], self._stride, self._padding, self._dilation)
-    z += b
+
+    w_rev = np.reshape(w, (w.shape[0], w.shape[1], -1))
+    w_rev = np.flip(w_rev, 2).reshape(w.shape)
+    col = colnim(x, w_rev, self._stride)
+    col += b
+    z = col
     self._outputs['cpu'] = z
 
 class deconvo_backward(operation):
@@ -124,14 +127,23 @@ class deconvo_backward_cpu(deconvo_backward):
     x = self._fwd_in['cpu']
     w = self._fwd_w['cpu']
 
-    col = im2col(dy, x.shape[2:], self._fwd_op._kernel, self._fwd_op._stride, self._fwd_op._padding, self._fwd_op._dilation)
+    dx = imncol(dy, w, self._fwd_op._stride, padding=[
+                0 for _ in range(len(self._fwd_op._stride))])
 
-    dx = np.tensordot(col, w, ([1, 2, 3], [1, 2, 3]))
-    dx = np.rollaxis(dx, 3, 1)
-    
-    dw = np.tensordot(x, col, ([0, 2, 3], [0, 4, 5]))
-   
-    db = np.sum(dy, axis=(0,2,3), keepdims = True)
+    l = [x for x in range(len(dy.shape))]  # noqa
+    del(l[1])
+    dw = np.ones_like(w) * \
+        np.swapaxes(np.sum(x, axis=tuple(l), keepdims=True), 0, 1)
+
+    db = np.sum(np.ones_like(dy), axis=tuple(
+        [x for x in range(2, len(dy.shape), 1)]), keepdims=True)
+    db = np.sum(db, axis=0, keepdims=True)
+
+    #col = im2col(dy, x.shape[2:], self._fwd_op._kernel, self._fwd_op._stride, self._fwd_op._padding, self._fwd_op._dilation)
+    #dx = np.tensordot(col, w, ([1, 2, 3], [1, 2, 3]))
+    #dx = np.rollaxis(dx, 3, 1)
+    #dw = np.tensordot(x, col, ([0, 2, 3], [0, 4, 5]))
+    #db = np.sum(dy, axis=(0,2,3), keepdims = True)
 
     self._outputs['cpu'] = dx
     self._weights_out['cpu'] = dw
