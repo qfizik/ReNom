@@ -39,17 +39,30 @@ class gru_forward(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       x = self._inputs[gpu]
       w = self._weights[gpu]
-      wr = self._weights_r[gpu]
+      u = self._weights_r[gpu]
 
-      self._outputs[gpu] = ret
-      if self._state._cur_time > 0:
-        self._state.set_prev('pfgate' + str(gpu), u)
+      m = w.shape[1] // 3
+      if self._state is None:
+        shp = (x.shape[0], m)
+        self._state = StateHolder()
+        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+          self._state.set_prev('z' + str(gpu), rm.GPUValue(np.zeros(shp)))
+
+      hminus = self._state.get_prev('z' + str(gpu))
+      # Perform Forward Calcuations
+      dotted = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
+      rm.cuda.cublas_gemm(x, 0, w, 0, dotted, handle)
+      ABC = dotted.empty_like_me()
+      h = hminus.empty_like_me()
+      rm.cuda.cugru_forward(dotted, hminus, u, ABC, h)
+
+
+      self._outputs[gpu] = h 
       self._state.push({ 'x' + str(gpu) : x,
-                         'ps' + str(gpu) : s_p,
-                         's' + str(gpu) : state,
-                         'z' + str(gpu) : ret,
-                         'u' + str(gpu) : u,
-                         'y' + str(gpu) : ret,
+                         'z' + str(gpu) : h,
+                         'y' + str(gpu) : h,
+                         'hminus' + str(gpu) : hminus,
+                         'ABC' + str(gpu) : ABC,
                        })
 
 
@@ -126,59 +139,40 @@ class gru_backward(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       dy = self._inputs[gpu]
       w = self._fwd_op._weights[gpu]
-      wr = self._fwd_op._weights_r[gpu]
+      u = self._fwd_op._weights_r[gpu]
 
       self._outputs[gpu] = self._outputs[gpu].zeros_like_me()
       self._w_out[gpu] = self._w_out[gpu].zeros_like_me()
       self._w_r_out[gpu] = self._w_r_out[gpu].zeros_like_me()
 
-      drt = None
-      dou = None
-      pfg = None
       self._state._cur_time = _t
       while(self._state._cur_time > 0):
         cur_state = self._state.peek()
         x = cur_state['x' + str(gpu)]
         y = cur_state['y' + str(gpu)]
-
-        u = cur_state['u' + str(gpu)]
-        s = cur_state['s' + str(gpu)]
-        rm.cuda.cutanh(s, s)
-        ps = cur_state['ps' + str(gpu)]
-
-        if drt is None:
-          drt = u.zeros_like_me()
-          dou = dy.zeros_like_me()
-
-        pfg = cur_state['pfgate' + str(gpu)]
-
-        e = dy
-
-        dr, dou_n = (a.empty_like_me() for a in (drt, dou))
-
-         
-        rm.cuda.culstm_backward(u, dr, s, ps, e, pfg, dou, dou_n)
-        dx = rm.GPUValue(shape = (dr.shape[0], w.shape[0]))
-        rm.cuda.cublas_gemm(dr, 0, w, 1, dx, handle)
-
-
-        dw = rm.GPUValue(shape=(x.shape[1], dr.shape[1]))
-        rm.cuda.cublas_gemm(x, 1, dr, 0, dw, handle)
+        hminus = cur_state['hminus' + str(gpu)]
+        ABC = cur_state['ABC' + str(gpu)]
         
-        dwr = rm.GPUValue(shape=(y.shape[1], drt.shape[1]))
-        rm.cuda.cublas_gemm(y, 1, drt, 0, dwr, handle)
+        dx = x.empty_like_me()
+        db = u.empty_like_me()
+        dw = w.empty_like_me()
+        yconc = ABC.empty_like_me()
+        du = u.empty_like_me()
+        dpz = hminus.empty_like_me()
+        dxx = x.empty_like_me()
 
+        rm.cuda.cugru_backward(ABC, dy, yconc, u,
+                          hminus, db, du, dpz, dxx)
+        # Calculate dx
+        rm.cuda.cublas_gemm(yconc, 0, w, 1, dx, handle)
+        rm.cuda.cublas_gemm(x, 1, yconc, 0, dw, handle)
 
         self._outputs[gpu] += dx
         self._w_out[gpu] += dw 
-        self._w_r_out[gpu] += dwr
+        self._w_r_out[gpu] += du
         
-        drt = dr
-        dou = dou_n
         self._state._cur_time -= 1
-        tmp = dy.empty_like_me()
-        rm.cuda.cublas_gemm(dr, 0, wr, 1, tmp, handle)
-        dy = tmp
+        dy = dpz
 
 def sigmoid_diff(x):
   return sigmoid(x) * (-sigmoid(x) + 1.)
