@@ -33,45 +33,45 @@ class lstm_forward(operation):
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      raise NotImplementedError()
       x = self._inputs[gpu]
       w = self._weights[gpu]
       wr = self._weights_r[gpu]
+
       if self._state is None:
         shp = (x.shape[0], w.shape[1] // 4)
-        self._state = StateHolder({'s' : multi_gpu_variable(shape = shp, gpus = self.gpus, initializer = init.Constant(0)),
-                           'z' : multi_gpu_variable(shape = shp, gpus = self.gpus, initializer = init.Constant(0)),
-                           'pfgate' : multi_gpu_variable(shape = shp, gpus = self.gpus, initializer = init.Constant(0)),
-                            })
-      s_p = self._state.get_prev('s')[gpu]
-      z_p = self._state.get_prev('z')[gpu]
+        self._state = StateHolder()
+        for gpu, _ in rm.cuda.RenomHandlers(self.gpus):
+          self._state.set_prev('s' + str(gpu), rm.GPUValue(np.zeros(shp)))
+          self._state.set_prev('z' + str(gpu), rm.GPUValue(np.zeros(shp)))
+          self._state.set_prev('pfgate' + str(gpu), rm.GPUValue(np.zeros(shp)))
+
+      s_p = self._state.get_prev('s' + str(gpu))
+      z_p = self._state.get_prev('z' + str(gpu))
       tmp1 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
       tmp2 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
 
       rm.cuda.cublas_gemm(x, 0, w, 0, tmp1, handle)
       rm.cuda.cublas_gemm(z_p, 0, wr, 0, tmp2, handle)
-      u = dot(x, w) + dot(z_p, wr)
 
-      z = get_gpu(z_p).empty_like_me()
-      state = get_gpu(s_p).empty_like_me()
+      u = tmp1 + tmp2
 
-      cu.culstm_forward_activate(get_gpu(u))
-      cu.culstm_forward(get_gpu(u), get_gpu(state), get_gpu(s_p), get_gpu(z))
+      z = z_p.empty_like_me()
+      state = s_p.empty_like_me()
 
-      ret = cls._create_node(z)
+      rm.cuda.culstm_forward_activate(u)
+      rm.cuda.culstm_forward(u, state, s_p, z)
 
-      ret.attrs._x = x
-      ret.attrs._w = w
-      ret.attrs._wr = wr
-      ret.attrs._b = b
-      ret.attrs._pz = pz
-      ret.attrs._u = u
-      ret.attrs._pstate = s_p
-      ret.attrs._state = state
-      ret._state = state
-
-      if isinstance(pz, Node):
-          pz.attrs._pfgate = u
+      ret = z
+      self._outputs[gpu] = ret
+      if self._state._cur_time > 0:
+        self._state.set_prev('pfgate' + str(gpu), u)
+      self._state.push({ 'x' + str(gpu) : x,
+                         'ps' + str(gpu) : s_p,
+                         's' + str(gpu) : state,
+                         'z' + str(gpu) : ret,
+                         'u' + str(gpu) : u,
+                         'y' + str(gpu) : ret,
+                       })
 
 
   def reset(self):
@@ -141,8 +141,64 @@ class lstm_backward(operation):
                  }
 
   def perform(self):
+    self._state = self._fwd_op._state
+    _t = self._state._cur_time
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      pass
+      dy = self._inputs[gpu]
+      w = self._fwd_op._weights[gpu]
+      wr = self._fwd_op._weights_r[gpu]
+
+      self._outputs[gpu] = self._outputs[gpu].zeros_like_me()
+      self._w_out[gpu] = self._w_out[gpu].zeros_like_me()
+      self._w_r_out[gpu] = self._w_r_out[gpu].zeros_like_me()
+
+      drt = None
+      dou = None
+      pfg = None
+      self._state._cur_time = _t
+      while(self._state._cur_time > 0):
+        cur_state = self._state.peek()
+        x = cur_state['x' + str(gpu)]
+        y = cur_state['y' + str(gpu)]
+
+        u = cur_state['u' + str(gpu)]
+        s = cur_state['s' + str(gpu)]
+        rm.cuda.cutanh(s, s)
+        ps = cur_state['ps' + str(gpu)]
+
+        if drt is None:
+          drt = u.zeros_like_me()
+          dou = dy.zeros_like_me()
+
+        pfg = cur_state['pfgate' + str(gpu)]
+
+        e = dy
+
+        dr, dou_n = (a.empty_like_me() for a in (drt, dou))
+
+         
+        rm.cuda.culstm_backward(u, dr, s, ps, e, pfg, dou, dou_n)
+        dx = rm.GPUValue(shape = (dr.shape[0], w.shape[0]))
+        rm.cuda.cublas_gemm(dr, 0, w, 1, dx, handle)
+
+
+        dw = rm.GPUValue(shape=(x.shape[1], dr.shape[1]))
+        rm.cuda.cublas_gemm(x, 1, dr, 0, dw, handle)
+        
+        dwr = rm.GPUValue(shape=(y.shape[1], drt.shape[1]))
+        rm.cuda.cublas_gemm(y, 1, drt, 0, dwr, handle)
+
+
+        self._outputs[gpu] += dx
+        self._w_out[gpu] += dw 
+        self._w_r_out[gpu] += dwr
+        
+        drt = dr
+        dou = dou_n
+        self._state._cur_time -= 1
+        tmp = dy.empty_like_me()
+        rm.cuda.cublas_gemm(dr, 0, wr, 1, tmp, handle)
+        dy = tmp
 
 def gate_diff(x):
   return x * (-x + 1.)

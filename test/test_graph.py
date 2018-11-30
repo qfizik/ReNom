@@ -124,13 +124,13 @@ def test_dense(test_shape, use_gpu):
 
 
 @pytest.mark.parametrize("test_shape", [
-    (2, 2),
+    (2, 3),
     (2, 1),
     (1, 2),
     (4, 5),
 ])
-def test_lstm(test_shape):#, use_gpu):
-  use_gpu=False
+def test_lstm(test_shape, use_gpu):
+  np.random.seed(45)
   rm.set_cuda_active(use_gpu)
 
   v = rand(*test_shape)

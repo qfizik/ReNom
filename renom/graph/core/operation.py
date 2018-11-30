@@ -5,7 +5,9 @@ import functools
 
 class StateHolder:
 
-  def __init__(self, null_state):
+  def __init__(self, null_state = None):
+    if null_state is None:
+      null_state = {}
     self._null_state = null_state
     self._states = [ null_state ]
     self._cur_time = 0
