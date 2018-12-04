@@ -88,6 +88,8 @@ class learnable_graph_element(graph_element):
     return self
 
   def disconnect(self):
+    for elem in self._previous_elements:
+      self.remove_input(elem)
     for elem in self._fwd._previous_elements:
       self._fwd.remove_input(elem)
     for graph in self._bwd_graphs:
@@ -154,7 +156,7 @@ class learnable_graph_element(graph_element):
 
   def getTrainingExecutor(self):
     ins = self._bwd_graphs[0].gather_operations(rm.graph.utils.dispatch)
-    lss = self._bwd_graphs[0].gather_operations(rm.graph.loss.softmax_forward)
+    lss = self._bwd_graphs[0].gather_operations(rm.graph.loss.softmax_cross_entropy_forward)
     self._bwd_graphs[0].setup()
     dct = self._bwd_graphs[0].get_call_dict()
     ret = learnable_graph_element.Executor(dct, ins, lss)
@@ -162,7 +164,7 @@ class learnable_graph_element(graph_element):
     
 
   def forward(self):
-    self._fwd.continue_forward(tag = 'Forward')
+    self._fwd.calculate_forward()
     return self
 
   def backward(self):

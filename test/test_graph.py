@@ -142,9 +142,8 @@ def test_lstm(test_shape, use_gpu):
 
   def func():
     m._fwd._op.reset()
-    val.forward()
-    val.forward()
-    val.forward()
+    loss.forward()
+    loss.forward()
     ret = loss.as_ndarray()
     return ret
   
@@ -172,9 +171,8 @@ def test_gru(test_shape, use_gpu):
 
   def func():
     m._fwd._op.reset()
-    val.forward()
-    val.forward()
-    val.forward()
+    loss.forward()
+    loss.forward()
     ret = loss.as_ndarray()
     return ret
   

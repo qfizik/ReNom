@@ -39,14 +39,12 @@ class update_operation(operation):
     self._shared_key = key
     self._update_op = operation
 
-
   def setup(self, inputs, storage):
     self._dy = self._producer.get_key(self._shared_key)
     self._outputs = self._consumer.get_key(self._shared_key)
     gpus = self._outputs.gpus
     self.gpus = gpus
     self.updates = 0
-
     self._update_op.setup(self._dy, self._outputs)
 
     if update_operation._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1:
@@ -56,7 +54,7 @@ class update_operation(operation):
     if len(self.gpus) > 1 and F:
       update_operation._communicator.allReduce(self._dy)
 
-    self._update_operation.update()
+    self._update_op.update()
 
     self.updates += 1
     if len(self.gpus) > 1 and self.updates >= 10 and F:

@@ -229,10 +229,16 @@ class operational_element(graph_element):
       self.setup()
     self._op.perform()
 
-  def continue_forward(self, tag):
+  def calculate_forward(self, tag = None):
+    for elem in self._previous_elements:
+      elem.calculate_forward(tag)
+    self.forward(tag = tag)
+
+  def continue_forward(self, tag = None):
     self.forward(tag = tag)
     for elem in self._next_elements:
       elem.continue_forward(tag)
+
 
   @graph_element.walk_tree
   @check_tags

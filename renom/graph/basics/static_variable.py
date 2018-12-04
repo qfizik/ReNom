@@ -42,9 +42,12 @@ class StaticVariable(learnable_graph_element):
   def value(self, val):
     assert isinstance(val, np.ndarray)    
     if self._value.shape == val.shape:
-      for gpuv in self._value:
-        gpuv.to_gpu(val)  
+      if rm.is_cuda_active():
+        for gpuv in self._value:
+          gpuv.to_gpu(val)  
+      else:
+        self._value['cpu'] = val
     else:
       #TODO: FIX THIS
-      assert False
+      raise NotImplementedError 
     

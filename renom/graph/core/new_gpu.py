@@ -56,6 +56,7 @@ class multi_gpu_variable:
     self.ready = True
 
   def _create_values(self):
+    self._finished_setup = True
     if self.gpus == 'cpu':
       if self._initializer is not None:
         self['cpu'] = self._initializer(self.shape)
@@ -70,7 +71,6 @@ class multi_gpu_variable:
           arr = self._initializer(self.shape)
         self[gpu] = rm.GPUValue(array=arr, shape=self.shape, ptr = self._ptrs[gpu]._ptr if self._ptrs is not None else None)
 
-    self._finished_setup = True
     
   @property
   def shape(self):
@@ -104,7 +104,7 @@ class multi_gpu_variable:
 
   def __len__(self):
     if isinstance(self._gpus, str):
-      return -1
+      return 0
     return len(self._gpus)
 
   def __getitem__(self, index):
@@ -116,7 +116,9 @@ class multi_gpu_variable:
       
   def __repr__(self):
     assert self._finished_setup is True
-    return self._gpuvalues[0].new_array().__repr__()
+    k = self._gpuvalues.keys().__iter__().__next__()
+    #print(self._gpuvalues['cpu'])
+    return self._gpuvalues[k].__str__()
 
   def as_ndarray(self):
     if not rm.is_cuda_active():
