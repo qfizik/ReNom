@@ -31,3 +31,21 @@ def test_basic_add():
   new_v5 = new_v1 + v2 + v4
   g5.forward()
   compare(new_v5, g5.as_ndarray()) 
+
+def test_basic_lstm():
+
+  v = np.random.rand(2,2)
+  layer = rm.graph.LstmGraphElement(3)
+  t = np.random.rand(2,3)
+  loss = rm.graph.MeanSquaredGraphElement()
+  opt = rm.graph.sgd_update(0.01, 0.4)
+  for i in range(3):
+    layer.reset()
+    l = loss(layer(v), t)
+    #l = layer(v)
+    #l = loss(l, t)
+    print(l)
+    l.backward().update(opt)
+  l.print_tree()
+  assert False
+  

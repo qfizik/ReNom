@@ -5,6 +5,7 @@ import numpy as np
 class sigmoid_forward(operation):
 
   name = 'Sigmoid (F)'
+  roles = [ 'Loss' ]
 
   def setup(self, inputs, storage): 
     assert isinstance(inputs[1], dict)

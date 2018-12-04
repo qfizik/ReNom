@@ -5,6 +5,7 @@ import numpy as np
 class mean_squared_forward(operation):
 
   name = 'Mean Squared (F)'
+  roles = [ 'Loss' ]
 
   def setup(self, inputs, storage):
     predictions = inputs[0]['y']

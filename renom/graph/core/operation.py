@@ -42,6 +42,7 @@ class operation(abc.ABC):
   produces = []
   consumes = []
   _vars = { 'y' : None }
+  roles = [ ]
   ready = False
 
 

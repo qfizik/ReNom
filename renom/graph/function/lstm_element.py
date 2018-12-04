@@ -6,6 +6,9 @@ import renom.utility.initializer as init
 
 class lstm_forward(operation):
 
+  name = 'LSTM (F)'
+  consumes = [ 'w' , 'wr' ]
+
   def __init__(self, output_size):
     self._output_size = output_size
 
@@ -119,6 +122,9 @@ class lstm_forward_cpu(lstm_forward):
                        
 
 class lstm_backward(operation):
+
+  name = 'LSTM (B)'
+  produces = [ 'w' , 'wr' ]
 
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
@@ -275,8 +281,22 @@ class LstmGraphElement(GraphFactory):
     self._output_size = output_size
     self.params['w'] = graph_variable()
     self.params['wr'] = graph_variable()
+    self._l = None
+
+  def reset(self):
+    if self._l is not None:
+      self._l.disconnect()
+    self._l = None
 
   def connect(self, other):
-    ret = LstmElement(self._output_size, previous_elements = [other, self.params['w'], self.params['wr']])
+    if self._l is None:
+      ret = LstmElement(self._output_size, previous_elements = [other, self.params['w'], self.params['wr']])
+    else:
+      ret = self._l
+      prvs = rm.graph.core.learnable_graph._prepare_prevs([other, self.params['w'], self.params['wr']])
+      assert prvs[1].output is self.params['w'].output
+      assert prvs[2].output is self.params['wr'].output
+      ret.connect(prvs)
+    self._l = ret
     return ret
 

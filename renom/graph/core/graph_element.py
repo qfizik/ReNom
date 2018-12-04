@@ -192,6 +192,17 @@ class operational_element(graph_element):
     if self._op.perform not in dct[self.depth]:
       dct[self.depth].append(self._op.perform)
 
+  def gather_operations_with_role(self, role, tag = None):
+    self._storage.register('Role', [])
+    self._gather_roles(role)
+    return self._storage.retrieve('Role')
+
+  @graph_element.walk_tree
+  @check_tags
+  def _gather_roles(self, role):
+    if role in self._op.roles:
+      self._storage.retrieve('Role').append(self._op)
+
   def gather_operations(self, op, tag = None):
     self._storage.register('Operations', [])
     self._gather_ops(op)
@@ -229,6 +240,7 @@ class operational_element(graph_element):
       self.setup()
     self._op.perform()
 
+
   def calculate_forward(self, tag = None):
     for elem in self._previous_elements:
       elem.calculate_forward(tag)
@@ -240,7 +252,7 @@ class operational_element(graph_element):
       elem.continue_forward(tag)
 
 
-  @graph_element.walk_tree
+  #@graph_element.walk_tree
   @check_tags
   def setup(self):
     if not self.inputs_changed():

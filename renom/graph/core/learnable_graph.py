@@ -72,6 +72,7 @@ class learnable_graph_element(graph_element):
   def connect(self, previous_elements):
     if self.connected is True:
       self.disconnect()
+      assert len(self._previous_elements) == 0 and len(self._fwd._previous_elements) == 0
 
     if isinstance(previous_elements, learnable_graph_element):
       previous_elements = [ previous_elements ]
@@ -84,17 +85,20 @@ class learnable_graph_element(graph_element):
       if elem.has_back:
         elem.connect_back(self, pos = num)
     self.connected = True
-    self.forward()
+    self.simple_forward()
     return self
 
   def disconnect(self):
-    for elem in self._previous_elements:
-      self.remove_input(elem)
-    for elem in self._fwd._previous_elements:
-      self._fwd.remove_input(elem)
+    while len(self._previous_elements) > 0:
+      self.remove_input(self._previous_elements[0])
+    while len(self._fwd._previous_elements) > 0:
+      self._fwd.remove_input(self._fwd._previous_elements[0])
     for graph in self._bwd_graphs:
-      for elem in graph._previous_elements:
-        graph.remove_input(elem)
+      while len(graph._previous_elements) > 0:
+        graph.remove_input(graph._previous_elements[0])
+    while len(self._next_elements) > 0:
+      self._next_elements[0]._fwd.remove_input(self._fwd)
+      self._next_elements[0].remove_input(self)
 
   def connect_back(self, previous_element, pos = 0):
     backward_graph_input = previous_element.get_backward_output(pos)
@@ -155,13 +159,16 @@ class learnable_graph_element(graph_element):
       return self.loss_func
 
   def getTrainingExecutor(self):
-    ins = self._bwd_graphs[0].gather_operations(rm.graph.utils.dispatch)
+    ins = self._bwd_graphs[0].gather_operations_with_role('loss')
     lss = self._bwd_graphs[0].gather_operations(rm.graph.loss.softmax_cross_entropy_forward)
     self._bwd_graphs[0].setup()
     dct = self._bwd_graphs[0].get_call_dict()
     ret = learnable_graph_element.Executor(dct, ins, lss)
     return ret
     
+  def simple_forward(self):
+    self._fwd.forward()
+    return self
 
   def forward(self):
     self._fwd.calculate_forward()
@@ -187,7 +194,11 @@ class learnable_graph_element(graph_element):
         return r
     raise AttributeError('Could not find {}'.format(search_id))
     
-  def update(self):
+  def update(self, optimizer=None):
+    if optimizer is not None:
+      ups = self._bwd_graphs[0].gather_operations_with_role('update')
+      for up in ups:
+        up.set_update_op(optimizer) 
     self._fwd.continue_forward(tag = 'Update')
 
   def print_tree(self):
