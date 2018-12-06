@@ -34,18 +34,27 @@ def test_basic_add():
 
 def test_basic_lstm():
 
+  np.random.seed(45)
   v = np.random.rand(2,2)
   layer = rm.graph.LstmGraphElement(3)
   t = np.random.rand(2,3)
   loss = rm.graph.MeanSquaredGraphElement()
   opt = rm.graph.sgd_update(0.01, 0.4)
+  p_l = 9999
   for i in range(3):
     layer.reset()
     l = loss(layer(v), t)
-    #l = layer(v)
-    #l = loss(l, t)
-    print(l)
+    l_arr = l.as_ndarray()
+    print(l_arr)
+    assert l_arr < p_l
+    p_l = l_arr
     l.backward().update(opt)
-  l.print_tree()
-  assert False
+  
+def test_slices():
+
+  a = np.random.rand(3,3,3)
+  A = rm.graph.StaticVariable(a)
+  b = a[:,1,0:2]
+  B = A[:,1,0:2]
+  compare(b, B.as_ndarray())
   
