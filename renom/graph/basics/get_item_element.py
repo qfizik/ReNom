@@ -43,7 +43,7 @@ def _backward_gpu(self, context, dy, **kwargs):
       zero[self.attrs._rhs] = dy
       self.attrs._lhs._update_diff(context, zero, **kwargs)
 
-def _is_advanced_indexing(self, array, index):
+def _is_advanced_indexing(index):
   if isinstance(index, (int, slice, type(None), type(Ellipsis))):
     return False
   elif isinstance(index, tuple):
@@ -73,7 +73,17 @@ class get_item_back(operation):
     self._vars = { 'y' : outs , id(self._fwd_op._a) : outs }
 
   def perform(self):
-    pass
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      if _is_advanced_indexing(self._index):
+        dy = self._inputs[gpu].new_array()
+        zero = np.zeros(self._outputs.shape)
+        np.add.at(zero, self._index, dy)
+        self._outputs[gpu].to_gpu(zero)
+      else:
+        dy = self._inputs[gpu]
+        zero = self._outputs[gpu].zeros_like_me()
+        zero[self._index] = dy
+        self._outputs[gpu] = zero
 
 class get_item_back_cpu(get_item_back):
 

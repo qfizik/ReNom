@@ -84,7 +84,7 @@ class multi_gpu_variable:
       l[0] = new_val
       val = tuple(l)
     assert isinstance(val[0], shared_val)
-    self._shape = val
+    self._shape = tuple(val)
 
   @property
   def gpus(self):
@@ -111,7 +111,10 @@ class multi_gpu_variable:
     return self._gpuvalues[index]
 
   def __setitem__(self, index, value):
-    #assert tuple(value.shape[1:]) == tuple(self.shape[1:])
+    if tuple(value.shape) != tuple(self.shape):
+      print(value.shape, self.shape)
+      raise AssertionError('Setting value without same shape')
+    value.shape = self.shape
     self._gpuvalues[index] = value
       
   def __repr__(self):

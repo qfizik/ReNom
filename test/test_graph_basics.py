@@ -50,7 +50,8 @@ def test_basic_lstm():
     p_l = l_arr
     l.backward().update(opt)
   
-def test_slices():
+def test_slices(use_gpu):
+  rm.set_cuda_active(use_gpu)
 
   a = np.random.rand(3,3,3)
   A = rm.graph.StaticVariable(a)

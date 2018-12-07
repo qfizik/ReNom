@@ -45,7 +45,7 @@ class sigmoid_forward_cpu(sigmoid_forward):
     N = len(x)
     z = 1 / (1 + np.exp(-x))
     self._z = z
-    ret = -np.sum(y * np.log(z + 1e-8) + (1 - y) * np.log(1 - z + 1e-8)) / N
+    ret = -np.sum(y * np.log(z + 1e-8) + (1 - y) * np.log(1 - z + 1e-8)).reshape(1) / N
     self._outputs['cpu'] = ret
 
 class sigmoid_backward(operation):

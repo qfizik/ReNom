@@ -26,7 +26,7 @@ class sum_forward(operation):
 class sum_forward_cpu(sum_forward):
 
   def perform(self):
-    ret = np.sum(self._inputs['cpu'])
+    ret = np.sum(self._inputs['cpu']).reshape(1)
     self._outputs['cpu'] = ret
 
 

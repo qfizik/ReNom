@@ -18,7 +18,7 @@ class l2norm_forward(operation):
     assert isinstance(inputs, multi_gpu_variable), 'Received {}'.format(type(inputs))
     self.gpus = inputs.gpus
     self._inputs = inputs
-    weight_shape = ( inputs.shape[1] , 1, 1)
+    weight_shape = (1, inputs.shape[1] , 1, 1)
     weights.__init__( shape = weight_shape , gpus = self.gpus, initializer = init.Constant(self._scale))
     output_shape = inputs.shape
     outputs = multi_gpu_variable( shape = output_shape, gpus = self.gpus)

@@ -39,7 +39,7 @@ class cross_entropy_forward_cpu(cross_entropy_forward):
     pred = self._inputs['cpu']
     real = self._lbls['cpu']
     log_pred = np.log(pred + 1e-8)
-    ret = -np.sum(real * log_pred) 
+    ret = -np.sum(real * log_pred).reshape(1)
     self._outputs['cpu'] = ret
 
 
