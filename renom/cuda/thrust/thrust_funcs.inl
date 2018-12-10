@@ -1958,7 +1958,7 @@ namespace renom{
       int idx = blockIdx.x * blockDim.x + threadIdx.x;
       if (idx < Elems) {
         r[idx] = pdy[idx] + dy[idx] * dy[idx];
-        ndy[idx] = learning_rate * dy[idx] / (sqrtf(r[idx]) + epsilon);
+        ndy[idx] -= learning_rate * dy[idx] / (sqrtf(r[idx]) + epsilon);
       }
     }
 

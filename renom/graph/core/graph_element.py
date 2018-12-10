@@ -252,6 +252,11 @@ class operational_element(graph_element):
       elem.continue_forward(tag)
 
 
+  def continue_setup(self, tag = None):
+    self.setup(tag = tag)
+    for elem in self._next_elements:
+      elem.continue_setup(tag)
+
   #@graph_element.walk_tree
   @check_tags
   def setup(self):

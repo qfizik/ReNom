@@ -27,17 +27,18 @@ class update_operation(operation):
   def set_update_op(self, fac):
     if self._factory is fac:
       return
-    op = fac.get_op(self)
-    self._update_op = op
     self._factory = fac
 
   def setup(self, inputs, storage):
+    assert self._factory is not None
     self._dy = self._producer.get_key(self._shared_key)
     self._outputs = self._consumer.get_key(self._shared_key)
     gpus = self._outputs.gpus
     self.gpus = gpus
     self.updates = 0
-    self._update_op.setup(self._dy, self._outputs)
+    if self._update_op is None:
+      self._update_op = self._factory.get_op(self._outputs)
+      self._update_op.setup(self._dy, self._outputs)
 
     if update_operation._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1 and F:
       update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))

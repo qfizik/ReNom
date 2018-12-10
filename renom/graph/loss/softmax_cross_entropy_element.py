@@ -5,7 +5,7 @@ import numpy as np
 class softmax_cross_entropy_forward(operation):
 
   name = 'Softmax (F)'
-  roles = [ 'Loss' ]
+  roles = [ 'loss' ]
 
   def setup(self, inputs, storage): 
     assert isinstance(inputs[1], dict)

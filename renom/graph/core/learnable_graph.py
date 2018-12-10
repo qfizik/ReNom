@@ -158,10 +158,14 @@ class learnable_graph_element(graph_element):
     def loss(self):
       return self.loss_func
 
-  def getTrainingExecutor(self):
-    ins = self._bwd_graphs[0].gather_operations_with_role('loss')
-    lss = self._bwd_graphs[0].gather_operations(rm.graph.loss.softmax_cross_entropy_forward)
-    self._bwd_graphs[0].setup()
+  def getTrainingExecutor(self, optimizer = None):
+    ups = self._bwd_graphs[0].gather_operations_with_role('update')
+    for i in range(len(ups)):
+      ups[i].set_update_op(optimizer) 
+      ups[i] = None # Avoiding destruction errors
+    ins = self._bwd_graphs[0].gather_operations_with_role('input')
+    lss = self._bwd_graphs[0].gather_operations_with_role('loss')
+    self._fwd.continue_setup()
     dct = self._bwd_graphs[0].get_call_dict()
     ret = learnable_graph_element.Executor(dct, ins, lss)
     return ret
@@ -197,8 +201,10 @@ class learnable_graph_element(graph_element):
   def update(self, optimizer=None):
     if optimizer is not None:
       ups = self._bwd_graphs[0].gather_operations_with_role('update')
-      for up in ups:
-        up.set_update_op(optimizer) 
+      #for up in ups:
+      for i in range(len(ups)):
+        ups[i].set_update_op(optimizer) 
+        ups[i] = None # Avoiding destruction errors
     self._fwd.continue_forward(tag = 'Update')
 
   def print_tree(self):

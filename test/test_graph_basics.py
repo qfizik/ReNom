@@ -59,3 +59,25 @@ def test_slices(use_gpu):
   B = A[:,1,0:2]
   compare(b, B.as_ndarray())
   
+def test_optimizer(use_gpu):
+
+  rm.set_cuda_active(use_gpu)
+  np.random.seed(45)
+  v = np.random.rand(2,2)
+  layer = rm.graph.DenseGraphElement(3)
+  t = np.random.rand(2,3)
+  loss = rm.graph.MeanSquaredGraphElement()
+  opt = rm.graph.sgd_update()
+  p_l = 9999
+  for i in range(3):
+    l = loss(layer(v), t)
+    l_arr = l.as_ndarray()
+    print(l_arr)
+    assert l_arr < p_l
+    p_l = l_arr
+    l.backward().update(opt)
+
+
+
+
+

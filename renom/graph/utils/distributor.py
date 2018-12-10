@@ -5,6 +5,7 @@ from renom.graph.core import operational_element, learnable_graph_element, opera
 class dispatch(operation):
 
   name = 'Data Dispatcher'
+  roles = [ 'input' ]
 
   def __init__(self, value, batch_size = 128, num_gpus = 1):
     self._value = value

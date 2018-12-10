@@ -5,7 +5,7 @@ import numpy as np
 class mean_squared_forward(operation):
 
   name = 'Mean Squared (F)'
-  roles = [ 'Loss' ]
+  roles = [ 'loss' ]
 
   def setup(self, inputs, storage):
     predictions = inputs[0]['y']
@@ -39,7 +39,7 @@ class mean_squared_forward_cpu(mean_squared_forward):
     pred = self._graph_input['cpu']
     real = self._label_input['cpu']
     N = len(pred)
-    ret = np.sum((pred - real) ** 2) / (N * 2)
+    ret = np.sum((pred - real) ** 2).reshape(1,) / (N * 2)
     self._outputs['cpu'] = ret
 
 class mean_squared_backward(operation):

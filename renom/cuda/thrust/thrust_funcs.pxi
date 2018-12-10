@@ -1103,7 +1103,7 @@ def cu_optimizer_sgd(learning_rate, momentum, dy, previous_dy, new_dy, handle):
 def cu_optimizer_adagrad(learning_rate, epsilon, dy, previous_dy, new_dy, r):
     Elem = 1
     for v in dy.shape:
-        Elem *= v
+        Elem *= int(v)
     cdef int Elems = Elem
     cdef VALUE_TYPE lr = learning_rate
     cdef VALUE_TYPE eps = epsilon
@@ -1117,7 +1117,7 @@ def cu_optimizer_adagrad(learning_rate, epsilon, dy, previous_dy, new_dy, r):
 def cu_optimizer_rmsprop(learning_rate, epsilon, gamma, eta, dy, k, new_dy, r):
     Elem = 1
     for v in dy.shape:
-        Elem *= v
+        Elem *= int(v)
     cdef int Elems = Elem
     cdef VALUE_TYPE lr = learning_rate
     cdef VALUE_TYPE eps = epsilon
@@ -1133,7 +1133,7 @@ def cu_optimizer_rmsprop(learning_rate, epsilon, gamma, eta, dy, k, new_dy, r):
 def cu_optimizer_adam(learning_rate, epsilon, gamma, gamma_orig, beta, beta_orig, minimum, toflug, u, r, dy, new_dy):
     Elem = 1
     for v in dy.shape:
-        Elem *= v
+        Elem *= int(v)
     cdef int Elems = Elem
     cdef VALUE_TYPE lr = learning_rate
     cdef VALUE_TYPE eps = epsilon
@@ -1164,7 +1164,7 @@ def cu_clip(array, minimum, maximum):
 def cu_optimizer_adadelta(decay_rate, epsilon, previous_squared_gradient, previous_squared_delta, dy, new_dy):
     cdef int Elem = 1
     for v in dy.shape:
-        Elem *= v
+        Elem *= int(v)
     cdef VALUE_TYPE dr = decay_rate
     cdef VALUE_TYPE eps = epsilon
     cdef VALUE_TYPE * ptr_psg = <VALUE_TYPE * > < uintptr_t > previous_squared_gradient._ptr
@@ -1177,7 +1177,7 @@ def cu_optimizer_adadelta(decay_rate, epsilon, previous_squared_gradient, previo
 def cu_optimizer_adamax(alpha, epsilon, beta1, beta2, moment1, moment2, dy, new_dy):
     cdef int Elem = 1
     for v in dy.shape:
-        Elem *= v
+        Elem *= int(v)
     cdef VALUE_TYPE alp = alpha
     cdef VALUE_TYPE eps = epsilon
     cdef VALUE_TYPE b_1 = beta1[0]
