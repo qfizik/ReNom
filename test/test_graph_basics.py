@@ -67,9 +67,9 @@ def test_optimizer(use_gpu):
   layer = rm.graph.DenseGraphElement(3)
   t = np.random.rand(2,3)
   loss = rm.graph.MeanSquaredGraphElement()
-  opt = rm.graph.sgd_update()
+  opt = rm.graph.adam_update()
   p_l = 9999
-  for i in range(3):
+  for i in range(5):
     l = loss(layer(v), t)
     l_arr = l.as_ndarray()
     print(l_arr)
