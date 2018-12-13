@@ -9,6 +9,7 @@ import h5py
 class variable_input(operation):
 
   name = 'Variable'
+  roles = [ 'variable' ]
 
   def __init__(self):
     val = multi_gpu_variable()

@@ -142,7 +142,9 @@ class learnable_graph_element(graph_element):
             loss += self.loss[0].as_ndarray()
         except StopIteration:
           print(loss)
-          for disp in self.dispatchers: disp.reset()
+          for disp in self.dispatchers:
+            disp.reset()
+            disp._perm = self.dispatchers[0]._perm
           epochs -= 1
 
     def __del__(self):

@@ -41,6 +41,8 @@ class dropout_forward_cpu(dropout_forward):
 
 class dropout_backward(operation):
 
+  name = 'Dropout (B)'
+
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 

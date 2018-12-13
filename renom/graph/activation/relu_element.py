@@ -4,6 +4,8 @@ import numpy as np
 
 class relu_forward(operation):
 
+  name = 'Relu (F)'
+
   def setup(self, inputs, storage):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
@@ -26,6 +28,8 @@ class relu_forward_cpu(relu_forward):
     self._outputs['cpu'] = ret
 
 class relu_backward(operation):
+
+  name = 'Relu (B)'
 
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward

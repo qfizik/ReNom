@@ -18,6 +18,7 @@ class dispatch(operation):
     self._outputs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._vars = { 'y' : self._outputs }
     self._finished = False
+    self._perm = np.random.permutation(len(self._value))
 
   def setup(self, inputs, storage):
     self._storage = storage
@@ -36,7 +37,7 @@ class dispatch(operation):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       #handle.wait()
       cur_slice = slice(self._batch_num * self._batch_size, (1 + self._batch_num) * self._batch_size)
-      arr = self._value[cur_slice]
+      arr = self._value[self._perm[cur_slice]]
       self._outputs[gpu].shape[0].value = len(arr)
       assert self._outputs[gpu].shape == arr.shape
       if len(arr) < self._batch_size:
@@ -49,6 +50,7 @@ class dispatch(operation):
   def reset(self):
     self._batch_num = 0
     self._finished = False
+    self._perm = np.random.permutation(len(self._value))
 
   def set_batch_size(self, batch_size):
     self._batch_size = batch_size
