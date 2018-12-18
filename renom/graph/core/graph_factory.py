@@ -45,6 +45,8 @@ class GraphFactory(abc.ABC):
   def connect(self, other): pass
   
   def __call__(self, *other):
+    for param in self.params:
+      self.params[param].disconnect()
     return self.connect(*other)
 
   def get_model_children(self):

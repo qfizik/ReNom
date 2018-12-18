@@ -22,8 +22,8 @@ class RenomHandle:
     with rm.cuda.use_device(self.device):
       #self.stream = rm.cuda.cuCreateStream()
       #self.memstream = rm.cuda.cuCreateStream()
-      self.stream = 0
-      self.memstream = 0
+      self.stream = rm.cuda.cuCreateStream()
+      self.memstream = self.stream
     self.pinned_memory = {}
     self.cublas_handler = rm.cuda.createCublasHandle(self.stream)
     self.cudnn_handler = rm.cuda.createCudnnHandle(self.stream)

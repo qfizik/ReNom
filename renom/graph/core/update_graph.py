@@ -30,6 +30,8 @@ class update_operation(operation):
     self._factory = fac
 
   def setup(self, inputs, storage):
+    if self._factory is None:
+      self._factory = rm.graph.sgd_update()
     assert self._factory is not None
     self._dy = self._producer.get_key(self._shared_key)
     self._outputs = self._consumer.get_key(self._shared_key)
@@ -40,11 +42,11 @@ class update_operation(operation):
       self._update_op = self._factory.get_op(self._outputs)
       self._update_op.setup(self._dy, self._outputs)
 
-    if update_operation._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1 and F:
+    if update_operation._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1 and T:
       update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))
 
   def perform(self):
-    if len(self.gpus) > 1 and F:
+    if len(self.gpus) > 1 and T:
       update_operation._communicator.allReduce(self._dy)
 
     self._update_op.update()

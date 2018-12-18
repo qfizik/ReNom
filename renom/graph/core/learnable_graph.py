@@ -138,8 +138,9 @@ class learnable_graph_element(graph_element):
         try:
           loss = 0
           while(True):
+            rm.cuda.cuDeviceSynchronize()
             self.perform_step()
-            loss += self.loss[0].as_ndarray()
+            loss += self.loss[0].get_loss()
         except StopIteration:
           print(loss)
           for disp in self.dispatchers:
@@ -179,6 +180,9 @@ class learnable_graph_element(graph_element):
   def forward(self):
     self._fwd.calculate_forward()
     return self
+
+  def optimize(self):
+    pass
 
   def backward(self):
     if len(self._bwd_graphs[0]._previous_elements) == 0:

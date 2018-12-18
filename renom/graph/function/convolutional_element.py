@@ -4,10 +4,13 @@ from renom.graph.core import operation, learnable_graph_element, multi_gpu_varia
 import renom.utility.initializer as init
 import numpy as np
 
+
 class convo_forward(operation):
 
   name = 'Convolution (F)'
   consumes = ['w', 'b']
+  workspace_size = 0
+  workspace = None
 
   def __init__(self, channels, kernel = 3, padding = 0, stride = 1):
     self._channels = channels
@@ -57,13 +60,29 @@ class convo_forward(operation):
         else:
           self._conv_desc = rm.cuda.ConvolutionNDescriptor(self._padding, self._stride, rm.precision)
           self._filter_desc = rm.cuda.NdFilterDescriptor(weight_shape, rm.precision)
-        self._algo = rm.cuda.cuGetConvolutionFwdAlgo(handle, self._conv_desc, self._filter_desc, inputs[0], self._outputs[0])
-        self._bwd_algo = rm.cuda.cuGetConvolutionBwdAlgo(handle, self._conv_desc, self._filter_desc, inputs[0], self._outputs[0])
+        self._info = [0]
+        self._bwd_info = { 'data' : [0] , 'filter' : [0] }
 
+
+  def optimize(self):
+    with rm.cuda.RenomHandler() as handle:
+      self._info = rm.cuda.cuGetConvolutionFwdInfo(handle, self._conv_desc, self._filter_desc, self._inputs[0], self._outputs[0])
+      self._bwd_info = rm.cuda.cuGetConvolutionBwdInfo(handle, self._conv_desc, self._filter_desc, self._inputs[0], self._outputs[0])
+      req_sz = max(self._info[1], self._bwd_info['data'][1], self._bwd_info['filter'][1])
+
+    if req_sz > convo_forward.workspace_size:
+      convo_forward.workspace_size = req_sz
+    return True
+
+  def finalize(self):
+    if convo_forward.workspace is None:
+      workspace_shape = (int(np.ceil(convo_forward.workspace_size/ np.dtype(rm.precision).itemsize)),)
+      convo_forward.workspace = multi_gpu_variable(shape = workspace_shape, gpus = self.gpus)
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      rm.cuda.cuConvolutionForwardBiasActivation(handle, self._conv_desc, self._filter_desc, self._inputs[gpu], self._weights[gpu], self._outputs[gpu], self._bias[gpu], 0)
+      workspace = (convo_forward.workspace_size, convo_forward.workspace[gpu]) if convo_forward.workspace_size > 0 else None
+      rm.cuda.cuConvolutionForwardBiasActivation(handle, self._conv_desc, self._filter_desc, self._inputs[gpu], self._weights[gpu], self._outputs[gpu], self._bias[gpu], self._info[0], workspace)
 
 class convo_forward_cpu(convo_forward):
 
@@ -112,12 +131,16 @@ class convo_backward(operation):
                  }
 
     if rm.is_cuda_active():
-      self._algo = self._fwd_op._bwd_algo
+      self._algo = {'data' : 0 , 'filter' : 0}
+
+  def finalize(self):
+    self._algo = {'data' : self._fwd_op._bwd_info['data'][0] , 'filter' : self._fwd_op._bwd_info['filter'][0]}
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      workspace = (convo_forward.workspace_size, convo_forward.workspace[gpu]) if convo_forward.workspace_size > 0 else None
       rm.cuda.cuActivationBackward(handle, self._fwd_op._outputs[gpu], self._inputs[gpu])
-      rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc, self._fwd_in[gpu], self._fwd_w[gpu], self._inputs[gpu], self._weights_out[gpu], self._bias_out[gpu], self._outputs[gpu], {'data' : 0, 'filter' : 0})
+      rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc, self._fwd_in[gpu], self._fwd_w[gpu], self._inputs[gpu], self._weights_out[gpu], self._bias_out[gpu], self._outputs[gpu], self._algo, workspace)
 
 
 class convo_backward_cpu(convo_backward):
@@ -175,3 +198,14 @@ class ConvolutionalGraphElement(GraphFactory):
   def connect(self, other):
     ret = ConvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, previous_element = [ other, self.params['w'], self.params['b']])
     return ret
+
+def del_workspace():
+  convo_forward.workspace = None
+import atexit
+atexit.register(del_workspace)
+
+
+
+
+
+

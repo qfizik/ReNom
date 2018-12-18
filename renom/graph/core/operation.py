@@ -57,4 +57,7 @@ class operation(abc.ABC):
   def as_ndarray(self): return self._vars['y'].as_ndarray()
   def get_key(self, key): return self._vars.get(key, None)
   def set_alias(self, key, alias): self._vars[alias] = self._vars[key]
+  def optimize(self): return True
+  def finalize(self): pass
+
 

@@ -241,6 +241,29 @@ class operational_element(graph_element):
     self._op.perform()
 
 
+  def finalize(self):
+    self.setup_all()
+    self._storage.register('Finalized', [])
+    finished = False
+    while not finished:
+      self._smooth_iteration()
+      rets = self._storage.retrieve('Finalized')
+      finished = all(r is True for r in rets)
+    self._finalize()
+
+  @graph_element.walk_tree
+  def _smooth_iteration(self):
+    lst = self._storage.retrieve('Finalized')
+    lst.append(self._op.optimize())
+
+
+  @graph_element.walk_tree  
+  def _finalize(self):
+    self._op.finalize()  
+
+
+    
+
   def calculate_forward(self, tag = None):
     for elem in self._previous_elements:
       elem.calculate_forward(tag)
@@ -257,7 +280,6 @@ class operational_element(graph_element):
     for elem in self._next_elements:
       elem.continue_setup(tag)
 
-  #@graph_element.walk_tree
   @check_tags
   def setup(self):
     if not self.inputs_changed():
@@ -265,6 +287,10 @@ class operational_element(graph_element):
     inputs = [prev.get_output() for prev in self._previous_elements]
     self._op.setup(inputs, self._storage)
     self.prev_inputs = inputs
+
+  @graph_element.walk_tree
+  def setup_all(self):
+    self.setup()
 
   @graph_element.walk_tree
   def print_tree(self): 

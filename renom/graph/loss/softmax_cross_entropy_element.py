@@ -33,6 +33,17 @@ class softmax_cross_entropy_forward(operation):
       rm.cuda.cudiv(tmp, self._N, tmp, handle)
       self._outputs[gpu].copy_from(tmp)
 
+  def get_loss(self):
+    for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+      arr = np.empty(self._outputs.shape, dtype=rm.precision)
+      pin = handle.getPinnedMemory(arr)
+      self._outputs[0].to_cpu(pin)
+      pin.unpin(arr)
+    return arr
+
+
+
+
 class softmax_cross_entropy_forward_cpu(softmax_cross_entropy_forward):
 
   def perform(self):

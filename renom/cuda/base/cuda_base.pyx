@@ -277,9 +277,16 @@ cdef class PinnedMemory(object):
     def pin(self, np.ndarray arr):
         cdef size_t sz = arr.descr.itemsize * arr.size
         if sz != self.size:
-          raise ValueError("Trying to pin array of different size than originally initialized")
+            raise ValueError("Trying to pin array of different size than originally initialized")
         runtime_check(cudaEventSynchronize(self.event))
         memcpy(self.memory_ptr, <void*> arr.data, self.size)
+
+    def unpin(self, np.ndarray arr):
+        cdef size_t sz = arr.descr.itemsize * arr.size
+        if sz != self.size:
+            raise ValueError("Trying to pin array of different size than originally initialized")
+        runtime_check(cudaEventSynchronize(self.event))
+        memcpy(<void*> arr.data, self.memory_ptr, self.size)
 
     def __int__(self):
         return <uintptr_t> self.memory_ptr
@@ -378,23 +385,38 @@ cdef class GPUHeap(object):
       ptr = <void*><uintptr_t> pinned_to_load
       cuMemcpyH2DAsync(ptr, self.ptr, nbytes, <uintptr_t> pinned_to_load.stream)
       with renom.cuda.RenomHandler() as handle:
-        #pass
-        streamInsertEvent(<uintptr_t> handle.stream, <uintptr_t> pinned_to_load.event)
-        runtime_check(cudaStreamWaitEvent(<cudaStream_t><uintptr_t> handle.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event, 0))
+        pass
+        #streamInsertEvent(<uintptr_t> handle.stream, <uintptr_t> pinned_to_load.event)
+        #runtime_check(cudaStreamWaitEvent(<cudaStream_t><uintptr_t> handle.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event, 0))
 
 
-    cpdef memcpyD2H(self, cpu_ptr, size_t nbytes):
+    cpdef memcpyD2H(self, pyobject_to_load, size_t nbytes):
+        if isinstance(pyobject_to_load, pnp.ndarray):
+            self.retrieveNumpy(pyobject_to_load, nbytes)
+        elif isinstance(pyobject_to_load, PinnedMemory):
+            self.retrievePinned(pyobject_to_load, nbytes)
+
+
+    cdef retrieveNumpy(self, cpu_ptr, size_t nbytes):
         shape = cpu_ptr.shape
         cpu_ptr = pnp.reshape(cpu_ptr, -1)
 
         cdef _VoidPtr ptr = _VoidPtr(cpu_ptr)
 
         assert nbytes <= self.nbytes, '{} / {}'.format(nbytes, self.nbytes)
-        with renom.cuda.RenomHandler(self.device_id) as handle:
-            cuMemcpyD2HAsync(ptr.ptr, self.ptr, nbytes, <uintptr_t> handle.stream)
-            #cuMemcpyD2H(self.ptr, ptr.ptr, nbytes)
+        cuMemcpyD2H(self.ptr, ptr.ptr, nbytes)
 
         pnp.reshape(cpu_ptr, shape)
+
+    cdef retrievePinned(self, PinnedMemory cpu_ptr, size_t nbytes):
+        assert nbytes <= self.nbytes
+        ptr = <void*><uintptr_t> cpu_ptr
+        cuMemcpyD2HAsync(ptr, self.ptr, nbytes, <uintptr_t> cpu_ptr.stream)
+        with renom.cuda.RenomHandler() as handle:
+          #pass
+          streamInsertEvent(<uintptr_t> handle.stream, <uintptr_t> cpu_ptr.event)
+        
+
 
     cpdef memcpyD2D(self, gpu_ptr, size_t nbytes):
         assert self.device_id == gpu_ptr.device_id
