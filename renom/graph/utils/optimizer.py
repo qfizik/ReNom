@@ -5,6 +5,8 @@ import renom.utility.initializer as init
 
 class optimizer_factory:
 
+  _communicator = None
+
   def __init__(self):
     self._ops = { }
     self.args = ( )
@@ -22,6 +24,8 @@ class optimizer_factory:
       ret = self.cpu_op(*self.args, **self.kwargs)
     return ret
     
+T = True
+F = False
 
 
 class sgd_update(optimizer_factory):
@@ -39,12 +43,19 @@ class sgd_update(optimizer_factory):
       self._dy = grad
       self._outputs = val
       self._run_avg = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._ndy = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      if optimizer_factory._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1 and T:
+        optimizer_factory._communicator = rm.cuda.DeviceCommunicator(len(self.gpus))
+        self._event = None
 
     def update(self):  
       for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-        ndy = self._outputs[gpu].empty_like_me()
-        rm.cuda.cu_optimizer_sgd(self.learning_rate, self.momentum, self._dy[gpu], self._run_avg[gpu], ndy, handle)
-        self._outputs[gpu] -= ndy
+        self._outputs[gpu] -= self._ndy[gpu]
+      with rm.cuda.SpecialStream():
+        if len(self.gpus) > 1 and T:
+          optimizer_factory._communicator.allReduce(self._dy)
+        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+          rm.cuda.cu_optimizer_sgd(self.learning_rate, self.momentum, self._dy[gpu], self._run_avg[gpu], self._ndy[gpu], handle)
 
   class cpu_op(gpu_op):
   

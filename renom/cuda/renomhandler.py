@@ -14,6 +14,17 @@ def RenomHandler(device = None):
       _renom_handlers[device] = RenomHandle(device)
     yield _renom_handlers[device]
 
+@cl.contextmanager
+def SpecialStream():
+  for dev in _renom_handlers:
+    han = _renom_handlers[dev]
+    assert isinstance(han, RenomHandle), type(han)
+    han.stream, han.specialstream = han.specialstream, han.stream
+  yield
+  for dev in _renom_handlers:
+    han = _renom_handlers[dev]
+    han.stream, han.specialstream = han.specialstream, han.stream
+
 class RenomHandle:
 
   def __init__(self, device=None, prefetch_length = 4):
@@ -22,8 +33,9 @@ class RenomHandle:
     with rm.cuda.use_device(self.device):
       #self.stream = rm.cuda.cuCreateStream()
       #self.memstream = rm.cuda.cuCreateStream()
-      self.stream = rm.cuda.cuCreateStream()
+      self.stream = rm.cuda.cuCreateStream('Main')
       self.memstream = self.stream
+      self.specialstream = rm.cuda.cuCreateStream('Special')
     self.pinned_memory = {}
     self.cublas_handler = rm.cuda.createCublasHandle(self.stream)
     self.cudnn_handler = rm.cuda.createCudnnHandle(self.stream)

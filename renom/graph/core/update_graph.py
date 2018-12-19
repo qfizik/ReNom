@@ -37,26 +37,19 @@ class update_operation(operation):
     self._outputs = self._consumer.get_key(self._shared_key)
     gpus = self._outputs.gpus
     self.gpus = gpus
-    self.updates = 0
     if self._update_op is None:
       self._update_op = self._factory.get_op(self._outputs)
       self._update_op.setup(self._dy, self._outputs)
 
-    if update_operation._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1 and T:
+    if update_operation._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1:
       update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))
 
   def perform(self):
-    if len(self.gpus) > 1 and T:
+    if len(self.gpus) > 1:
       update_operation._communicator.allReduce(self._dy)
 
     self._update_op.update()
 
-    self.updates += 1
-    if len(self.gpus) > 1 and self.updates >= 10 and F:
-      update_operation._communicator.allReduce(self._outputs)
-      for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-        rm.cuda.cudiv(self._outputs[gpu], len(self.gpus), self._outputs[gpu], handle)
-      self.updates = 0
 
 
     

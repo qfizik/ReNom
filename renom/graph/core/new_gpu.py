@@ -69,6 +69,8 @@ class multi_gpu_variable:
         arr = None
         if self._initializer is not None:
           arr = self._initializer(self.shape)
+        meminfo = rm.cuda.cuGetMemInfo()
+        assert np.prod(self.shape) * np.dtype(rm.precision).itemsize <= meminfo[0]
         self[gpu] = rm.GPUValue(array=arr, shape=self.shape, ptr = self._ptrs[gpu]._ptr if self._ptrs is not None else None)
 
     
