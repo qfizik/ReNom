@@ -50,12 +50,8 @@ class sgd_update(optimizer_factory):
 
     def update(self):  
       for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+        rm.cuda.cu_optimizer_sgd(self.learning_rate, self.momentum, self._dy[gpu], self._run_avg[gpu], self._ndy[gpu], handle)
         self._outputs[gpu] -= self._ndy[gpu]
-      with rm.cuda.SpecialStream():
-        if len(self.gpus) > 1 and T:
-          optimizer_factory._communicator.allReduce(self._dy)
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-          rm.cuda.cu_optimizer_sgd(self.learning_rate, self.momentum, self._dy[gpu], self._run_avg[gpu], self._ndy[gpu], handle)
 
   class cpu_op(gpu_op):
   

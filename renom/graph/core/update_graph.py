@@ -45,7 +45,7 @@ class update_operation(operation):
       update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))
 
   def perform(self):
-    if len(self.gpus) > 1:
+    if len(self.gpus) > 1 and F:
       update_operation._communicator.allReduce(self._dy)
 
     self._update_op.update()
