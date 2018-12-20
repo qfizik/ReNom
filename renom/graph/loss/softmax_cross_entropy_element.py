@@ -58,7 +58,7 @@ class softmax_cross_entropy_forward_cpu(softmax_cross_entropy_forward):
     z = u / (summed + 1e-8)
     self._z = z
     ret = -np.sum(y * np.log(z + 1e-8)) / N
-    self._outputs['cpu'] = ret 
+    self._outputs['cpu'] = ret.reshape(1,) 
 
 class softmax_cross_entropy_backward(operation):
 

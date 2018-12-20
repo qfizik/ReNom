@@ -140,6 +140,7 @@ class AvgPoolGraphElement(GraphFactory):
 
   
   def __init__(self, kernel, padding, stride):
+    super().__init__()
     self._krnl = kernel
     self._pad = padding
     self._strd = stride

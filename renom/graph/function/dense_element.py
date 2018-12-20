@@ -8,16 +8,16 @@ class dense_forward(operation):
   name = 'Dense (F)'
   consumes = ['w']
 
-  def __init__(self, output_size):
+  def __init__(self, output_size, initializer):
     
     self._output_size = output_size
+    self._init = initializer
 
   def setup(self, inputs, storage):
     weights = inputs[1]['y']
     inputs = inputs[0]['y']
     assert isinstance(inputs, multi_gpu_variable), 'Received {}'.format(type(inputs))
     self.gpus = inputs.gpus
-    self._init = init.GlorotNormal()
     self._inputs = inputs
     weight_shape = ( inputs.shape[1] , self._output_size )
     weights.__init__( shape = weight_shape , gpus = self.gpus, initializer = self._init)
@@ -113,9 +113,9 @@ class DenseGraph(learnable_graph_element):
 
   has_back = True
 
-  def __init__(self, output_size, previous_element = None):
+  def __init__(self, output_size, initializer, previous_element = None):
     
-    fwd_op = dense_forward(output_size) if rm.is_cuda_active() else dense_forward_cpu(output_size)
+    fwd_op = dense_forward(output_size, initializer) if rm.is_cuda_active() else dense_forward_cpu(output_size, initializer)
     bwd_ops = [ dense_backward(associated_forward = fwd_op) if rm.is_cuda_active() else dense_backward_cpu(fwd_op),
                 dense_weight_backward(associated_forward = fwd_op) if rm.is_cuda_active() else dense_weight_backward_cpu(fwd_op),
               ]
@@ -125,15 +125,18 @@ class DenseGraph(learnable_graph_element):
 
 class DenseGraphElement(GraphFactory):
 
-  def __init__(self, output_size):    
+  def __init__(self, output_size, initializer = init.GlorotNormal()):
     super().__init__()
     self.output_size = output_size
     self.params['w'] = graph_variable()
     self._bias = rm.graph.BiasGraphElement()
     self.params['b'] = self._bias.params['b']
+    self._init = initializer
 
   def connect(self, other):
-    ret = DenseGraph(output_size = self.output_size, previous_element = [ other, self.params['w']])
+    self.params['w'].disconnect()
+    self.params['b'].disconnect()
+    ret = DenseGraph(output_size = self.output_size, initializer = self._init, previous_element = [ other, self.params['w']])
     ret = self._bias(ret)
     return ret
 

@@ -34,7 +34,7 @@ class sigmoid_forward(operation):
       rm.cuda.cucross_entropy(tmp1, y, tmp2, handle)
       rm.cuda.cucross_entropy(-tmp1 + 1, -y + 1, tmp3, handle)
       tmp = rm.cuda.cusum(-(tmp2 + tmp3), handle)
-      self._outputs[gpu] = tmp
+      self._outputs[gpu].copy_from(tmp)
       rm.cuda.cudiv(self._outputs[gpu], N, self._outputs[gpu], handle)
 
 class sigmoid_forward_cpu(sigmoid_forward):
@@ -46,7 +46,7 @@ class sigmoid_forward_cpu(sigmoid_forward):
     z = 1 / (1 + np.exp(-x))
     self._z = z
     ret = -np.sum(y * np.log(z + 1e-8) + (1 - y) * np.log(1 - z + 1e-8)).reshape(1) / N
-    self._outputs['cpu'] = ret
+    self._outputs['cpu'] = ret.reshape(1,)
 
 class sigmoid_backward(operation):
 

@@ -104,6 +104,7 @@ class MaxUnPoolGraphElement(GraphFactory):
 
   
   def __init__(self, prev_pool):
+    super().__init__()
     self._prev = prev_pool._fwd._op
 
   def connect(self, other):

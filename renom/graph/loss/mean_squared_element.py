@@ -30,7 +30,7 @@ class mean_squared_forward(operation):
       rm.cuda.cusub(self._graph_input[gpu], self._label_input[gpu], self._tmp[gpu], handle)
       rm.cuda.cumul(self._tmp[gpu], self._tmp[gpu], self._tmp[gpu], handle)
       tmp = rm.cu.cusum(self._tmp[gpu], handle)
-      rm.cuda.cudiv(tmp, self._N * 2, tmp, handle)
+      rm.cuda.cudiv(tmp, self._N, tmp, handle)
       self._outputs[gpu].copy_from(tmp)
 
 class mean_squared_forward_cpu(mean_squared_forward):

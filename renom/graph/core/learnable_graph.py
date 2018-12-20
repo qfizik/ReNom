@@ -140,7 +140,7 @@ class learnable_graph_element(graph_element):
           while(True):
             rm.cuda.cuDeviceSynchronize()
             self.perform_step()
-            loss += self.loss[0].get_loss()
+            loss += self.loss[0].as_ndarray()#.get_loss()
         except StopIteration:
           print(loss)
           for disp in self.dispatchers:
