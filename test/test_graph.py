@@ -122,6 +122,28 @@ def test_dense(test_shape, use_gpu):
   compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
   compare( getNumericalDiff( func , model.params['b'].output) , loss.backward().get_gradient(model.params['b'].output).as_ndarray())
 
+@pytest.mark.parametrize("test_shape", [
+    (2, 2),
+    (2, 1),
+    (1, 2),
+    (4, 5),
+])
+def test_sum(test_shape, use_gpu):
+  rm.set_cuda_active(use_gpu)
+
+  v = rand(*test_shape)
+  val = rm.graph.StaticVariable(v)
+  model = rm.graph.SumGraphElement()
+  l = rm.graph.ConstantLossElement()
+  m = model(val)
+  loss = l(m)
+
+  def func():
+    val.forward()
+    ret = loss.as_ndarray()
+    return ret
+
+  compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
 
 @pytest.mark.parametrize("test_shape", [
     (2, 3),

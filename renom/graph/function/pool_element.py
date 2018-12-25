@@ -24,7 +24,7 @@ class pool_forward(operation):
     self._kernel =   np.array(list(self._k for i in range(dims))).astype(np.int32)
     self._padding =  np.array(list(self._p for i in range(dims))).astype(np.int32)
     self._stride =   np.array(list(self._s for i in range(dims))).astype(np.int32)
-    
+
 
     imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
     out_shape = [input_shape[0], input_shape[1], *imgs]
@@ -56,8 +56,8 @@ class pool_forward_cpu(pool_forward):
       ret = np.max(col, axis=2)
     else:
       ret = imnpool(x, self._kernel, self._stride, self._padding, mode = self._mode)
-    self._outputs['cpu'] = ret 
-    
+    self._outputs['cpu'] = ret
+
 
 class pool_backward(operation):
 
@@ -67,7 +67,7 @@ class pool_backward(operation):
     self._fwd_op = associated_forward
 
   def setup(self, inputs):
-    
+
     inputs = inputs[0]['y']
     self._inputs = inputs
     out_shape = self._fwd_op._inputs.shape
@@ -77,11 +77,11 @@ class pool_backward(operation):
     outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = { 'y' : outs , id(self._fwd_in) : outs}
-    
+
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-      rm.cuda.cuPoolingBackward(handle, self._fwd_op._pool_desc, self._fwd_in[gpu], self._fwd_out[gpu], self._inputs[gpu], self._outputs[gpu]) 
+      rm.cuda.cuPoolingBackward(handle, self._fwd_op._pool_desc, self._fwd_in[gpu], self._fwd_out[gpu], self._inputs[gpu], self._outputs[gpu])
 
 class pool_backward_cpu(pool_backward):
 
@@ -105,7 +105,7 @@ class pool_backward_cpu(pool_backward):
       dx = poolnim(x, dy, self._fwd_op._kernel, self._fwd_op._stride, self._fwd_op._padding, mode = self._fwd_op._mode)
     self._outputs['cpu'] = dx
 
- 
+
 
 class PoolElement(UserGraph):
 
@@ -123,9 +123,28 @@ class PoolElement(UserGraph):
 
 
 class MaxPoolGraphElement(GraphFactory):
+  '''Max pooling function.
+    In the case of int input, filter, padding, and stride, the shape will be symmetric.
 
-  
-  def __init__(self, kernel, padding, stride):
+    Args:
+        filter (int): Filter size of the convolution kernel.
+        padding (int): Size of the zero-padding around the image.
+        stride (int): Stride-size of the convolution.
+
+    Example:
+        In [1] import numpy as np
+        In [2] import renom as rm
+        In [3]
+        In [4] x = np.random.rand(3, 3, 32, 32)
+        In [5] layer = rm.graph.MaxPoolGraphElement(kernel = 3)
+        In [6] z = layer(x).as_ndarray()
+        In [7] z.shape
+        Out[7]
+        (3, 3, 30, 30)
+
+  '''
+
+  def __init__(self, kernel = 3, padding = 0, stride = 1):
     super().__init__()
     self._krnl = kernel
     self._pad = padding
@@ -137,9 +156,28 @@ class MaxPoolGraphElement(GraphFactory):
     return ret
 
 class AvgPoolGraphElement(GraphFactory):
+  '''Average pooling function.
+    In the case of int input, filter, padding, and stride, the shape will be symmetric.
 
-  
-  def __init__(self, kernel, padding, stride):
+    Args:
+        filter (tuple,int): Filter size of the convolution kernel.
+        padding (tuple,int): Size of the zero-padding around the image.
+        stride (tuple,int): Stride-size of the convolution.
+
+    Example:
+        In [1] import numpy as np
+        In [2] import renom as rm
+        In [3]
+        In [4] x = np.random.rand(3, 3, 32, 32)
+        In [5] layer = rm.graph.AvgPoolGraphElement(kernel = 3)
+        In [6] z = layer(x).as_ndarray()
+        In [7] z.shape
+        Out[7]
+        (3, 3, 30, 30)
+
+  '''
+
+  def __init__(self, kernel = 3, padding = 0, stride = 1):
     super().__init__()
     self._krnl = kernel
     self._pad = padding
