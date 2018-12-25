@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, multi_gpu_variable, operation, GraphFactory
+from renom.graph.core import learnable_graph_element, GraphMultiStorage, operation, GraphFactory
 import renom.utility.initializer as init
 import numpy as np
 
@@ -13,7 +13,7 @@ class sum_forward(operation):
     gpus = inputs.gpus
     self.gpus = gpus
     out_shape = ( 1, )
-    outs = multi_gpu_variable(shape = out_shape, gpus = gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = gpus)
     self._outputs = outs
     self._vars = { 'y' : outs }
     self.ready = True
@@ -43,7 +43,7 @@ class sum_backward(operation):
     gpus = inputs.gpus
     self.gpus = gpus
     out_shape = self._fwd_op._inputs.shape
-    outs = multi_gpu_variable(shape = out_shape, gpus = gpus, initializer = init.Constant(1))
+    outs = GraphMultiStorage(shape = out_shape, gpus = gpus, initializer = init.Constant(1))
     self._outputs = outs
     self._vars = { 'y' : outs }
 

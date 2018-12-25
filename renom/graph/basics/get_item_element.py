@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, multi_gpu_variable, operational_element, learnable_graph_element
+from renom.graph.core import operation, GraphMultiStorage, operational_element, learnable_graph_element
 import numpy as np
 
 class get_item_forward(operation):
@@ -14,7 +14,7 @@ class get_item_forward(operation):
     self.gpus = a.gpus
     self._a = a
     tmp = np.empty(a.shape)[self._index]
-    self._b = multi_gpu_variable(shape=tmp.shape, gpus=self.gpus)
+    self._b = GraphMultiStorage(shape=tmp.shape, gpus=self.gpus)
     self._vars = { 'a' : a, 'b' : self._b, 'y' : self._b }
 
   def perform(self):
@@ -67,7 +67,7 @@ class get_item_back(operation):
     self.gpus = gpus
     self._index = self._fwd_op._index
     out_shape = self._fwd_op._a.shape
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._inputs = inputs
     self._outputs = outs
     self._vars = { 'y' : outs , id(self._fwd_op._a) : outs }

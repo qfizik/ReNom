@@ -1,6 +1,6 @@
 import renom as rm
 from renom.layers.function.utils import im2col, col2im, colnim, imncol
-from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory, graph_variable
+from renom.graph.core import operation, learnable_graph_element, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import numpy as np
 
@@ -49,7 +49,7 @@ class deconvo_forward(operation):
     #imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
     imgs = tuple(self._stride[i] * (input_shape[i + 2] - 1) + self._kernel[i] - 2 * self._padding[i] for i in range(dims))
     output_shape = [input_shape[0], self._channels, *imgs]
-    self._outputs = multi_gpu_variable(shape = output_shape, gpus = gpus)
+    self._outputs = GraphMultiStorage(shape = output_shape, gpus = gpus)
     self._vars = {'w' : self._weights, 'b' : self._bias, 'y' : self._outputs}
 
     if rm.is_cuda_active():
@@ -101,9 +101,9 @@ class deconvo_backward(operation):
     self._fwd_in = self._fwd_op._inputs
     self.gpus = inputs.gpus
 
-    self._outputs = multi_gpu_variable(shape = self._fwd_in.shape, gpus = self.gpus)
-    self._bias_out = multi_gpu_variable(shape = self._fwd_b.shape, gpus = self.gpus)
-    self._weights_out = multi_gpu_variable(shape = self._fwd_w.shape, gpus = self.gpus)
+    self._outputs = GraphMultiStorage(shape = self._fwd_in.shape, gpus = self.gpus)
+    self._bias_out = GraphMultiStorage(shape = self._fwd_b.shape, gpus = self.gpus)
+    self._weights_out = GraphMultiStorage(shape = self._fwd_w.shape, gpus = self.gpus)
 
     self._vars = { 'w' : self._weights_out, 'b' : self._bias_out, 'y' : self._outputs,
                   id(self._fwd_in) : self._outputs,

@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, loss_graph_element, graph_element, multi_gpu_variable, GraphFactory 
+from renom.graph.core import operation, loss_graph_element, graph_element, GraphMultiStorage, GraphFactory 
 import numpy as np
 
 class softmax_cross_entropy_forward(operation):
@@ -14,8 +14,8 @@ class softmax_cross_entropy_forward(operation):
     inputs = inputs[0]['y']
     out_shape = ( 1, )
     gpus = inputs.gpus
-    act_out = multi_gpu_variable(shape = inputs.shape, gpus = gpus)
-    outs = multi_gpu_variable(shape = out_shape, gpus = gpus)
+    act_out = GraphMultiStorage(shape = inputs.shape, gpus = gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = gpus)
     self.gpus = gpus
     self._outputs = outs
     self._vars = { 'y' : outs }
@@ -79,7 +79,7 @@ class softmax_cross_entropy_backward(operation):
 
     gpus = predictions.gpus
     self.gpus = gpus
-    output = multi_gpu_variable(shape = predictions.shape, gpus = gpus)
+    output = GraphMultiStorage(shape = predictions.shape, gpus = gpus)
 
     self._outputs = output
     self._vars = { 'y' : output ,'dy' : output , id(self._fwd_op._inputs) : output}

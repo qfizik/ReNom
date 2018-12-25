@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import loss_graph_element, operation, multi_gpu_variable, GraphFactory
+from renom.graph.core import loss_graph_element, operation, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class smoothed_l1_forward(operation):
@@ -19,14 +19,14 @@ class smoothed_l1_forward(operation):
 
     out_shape = ( 1, )
     assert predictions.shape == real_values.shape
-    output = multi_gpu_variable(shape = out_shape, gpus = predictions.gpus)
+    output = GraphMultiStorage(shape = out_shape, gpus = predictions.gpus)
 
     self._vars = { 'y' : output }
     self._outputs = output
     self._N = predictions.shape[0]
 
   def perform(self):
-    self._d = multi_gpu_variable(shape = self._graph_input.shape, gpus = self.gpus)
+    self._d = GraphMultiStorage(shape = self._graph_input.shape, gpus = self.gpus)
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       x = self._graph_input[gpu].new_array()
       y = self._label_input[gpu].new_array()
@@ -73,7 +73,7 @@ class smoothed_l1_backward(operation):
     self._label_input = real_values
     gpus = predictions.gpus
     self.gpus = gpus
-    output = multi_gpu_variable(shape = predictions.shape, gpus = gpus)
+    output = GraphMultiStorage(shape = predictions.shape, gpus = gpus)
     self._outputs = output
     self._vars = { 'y' : output, 'dy' : output, id(self._fwd_op._graph_input) : output }
     self._N = predictions.shape[0]

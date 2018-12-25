@@ -1,4 +1,4 @@
-from renom.graph.core import learnable_graph_element, operation, multi_gpu_variable, GraphFactory, graph_variable
+from renom.graph.core import learnable_graph_element, operation, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
 import numpy as np
@@ -15,7 +15,7 @@ class bias_forward(operation):
 
     bias = inputs[1]['y']
     inputs = inputs[0]['y']
-    assert isinstance(inputs, multi_gpu_variable)
+    assert isinstance(inputs, GraphMultiStorage)
     self._inputs = inputs
 
     in_shape = inputs.shape
@@ -24,7 +24,7 @@ class bias_forward(operation):
     self.gpus = gpus
     self._init = init.Constant(0)
     bias.__init__( shape = bias_shape, gpus = self.gpus, initializer = self._init)
-    outputs = multi_gpu_variable( shape = in_shape, gpus = self.gpus)
+    outputs = GraphMultiStorage( shape = in_shape, gpus = self.gpus)
     self._vars = {'x' : inputs, 'b' : bias, 'y' : outputs} 
     self._outputs = outputs
     self._biases = bias
@@ -52,7 +52,7 @@ class bias_backward(operation):
     self._storage = storage
     inputs = inputs[0]['y']
     self.gpus = inputs.gpus
-    self._bias_back = multi_gpu_variable(shape = self._fwd_op.get_key('b').shape, gpus = self.gpus)
+    self._bias_back = GraphMultiStorage(shape = self._fwd_op.get_key('b').shape, gpus = self.gpus)
     self._vars = { 'y' : inputs, 'dy' : inputs , 'b' : self._bias_back, id(self._fwd_op._biases) : self._bias_back}
     self._inputs = inputs
 

@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, operational_element, learnable_graph_element, multi_gpu_variable, GraphFactory
+from renom.graph.core import operation, operational_element, learnable_graph_element, GraphMultiStorage, GraphFactory
 from renom.graph.function.sum_element import sum_forward, sum_forward_cpu
 import renom.utility.initializer as init 
 
@@ -12,7 +12,7 @@ class constant_loss_backward(operation):
   
     inputs = inputs[0]['y']
     gpus = inputs.gpus
-    outputs = multi_gpu_variable(shape = inputs.shape, gpus = gpus, initializer = init.Constant(1))
+    outputs = GraphMultiStorage(shape = inputs.shape, gpus = gpus, initializer = init.Constant(1))
     self._outputs = outputs
     self._vars = { 'y' : outputs , 'dy' : outputs}
     self.ready = True

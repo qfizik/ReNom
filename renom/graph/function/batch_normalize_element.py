@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, multi_gpu_variable, graph_variable
+from renom.graph.core import learnable_graph_element, operation, GraphFactory, GraphMultiStorage, graph_variable
 import renom.utility.initializer as init
 import numpy as np
 
@@ -27,11 +27,11 @@ class batch_norm_forward(operation):
 
     weights.__init__(shape = weight_shape, gpus = gpus, initializer = init.GlorotNormal())
     bias.__init__(shape = bias_shape, gpus = gpus, initializer = init.Constant(0))
-    outs = multi_gpu_variable(shape = in_shape, gpus = gpus)
-    mean = multi_gpu_variable(shape = weight_shape, gpus = gpus)
-    sq_var = multi_gpu_variable(shape = weight_shape, gpus = gpus)
-    mv_m = multi_gpu_variable(shape = weight_shape, gpus = gpus, initializer = init.Constant(0))
-    mv_v = multi_gpu_variable(shape = weight_shape, gpus = gpus, initializer = init.Constant(0))
+    outs = GraphMultiStorage(shape = in_shape, gpus = gpus)
+    mean = GraphMultiStorage(shape = weight_shape, gpus = gpus)
+    sq_var = GraphMultiStorage(shape = weight_shape, gpus = gpus)
+    mv_m = GraphMultiStorage(shape = weight_shape, gpus = gpus, initializer = init.Constant(0))
+    mv_v = GraphMultiStorage(shape = weight_shape, gpus = gpus, initializer = init.Constant(0))
 
     self._inputs = inputs
     self._weights = weights
@@ -93,9 +93,9 @@ class batch_norm_backward(operation):
     self._fwd_w = self._fwd_op._weights
     self._mean = self._fwd_op._mean
     self._var = self._fwd_op._sq_var
-    self._outputs = multi_gpu_variable(shape = inputs.shape, gpus = self.gpus, initializer = init.Constant(0))
-    self._weights_back = multi_gpu_variable(shape = self._fwd_w.shape, gpus = self.gpus, initializer = init.Constant(1))
-    self._bias_back = multi_gpu_variable(shape = self._fwd_op._bias.shape, gpus = self.gpus, initializer = init.Constant(1))
+    self._outputs = GraphMultiStorage(shape = inputs.shape, gpus = self.gpus, initializer = init.Constant(0))
+    self._weights_back = GraphMultiStorage(shape = self._fwd_w.shape, gpus = self.gpus, initializer = init.Constant(1))
+    self._bias_back = GraphMultiStorage(shape = self._fwd_op._bias.shape, gpus = self.gpus, initializer = init.Constant(1))
     self._vars = { 'y' : self._outputs, 'dy' : self._outputs, 'w' : self._weights_back, 'b' : self._bias_back, id(self._fwd_w) : self._weights_back, id(self._fwd_ins) : self._outputs, id(self._fwd_op._bias) : self._bias_back }
   
   def perform(self):

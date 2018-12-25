@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import loss_graph_element, operation, multi_gpu_variable, GraphFactory
+from renom.graph.core import loss_graph_element, operation, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class mean_squared_forward(operation):
@@ -17,8 +17,8 @@ class mean_squared_forward(operation):
     out_shape = ( 1, )
     self._N = predictions.shape[0]
     assert predictions.shape == real_values.shape
-    tmp = multi_gpu_variable(shape = predictions.shape, gpus = self.gpus)
-    output = multi_gpu_variable(shape = out_shape, gpus = predictions.gpus)
+    tmp = GraphMultiStorage(shape = predictions.shape, gpus = self.gpus)
+    output = GraphMultiStorage(shape = out_shape, gpus = predictions.gpus)
 
     self._vars = { 'y' : output }
     self._outputs = output
@@ -57,7 +57,7 @@ class mean_squared_backward(operation):
     self._label_input = real_values
     gpus = predictions.gpus
     self.gpus = gpus
-    output = multi_gpu_variable(shape = predictions.shape, gpus = gpus)
+    output = GraphMultiStorage(shape = predictions.shape, gpus = gpus)
     self._outputs = output
     self._vars = { 'y' : output, 'dy' : output, id(self._fwd_op._graph_input) : output }
     self._N = predictions.shape[0]

@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, multi_gpu_variable, operational_element, learnable_graph_element
+from renom.graph.core import operation, GraphMultiStorage, operational_element, learnable_graph_element
 
 class mul_forward(operation):
   
@@ -16,7 +16,7 @@ class mul_forward(operation):
     self.gpus = a.gpus
     self._a = a
     self._b = b
-    self._c = multi_gpu_variable(shape=a.shape, gpus = self.gpus)
+    self._c = GraphMultiStorage(shape=a.shape, gpus = self.gpus)
     self._vars = { 'a' : a, 'b' : b, 'y' : self._c }
 
   def perform(self):
@@ -36,7 +36,7 @@ class mul_backward(operation):
     self._dy = inputs[0]['dy']
     other = self._fwd_op.get_key(self._key)
     self._other = other
-    self._outputs = multi_gpu_variable(shape = other.shape, gpus = other._num_gpus)
+    self._outputs = GraphMultiStorage(shape = other.shape, gpus = other._num_gpus)
     self._vars = { 'y' : self._outputs, 'dy' : self._outputs }
 
 

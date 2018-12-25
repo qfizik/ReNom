@@ -1,6 +1,6 @@
 import renom as rm
 from renom.layers.function.utils import im2col, col2im, imnpool, poolnim
-from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory
+from renom.graph.core import operation, learnable_graph_element, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class unpool_forward(operation):
@@ -21,7 +21,7 @@ class unpool_forward(operation):
     
     self.gpus = inputs.gpus
     self._prev_in = prev_pool._inputs
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = {'y' : outs}
     if rm.is_cuda_active():
@@ -59,7 +59,7 @@ class unpool_backward(operation):
     self._fwd_in = self._fwd_op._inputs
     self._fwd_out = self._fwd_op._outputs
     self.gpus = inputs.gpus
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = { 'y' : outs , id(self._fwd_in) : outs}
     self._prev_pool = self._fwd_op._prev_pool   

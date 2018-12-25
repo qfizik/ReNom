@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
+from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
 import renom.utility.initializer as init
 import numpy as np
 
@@ -20,7 +20,7 @@ class maxout_forward(operation):
     output_length = int(np.ceil(input_length / self._sz))
     out_shape = list(inputs.shape)
     out_shape[axis] = output_length
-    outs = multi_gpu_variable(shape = tuple(out_shape), gpus = gpus)
+    outs = GraphMultiStorage(shape = tuple(out_shape), gpus = gpus)
     self._vars = { 'y' : outs}
     self._inputs = inputs
     self._outputs = outs
@@ -70,7 +70,7 @@ class maxout_backward(operation):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
-    outs = multi_gpu_variable(shape = self._fwd_op._inputs.shape, gpus = gpus)
+    outs = GraphMultiStorage(shape = self._fwd_op._inputs.shape, gpus = gpus)
     self._vars = { 'y' : outs, id(self._fwd_op._inputs) : outs}
     self._fwd_in = self._fwd_op._inputs
     self._inputs = inputs

@@ -1,6 +1,6 @@
 import renom as rm
 import numpy as np
-from renom.graph.core import multi_gpu_variable
+from renom.graph.core import GraphMultiStorage
 import renom.utility.initializer as init
 
 class optimizer_factory:
@@ -42,8 +42,8 @@ class sgd_update(optimizer_factory):
       self.gpus = grad.gpus
       self._dy = grad
       self._outputs = val
-      self._run_avg = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
-      self._ndy = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._run_avg = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._ndy = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
       if optimizer_factory._communicator is None and not isinstance(self.gpus, str) and  len(self.gpus) > 1 and T:
         optimizer_factory._communicator = rm.cuda.DeviceCommunicator(len(self.gpus))
         self._event = None
@@ -87,7 +87,7 @@ class adagrad_update(optimizer_factory):
       self.gpus = grad.gpus
       self._dy = grad
       self._outputs = val
-      self._prev = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._prev = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
 
     def update(self):
       for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -128,8 +128,8 @@ class adadelta_update(optimizer_factory):
       self.gpus = grad.gpus
       self._dy = grad
       self._outputs = val
-      self._pdy = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
-      self._pdx = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._pdy = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._pdx = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
 
     def update(self):
       dr = self.dr
@@ -182,8 +182,8 @@ class adamax_update(optimizer_factory):
       self.gpus = grad.gpus
       self._dy = grad
       self._outputs = val
-      self._mom1 = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
-      self._mom2 = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._mom1 = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._mom2 = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
 
     def update(self):
       rb1 = self.rb1
@@ -242,8 +242,8 @@ class rmsprop_update(optimizer_factory):
       self.gpus = grad.gpus
       self._dy = grad
       self._outputs = val
-      self._pmse = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
-      self._prav = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._pmse = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._prav = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
 
    
     def update(self):
@@ -300,8 +300,8 @@ class adam_update(optimizer_factory):
       self.gpus = grad.gpus
       self._dy = grad
       self._outputs = val
-      self._mom1 = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
-      self._mom2 = multi_gpu_variable(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._mom1 = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
+      self._mom2 = GraphMultiStorage(shape = grad.shape, gpus = grad.gpus, initializer = init.Constant(0))
 
     def update(self):
       rb1 = self.rb1

@@ -1,6 +1,6 @@
 import numpy as np
 import renom as rm
-from renom.graph.core import operational_element, learnable_graph_element, operation, multi_gpu_variable
+from renom.graph.core import operational_element, learnable_graph_element, operation, GraphMultiStorage
 
 class dispatch(operation):
   '''
@@ -23,7 +23,7 @@ class dispatch(operation):
     out_shape.extend(value.shape[1:])
     self._num_gpus = num_gpus
     self.gpus = [gpu for gpu in range(num_gpus)] if rm.is_cuda_active() else 'cpu'
-    self._outputs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    self._outputs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._vars = { 'y' : self._outputs }
     self._finished = False
     self._shuffle = shuffle

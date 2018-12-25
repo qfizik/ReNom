@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory
+from renom.graph.core import operation, learnable_graph_element, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class lrn_forward(operation):
@@ -21,7 +21,7 @@ class lrn_forward(operation):
     out_shape = inputs.shape
 
     self.gpus = inputs.gpus
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = {'y' : outs}
     if rm.is_cuda_active():
@@ -64,7 +64,7 @@ class lrn_backward(operation):
     self._fwd_in = self._fwd_op._inputs
     self._fwd_out = self._fwd_op._outputs
     self.gpus = inputs.gpus
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = { 'y' : outs , id(self._fwd_in) : outs}
     if rm.is_cuda_active():

@@ -1,4 +1,4 @@
-from renom.graph.core import learnable_graph_element, operational_element, operation, multi_gpu_variable, GraphFactory, graph_variable
+from renom.graph.core import learnable_graph_element, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
 import numpy as np
@@ -16,13 +16,13 @@ class dense_forward(operation):
   def setup(self, inputs, storage):
     weights = inputs[1]['y']
     inputs = inputs[0]['y']
-    assert isinstance(inputs, multi_gpu_variable), 'Received {}'.format(type(inputs))
+    assert isinstance(inputs, GraphMultiStorage), 'Received {}'.format(type(inputs))
     self.gpus = inputs.gpus
     self._inputs = inputs
     weight_shape = ( inputs.shape[1] , self._output_size )
     weights.__init__( shape = weight_shape , gpus = self.gpus, initializer = self._init)
     output_shape = ( inputs.shape[0] , self._output_size )
-    outputs = multi_gpu_variable( shape = output_shape, gpus = self.gpus)
+    outputs = GraphMultiStorage( shape = output_shape, gpus = self.gpus)
     self._vars = {'x' : inputs, 'w' : weights, 'y' : outputs}
     self._weights = weights
     self._outputs = outputs
@@ -57,7 +57,7 @@ class dense_backward(operation):
     fwd_ins = self._fwd_op.get_key('x')
     output_shape = fwd_ins.shape
 
-    outputs = multi_gpu_variable(shape = output_shape, gpus = gpus, initializer = None)
+    outputs = GraphMultiStorage(shape = output_shape, gpus = gpus, initializer = None)
 
     self._vars = { 'y' : outputs, 'dy' : outputs , id(fwd_ins) : outputs}
     self._outputs = outputs
@@ -92,7 +92,7 @@ class dense_weight_backward(operation):
     fwd_weights = self._fwd_op.get_key('w')
     output_shape = fwd_weights.shape
 
-    outputs = multi_gpu_variable(shape = output_shape, gpus = gpus, initializer = None)
+    outputs = GraphMultiStorage(shape = output_shape, gpus = gpus, initializer = None)
 
     self._vars = { 'y' : outputs, 'w' : outputs , id(fwd_weights) : outputs }
 

@@ -1,6 +1,6 @@
 import numpy as np
 import renom as rm
-from renom.graph.core import multi_gpu_variable, operational_element, learnable_graph_element, operation
+from renom.graph.core import GraphMultiStorage, operational_element, learnable_graph_element, operation
 
 class static_value(operation):
 
@@ -24,7 +24,7 @@ class StaticVariable(learnable_graph_element):
       gpu_list = [gpu for gpu in range(num_gpus)]
     else:
       gpu_list = 'cpu'
-    val = multi_gpu_variable(shape = value.shape, gpus = gpu_list)
+    val = GraphMultiStorage(shape = value.shape, gpus = gpu_list)
     if rm.is_cuda_active():
       for gpuv in val:
         gpuv.to_gpu(value)

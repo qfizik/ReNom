@@ -29,7 +29,7 @@ class shared_val:
   def __neg__(self): return -self._val
   def __floordiv__(self, other): return self._val // int(other)
 
-class multi_gpu_variable:
+class GraphMultiStorage:
 
   ready = False
 
@@ -48,7 +48,7 @@ class multi_gpu_variable:
     self._ptrs = ptrs
     self.shape = shape
     if ptrs is not None:
-      assert isinstance(ptrs, multi_gpu_variable)
+      assert isinstance(ptrs, GraphMultiStorage)
       shp = list(self.shape)
       shp[0] = ptrs.shape[0]
       self.shape = shp

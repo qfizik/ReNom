@@ -1,4 +1,4 @@
-from renom.graph.core import operation, operational_element, learnable_graph_element, multi_gpu_variable
+from renom.graph.core import operation, operational_element, learnable_graph_element, GraphMultiStorage
 import renom as rm
 import numpy as np
 
@@ -15,7 +15,7 @@ class reshape_op(operation):
     new_shape.extend(self._new_shape)
     new_shape = np.empty(self._inputs.shape).reshape(new_shape).shape
     gpus = self._inputs.gpus
-    self._outputs = multi_gpu_variable(shape = new_shape, gpus = gpus, ptrs = self._inputs)
+    self._outputs = GraphMultiStorage(shape = new_shape, gpus = gpus, ptrs = self._inputs)
     self._vars = {'y' : self._outputs }
 
   def perform(self): pass 
@@ -33,7 +33,7 @@ class reshape_op_back(operation):
     self._inputs = inputs[0]['y']
     shape = self._fwd_op._inputs.shape
     gpus = self._inputs.gpus
-    self._outputs = multi_gpu_variable(shape = shape, gpus = gpus, ptrs = self._inputs)
+    self._outputs = GraphMultiStorage(shape = shape, gpus = gpus, ptrs = self._inputs)
     self._vars = { 'y' : self._outputs }
 
   def perform(self): pass

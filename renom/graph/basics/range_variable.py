@@ -1,7 +1,7 @@
 import numpy as np
 import renom as rm
 from graph_element import graph_element
-from new_gpu import multi_gpu_variable
+from new_gpu import GraphMultiStorage
 
 class range_variable(graph_element):
 
@@ -12,7 +12,7 @@ class range_variable(graph_element):
     self._gpus = [ 0 ]
     self._cur_num = 0
     self._shape = (1, 1)
-    self._memory_info = multi_gpu_variable(shape = self._shape, gpus = self._num_gpus, allocate_backward=False)
+    self._memory_info = GraphMultiStorage(shape = self._shape, gpus = self._num_gpus, allocate_backward=False)
 
   def forward(self):
     with rm.cuda.RenomHandler() as handle:

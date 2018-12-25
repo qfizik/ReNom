@@ -1,6 +1,6 @@
 import renom as rm
 from renom.layers.function.utils import im2col, col2im, imnpool, poolnim
-from renom.graph.core import operation, learnable_graph_element, multi_gpu_variable, GraphFactory
+from renom.graph.core import operation, learnable_graph_element, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class pool_forward(operation):
@@ -29,7 +29,7 @@ class pool_forward(operation):
     imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
     out_shape = [input_shape[0], input_shape[1], *imgs]
     self.gpus = inputs.gpus
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = {'y' : outs}
     if rm.is_cuda_active():
@@ -74,7 +74,7 @@ class pool_backward(operation):
     self._fwd_in = self._fwd_op._inputs
     self._fwd_out = self._fwd_op._outputs
     self.gpus = inputs.gpus
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._outputs = outs
     self._vars = { 'y' : outs , id(self._fwd_in) : outs}
     

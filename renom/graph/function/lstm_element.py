@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable, StateHolder
+from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage, StateHolder
 import numpy as np
 import renom.utility.initializer as init
 
@@ -27,7 +27,7 @@ class lstm_forward(operation):
     it = init.GlorotNormal()
     weights.__init__(shape = weight_shape, gpus = self.gpus, initializer = it)
     weights_r.__init__(shape = weight_r_shape, gpus = self.gpus, initializer = it)
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
     self._vars = { 'y' : outs, 'w' : weights, 'wr' : weights_r}
     self._weights = weights
     self._weights_r = weights_r
@@ -135,9 +135,9 @@ class lstm_backward(operation):
     self.gpus = gpus
     self._inputs = inputs
     self._state = None
-    outs = multi_gpu_variable(shape = self._fwd_op._inputs.shape, gpus = self.gpus)
-    w_out = multi_gpu_variable(shape = self._fwd_op._weights.shape, gpus = self.gpus)
-    w_r_out = multi_gpu_variable(shape = self._fwd_op._weights_r.shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = self._fwd_op._inputs.shape, gpus = self.gpus)
+    w_out = GraphMultiStorage(shape = self._fwd_op._weights.shape, gpus = self.gpus)
+    w_r_out = GraphMultiStorage(shape = self._fwd_op._weights_r.shape, gpus = self.gpus)
     self._outputs = outs
     self._w_out = w_out
     self._w_r_out = w_r_out

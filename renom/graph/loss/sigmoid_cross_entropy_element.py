@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, loss_graph_element, graph_element, multi_gpu_variable, GraphFactory 
+from renom.graph.core import operation, loss_graph_element, graph_element, GraphMultiStorage, GraphFactory 
 import numpy as np
 
 class sigmoid_forward(operation):
@@ -14,7 +14,7 @@ class sigmoid_forward(operation):
     inputs = inputs[0]['y']
     out_shape = ( 1, )
     gpus = inputs.gpus
-    outs = multi_gpu_variable(shape = out_shape, gpus = gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = gpus)
     self.gpus = gpus
     self._outputs = outs
     self._vars = { 'y' : outs }
@@ -65,8 +65,8 @@ class sigmoid_backward(operation):
 
     gpus = predictions.gpus
     self.gpus = gpus
-    output = multi_gpu_variable(shape = predictions.shape, gpus = gpus)
-    act_out1 = multi_gpu_variable(shape = predictions.shape, gpus = gpus)
+    output = GraphMultiStorage(shape = predictions.shape, gpus = gpus)
+    act_out1 = GraphMultiStorage(shape = predictions.shape, gpus = gpus)
 
     self._act_out1 = act_out1
     self._outputs = output

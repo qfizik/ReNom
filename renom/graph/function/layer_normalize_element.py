@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
+from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 import renom.utility.initializer as init
 
@@ -48,7 +48,7 @@ class layer_norm_forward(operation):
 
     gain.__init__(shape = gain_shape, gpus = self.gpus, initializer = init.Constant(self._g))
     out_shape = inputs.shape
-    outs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = out_shape, gpus = self.gpus)
 
     self._vars = {'y' : outs, 'g' : gain}
     self._outputs = outs
@@ -111,10 +111,10 @@ class layer_norm_backward(operation):
     self.gpus = gpus
     self._inputs = inputs
 
-    outs = multi_gpu_variable(shape = self._fwd_op._inputs.shape, gpus = self.gpus)
+    outs = GraphMultiStorage(shape = self._fwd_op._inputs.shape, gpus = self.gpus)
     self._gain = self._fwd_op._gain
     self._outputs = outs
-    gain_out = multi_gpu_variable(shape = self._gain.shape, gpus = self.gpus)
+    gain_out = GraphMultiStorage(shape = self._gain.shape, gpus = self.gpus)
     self._gain_out = gain_out
     self._vars = {'y' : outs, id(self._fwd_op._inputs) : outs,
                   'g' : gain_out, id(self._gain) : gain_out}

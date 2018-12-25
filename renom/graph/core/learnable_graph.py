@@ -198,7 +198,7 @@ class learnable_graph_element(graph_element):
     return self
 
   def get_gradient(self, some_variable):
-    assert isinstance(some_variable, rm.graph.core.multi_gpu_variable)
+    assert isinstance(some_variable, rm.graph.core.GraphMultiStorage)
     search_id = id(some_variable)
     for grph in self._bwd_graphs:
       r = grph._op.get_key(search_id)

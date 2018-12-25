@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, multi_gpu_variable
+from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 
 class selu_forward(operation):
@@ -15,7 +15,7 @@ class selu_forward(operation):
     gpus = inputs.gpus
     self.gpus = gpus
     in_shape = inputs.shape
-    outs = multi_gpu_variable(shape = in_shape, gpus = gpus)
+    outs = GraphMultiStorage(shape = in_shape, gpus = gpus)
     self._inputs = inputs
     self._outputs = outs
     self._vars = { 'y' : outs }
@@ -46,7 +46,7 @@ class selu_backward(operation):
     gpus = inputs.gpus
     self.gpus = gpus
     in_shape = inputs.shape
-    outs = multi_gpu_variable(shape = in_shape, gpus = gpus)
+    outs = GraphMultiStorage(shape = in_shape, gpus = gpus)
     self._inputs = inputs
     self._outputs = outs
     self._fwd_in = self._fwd_op._inputs

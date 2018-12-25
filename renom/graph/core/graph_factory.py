@@ -3,7 +3,7 @@ import abc
 import numpy as np
 from .learnable_graph import learnable_graph_element
 from .operation import operation
-from .new_gpu import multi_gpu_variable
+from .new_gpu import GraphMultiStorage
 import h5py
 
 class variable_input(operation):
@@ -12,7 +12,7 @@ class variable_input(operation):
   roles = [ 'variable' ]
 
   def __init__(self):
-    val = multi_gpu_variable()
+    val = GraphMultiStorage()
     self._vars = { 'y' : val }
 
   def setup(self, inputs, storage): pass

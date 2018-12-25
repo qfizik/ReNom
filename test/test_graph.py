@@ -58,7 +58,7 @@ def retry(attempts = 3):
 
 
 def getNumericalDiff( lossMethod, testValue ):
-  assert isinstance(testValue, rm.graph.core.multi_gpu_variable)
+  assert isinstance(testValue, rm.graph.core.GraphMultiStorage)
   coefficients1 = [ 1, -8, 8, -1 ]
   coefficients2 = [ -2, -1, 1, 2 ]
   c = 12
