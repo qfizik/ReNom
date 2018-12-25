@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import loss_graph_element, operation, GraphMultiStorage, GraphFactory
+from renom.graph.core import UserLossGraph, operation, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class mean_squared_forward(operation):
@@ -78,7 +78,7 @@ class mean_squared_backward_cpu(mean_squared_backward):
     ret = (pred - real) / N
     self._outputs['cpu'] = ret
 
-class MeanSquaredElement(loss_graph_element):
+class MeanSquaredElement(UserLossGraph):
 
   def __init__(self, previous_elements = None):
 

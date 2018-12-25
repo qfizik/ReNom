@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, loss_graph_element, graph_element, GraphMultiStorage, GraphFactory 
+from renom.graph.core import operation, UserLossGraph, graph_element, GraphMultiStorage, GraphFactory 
 import numpy as np
 
 class cross_entropy_forward(operation):
@@ -82,7 +82,7 @@ class cross_entropy_backward_cpu(cross_entropy_backward):
     ret = -real / pred
     self._outputs['cpu'] = ret
 
-class CrossEntropyElement(loss_graph_element):
+class CrossEntropyElement(UserLossGraph):
 
 
   def __init__(self, previous_elements = None):

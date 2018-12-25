@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, loss_graph_element, graph_element, GraphMultiStorage, GraphFactory 
+from renom.graph.core import operation, UserLossGraph, graph_element, GraphMultiStorage, GraphFactory 
 import numpy as np
 
 class sigmoid_forward(operation):
@@ -87,7 +87,7 @@ class sigmoid_backward_cpu(sigmoid_backward):
     ret = (z - y) / N
     self._outputs['cpu'] = ret
 
-class SigmoidCrossEntropyElement(loss_graph_element):
+class SigmoidCrossEntropyElement(UserLossGraph):
 
 
   def __init__(self, previous_elements = None):

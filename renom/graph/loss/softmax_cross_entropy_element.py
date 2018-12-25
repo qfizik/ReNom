@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, loss_graph_element, graph_element, GraphMultiStorage, GraphFactory 
+from renom.graph.core import operation, UserLossGraph, graph_element, GraphMultiStorage, GraphFactory 
 import numpy as np
 
 class softmax_cross_entropy_forward(operation):
@@ -99,7 +99,7 @@ class softmax_cross_entropy_backward_cpu(softmax_cross_entropy_backward):
     ret = (z - y) / N
     self._outputs['cpu'] = ret
 
-class SoftmaxCrossEntropyElement(loss_graph_element):
+class SoftmaxCrossEntropyElement(UserLossGraph):
 
 
   def __init__(self, previous_elements = None):

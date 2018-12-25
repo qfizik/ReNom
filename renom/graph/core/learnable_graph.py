@@ -234,7 +234,7 @@ class UserGraph(graph_element):
     return self._fwd.as_ndarray()
 
 
-class loss_graph_element(UserGraph):
+class UserLossGraph(UserGraph):
 
   def connect(self, previous_elements):
     assert isinstance(previous_elements, list) and len(previous_elements) == 2

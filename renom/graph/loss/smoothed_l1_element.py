@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import loss_graph_element, operation, GraphMultiStorage, GraphFactory
+from renom.graph.core import UserLossGraph, operation, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class smoothed_l1_forward(operation):
@@ -102,7 +102,7 @@ class smoothed_l1_backward_cpu(smoothed_l1_backward):
     self._outputs['cpu'] = ret
   
 
-class SmoothedL1Element(loss_graph_element):
+class SmoothedL1Element(UserLossGraph):
 
   def __init__(self, delta = 1.0, previous_elements = None):
     self._delta = delta
