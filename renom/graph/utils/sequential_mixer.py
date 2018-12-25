@@ -1,4 +1,6 @@
 from renom.graph.core import UserGraph, GraphFactory
+import renom as rm
+import numpy as np
 
 
 class SequentialSubGraph(GraphFactory):
@@ -10,6 +12,8 @@ class SequentialSubGraph(GraphFactory):
     self.graphs = graphs
 
   def connect(self, other):
+    if isinstance(other, np.ndarray):
+        other = rm.graph.StaticVariable(other)
     assert isinstance(other, UserGraph)
     ret = self._connect_graphs(other)
     return ret
