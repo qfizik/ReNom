@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 
 class leaky_reluforward(operation):
@@ -60,7 +60,7 @@ class leaky_relubackward_cpu(leaky_relubackward):
     ret = np.where(y > 0, dy, dy * slope)
     self._outputs['cpu'] = ret
 
-class LeakyReluElement(learnable_graph_element):
+class LeakyReluElement(UserGraph):
 
   has_back = True
 

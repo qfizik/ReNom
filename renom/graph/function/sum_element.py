@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, GraphMultiStorage, operation, GraphFactory
+from renom.graph.core import UserGraph, GraphMultiStorage, operation, GraphFactory
 import renom.utility.initializer as init
 import numpy as np
 
@@ -52,7 +52,7 @@ class sum_backward(operation):
       raise NotImplementedError()
       
 
-class SumElement(learnable_graph_element):
+class SumElement(UserGraph):
   
   name = 'Sum'
 

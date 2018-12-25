@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import renom.utility.initializer as init
 import numpy as np
 
@@ -110,7 +110,7 @@ class maxout_backward_cpu(maxout_backward):
     self._outputs['cpu'] = ret
 
 
-class MaxoutElement(learnable_graph_element):
+class MaxoutElement(UserGraph):
 
   has_back = True
 

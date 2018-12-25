@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import renom.utility.initializer as init
 import numpy as np
 
@@ -56,7 +56,7 @@ class sigmoid_backward_cpu(sigmoid_backward):
     self._outputs['cpu'] = ret
 
 
-class SigmoidElement(learnable_graph_element):
+class SigmoidElement(UserGraph):
 
   has_back = True
 

@@ -1,6 +1,6 @@
 import renom as rm
 from renom.layers.function.utils import im2col, col2im, imnpool, poolnim
-from renom.graph.core import operation, learnable_graph_element, GraphMultiStorage, GraphFactory
+from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class pool_forward(operation):
@@ -107,7 +107,7 @@ class pool_backward_cpu(pool_backward):
 
  
 
-class PoolElement(learnable_graph_element):
+class PoolElement(UserGraph):
 
   has_back = True
 

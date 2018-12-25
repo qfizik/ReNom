@@ -1,6 +1,6 @@
 import renom as rm
 from renom.layers.function.utils import im2col, col2im, imncol, colnim, colnw
-from renom.graph.core import operation, learnable_graph_element, GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import numpy as np
 
@@ -167,7 +167,7 @@ class convo_backward_cpu(convo_backward):
 
 
 
-class ConvolutionalGraph(learnable_graph_element):
+class ConvolutionalGraph(UserGraph):
    
   has_back = True
 

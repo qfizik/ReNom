@@ -1,6 +1,6 @@
 import numpy as np
 import renom as rm
-from renom.graph.core import operational_element, learnable_graph_element, operation, GraphMultiStorage
+from renom.graph.core import operational_element, UserGraph, operation, GraphMultiStorage
 
 class dispatch(operation):
   '''
@@ -90,7 +90,7 @@ class dispatch_cpu(dispatch):
     self._batch_num += 1
 
 
-class data_entry_element(learnable_graph_element):
+class data_entry_element(UserGraph):
 
   has_back = False
 

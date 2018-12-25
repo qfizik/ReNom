@@ -11,7 +11,7 @@
     basics:
         This package contains the basic classes, such as add, multiply or getitem
         classes. The main purpose of this package is to enable a NumPy like interface
-        for the learnable_graph_element class.
+        for the UserGraph class.
 
     function:
         The function package contains the more complicated layers used in general

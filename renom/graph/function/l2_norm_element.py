@@ -1,4 +1,4 @@
-from renom.graph.core import learnable_graph_element, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.core import UserGraph, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
 import numpy as np
@@ -141,7 +141,7 @@ class l2norm_weight_backward_cpu(l2norm_weight_backward):
     ret = np.sum(dl, axis=(0,2,3), keepdims=True)
     self._outputs['cpu'] = ret
 
-class L2NormGraph(learnable_graph_element):
+class L2NormGraph(UserGraph):
 
   has_back = True
 

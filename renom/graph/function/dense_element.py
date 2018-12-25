@@ -1,4 +1,4 @@
-from renom.graph.core import learnable_graph_element, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.core import UserGraph, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
 import numpy as np
@@ -109,7 +109,7 @@ class dense_weight_backward_cpu(dense_weight_backward):
     ret = np.dot(self._fwd_ins['cpu'].T, self._inputs['cpu'])
     self._outputs['cpu'] = ret
 
-class DenseGraph(learnable_graph_element):
+class DenseGraph(UserGraph):
 
   has_back = True
 

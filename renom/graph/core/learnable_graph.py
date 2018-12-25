@@ -8,14 +8,14 @@ def _prepare_prevs(previous_elements):
   if not isinstance(previous_elements, list):
     previous_elements = [ previous_elements ]
   for i, prev in enumerate(previous_elements):
-    assert isinstance(prev, np.ndarray) or isinstance(prev, learnable_graph_element)
+    assert isinstance(prev, np.ndarray) or isinstance(prev, UserGraph)
     if isinstance(prev, np.ndarray):
       previous_elements[i] = rm.graph.StaticVariable(prev)
   return previous_elements
 
 
 
-class learnable_graph_element(graph_element):
+class UserGraph(graph_element):
   '''
     A learnable graph element is responsible for storing and performing the forward, backward and update operations in a normal neural-network setting.
   '''
@@ -74,7 +74,7 @@ class learnable_graph_element(graph_element):
       self.disconnect()
       assert len(self._previous_elements) == 0 and len(self._fwd._previous_elements) == 0
 
-    if isinstance(previous_elements, learnable_graph_element):
+    if isinstance(previous_elements, UserGraph):
       previous_elements = [ previous_elements ]
 
     for elem in previous_elements:
@@ -164,7 +164,7 @@ class learnable_graph_element(graph_element):
     ins = self._fwd.gather_operations_with_role('input')
     lss = self._fwd.gather_operations_with_role('loss')
     dct = self._fwd.get_call_dict('Forward')
-    ret = learnable_graph_element.Executor(dct, ins, lss)
+    ret = UserGraph.Executor(dct, ins, lss)
     return ret
 
   def getTrainingExecutor(self, optimizer = None):
@@ -176,7 +176,7 @@ class learnable_graph_element(graph_element):
     lss = self._bwd_graphs[0].gather_operations_with_role('loss')
     self._fwd.continue_setup()
     dct = self._bwd_graphs[0].get_call_dict()
-    ret = learnable_graph_element.Executor(dct, ins, lss)
+    ret = UserGraph.Executor(dct, ins, lss)
     return ret
 
   def simple_forward(self):
@@ -234,7 +234,7 @@ class learnable_graph_element(graph_element):
     return self._fwd.as_ndarray()
 
 
-class loss_graph_element(learnable_graph_element):
+class loss_graph_element(UserGraph):
 
   def connect(self, previous_elements):
     assert isinstance(previous_elements, list) and len(previous_elements) == 2

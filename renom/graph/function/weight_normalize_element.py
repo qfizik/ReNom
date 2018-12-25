@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 import renom.utility.initializer as init
 
@@ -124,7 +124,7 @@ class weight_norm_backward_cpu(weight_norm_backward):
     self._weights_out['cpu'] = dw
     self._gain_out['cpu'] = dgain
 
-class WeightNormElement(learnable_graph_element):
+class WeightNormElement(UserGraph):
 
   has_back = True
 

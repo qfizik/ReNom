@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, GraphMultiStorage, graph_variable
+from renom.graph.core import UserGraph, operation, GraphFactory, GraphMultiStorage, graph_variable
 import renom.utility.initializer as init
 import numpy as np
 
@@ -130,7 +130,7 @@ class batch_norm_backward_cpu(batch_norm_backward):
     db = np.sum(dy, axis = axs, keepdims=True)
     self._bias_back['cpu'] = db
 
-class BatchNormalizer(learnable_graph_element):
+class BatchNormalizer(UserGraph):
 
   has_back = True
 

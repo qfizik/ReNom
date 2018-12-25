@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 
 
@@ -70,7 +70,7 @@ class dropout_backward_cpu(dropout_backward):
     self._outputs['cpu'] = ret
 
 
-class DropoutElement(learnable_graph_element):
+class DropoutElement(UserGraph):
 
   has_back = True
   _inference = False

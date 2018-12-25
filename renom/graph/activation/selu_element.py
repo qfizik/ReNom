@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 
 class selu_forward(operation):
@@ -68,7 +68,7 @@ class selu_backward_cpu(selu_backward):
     ret = np.where(y > 0, dy, dy * (alpha + y)) * lamda
     self._outputs['cpu'] = ret
 
-class SeluElement(learnable_graph_element):
+class SeluElement(UserGraph):
 
   has_back = True
 

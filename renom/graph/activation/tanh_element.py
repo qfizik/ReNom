@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import renom.utility.initializer as init
 import numpy as np
 
@@ -57,7 +57,7 @@ class tanh_backward_cpu(tanh_backward):
     self._outputs['cpu'] = ret
 
 
-class TanhElement(learnable_graph_element):
+class TanhElement(UserGraph):
 
   has_back = True
 

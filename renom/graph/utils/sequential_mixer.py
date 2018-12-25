@@ -1,4 +1,4 @@
-from renom.graph.core import learnable_graph_element, GraphFactory
+from renom.graph.core import UserGraph, GraphFactory
 
 
 class SequentialSubGraph(GraphFactory):
@@ -10,7 +10,7 @@ class SequentialSubGraph(GraphFactory):
     self.graphs = graphs
 
   def connect(self, other):
-    assert isinstance(other, learnable_graph_element)
+    assert isinstance(other, UserGraph)
     ret = self._connect_graphs(other)
     return ret
 

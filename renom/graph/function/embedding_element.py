@@ -1,4 +1,4 @@
-from renom.graph.core import learnable_graph_element, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.core import UserGraph, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
 import numpy as np
@@ -87,7 +87,7 @@ class embedding_weight_backward_cpu(embedding_weight_backward):
     self._outputs['cpu'] = dx
     
 
-class EmbeddingGraph(learnable_graph_element):
+class EmbeddingGraph(UserGraph):
 
   has_back = True
 

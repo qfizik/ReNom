@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 import renom.utility.initializer as init
 
@@ -169,7 +169,7 @@ class layer_norm_backward_cpu(layer_norm_backward):
     self._outputs['cpu'] = dx
     self._gain_out['cpu'] = dgain
 
-class LayerNormElement(learnable_graph_element):
+class LayerNormElement(UserGraph):
 
   has_back = True
 

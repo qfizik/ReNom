@@ -1,4 +1,4 @@
-from renom.graph.core import operation, operational_element, learnable_graph_element, GraphMultiStorage
+from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage
 import renom as rm
 import numpy as np
 
@@ -40,7 +40,7 @@ class reshape_op_back(operation):
 
   def __repr__(self): return self._outputs.__repr__()
 
-class ReshapeElement(learnable_graph_element):
+class ReshapeElement(UserGraph):
 
   has_back = True
 

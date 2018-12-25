@@ -1,6 +1,6 @@
 import numpy as np
 import renom as rm
-from renom.graph.core import GraphMultiStorage, operational_element, learnable_graph_element, operation
+from renom.graph.core import GraphMultiStorage, operational_element, UserGraph, operation
 
 class static_value(operation):
 
@@ -14,7 +14,7 @@ class static_value(operation):
   def perform(self): pass
 
 
-class StaticVariable(learnable_graph_element):
+class StaticVariable(UserGraph):
 
   _has_back = False
   _name = 'Static Element'

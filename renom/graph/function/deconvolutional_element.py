@@ -1,6 +1,6 @@
 import renom as rm
 from renom.layers.function.utils import im2col, col2im, colnim, imncol
-from renom.graph.core import operation, learnable_graph_element, GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import numpy as np
 
@@ -149,7 +149,7 @@ class deconvo_backward_cpu(deconvo_backward):
     self._weights_out['cpu'] = dw
     self._bias_out['cpu'] = db
 
-class DeconvolutionalGraph(learnable_graph_element):
+class DeconvolutionalGraph(UserGraph):
    
   has_back = True
 

@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, operational_element, learnable_graph_element, GraphMultiStorage, GraphFactory
+from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
 from renom.graph.function.sum_element import sum_forward, sum_forward_cpu
 import renom.utility.initializer as init 
 
@@ -19,7 +19,7 @@ class constant_loss_backward(operation):
 
   def perform(self): pass
 
-class ConstantLoss(learnable_graph_element):
+class ConstantLoss(UserGraph):
   
   is_connector_element = True
 

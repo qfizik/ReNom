@@ -1,6 +1,6 @@
 import renom as rm
 from renom.layers.function.utils import im2col, col2im, imnpool, poolnim
-from renom.graph.core import operation, learnable_graph_element, GraphMultiStorage, GraphFactory
+from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
 import numpy as np
 
 class unpool_forward(operation):
@@ -90,7 +90,7 @@ class unpool_backward_cpu(unpool_backward):
 
  
 
-class MaxUnPoolElement(learnable_graph_element):
+class MaxUnPoolElement(UserGraph):
 
   has_back = True
 

@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 
 class softplus_forward(operation):
@@ -54,7 +54,7 @@ class softplus_backward_cpu(softplus_backward):
     ret = dx * dy
     self._outputs['cpu'] = ret
 
-class SoftplusElement(learnable_graph_element):
+class SoftplusElement(UserGraph):
 
   has_back = True
 

@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 
 class softmax_forward(operation):
@@ -58,7 +58,7 @@ class softmax_backward_cpu(softmax_backward):
     ret = ((1.0 - y) * dy * summed) * y
     self._outputs['cpu'] = ret
 
-class SoftmaxElement(learnable_graph_element):
+class SoftmaxElement(UserGraph):
 
   has_back = True
 

@@ -1,7 +1,7 @@
 import renom as rm
 import abc
 import numpy as np
-from .learnable_graph import learnable_graph_element
+from .learnable_graph import UserGraph
 from .operation import operation
 from .new_gpu import GraphMultiStorage
 import h5py
@@ -19,7 +19,7 @@ class variable_input(operation):
 
   def perform(self): pass
 
-class graph_variable(learnable_graph_element):
+class graph_variable(UserGraph):
 
   def __init__(self):
     fwd_op = variable_input()

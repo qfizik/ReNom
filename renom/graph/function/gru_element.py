@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage, StateHolder
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage, StateHolder
 import numpy as np
 import renom.utility.initializer as init
 
@@ -236,7 +236,7 @@ class gru_backward_cpu(gru_backward):
     self._w_out['cpu'] = dw
     self._w_r_out['cpu'] = dwr
 
-class GruElement(learnable_graph_element):
+class GruElement(UserGraph):
 
   has_back = True
 

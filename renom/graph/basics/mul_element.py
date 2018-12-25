@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, learnable_graph_element
+from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
 
 class mul_forward(operation):
   
@@ -46,7 +46,7 @@ class mul_backward(operation):
 
 
 
-class MulElement(learnable_graph_element):
+class MulElement(UserGraph):
   
   _has_back = True
   _name = 'Mul Element'
@@ -61,4 +61,4 @@ def _mul(self, other):
   ret = MulElement([self, other])
   return ret
 
-learnable_graph_element.__mul__ = _mul
+UserGraph.__mul__ = _mul

@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import learnable_graph_element, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 
 class relu_forward(operation):
@@ -59,7 +59,7 @@ class relu_backward_cpu(relu_backward):
     self._outputs['cpu'] = ret
 
 
-class ReluElement(learnable_graph_element):
+class ReluElement(UserGraph):
 
   has_back = True
 

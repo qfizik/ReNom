@@ -9,7 +9,7 @@
 
 '''
 from .new_gpu import GraphMultiStorage
-from .learnable_graph import learnable_graph_element, loss_graph_element
+from .learnable_graph import UserGraph, loss_graph_element
 from .graph_element import operational_element
 from .operation import operation, StateHolder
 from .graph_factory import GraphFactory, graph_variable

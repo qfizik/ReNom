@@ -1,5 +1,5 @@
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, learnable_graph_element
+from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
 import numpy as np
 
 class add_forward(operation):
@@ -49,7 +49,7 @@ class add_back(operation):
 
 
 
-class AddElement(learnable_graph_element):
+class AddElement(UserGraph):
 
   _has_back = True
   _name = 'Add Element'
@@ -65,7 +65,7 @@ def _add(self, other):
   ret = AddElement([self, other])
   return ret
 
-learnable_graph_element.__add__ = _add
+UserGraph.__add__ = _add
 
 
 

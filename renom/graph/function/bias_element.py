@@ -1,4 +1,4 @@
-from renom.graph.core import learnable_graph_element, operation, GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.core import UserGraph, operation, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import renom as rm
 import numpy as np
@@ -68,7 +68,7 @@ class bias_backward_cpu(bias_backward):
     self._bias_back['cpu'] = ret
 
 
-class BiasElement(learnable_graph_element):
+class BiasElement(UserGraph):
 
   has_back = True
 
