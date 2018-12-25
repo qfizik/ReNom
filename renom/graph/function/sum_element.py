@@ -16,7 +16,6 @@ class sum_forward(operation):
     outs = GraphMultiStorage(shape = out_shape, gpus = gpus)
     self._outputs = outs
     self._vars = { 'y' : outs }
-    self.ready = True
 
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -50,10 +49,10 @@ class sum_backward(operation):
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       raise NotImplementedError()
-      
+
 
 class SumElement(UserGraph):
-  
+
   name = 'Sum'
 
   def __init__(self, previous_elements = None):

@@ -1,26 +1,25 @@
 import renom as rm
 from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
 from renom.graph.function.sum_element import sum_forward, sum_forward_cpu
-import renom.utility.initializer as init 
+import renom.utility.initializer as init
 
 
 class constant_loss_backward(operation):
-  
+
   name = 'Constant (B)'
 
   def setup(self, inputs, storage):
-  
+
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     outputs = GraphMultiStorage(shape = inputs.shape, gpus = gpus, initializer = init.Constant(1))
     self._outputs = outputs
     self._vars = { 'y' : outputs , 'dy' : outputs}
-    self.ready = True
 
   def perform(self): pass
 
 class ConstantLoss(UserGraph):
-  
+
   is_connector_element = True
 
   def __init__(self, previous_element = None):
@@ -32,7 +31,7 @@ class ConstantLoss(UserGraph):
     self._bwd_graphs[0].add_input(self._fwd)
 
 
-    
+
 class ConstantLossElement(GraphFactory):
 
   def connect(self, other):
