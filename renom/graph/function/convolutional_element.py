@@ -4,6 +4,52 @@ from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFacto
 import renom.utility.initializer as init
 import numpy as np
 
+class ConvolutionalGraphElement(GraphFactory):
+
+  """Convolutional Layer.
+
+    This class creates a convolution filter to be convolved with
+    the input tensor. This class accepts up to 3d image input.
+    Note that the 2d implementation differs slightly from the 3d implementation, giving no
+    guarantee that they will perform equally.
+
+    Args:
+        channel (int): The dimensionality of the output.
+        filter (int): Filter size of the convolution kernel.
+        padding (int): Size of the zero-padding around the image.
+        stride (int): Stride-size of the convolution.
+        initializer (Initializer): Initializer object for weight initialization.
+
+    Example:
+        In [1]: import numpy as np
+        In [2]: import renom as rm
+        In [3]: n, c, h, w = (10, 3, 32, 32)
+        In [4]: x = np.random.rand(n, c, h, w)
+        In [5]: x.shape
+        Out[5]: (10, 3, 32, 32)
+        In [6]: layer = rm.graph.ConvolutionalGraphElement(channels = 5)
+        In [7]: z = layer(x).as_ndarray()
+        In [8]: z.shape
+        Out[8]: (10, 5, 30, 30)
+
+    Note:
+        Tensor data format is **NCHW**.
+  """
+
+  def __init__(self, channels = 3, kernel = 3, padding = 0, stride = 1, initializer = None):
+    super().__init__()
+    self._chnls = channels
+    self._krnl = kernel
+    self._pdng = padding
+    self._strd = stride
+    self._init = initializer
+    self.params['w'] = graph_variable()
+    self.params['b'] = graph_variable()
+
+
+  def connect(self, other):
+    ret = ConvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, self._init, previous_element = [ other, self.params['w'], self.params['b']])
+    return ret
 
 class convo_forward(operation):
 
@@ -12,12 +58,13 @@ class convo_forward(operation):
   workspace_size = 0
   workspace = None
 
-  def __init__(self, channels, kernel = 3, padding = 0, stride = 1):
+  def __init__(self, channels, kernel = 3, padding = 0, stride = 1, initializer = None):
     self._channels = channels
     self._k = kernel
     self._p = padding
     self._s = stride
     self._d = 1
+    self._init = initializer
 
   def setup(self, inputs):
 
@@ -31,16 +78,17 @@ class convo_forward(operation):
     self._padding =  np.array(list(self._p for i in range(dims))).astype(np.int32)
     self._stride =   np.array(list(self._s for i in range(dims))).astype(np.int32)
     self._dilation = np.array(list(self._d for i in range(dims))).astype(np.int32)
-    
+
     self._inputs = inputs
-    self._init = init.GlorotNormal() if dims == 2 else init.Gaussian()
+    if self._init is None:
+        self._init = init.GlorotNormal() if dims == 2 else init.Gaussian()
     gpus = inputs.gpus
     self.gpus = gpus
 
-    weight_shape = (self._channels, input_shape[1], *self._kernel) 
+    weight_shape = (self._channels, input_shape[1], *self._kernel)
     bias_shape = (1, self._channels, *(1 for i in range(dims)))
-    
-    
+
+
     weights.__init__(shape = weight_shape, gpus = gpus, initializer = self._init)
     bias.__init__(shape = bias_shape, gpus = gpus, initializer = init.Constant(0))
 
@@ -94,11 +142,11 @@ class convo_forward_cpu(convo_forward):
       col = im2col(x, self._outputs.shape[2:], self._kernel, self._stride, self._padding, self._dilation)
       self._col = col
       val = np.rollaxis(np.tensordot(col, w, ([1, 2, 3], [1, 2, 3])), 3, 1)
-      ret = val + b 
+      ret = val + b
     else:
       col = imncol(x, w, self._stride, self._padding)
       ret = col + b
-    self._outputs['cpu'] = ret 
+    self._outputs['cpu'] = ret
 
 
 
@@ -111,7 +159,7 @@ class convo_backward(operation):
     self._fwd_op = associated_forward
 
   def setup(self, inputs):
-    
+
     inputs = inputs[0]['y']
     self._inputs = inputs
     self._dims = self._fwd_op._dims
@@ -168,44 +216,22 @@ class convo_backward_cpu(convo_backward):
 
 
 class ConvolutionalGraph(UserGraph):
-   
+
   has_back = True
 
-  def __init__(self, channels = 3, kernel = 3, padding = 0, stride = 1, previous_element = None):
+  def __init__(self, channels = 3, kernel = 3, padding = 0, stride = 1, initializer = None, previous_element = None):
 
     self._chnls = channels
     self._krnl = kernel
     self._pdng = padding
     self._strd = stride
-    fwd_op = convo_forward(channels, kernel, padding, stride) if rm.is_cuda_active() else convo_forward_cpu(channels, kernel, padding, stride)
+    fwd_op = convo_forward(channels, kernel, padding, stride, initializer) if rm.is_cuda_active() else convo_forward_cpu(channels, kernel, padding, stride, initializer)
     bwd_ops = [ convo_backward(fwd_op) if rm.is_cuda_active() else convo_backward_cpu(fwd_op) ]
 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
 
 
-class ConvolutionalGraphElement(GraphFactory):
-
-  def __init__(self, channels = 3, kernel = 3, padding = 0, stride = 1):
-    super().__init__()
-    self._chnls = channels
-    self._krnl = kernel
-    self._pdng = padding
-    self._strd = stride
-    self.params['w'] = graph_variable()
-    self.params['b'] = graph_variable()
-
-
-  def connect(self, other):
-    ret = ConvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, previous_element = [ other, self.params['w'], self.params['b']])
-    return ret
-
 def del_workspace():
   convo_forward.workspace = None
 import atexit
 atexit.register(del_workspace)
-
-
-
-
-
-

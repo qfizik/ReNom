@@ -3,13 +3,50 @@ import renom.utility.initializer as init
 import renom as rm
 import numpy as np
 
+class DenseGraphElement(GraphFactory):
+  '''Fully connected layer as described bellow.
+
+        :math:`f(x)= w \cdot x + b`
+
+    Args:
+        output_size (int): Output unit size.
+        initializer (Initializer): Initializer object for weight initialization.
+
+    Example:
+        In [1]: import numpy as np
+        In [2]: import renom as rm
+        In [3]: x = np.random.rand(3, 2)
+        In [4]: x.shape
+        Out[4]: (3, 2)
+        In [5]: layer = rm.graph.DenseGraphElement(3)
+        In [6]: z = layer(x).as_ndarray()
+        In [7]: z.shape
+        Out[7]: (3, 3)
+  '''
+  def __init__(self, output_size = 3, initializer = None):
+    super().__init__()
+    self.output_size = output_size
+    self.params['w'] = graph_variable()
+    self._bias = rm.graph.BiasGraphElement()
+    self.params['b'] = self._bias.params['b']
+    self._init = initializer
+
+  def connect(self, other):
+    if len(self.params['w']._next_elements) > 0:
+      self.params['w']._fwd._next_elements[0].disconnect()
+    self.params['w'].disconnect()
+    self.params['b'].disconnect()
+    ret = DenseGraph(output_size = self.output_size, initializer = self._init, previous_element = [ other, self.params['w']])
+    ret = self._bias(ret)
+    return ret
+
 class dense_forward(operation):
 
   name = 'Dense (F)'
   consumes = ['w']
 
   def __init__(self, output_size, initializer):
-    
+
     self._output_size = output_size
     self._init = initializer
 
@@ -19,6 +56,8 @@ class dense_forward(operation):
     assert isinstance(inputs, GraphMultiStorage), 'Received {}'.format(type(inputs))
     self.gpus = inputs.gpus
     self._inputs = inputs
+    if self._init is None:
+        self._init = init.GlorotNormal()
     weight_shape = ( inputs.shape[1] , self._output_size )
     weights.__init__( shape = weight_shape , gpus = self.gpus, initializer = self._init)
     output_shape = ( inputs.shape[0] , self._output_size )
@@ -98,7 +137,7 @@ class dense_weight_backward(operation):
 
     self._fwd_ins = fwd_ins
     self._outputs = outputs
-    
+
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cublas_gemm(self._fwd_ins[gpu], 1, self._inputs[gpu], 0, self._outputs[gpu], handle)
@@ -114,7 +153,7 @@ class DenseGraph(UserGraph):
   has_back = True
 
   def __init__(self, output_size, initializer, previous_element = None):
-    
+
     fwd_op = dense_forward(output_size, initializer) if rm.is_cuda_active() else dense_forward_cpu(output_size, initializer)
     bwd_ops = [ dense_backward(associated_forward = fwd_op) if rm.is_cuda_active() else dense_backward_cpu(fwd_op),
                 dense_weight_backward(associated_forward = fwd_op) if rm.is_cuda_active() else dense_weight_backward_cpu(fwd_op),
@@ -122,23 +161,3 @@ class DenseGraph(UserGraph):
     self.output_size = output_size
 
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
-
-class DenseGraphElement(GraphFactory):
-
-  def __init__(self, output_size, initializer = init.GlorotNormal()):
-    super().__init__()
-    self.output_size = output_size
-    self.params['w'] = graph_variable()
-    self._bias = rm.graph.BiasGraphElement()
-    self.params['b'] = self._bias.params['b']
-    self._init = initializer
-
-  def connect(self, other):
-    if len(self.params['w']._next_elements) > 0:
-      self.params['w']._fwd._next_elements[0].disconnect()
-    self.params['w'].disconnect()
-    self.params['b'].disconnect()
-    ret = DenseGraph(output_size = self.output_size, initializer = self._init, previous_element = [ other, self.params['w']])
-    ret = self._bias(ret)
-    return ret
-

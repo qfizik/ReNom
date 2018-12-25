@@ -4,9 +4,11 @@ import functools
 
 class graph_element(abc.ABC):
   '''
-    The graph_element class implements a tree-list, composite design that defines a graph.
+    This class implements basic logic of the graph. The graph is constructed as a tree with
+    references to both the previous and following elements.
 
-    Each graph_element has at least one starting point, which determines where the graph starts.
+    The basic tree maintains a depth variable with the rule that its depth is the maximum
+    of its predecessors plus 1. If updated, all following depth values will be recalculated.
 
   '''
 
@@ -101,7 +103,11 @@ class graph_element(abc.ABC):
     self._next_elements = []
 
 class graph_storage:
-
+  '''
+        A utility class designed to work together with the walk_tree function.
+        All operational elements will share a reference to the same _vars dictionary
+        through the graph_storage class.
+  '''
   _vars = { }
 
   def register(self, key, value):
@@ -141,7 +147,11 @@ class graph_storage:
 
 class operational_element(graph_element):
   '''
-    The operational_element class implements the lowest structure of the graph elements, containing exactly one operation. This operation is perform during the forward call.
+        The lowest graph element constructed.
+
+        operational_element requires an operation, which defines what it does. The graph consisting
+        of opertional elements is supposed to be constructed and maintained by the algorithms found in
+        UserGraph and should not be be constructed directly.
   '''
   def __init__(self, operation, previous_elements = None, tags = None):
     super(operational_element, self).__init__(previous_elements = previous_elements)

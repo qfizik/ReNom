@@ -2,6 +2,46 @@ import renom as rm
 from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 import numpy as np
 
+class DropoutGraphElement(GraphFactory):
+  """Applies Dropout [dropout]_ to the input.
+
+  Dropout function randomly selects a fraction (specified by dropout_ratio) of
+  the data sets them to zero.
+  Remaining data will be rescaled by ``1/(1 - dropout_ratio)``.
+
+  Args:
+      dropout_ratio (float): Dropout ratio.
+
+  Example:
+  In [1]: import numpy as np
+  In [2]: import renom as rm
+  In [3]: x = np.random.rand(3,2)
+  In [4]: x
+  Out[4]:
+  array([[ 0.92146051,  0.09946255],
+         [ 0.05895275,  0.78195323],
+         [ 0.98867317,  0.03215612]])
+  In [5]: layer = rm.graph.DropoutGraphElement(0.8)
+  In [6]: z = layer(x).as_ndarray()
+  In [7]: z
+  Out[7]:
+  array([[ 0.        ,  0.        ],
+         [ 0.11790549,  0.        ],
+         [ 1.97734635,  0.        ]])
+
+  .. [dropout] Hinton, Geoffrey E.; Srivastava, Nitish; Krizhevsky, Alex; Sutskever,
+                                              Ilya; Salakhutdinov, Ruslan R. (2012).
+      Improving neural networks by preventing co-adaptation of feature detectors
+
+  """
+
+  def __init__(self, dropout_rate = 0.5):
+      super().__init__()
+      self._dr = dropout_rate
+
+  def connect(self, other):
+    ret = DropoutElement(self._dr, previous_elements = other)
+    return ret
 
 class dropout_forward(operation):
 
@@ -32,12 +72,10 @@ class dropout_forward_cpu(dropout_forward):
   def perform(self):
     x = self._inputs['cpu']
     dropout_ratio = 1 - self._dropout_rate
-    mask = np.array(np.random.rand(*x.shape) < dropout_ratio, dtype = rm.precision) / dropout_ratio 
+    mask = np.array(np.random.rand(*x.shape) < dropout_ratio, dtype = rm.precision) / dropout_ratio
     ret = x * mask
     self._mask['cpu'] = mask
     self._outputs['cpu'] = ret
-    print(mask)
-    print(ret)
 
 class dropout_backward(operation):
 
@@ -59,7 +97,7 @@ class dropout_backward(operation):
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cumul(self._inputs[gpu], self._fwd_mask[gpu], self._outputs[gpu], handle)
-      
+
 class dropout_backward_cpu(dropout_backward):
 
   def perform(self):
@@ -88,9 +126,3 @@ class DropoutElement(UserGraph):
   @inference.setter
   def inference(self, val):
     self._inference = val
-
-class DropoutGraphElement(GraphFactory):
-
-  def connect(self, other):
-    ret = DropoutElement(previous_elements = other)
-    return ret
