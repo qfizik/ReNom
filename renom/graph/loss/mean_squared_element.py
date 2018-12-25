@@ -7,7 +7,7 @@ class mean_squared_forward(operation):
   name = 'Mean Squared (F)'
   roles = [ 'loss' ]
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     predictions = inputs[0]['y']
     real_values = inputs[1]['y']
     self.gpus = predictions.gpus
@@ -49,7 +49,7 @@ class mean_squared_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
   
     predictions = inputs[0]['y']
     real_values = inputs[1]['y']

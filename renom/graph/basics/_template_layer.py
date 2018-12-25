@@ -4,7 +4,7 @@ import numpy as np
 
 class _forward_operation(operation):
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
@@ -29,7 +29,7 @@ class _backward_operation(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus

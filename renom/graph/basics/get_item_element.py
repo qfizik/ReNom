@@ -9,7 +9,7 @@ class get_item_forward(operation):
   def __init__(self, index):
     self._index = index
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     a = inputs[0]['y']
     self.gpus = a.gpus
     self._a = a
@@ -61,7 +61,7 @@ class get_item_back(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['dy']
     gpus = inputs.gpus
     self.gpus = gpus

@@ -13,7 +13,7 @@ class dense_forward(operation):
     self._output_size = output_size
     self._init = initializer
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     weights = inputs[1]['y']
     inputs = inputs[0]['y']
     assert isinstance(inputs, GraphMultiStorage), 'Received {}'.format(type(inputs))
@@ -45,7 +45,7 @@ class dense_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
 
     inputs = inputs[0]['dy']
     gpus = inputs.gpus
@@ -82,7 +82,7 @@ class dense_weight_backward(operation):
     self._fwd_op = associated_forward
 
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['dy']
     self._inputs = inputs
 

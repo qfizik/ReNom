@@ -13,7 +13,7 @@ class pool_forward(operation):
     self._s = stride
     self._mode = mode
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
 
     inputs = inputs[0]['y']
     input_shape = inputs.shape
@@ -66,7 +66,7 @@ class pool_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     
     inputs = inputs[0]['y']
     self._inputs = inputs

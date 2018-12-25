@@ -9,7 +9,7 @@ class weight_norm_forward(operation):
     self._output_size = output_size
     self._g = gain
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     gain = inputs[2]['y']
     weights = inputs[1]['y']
     inputs = inputs[0]['y']
@@ -63,7 +63,7 @@ class weight_norm_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus

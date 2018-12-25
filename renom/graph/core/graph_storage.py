@@ -2,6 +2,17 @@ import numpy as np
 import renom as rm
 
 class shared_val:
+  '''
+        This object is responsible for allowing each GraphMultiStorage to
+        share the definition of their batch sizes.
+
+        The shape of a GraphMultiStorage object is (s, *i) where s is a shared_val
+        and *i is any number of integers.
+
+        Each graph will thus have exactly one shared_val object, which determines the
+        batch size of the current tree, allowing us to only worry about setting this
+        value once while updating the entire tree.
+  '''
   def __new__(cls, val, m = None):
     return super().__new__(cls)
   def __init__(self, val):
@@ -30,12 +41,25 @@ class shared_val:
   def __floordiv__(self, other): return self._val // int(other)
 
 class GraphMultiStorage:
+  '''
+        The storage class of the graph. The graph is constructed through a brick and
+        mortar construction, type with the GraphMultiStorage being the party responsible
+        for keeping operations tied together indirectly.
 
+        The key points of the GraphMultiStorage class is that it allows device agnosticism
+        through only indirectly implementing the storage. The actual data is contained in
+        the GPUValue objects.
+
+        When interfacing data for external devices, indexing the object will retrieve
+        the GPUValue defined on the indexed device.
+        When interfacing data for the cpu however, the storage should be indexed using
+        the 'cpu' special string.
+  '''
   ready = False
 
   def __init__(self, shape = None, gpus = None, initializer = None, ptrs = None):
     if self.ready is True:
-      assert self.shape == shape 
+      assert self.shape == shape
       return
     if shape is None:
       return
@@ -73,7 +97,7 @@ class GraphMultiStorage:
         assert np.prod(self.shape) * np.dtype(rm.precision).itemsize <= meminfo[0]
         self[gpu] = rm.GPUValue(array=arr, shape=self.shape, ptr = self._ptrs[gpu]._ptr if self._ptrs is not None else None)
 
-    
+
   @property
   def shape(self):
     return self._shape
@@ -118,11 +142,10 @@ class GraphMultiStorage:
       raise AssertionError('Setting value without same shape')
     value.shape = self.shape
     self._gpuvalues[index] = value
-      
+
   def __repr__(self):
     assert self._finished_setup is True
     k = self._gpuvalues.keys().__iter__().__next__()
-    #print(self._gpuvalues['cpu'])
     return self._gpuvalues[k].__str__()
 
   def as_ndarray(self):

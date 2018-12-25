@@ -10,7 +10,7 @@ class dropout_forward(operation):
   def __init__(self, dropout_rate = 0.5):
     self._dropout_rate = dropout_rate
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
@@ -46,7 +46,7 @@ class dropout_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus

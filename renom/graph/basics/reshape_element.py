@@ -9,7 +9,7 @@ class reshape_op(operation):
   def __init__(self, shape):
     self._new_shape = shape
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     self._inputs = inputs[0]['y']
     new_shape = [ self._inputs.shape[0] ]
     new_shape.extend(self._new_shape)
@@ -29,7 +29,7 @@ class reshape_op_back(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     self._inputs = inputs[0]['y']
     shape = self._fwd_op._inputs.shape
     gpus = self._inputs.gpus

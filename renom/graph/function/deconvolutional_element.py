@@ -17,7 +17,7 @@ class deconvo_forward(operation):
     self._d = 1
 
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
 
     weights = inputs[1]['y']
     bias = inputs[2]['y']
@@ -92,7 +92,7 @@ class deconvo_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     
     inputs = inputs[0]['y']
     self._inputs = inputs

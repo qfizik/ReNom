@@ -10,7 +10,7 @@ class add_forward(operation):
     self._a = None
     self._b = None
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     a = inputs[0]['y']
     b = inputs[1]['y']
     assert len(a) == len(b)
@@ -41,7 +41,7 @@ class add_back(operation):
     self._fwd_op = associated_forward
     self._key = key
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     self._outputs = inputs[0]['dy']
     self._vars = { 'y' : self._outputs, 'dy' : self._outputs, id(self._fwd_op.get_key(self._key)) : self._outputs } 
 

@@ -15,7 +15,7 @@ class variable_input(operation):
     val = GraphMultiStorage()
     self._vars = { 'y' : val }
 
-  def setup(self, inputs, storage): pass
+  def setup(self, inputs): pass
 
   def perform(self): pass
 

@@ -45,7 +45,7 @@ class operation(abc.ABC):
 
 
   @abc.abstractmethod
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     '''
         This method is responsible for preparing memory regions, setting internal variables
         and readying other variables that could otherwise not be prepared without knowledge
@@ -56,7 +56,9 @@ class operation(abc.ABC):
         for several reasons. Setup should therefore recalculate any values that are input
         dependent.
 
-        The inputs
+        The inputs argument is the inputs to the operation as defined in the above graph.
+        It is implemented as a list, where the index of each element in the list is the order
+        in which the previous operation was added in the above graph.
 
         Note: As far as possible, this methoud should be made device agnostic.
     '''
@@ -66,7 +68,12 @@ class operation(abc.ABC):
   def perform(self):
     '''
         The perform method is responsible for placing kernels on the device in case of a
-        gpu-implemented operation.
+        gpu-implemented operation. As far as possible, the developer should take care to make
+        no allocations of memory during the perform step and instead allocate during the setup step.
+
+        When the graph is decided and the user creates the executor, the perform methods of the graph
+        are gathered into a list and performed in order, meaning that the original operation
+        will be discarded.
     '''
     pass
 

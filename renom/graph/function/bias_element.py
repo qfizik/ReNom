@@ -10,8 +10,7 @@ class bias_forward(operation):
 
   def __init__(self): pass
 
-  def setup(self, inputs, storage):
-    self._storage = storage
+  def setup(self, inputs):
 
     bias = inputs[1]['y']
     inputs = inputs[0]['y']
@@ -25,7 +24,7 @@ class bias_forward(operation):
     self._init = init.Constant(0)
     bias.__init__( shape = bias_shape, gpus = self.gpus, initializer = self._init)
     outputs = GraphMultiStorage( shape = in_shape, gpus = self.gpus)
-    self._vars = {'x' : inputs, 'b' : bias, 'y' : outputs} 
+    self._vars = {'x' : inputs, 'b' : bias, 'y' : outputs}
     self._outputs = outputs
     self._biases = bias
 
@@ -48,8 +47,7 @@ class bias_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
-    self._storage = storage
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     self.gpus = inputs.gpus
     self._bias_back = GraphMultiStorage(shape = self._fwd_op.get_key('b').shape, gpus = self.gpus)
@@ -73,7 +71,7 @@ class BiasElement(UserGraph):
   has_back = True
 
   def __init__(self, previous_element = None):
-  
+
     fwd_op = bias_forward() if rm.is_cuda_active() else bias_forward_cpu()
     bwd_graphs = [ bias_backward(fwd_op) if rm.is_cuda_active() else bias_backward_cpu(fwd_op)]
 
@@ -90,5 +88,3 @@ class BiasGraphElement(GraphFactory):
     self.params['b'].disconnect()
     ret = BiasElement(previous_element = [ other, self.params['b']])
     return ret
-
-

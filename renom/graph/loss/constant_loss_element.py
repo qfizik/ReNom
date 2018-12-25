@@ -8,7 +8,7 @@ class constant_loss_backward(operation):
 
   name = 'Constant (B)'
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
 
     inputs = inputs[0]['y']
     gpus = inputs.gpus

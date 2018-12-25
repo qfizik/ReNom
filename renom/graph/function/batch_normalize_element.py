@@ -14,7 +14,7 @@ class batch_norm_forward(operation):
     self._inference = False 
 
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     bias = inputs[2]['y']
     weights = inputs[1]['y']
     inputs = inputs[0]['y']
@@ -83,7 +83,7 @@ class batch_norm_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus

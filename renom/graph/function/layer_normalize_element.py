@@ -37,7 +37,7 @@ class layer_norm_forward(operation):
   def __init__(self, gain):
     self._g = gain
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     gain = inputs[1]['y']
     inputs = inputs[0]['y']
     gpus = inputs.gpus
@@ -105,7 +105,7 @@ class layer_norm_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus

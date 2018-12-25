@@ -7,7 +7,7 @@ class leaky_reluforward(operation):
   def __init__(self, slope):
     self._slope = slope
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
@@ -35,7 +35,7 @@ class leaky_relubackward(operation):
     self._fwd_op = associated_forward
     self._slope = self._fwd_op._slope
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus

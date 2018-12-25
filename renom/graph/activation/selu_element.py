@@ -10,7 +10,7 @@ class selu_forward(operation):
     self._alpha = alpha
     self._lamda = lamda
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
@@ -41,7 +41,7 @@ class selu_backward(operation):
     self._alpha = self._fwd_op._alpha
     self._lamda = self._fwd_op._lamda
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus

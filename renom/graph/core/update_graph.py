@@ -29,7 +29,7 @@ class update_operation(operation):
       return
     self._factory = fac
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     if self._factory is None:
       self._factory = rm.graph.sgd_update()
     assert self._factory is not None

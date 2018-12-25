@@ -7,7 +7,7 @@ class elu_forward(operation):
   def __init__(self, alpha):
     self._alpha = alpha
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus
@@ -34,7 +34,7 @@ class elu_backward(operation):
     self._fwd_op = associated_forward
     self._alpha = self._fwd_op._alpha
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     gpus = inputs.gpus
     self.gpus = gpus

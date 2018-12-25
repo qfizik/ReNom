@@ -10,7 +10,7 @@ class unpool_forward(operation):
   def __init__(self, prev_pool):
     self._prev_pool = prev_pool
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
 
     inputs = inputs[0]['y']
 
@@ -51,7 +51,7 @@ class unpool_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     
     inputs = inputs[0]['y']
     self._inputs = inputs

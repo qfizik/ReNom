@@ -9,7 +9,7 @@ class graph_element(abc.ABC):
     Each graph_element has at least one starting point, which determines where the graph starts.
 
   '''
-  
+
   def __init__(self, previous_elements = None):
 
     if isinstance(previous_elements, graph_element):
@@ -17,7 +17,7 @@ class graph_element(abc.ABC):
     elif previous_elements is None:
       previous_elements = []
 
-    self._visited = False 
+    self._visited = False
     depth = 0
     for prev in previous_elements:
       prev.add_next(self)
@@ -75,7 +75,7 @@ class graph_element(abc.ABC):
     def walk_func(self, func, *args, **kwargs):
       if self._visited is True:
         return
-      self._visited = True 
+      self._visited = True
       for prev in self._previous_elements:
         walk_func(prev, func, *args, **kwargs)
       func(self, *args, **kwargs)
@@ -145,9 +145,9 @@ class operational_element(graph_element):
   '''
   def __init__(self, operation, previous_elements = None, tags = None):
     super(operational_element, self).__init__(previous_elements = previous_elements)
-  
+
     self._storage = graph_storage()
-    self.prev_inputs = None 
+    self.prev_inputs = None
     self._op = operation
 
     self._tags = []
@@ -231,8 +231,8 @@ class operational_element(graph_element):
           break
     else:
       changed = True
-    return changed 
-  
+    return changed
+
 
   @check_tags
   def forward(self):
@@ -257,12 +257,12 @@ class operational_element(graph_element):
     lst.append(self._op.optimize())
 
 
-  @graph_element.walk_tree  
+  @graph_element.walk_tree
   def _finalize(self):
-    self._op.finalize()  
+    self._op.finalize()
 
 
-    
+
 
   def calculate_forward(self, tag = None):
     for elem in self._previous_elements:
@@ -285,7 +285,7 @@ class operational_element(graph_element):
     if not self.inputs_changed():
       return
     inputs = [prev.get_output() for prev in self._previous_elements]
-    self._op.setup(inputs, self._storage)
+    self._op.setup(inputs)
     self.prev_inputs = inputs
 
   @graph_element.walk_tree
@@ -293,7 +293,7 @@ class operational_element(graph_element):
     self.setup()
 
   @graph_element.walk_tree
-  def print_tree(self): 
+  def print_tree(self):
     print('I am a {:s} at depth {:d} with tags: {}'.format(self._op.name, self.depth, self._tags))
 
   @property
@@ -306,7 +306,7 @@ class operational_element(graph_element):
   @property
   def output(self):
     if self.inputs_changed():
-      self.setup()   
+      self.setup()
     ret = self.get_output()['y']
     return ret
 

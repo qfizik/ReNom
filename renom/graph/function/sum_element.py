@@ -7,7 +7,7 @@ class sum_forward(operation):
 
   name = 'Sum (F)'
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     self._inputs = inputs
     gpus = inputs.gpus
@@ -36,7 +36,7 @@ class sum_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     inputs = inputs[0]['y']
     self._inputs = inputs
     gpus = inputs.gpus

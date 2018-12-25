@@ -7,7 +7,7 @@ class mul_forward(operation):
 
   def __init__(self): pass
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     a = inputs[0]['y']
     b = inputs[1]['y']
     assert len(a) == len(b)
@@ -32,7 +32,7 @@ class mul_backward(operation):
     self._fwd_op = associated_forward
     self._key = key
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     self._dy = inputs[0]['dy']
     other = self._fwd_op.get_key(self._key)
     self._other = other

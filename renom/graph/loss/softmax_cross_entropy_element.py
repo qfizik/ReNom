@@ -7,7 +7,7 @@ class softmax_cross_entropy_forward(operation):
   name = 'Softmax (F)'
   roles = [ 'loss' ]
 
-  def setup(self, inputs, storage): 
+  def setup(self, inputs): 
     assert isinstance(inputs[1], dict)
      
     labels = inputs[1]['y']
@@ -67,7 +67,7 @@ class softmax_cross_entropy_backward(operation):
   def __init__(self, associated_forward):
     self._fwd_op = associated_forward
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
 
     predictions = inputs[0]['y']
     labels = inputs[1]['y']

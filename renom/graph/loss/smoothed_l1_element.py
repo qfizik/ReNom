@@ -10,7 +10,7 @@ class smoothed_l1_forward(operation):
   def __init__(self, delta = 1.0):
     self._delta = delta
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
     predictions = inputs[0]['y']
     real_values = inputs[1]['y']
     self.gpus = predictions.gpus
@@ -65,7 +65,7 @@ class smoothed_l1_backward(operation):
     self._fwd_op = associated_forward
     self._delta = self._fwd_op._delta
 
-  def setup(self, inputs, storage):
+  def setup(self, inputs):
   
     predictions = inputs[0]['y']
     real_values = inputs[1]['y']
