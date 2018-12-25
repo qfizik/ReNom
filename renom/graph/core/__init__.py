@@ -3,12 +3,14 @@
     these modules provide the 'engine', which implements the graph. The names
     might change to be more descriptive later.
 
-    new_gpu:
-        The new_gpu module is responsible for providing and maintaining the storage
+    graph_storage:
+        The graph_storage module is responsible for providing and maintaining the storage
         of the graph through the GraphMultiStorage.
 
+
+
 '''
-from .new_gpu import GraphMultiStorage
+from .graph_storage import GraphMultiStorage
 from .learnable_graph import UserGraph, UserLossGraph
 from .graph_element import operational_element
 from .operation import operation, StateHolder

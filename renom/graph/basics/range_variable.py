@@ -1,7 +1,7 @@
 import numpy as np
 import renom as rm
 from graph_element import graph_element
-from new_gpu import GraphMultiStorage
+from graph_storage import GraphMultiStorage
 
 class range_variable(graph_element):
 

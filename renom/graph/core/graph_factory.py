@@ -3,7 +3,7 @@ import abc
 import numpy as np
 from .learnable_graph import UserGraph
 from .operation import operation
-from .new_gpu import GraphMultiStorage
+from .graph_storage import GraphMultiStorage
 import h5py
 
 class variable_input(operation):

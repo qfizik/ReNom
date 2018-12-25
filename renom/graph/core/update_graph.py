@@ -1,7 +1,7 @@
 import renom as rm
 from .operation import operation
 from .graph_element import operational_element
-from .new_gpu import GraphMultiStorage
+from .graph_storage import GraphMultiStorage
 import renom.utility.initializer as init
 import types
 
