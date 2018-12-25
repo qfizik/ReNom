@@ -1,7 +1,7 @@
 import renom as rm
 import abc
 import numpy as np
-from .learnable_graph import UserGraph
+from .user_graph import UserGraph
 from .operation import operation
 from .graph_storage import GraphMultiStorage
 import h5py

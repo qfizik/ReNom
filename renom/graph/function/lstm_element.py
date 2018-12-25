@@ -293,7 +293,7 @@ class LstmGraphElement(GraphFactory):
       ret = LstmElement(self._output_size, previous_elements = [other, self.params['w'], self.params['wr']])
     else:
       ret = self._l
-      prvs = rm.graph.core.learnable_graph._prepare_prevs([other, self.params['w'], self.params['wr']])
+      prvs = rm.graph.core.user_graph._prepare_prevs([other, self.params['w'], self.params['wr']])
       assert prvs[1].output is self.params['w'].output
       assert prvs[2].output is self.params['wr'].output
       ret.connect(prvs)

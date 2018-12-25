@@ -11,7 +11,7 @@
 
 '''
 from .graph_storage import GraphMultiStorage
-from .learnable_graph import UserGraph, UserLossGraph
+from .user_graph import UserGraph, UserLossGraph
 from .graph_element import operational_element
 from .operation import operation, StateHolder
 from .graph_factory import GraphFactory, graph_variable
