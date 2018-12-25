@@ -138,14 +138,13 @@ class learnable_graph_element(graph_element):
         try:
           loss = 0
           while(True):
-            rm.cuda.cuDeviceSynchronize()
+            #rm.cuda.cuDeviceSynchronize()
             self.perform_step()
             loss += self.loss[0].as_ndarray()#.get_loss()
         except StopIteration:
           print(loss)
           for disp in self.dispatchers:
             disp.reset()
-            disp._perm = self.dispatchers[0]._perm
           epochs -= 1
 
     def __del__(self):
@@ -160,6 +159,13 @@ class learnable_graph_element(graph_element):
 
     def loss(self):
       return self.loss_func
+
+  def getInferenceExecutor(self):
+    ins = self._fwd.gather_operations_with_role('input')
+    lss = self._fwd.gather_operations_with_role('loss')
+    dct = self._fwd.get_call_dict('Forward')
+    ret = learnable_graph_element.Executor(dct, ins, lss)
+    return ret
 
   def getTrainingExecutor(self, optimizer = None):
     ups = self._bwd_graphs[0].gather_operations_with_role('update')
@@ -224,7 +230,7 @@ class learnable_graph_element(graph_element):
   def output(self): return self._fwd.output
 
   def as_ndarray(self):
-    self.forward()
+    #self.simple_forward()
     return self._fwd.as_ndarray()
 
 

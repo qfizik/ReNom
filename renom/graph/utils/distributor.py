@@ -3,22 +3,32 @@ import renom as rm
 from renom.graph.core import operational_element, learnable_graph_element, operation, multi_gpu_variable
 
 class dispatch(operation):
+  '''
+  Dispatch class, responsible for feeding input data to the graph model.
 
+  Performing this operation produces the next output value until the requested batch size cannot be fulfilled.
+  Once the batch size can no longer be fulfilled with the given input source, the operation produces a StopIteration exception,
+  which the user is requested to catch.
+  
+  To run through the input source again, the reset method should be called, which will handle reinitializing the internal states.
+  '''
   name = 'Data Dispatcher'
   roles = [ 'input' ]
 
-  def __init__(self, value, batch_size = 128, num_gpus = 1):
+  def __init__(self, value, batch_size = 128, num_gpus = 1, shuffle = True):
     self._value = value
     self._batch_num = 0
     self._batch_size = batch_size
     out_shape = [ batch_size ]
     out_shape.extend(value.shape[1:])
     self._num_gpus = num_gpus
-    self.gpus = [gpu for gpu in range(num_gpus)]
+    self.gpus = [gpu for gpu in range(num_gpus)] if rm.is_cuda_active() else 'cpu'
     self._outputs = multi_gpu_variable(shape = out_shape, gpus = self.gpus)
     self._vars = { 'y' : self._outputs }
     self._finished = False
-    self._perm = np.random.permutation(len(self._value))
+    self._shuffle = shuffle
+    self._perm = np.random.permutation(len(self._value)) if self._shuffle else np.arange(len(self._value)) 
+    self._attached = None
 
   def setup(self, inputs, storage):
     self._storage = storage
@@ -47,13 +57,38 @@ class dispatch(operation):
       self._outputs[gpu].to_gpu(pin)
       self._batch_num += 1
 
-  def reset(self):
+  def attach(self, other):
+    assert isinstance(other, dispatch)
+    assert self._value.shape[0] == other._value.shape[0]
+    self._attached = other
+    self._perm = other._perm
+
+  def reset(self, perm = None):
     self._batch_num = 0
     self._finished = False
-    self._perm = np.random.permutation(len(self._value))
+    if perm is not None:
+      self._perm = perm
+    else:
+      self._perm = np.random.permutation(len(self._value)) if self._shuffle else np.arange(len(self._value)) 
+    if self._attached is not None:
+      self._attached.reset(perm = self._perm)
 
   def set_batch_size(self, batch_size):
     self._batch_size = batch_size
+
+class dispatch_cpu(dispatch):
+
+  def perform(self):
+    if self._finished:
+      raise StopIteration
+    cur_slice = slice(self._batch_num * self._batch_size, (1 + self._batch_num) * self._batch_size)
+    arr = self._value[self._perm[cur_slice]]
+    self._outputs.shape[0].value = len(arr)
+    if len(arr) < self._batch_size:
+      self._finished = True
+    self._outputs['cpu'] = arr
+    self._batch_num += 1
+
 
 class data_entry_element(learnable_graph_element):
 
@@ -66,15 +101,20 @@ class data_entry_element(learnable_graph_element):
 class DistributorElement:
 
 
-  def __init__(self, data, labels, batch_size = 64, num_gpus = 1):
+  def __init__(self, data, labels, batch_size = 64, num_gpus = 1, shuffle = True):
     super().__init__()
     self._data = data
     self._labels = labels
     self._batch_size = batch_size
     self._num_gpus = num_gpus
 
-    data_op = dispatch(data, num_gpus = num_gpus, batch_size = batch_size)
-    lbls_op = dispatch(labels, num_gpus = num_gpus, batch_size = batch_size)
+    if rm.is_cuda_active():
+      data_op = dispatch(data, num_gpus = num_gpus, batch_size = batch_size, shuffle = shuffle)
+      lbls_op = dispatch(labels, num_gpus = num_gpus, batch_size = batch_size, shuffle = shuffle)
+    else:
+      data_op = dispatch_cpu(data, num_gpus = num_gpus, batch_size = batch_size, shuffle = shuffle)
+      lbls_op = dispatch_cpu(labels, num_gpus = num_gpus, batch_size = batch_size, shuffle = shuffle)
+    data_op.attach(lbls_op)
 
     self._dt_op = data_op
     self._lb_op = lbls_op

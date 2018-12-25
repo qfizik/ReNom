@@ -25,6 +25,7 @@ class ConstantLoss(learnable_graph_element):
 
   def __init__(self, previous_element = None):
     fwd_op = sum_forward() if rm.is_cuda_active() else sum_forward_cpu()
+    fwd_op.roles = [ 'loss' ]
     bwd_ops = [ constant_loss_backward() ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
     self._bwd_graphs[0].add_input(previous_element.get_forward_output())

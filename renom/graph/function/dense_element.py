@@ -134,6 +134,8 @@ class DenseGraphElement(GraphFactory):
     self._init = initializer
 
   def connect(self, other):
+    if len(self.params['w']._next_elements) > 0:
+      self.params['w']._fwd._next_elements[0].disconnect()
     self.params['w'].disconnect()
     self.params['b'].disconnect()
     ret = DenseGraph(output_size = self.output_size, initializer = self._init, previous_element = [ other, self.params['w']])
