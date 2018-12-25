@@ -1,13 +1,13 @@
 import decorator
 import numpy as np
 import renom as rm
-#rm.set_cuda_active()
-#np.set_printoptions(precision = 2, suppress = True)
 import pytest
-import test_utility
+
+from test_utility import skipgpu
+if rm.precision is not np.float64:
+    pytestmark = pytest.mark.skip()
 
 rm.set_renom_seed(30)
-rm.cuda.cuResetDevice()
 
 def compare(nd_value, ad_value):
   print('ad=')
@@ -117,7 +117,7 @@ def test_dense(test_shape, use_gpu):
     val.forward()
     ret = loss.as_ndarray()
     return ret
-  
+
   compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
   compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
   compare( getNumericalDiff( func , model.params['b'].output) , loss.backward().get_gradient(model.params['b'].output).as_ndarray())
@@ -146,7 +146,7 @@ def test_lstm(test_shape, use_gpu):
     loss.forward()
     ret = loss.as_ndarray()
     return ret
-  
+
   compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
   compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
   compare( getNumericalDiff( func , model.params['wr'].output) , loss.backward().get_gradient(model.params['wr'].output).as_ndarray())
@@ -175,7 +175,7 @@ def test_gru(test_shape, use_gpu):
     loss.forward()
     ret = loss.as_ndarray()
     return ret
-  
+
   compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
   compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
   compare( getNumericalDiff( func , model.params['wr'].output) , loss.backward().get_gradient(model.params['wr'].output).as_ndarray())
@@ -201,7 +201,7 @@ def test_weight_norm(test_shape, use_gpu):
     val.forward()
     ret = loss.as_ndarray()
     return ret
-  
+
   compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
   compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
   compare( getNumericalDiff( func , model.params['g'].output) , loss.backward().get_gradient(model.params['g'].output).as_ndarray())
@@ -228,7 +228,7 @@ def test_layer_norm(test_shape, use_gpu):
     val.forward()
     ret = loss.as_ndarray()
     return ret
-  
+
   compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
   compare( getNumericalDiff( func , model.params['g'].output) , loss.backward().get_gradient(model.params['g'].output).as_ndarray())
 
@@ -251,7 +251,7 @@ def test_lrn(test_shape, use_gpu):
     val.forward()
     ret = loss.as_ndarray()
     return ret
-  
+
   compare( getNumericalDiff( func , val.value ) , loss.backward().get_gradient(val.value).as_ndarray() )
 
 
@@ -273,7 +273,7 @@ def test_embedding(test_shape, use_gpu):
     val.forward()
     ret = loss.as_ndarray()
     return ret
-  
+
   compare( getNumericalDiff( func , model.params['w'].output) , loss.backward().get_gradient(model.params['w'].output).as_ndarray())
   compare( getNumericalDiff( func , model.params['b'].output) , loss.backward().get_gradient(model.params['b'].output).as_ndarray())
 
@@ -515,7 +515,7 @@ def test_smoothed_l1(test_shape, use_gpu):
     return ret
 
   compare( getNumericalDiff( func , val.value ) ,  m.backward().get_gradient(val.value).as_ndarray() )
- 
+
 
 @pytest.mark.parametrize("test_shape", [
     (2, 1),
@@ -798,8 +798,3 @@ def test_batch_norm(test_shape, use_gpu):
   compare( getNumericalDiff( func , val.value ) ,  l.backward().get_gradient(val.value).as_ndarray() )
   compare( getNumericalDiff( func , model.params['w'].output) ,  l.backward().get_gradient(model.params['w'].output).as_ndarray() )
   compare( getNumericalDiff( func , model.params['b'].output) ,  l.backward().get_gradient(model.params['b'].output).as_ndarray() )
-
-
-
-
-

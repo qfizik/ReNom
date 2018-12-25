@@ -6,7 +6,7 @@ import numpy as np
 
 def _prepare_prevs(previous_elements):
   if not isinstance(previous_elements, list):
-    previous_elements = [ previous_elements ] 
+    previous_elements = [ previous_elements ]
   for i, prev in enumerate(previous_elements):
     assert isinstance(prev, np.ndarray) or isinstance(prev, learnable_graph_element)
     if isinstance(prev, np.ndarray):
@@ -31,7 +31,7 @@ class learnable_graph_element(graph_element):
     if previous_elements is not None:
       previous_elements = _prepare_prevs(previous_elements)
 
-    super().__init__(previous_elements = previous_elements) 
+    super().__init__(previous_elements = previous_elements)
 
     self._create_fwd_graph(forward_operation)
     self._create_bwd_graphs(backward_operations)
@@ -39,11 +39,11 @@ class learnable_graph_element(graph_element):
 
     if previous_elements is not None:
       self.connect(previous_elements = previous_elements)
-    
+
 
   # Some helper functions to divide the __init__ method into smaller parts
   def _create_bwd_graphs(self, backward_operations):
-    self._bwd_graphs = [] 
+    self._bwd_graphs = []
     for op in backward_operations:
       bwd_graph = operational_element(op, tags = ['Backward'])
       self._bwd_graphs.append(bwd_graph)
@@ -68,7 +68,7 @@ class learnable_graph_element(graph_element):
             upd_g = operational_element(upd, tags = ['Update'])
             upd_g.add_input(self._bwd_graphs[op_num])
 
-    
+
   def connect(self, previous_elements):
     if self.connected is True:
       self.disconnect()
@@ -109,7 +109,7 @@ class learnable_graph_element(graph_element):
     backward_graph_input = previous_element.get_backward_output(pos)
     for graph in self._bwd_graphs:
       graph.remove_input(backward_graph_input)
-    
+
 
   @property
   def has_back(self):
@@ -125,7 +125,7 @@ class learnable_graph_element(graph_element):
     return self._fwd.__repr__()
 
   class Executor:
-    
+
     def __init__(self, call_list, graph_inputs, losses):
       self.call_list = call_list
       self.dispatchers = graph_inputs
@@ -150,8 +150,8 @@ class learnable_graph_element(graph_element):
     def __del__(self):
       for i in range(len(self.dispatchers)): self.dispatchers[i] = None
       for i in range(len(self.loss)): self.loss[i] = None
-      
-    
+
+
     def perform_step(self):
       for depth in self.call_list.keys():
         for call in self.call_list[depth]:
@@ -170,7 +170,7 @@ class learnable_graph_element(graph_element):
   def getTrainingExecutor(self, optimizer = None):
     ups = self._bwd_graphs[0].gather_operations_with_role('update')
     for i in range(len(ups)):
-      ups[i].set_update_op(optimizer) 
+      ups[i].set_update_op(optimizer)
       ups[i] = None # Avoiding destruction errors
     ins = self._bwd_graphs[0].gather_operations_with_role('input')
     lss = self._bwd_graphs[0].gather_operations_with_role('loss')
@@ -178,7 +178,7 @@ class learnable_graph_element(graph_element):
     dct = self._bwd_graphs[0].get_call_dict()
     ret = learnable_graph_element.Executor(dct, ins, lss)
     return ret
-    
+
   def simple_forward(self):
     self._fwd.forward()
     return self
@@ -193,7 +193,7 @@ class learnable_graph_element(graph_element):
   def backward(self):
     if len(self._bwd_graphs[0]._previous_elements) == 0:
       loss = rm.graph.ConstantLoss(previous_element = self)
-      loss._bwd_graphs[0].add_input(self._fwd)  
+      loss._bwd_graphs[0].add_input(self._fwd)
     self._fwd.continue_forward(tag = 'Backward')
     return self
 
@@ -209,13 +209,13 @@ class learnable_graph_element(graph_element):
       if r is not None:
         return r
     raise AttributeError('Could not find {}'.format(search_id))
-    
+
   def update(self, optimizer=None):
     if optimizer is not None:
       ups = self._bwd_graphs[0].gather_operations_with_role('update')
       #for up in ups:
       for i in range(len(ups)):
-        ups[i].set_update_op(optimizer) 
+        ups[i].set_update_op(optimizer)
         ups[i] = None # Avoiding destruction errors
     self._fwd.continue_forward(tag = 'Update')
 
@@ -230,7 +230,7 @@ class learnable_graph_element(graph_element):
   def output(self): return self._fwd.output
 
   def as_ndarray(self):
-    #self.simple_forward()
+    self.forward()
     return self._fwd.as_ndarray()
 
 
