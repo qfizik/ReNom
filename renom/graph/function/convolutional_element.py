@@ -193,6 +193,7 @@ class convo_backward(operation):
             self._algo = {'data': 0, 'filter': 0}
 
     def finalize(self):
+        if not rm.is_cuda_active(): return
         self._algo = {'data': self._fwd_op._bwd_info['data']
                       [0], 'filter': self._fwd_op._bwd_info['filter'][0]}
 

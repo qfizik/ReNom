@@ -1,4 +1,4 @@
-from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage
+from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
 import renom as rm
 import numpy as np
 
@@ -50,3 +50,13 @@ class ReshapeElement(UserGraph):
         fwd_op = reshape_op(shape)
         bwd_ops = [reshape_op_back(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
+
+
+class ReshapeGraphElement(GraphFactory):
+
+    def __init__(self, shape):
+        super().__init__()
+        self.shp = shape
+
+    def connect(self, other):
+        return ReshapeElement(self.shp, other)

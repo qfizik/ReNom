@@ -84,14 +84,13 @@ class operational_element(graph_element):
         self.setup_all()
         finished = False
         while not finished:
-            rets = self._smooth_iteration()
-            finished = all(all(t is True for t in rets[r]) is True for r in rets)
+            rets = self._smooth_iteration(flatten = True)
+            finished = all(r is True for r in rets)
         self._finalize()
 
     @graph_element.walk_tree
     def _smooth_iteration(self):
-        lst = self._storage.retrieve('Finalized')
-        lst.append(self._op.optimize())
+        return self._op.optimize()
 
     @graph_element.walk_tree
     def _finalize(self):

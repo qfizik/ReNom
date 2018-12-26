@@ -109,8 +109,34 @@ def test_training_executor(use_gpu):
 
 
 def test_finalizer(use_gpu):
-    raise NotImplementedError()
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v = np.random.rand(2, 1, 3, 4)
+    layer1 = rm.graph.ConvolutionalGraphElement(channels = 2)
+    res = rm.graph.ReshapeGraphElement([-1])
+    layer2 = rm.graph.DenseGraphElement(3)
+    t = np.random.rand(2, 3)
+    loss = rm.graph.MeanSquaredGraphElement()
+    opt = rm.graph.sgd_update()
+
+    z = v
+    z = layer1(z)
+    z = res(z)
+    z = layer2(z)
+    z = loss(z, t)
+    z._fwd.finalize()
 
 
 def test_sequential(use_gpu):
-    raise NotImplementedError()
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v = np.random.rand(4, 4)
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DenseGraphElement(1),
+        rm.graph.DenseGraphElement(5),
+    ])
+    z = model(v).as_ndarray()
+    assert z.shape == (4, 5)

@@ -39,8 +39,10 @@ class graph_variable(UserGraph):
 
 class GraphFactory(abc.ABC):
 
-    def __init__(self):
+    def __init__(self, *other):
         self.params = dict()
+        if len(other) > 0:
+            self(*other)
 
     @abc.abstractmethod
     def connect(self, other): pass
