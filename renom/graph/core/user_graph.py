@@ -219,7 +219,7 @@ class UserGraph(graph_element):
                 for i in range(len(ups[d])):
                     ups[d][i].set_update_op(optimizer)
                     ups[d][i] = None  # Avoiding destruction errors
-        self._fwd.continue_forward(tag='update')
+        self._fwd.continue_forward(tag='Update')
 
     def print_tree(self):
         #print('I am a {0:s} at depth {1:d}'.format(self.name, self.depth))
