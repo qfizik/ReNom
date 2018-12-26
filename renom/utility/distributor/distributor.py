@@ -184,7 +184,7 @@ class GPUDistributor(Distributor):
         self._gpus = gpus
 
     @staticmethod
-    def preload_single(batch, device = 0):
+    def preload_single(batch, device=0):
         with RenomHandler(device) as handle:
             batch = batch.astype(np.dtype(precision))
             pin = handle.getPinnedMemory(batch)
@@ -192,7 +192,7 @@ class GPUDistributor(Distributor):
         return ret
 
     @staticmethod
-    def preload_pair(batch1, batch2, device = 0):
+    def preload_pair(batch1, batch2, device=0):
         return GPUDistributor.preload_single(batch1, device), GPUDistributor.preload_single(batch2, device)
 
     @staticmethod
@@ -211,7 +211,8 @@ class GPUDistributor(Distributor):
                     b = next(generator)
                     x1, y1 = [], []
                     for i in range(self._gpus):
-                        prep = GPUDistributor.preload_pair(b[0][i*batch_size:(i+1)*batch_size], b[1][i*batch_size : (i+1)*batch_size], device = i)
+                        prep = GPUDistributor.preload_pair(
+                            b[0][i*batch_size:(i+1)*batch_size], b[1][i*batch_size: (i+1)*batch_size], device=i)
                         x1.append(prep[0])
                         y1.append(prep[1])
                     #x1, y1 = GPUDistributor.preload_pair(b[0], b[1])
@@ -223,7 +224,8 @@ class GPUDistributor(Distributor):
                 x2, y2 = GPUDistributor.preload_pair(b[0], b[1])
                 x2, y2 = [], []
                 for i in range(self._gpus):
-                    prep = GPUDistributor.preload_pair(b[0][i*batch_size:(i+1)*batch_size], b[1][i*batch_size : (i+1)*batch_size], device = i)
+                    prep = GPUDistributor.preload_pair(
+                        b[0][i*batch_size:(i+1)*batch_size], b[1][i*batch_size: (i+1)*batch_size], device=i)
                     x2.append(prep[0])
                     y2.append(prep[1])
                 yield GPUDistributor.create_return(x1, y1)

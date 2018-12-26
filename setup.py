@@ -166,7 +166,7 @@ def setup_cuda():
 
     ext_base = Extension('renom.cuda.base.cuda_base',
                          sources=['renom/cuda/base/cuda_base.pyx'],
-                         #depends=cuda_depends,
+                         # depends=cuda_depends,
                          libraries=['cublas', 'cuda', 'cudart', 'nvToolsExt'],
                          library_dirs=libraries,
                          language='c++',
@@ -175,7 +175,7 @@ def setup_cuda():
 
     ext_utils = Extension('renom.cuda.base.cuda_utils',
                           sources=['renom/cuda/base/cuda_utils.pyx'],
-                          #depends=cuda_depends,
+                          # depends=cuda_depends,
                           libraries=['cublas', 'cuda', 'cudart'],
                           library_dirs=libraries,
                           language='c++',
@@ -184,7 +184,7 @@ def setup_cuda():
 
     ext_cublas = Extension('renom.cuda.cublas.cublas',
                            sources=['renom/cuda/cublas/cublas.pyx'],
-                           #depends=cuda_depends,
+                           # depends=cuda_depends,
                            libraries=['cublas', 'cuda', 'cudart'],
                            library_dirs=libraries,
                            language='c++',
@@ -193,7 +193,7 @@ def setup_cuda():
 
     ext_cudnn = Extension('renom.cuda.cudnn.cudnn',
                           sources=['renom/cuda/cudnn/cudnn.pyx'],
-                          #depends=cuda_depends,
+                          # depends=cuda_depends,
                           libraries=['cublas', 'cuda', 'cudart', 'cudnn'],
                           library_dirs=libraries,
                           language='c++',
@@ -202,7 +202,7 @@ def setup_cuda():
 
     ext_curand = Extension('renom.cuda.curand.curand',
                            sources=['renom/cuda/curand/curand.pyx'],
-                           #depends=cuda_depends,
+                           # depends=cuda_depends,
                            libraries=['curand', 'cuda', 'cudart'],
                            library_dirs=libraries,
                            language='c++',
@@ -229,22 +229,21 @@ def setup_cuda():
 
     ext_gpuvalue = Extension('renom.cuda.gpuvalue.gpuvalue',
                              sources=['renom/cuda/gpuvalue/gpuvalue.py'],
-                             #depends=cuda_depends,
+                             # depends=cuda_depends,
                              libraries=['cublas', 'cuda', 'cudart'],
                              library_dirs=libraries,
                              language='c++',
                              include_dirs=includes,
                              )
 
-
     ext_nccl = Extension('renom.cuda.nccl.nccl',
-                             sources=['renom/cuda/nccl/nccl.pyx'],
-                             depends=[],
-                             libraries=['cuda', 'nccl'],
-                             library_dirs=libraries,
-                             language='c++',
-                             include_dirs=includes,
-                             )
+                         sources=['renom/cuda/nccl/nccl.pyx'],
+                         depends=[],
+                         libraries=['cuda', 'nccl'],
+                         library_dirs=libraries,
+                         language='c++',
+                         include_dirs=includes,
+                         )
 
     global ext_modules, cuda_sources
 

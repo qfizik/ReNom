@@ -27,13 +27,15 @@ class Initializer(object):
     def __call__(self, shape):
         raise NotImplementedError
 
+
 class Constant(Initializer):
 
-  def __init__(self, value):
-    self._init_value = value
+    def __init__(self, value):
+        self._init_value = value
 
-  def __call__(self, shape):
-    return np.full(shape, self._init_value).astype(precision)
+    def __call__(self, shape):
+        return np.full(shape, self._init_value).astype(precision)
+
 
 class GlorotUniform(Initializer):
 

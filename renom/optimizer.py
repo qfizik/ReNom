@@ -86,14 +86,16 @@ class Sgd(Optimizer):
         pdy = self._params.get(node_id, get_gpu(dy).zeros_like_me())
         ndy = get_gpu(dy).empty_like_me()
         with cu.RenomHandler() as handle:
-          if self._nesterov:
-              mdy = get_gpu(dy).empty_like_me()
-              cu.cu_optimizer_sgd(self._lr, self._momentum, get_gpu(dy), get_gpu(pdy), mdy, handle)
-              cu.cu_optimizer_sgd(1 + self._momentum, -self._momentum,
-                                  get_gpu(mdy), get_gpu(pdy), ndy, handle)
-              self._params[node_id] = mdy
-          else:
-              cu.cu_optimizer_sgd(self._lr, self._momentum, get_gpu(dy), get_gpu(pdy), ndy, handle)
+            if self._nesterov:
+                mdy = get_gpu(dy).empty_like_me()
+                cu.cu_optimizer_sgd(self._lr, self._momentum, get_gpu(dy),
+                                    get_gpu(pdy), mdy, handle)
+                cu.cu_optimizer_sgd(1 + self._momentum, -self._momentum,
+                                    get_gpu(mdy), get_gpu(pdy), ndy, handle)
+                self._params[node_id] = mdy
+            else:
+                cu.cu_optimizer_sgd(self._lr, self._momentum, get_gpu(dy),
+                                    get_gpu(pdy), ndy, handle)
 
         if self._momentum > 0:
             self._params[node_id] = ndy

@@ -101,6 +101,7 @@ DEFAULT_EVENTS = {
 def share_gradient(communicator, gradients):
     communicator.allReduce(gradients)
 
+
 class Trainer(object):
     """Trainer class.
 
@@ -264,7 +265,7 @@ class Trainer(object):
                     for gpu in range(self.num_gpu):
                         grads_list[gpu] = self.grads[gpu].variables[var]
                     self.communicate.allReduce(grads_list)
-                #if self.num_gpu > 1:
+                # if self.num_gpu > 1:
                 #    models[0].join_grads(self.grads[0], zip(models[1:], self.grads[1:]))
 
                 # TODO should a single device do this or each device?

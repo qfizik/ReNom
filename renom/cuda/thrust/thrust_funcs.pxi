@@ -242,7 +242,7 @@ cdef bin_operation_num(BINOP_FUNC_NUM func, lhs, rhs, ret, cudaStream_t stream):
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > ret._ptr
     size = calc_int_prod(ret.shape)
 
-    cdef VALUE_TYPE num = <VALUE_TYPE> rhs
+    cdef VALUE_TYPE num = <VALUE_TYPE > rhs
 
     func(ptr1, num, ptr2, size, stream)
 
@@ -251,63 +251,63 @@ def cumul(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_mul, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation(thrust_mul, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
     else:
-        bin_operation_num(thrust_mul_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation_num(thrust_mul_num, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def cuadd(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_add, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation(thrust_add, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
     else:
-        bin_operation_num(thrust_add_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation_num(thrust_add_num, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def cusub(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_sub, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation(thrust_sub, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
     else:
-        bin_operation_num(thrust_sub_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation_num(thrust_sub_num, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def cudiv(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_div, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation(thrust_div, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
     else:
-        bin_operation_num(thrust_div_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation_num(thrust_div_num, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def curdiv(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_rdiv, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation(thrust_rdiv, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
     else:
-        bin_operation_num(thrust_rdiv_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation_num(thrust_rdiv_num, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def cupow(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_pow, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation(thrust_pow, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
     else:
-        bin_operation_num(thrust_pow_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation_num(thrust_pow_num, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def curpow(gpu_value1, gpu_value2, gpu_value3, handle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     if isinstance(gpu_value2, renom.core.GPUValue):
-        bin_operation(thrust_rpow, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation(thrust_rpow, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
     else:
-        bin_operation_num(thrust_rpow_num, gpu_value1, gpu_value2, gpu_value3, <cudaStream_t><uintptr_t> handle.stream)
+        bin_operation_num(thrust_rpow_num, gpu_value1, gpu_value2, gpu_value3, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def cufill(value, gpu_value, handle):
@@ -316,7 +316,7 @@ def cufill(value, gpu_value, handle):
     cdef VALUE_TYPE * ptr = <VALUE_TYPE * > < uintptr_t > gpu_value._ptr
 
     cuda_base.check_heap_device(gpu_value)
-    thrust_fill(v, ptr, size, <cudaStream_t><uintptr_t> handle.stream)
+    thrust_fill(v, ptr, size, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def culoge(gpu_value1, gpu_value2):
@@ -359,7 +359,7 @@ def cucross_entropy(gpu_value1, gpu_value2, gpu_value3, handle):
     cdef VALUE_TYPE * ptr3 = <VALUE_TYPE * > < uintptr_t > gpu_value3._ptr
 
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
-    thrust_cross_entropy(ptr1, ptr2, ptr3, size, <cudaStream_t><uintptr_t> handle.stream)
+    thrust_cross_entropy(ptr1, ptr2, ptr3, size, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def cuabs_forward(gpu_value1, gpu_value2):
@@ -615,7 +615,7 @@ def _calc_index(reductions, kept_shapes_size, n):
     return ret
 
 
-cdef _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, REDUCE_FUNC func, args, cudaStream_t stream = <cudaStream_t> 0):
+cdef _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, REDUCE_FUNC func, args, cudaStream_t stream=< cudaStream_t > 0):
     assert num_threads < 600
 
     if not gpu_value1.shape:
@@ -736,7 +736,7 @@ cdef _cusum(size_t max_grids, size_t num_threads,
 
 
 def cusum(gpu_value1, handle, axis=None, keepdims=False, max_grids=65536, num_threads=512):
-    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cusum, None, <cudaStream_t><uintptr_t> handle.stream)
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cusum, None, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 cdef _cu_reduce_min(size_t max_grids, size_t num_threads,
@@ -765,7 +765,8 @@ cdef _cu_reduce_min(size_t max_grids, size_t num_threads,
 
 
 def cu_reduce_min(gpu_value1, axis=None, keepdims=False, max_grids=65536, num_threads=512):
-    pass#return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_min, None)
+    # return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_min, None)
+    pass
 
 
 cdef _cu_reduce_max(size_t max_grids, size_t num_threads,
@@ -795,7 +796,7 @@ cdef _cu_reduce_max(size_t max_grids, size_t num_threads,
 
 def cu_reduce_max(gpu_value1, axis=None, keepdims=False, max_grids=65536, num_threads=512):
     pass
-    #return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_max, None)
+    # return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_max, None)
 
 
 cdef _cu_reduce_argmin(size_t max_grids, size_t num_threads,
@@ -840,7 +841,7 @@ def cu_reduce_argmin(gpu_value1, axis=None, max_grids=65536, num_threads=512):
         div = 1
 
     keepdims = False
-    #return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmin, (mod, div))
+    # return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmin, (mod, div))
 
 
 cdef _cu_reduce_argmax(size_t max_grids, size_t num_threads,
@@ -886,7 +887,7 @@ def cu_reduce_argmax(gpu_value1, axis=None, max_grids=65536, num_threads=512):
 
     keepdims = False
 
-    #return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmax, (mod, div))
+    # return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmax, (mod, div))
 
 
 def cu_add_bias(bias, gpu_value):
@@ -1091,13 +1092,13 @@ def cu_set_item(value, valuesize, gpu_value1, slices, strides, broadcasted_strid
 
 
 def cu_optimizer_sgd(learning_rate, momentum, dy, previous_dy, new_dy, handle):
-    cdef int Elems = <int> np.prod(dy.shape)
+    cdef int Elems = <int > np.prod(dy.shape)
     cdef VALUE_TYPE lr = learning_rate
     cdef VALUE_TYPE mo = momentum
     cdef VALUE_TYPE * ptr_dy = <VALUE_TYPE * > < uintptr_t > dy._ptr
-    cdef VALUE_TYPE * ptr_pdy = <VALUE_TYPE * > < uintptr_t > previous_dy._ptr if previous_dy is not None else <VALUE_TYPE * > 0
+    cdef VALUE_TYPE * ptr_pdy = <VALUE_TYPE * > < uintptr_t > previous_dy._ptr if previous_dy is not None else < VALUE_TYPE * > 0
     cdef VALUE_TYPE * ptr_ndy = <VALUE_TYPE * > < uintptr_t > new_dy._ptr
-    thrust_optimizer_sgd(Elems, lr, ptr_dy, mo, ptr_pdy, ptr_ndy, <cudaStream_t><uintptr_t> handle.stream)
+    thrust_optimizer_sgd(Elems, lr, ptr_dy, mo, ptr_pdy, ptr_ndy, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def cu_optimizer_adagrad(learning_rate, epsilon, dy, previous_dy, new_dy, r):
