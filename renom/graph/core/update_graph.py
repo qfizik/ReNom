@@ -1,6 +1,6 @@
 import renom as rm
 from .operation import operation
-from .graph_element import operational_element
+from .operational_element import operational_element
 from .graph_storage import GraphMultiStorage
 import renom.utility.initializer as init
 import types

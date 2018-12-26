@@ -12,10 +12,10 @@
         The module contents are responsible for interfacing the user with the
         underlying components.
 
-    graph_element:
-        This module comprises the basic graph_element and operational_element classes.
-        Both UserGraph as well as operational_element are graph_elements. The UserGraph
-        should be translated into operational_element components, which is what runs the graph.
+    operational_element:
+        This module comprises the basic operational_element class.
+        Both UserGraph as well as operational_element are graph_elements. The UserGraph should
+        be translated into operational_element components, which is what runs the graph.
 
     operation:
         The basic 'building blocks' of the graph is the operation class. A well constructed
@@ -31,6 +31,6 @@
 '''
 from .graph_storage import GraphMultiStorage
 from .user_graph import UserGraph, UserLossGraph
-from .graph_element import operational_element
+from .operational_element import operational_element
 from .operation import operation, StateHolder
 from .graph_factory import GraphFactory, graph_variable

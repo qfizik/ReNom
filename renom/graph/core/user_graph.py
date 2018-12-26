@@ -1,4 +1,5 @@
-from .graph_element import graph_element, operational_element
+from .graph_element import graph_element
+from .operational_element import operational_element
 from .update_graph import update_operation
 from .operation import operation
 import renom as rm
