@@ -129,7 +129,6 @@ class UserGraph(graph_element):
     def __init__(self, call_list, graph_inputs, losses):
       self.call_list = call_list
       self.dispatchers = graph_inputs
-      print(self.dispatchers)
       self.loss = losses
 
     def execute(self, epochs = None, steps = 1):
@@ -157,7 +156,6 @@ class UserGraph(graph_element):
       for depth in self.call_list.keys():
         for call in self.call_list[depth]:
           call()
-          print('Forwarding')
 
     def loss(self):
       return self.loss_func
@@ -169,7 +167,7 @@ class UserGraph(graph_element):
     for d in ins.keys(): inputs.extend(ins[d])
     losses = []
     for d in lss.keys(): losses.extend(lss[d])
-    dct = self._fwd.get_call_dict('Forward')
+    dct = self._fwd.get_call_dict(tag = 'Forward')
     ret = UserGraph.Executor(dct, inputs, losses)
     return ret
 

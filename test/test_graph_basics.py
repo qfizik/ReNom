@@ -88,3 +88,15 @@ def test_inference_executor(use_gpu):
     data, target = rm.graph.DistributorElement(v, t, batch_size = 2).getOutputGraphs()
     exe = loss(layer(data), target).getInferenceExecutor()
     exe.execute(epochs = 1)
+
+def vaaatraining_executor(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    v = np.random.rand(20,3)
+    layer = rm.graph.DenseGraphElement(4)
+    t = np.random.rand(20,4)
+    loss = rm.graph.MeanSquaredGraphElement()
+    opt = rm.graph.sgd_update()
+    data, target = rm.graph.DistributorElement(v, t, batch_size = 2).getOutputGraphs()
+    exe = loss(layer(data), target).getTrainingExecutor()
+    exe.execute(epochs = 1)

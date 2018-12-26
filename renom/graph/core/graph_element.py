@@ -198,24 +198,10 @@ class operational_element(graph_element):
         return func(self, *args, **kwargs)
     return ret_func
 
-  def get_call_dict(self, tag = None):
-    self._storage.register('CallDict', None)
-    dct = self._storage.retrieve('CallDict')
-    assert dct is None
-    if dct is None:
-      self._storage.register('CallDict', {})
-      self._create_call_dict(tag = tag)
-      dct = self._storage.retrieve('CallDict')
-    return dct
-
   @graph_element.walk_tree
   @check_tags
-  def _create_call_dict(self):
-    dct = self._storage.retrieve('CallDict')
-    if self.depth not in dct:
-      dct[self.depth] = [ ]
-    if self._op.perform not in dct[self.depth]:
-      dct[self.depth].append(self._op.perform)
+  def get_call_dict(self):
+    return self._op.perform
 
   def gather_operations_with_role(self, role, tag = None):
     ret = self._gather_roles(role)

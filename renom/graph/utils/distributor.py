@@ -9,7 +9,7 @@ class dispatch(operation):
   Performing this operation produces the next output value until the requested batch size cannot be fulfilled.
   Once the batch size can no longer be fulfilled with the given input source, the operation produces a StopIteration exception,
   which the user is requested to catch.
-  
+
   To run through the input source again, the reset method should be called, which will handle reinitializing the internal states.
   '''
   name = 'Data Dispatcher'
@@ -27,7 +27,7 @@ class dispatch(operation):
     self._vars = { 'y' : self._outputs }
     self._finished = False
     self._shuffle = shuffle
-    self._perm = np.random.permutation(len(self._value)) if self._shuffle else np.arange(len(self._value)) 
+    self._perm = np.random.permutation(len(self._value)) if self._shuffle else np.arange(len(self._value))
     self._attached = None
 
   def setup(self, inputs):
@@ -69,7 +69,7 @@ class dispatch(operation):
     if perm is not None:
       self._perm = perm
     else:
-      self._perm = np.random.permutation(len(self._value)) if self._shuffle else np.arange(len(self._value)) 
+      self._perm = np.random.permutation(len(self._value)) if self._shuffle else np.arange(len(self._value))
     if self._attached is not None:
       self._attached.reset(perm = self._perm)
 
@@ -86,6 +86,8 @@ class dispatch_cpu(dispatch):
     self._outputs.shape[0].value = len(arr)
     if len(arr) < self._batch_size:
       self._finished = True
+      if len(arr) == 0:
+        raise StopIteration
     self._outputs['cpu'] = arr
     self._batch_num += 1
 
@@ -133,4 +135,3 @@ class DistributorElement:
     self._lb_op.reset()
 
   def __repr__(self): return self._data_graph.__repr__()
-

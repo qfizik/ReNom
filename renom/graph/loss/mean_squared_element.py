@@ -50,7 +50,7 @@ class mean_squared_backward(operation):
     self._fwd_op = associated_forward
 
   def setup(self, inputs):
-  
+
     predictions = inputs[0]['y']
     real_values = inputs[1]['y']
     self._graph_input = predictions
@@ -61,7 +61,7 @@ class mean_squared_backward(operation):
     self._outputs = output
     self._vars = { 'y' : output, 'dy' : output, id(self._fwd_op._graph_input) : output }
     self._N = predictions.shape[0]
-    
+
   def perform(self):
     for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
       rm.cuda.cusub(self._graph_input[gpu], self._label_input[gpu], self._outputs[gpu], handle)
@@ -83,7 +83,7 @@ class MeanSquaredElement(UserLossGraph):
   def __init__(self, previous_elements = None):
 
     fwd_op = mean_squared_forward() if rm.is_cuda_active() else mean_squared_forward_cpu()
-    bwd_ops = [ mean_squared_backward(fwd_op) if rm.is_cuda_active() else mean_squared_backward_cpu(fwd_op) ] 
+    bwd_ops = [ mean_squared_backward(fwd_op) if rm.is_cuda_active() else mean_squared_backward_cpu(fwd_op) ]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_elements)
 
 
