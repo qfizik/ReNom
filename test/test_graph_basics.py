@@ -16,21 +16,21 @@ def test_basic_add():
   v3 = v1 + v2
   v4 = np.random.rand(2,2)
   v5 = v3 + v4
-  
+
   g1 = rm.graph.StaticVariable(v1)
   g2 = rm.graph.StaticVariable(v2)
   g3 = g1 + g2
   g4 = rm.graph.StaticVariable(v4)
   g5 = g3 + g4
-  
+
   compare(v5, g5.as_ndarray())
-  
+
   new_v1 = np.random.rand(2,2)
   g1.value = new_v1
 
   new_v5 = new_v1 + v2 + v4
   g5.forward()
-  compare(new_v5, g5.as_ndarray()) 
+  compare(new_v5, g5.as_ndarray())
 
 def test_basic_lstm():
 
@@ -49,7 +49,7 @@ def test_basic_lstm():
     assert l_arr < p_l
     p_l = l_arr
     l.backward().update(opt)
-  
+
 def test_slices(use_gpu):
   rm.set_cuda_active(use_gpu)
 
@@ -58,7 +58,7 @@ def test_slices(use_gpu):
   b = a[:,1,0:2]
   B = A[:,1,0:2]
   compare(b, B.as_ndarray())
-  
+
 def test_optimizer(use_gpu):
 
   rm.set_cuda_active(use_gpu)
@@ -77,7 +77,14 @@ def test_optimizer(use_gpu):
     p_l = l_arr
     l.backward().update(opt)
 
+def test_inference_executor(use_gpu):
+    rm.set_cuda_active(use_gpu)
 
-
-
-
+    v = np.random.rand(20,3)
+    layer = rm.graph.DenseGraphElement(4)
+    t = np.random.rand(20,4)
+    loss = rm.graph.MeanSquaredGraphElement()
+    opt = rm.graph.sgd_update()
+    data, target = rm.graph.DistributorElement(v, t, batch_size = 2).getOutputGraphs()
+    exe = loss(layer(data), target).getInferenceExecutor()
+    exe.execute(epochs = 1)

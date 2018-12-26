@@ -35,6 +35,7 @@ class update_operation(operation):
     assert self._factory is not None
     self._dy = self._producer.get_key(self._shared_key)
     self._outputs = self._consumer.get_key(self._shared_key)
+    self._vars = {'y' : self._dy}
     gpus = self._outputs.gpus
     self.gpus = gpus
     if self._update_op is None:
@@ -49,7 +50,3 @@ class update_operation(operation):
       update_operation._communicator.allReduce(self._dy)
 
     self._update_op.update()
-
-
-
-    

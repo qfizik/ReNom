@@ -121,8 +121,14 @@ class PoolElement(UserGraph):
     bwd_ops = [ pool_backward(fwd_op) if rm.is_cuda_active() else pool_backward_cpu(fwd_op)]
     super().__init__(forward_operation = fwd_op, backward_operations = bwd_ops, previous_elements = previous_element)
 
+class PoolGraphElement(GraphFactory):
+  def __init__(self, kernel = 3, padding = 0, stride = 1):
+    super().__init__()
+    self._krnl = kernel
+    self._pad = padding
+    self._strd = stride
 
-class MaxPoolGraphElement(GraphFactory):
+class MaxPoolGraphElement(PoolGraphElement):
   '''Max pooling function.
     In the case of int input, filter, padding, and stride, the shape will be symmetric.
 
@@ -144,18 +150,11 @@ class MaxPoolGraphElement(GraphFactory):
 
   '''
 
-  def __init__(self, kernel = 3, padding = 0, stride = 1):
-    super().__init__()
-    self._krnl = kernel
-    self._pad = padding
-    self._strd = stride
-
-
   def connect(self, other):
     ret = PoolElement(self._krnl, self._pad, self._strd, mode = 'max' ,previous_element = [ other ])
     return ret
 
-class AvgPoolGraphElement(GraphFactory):
+class AvgPoolGraphElement(PoolGraphElement):
   '''Average pooling function.
     In the case of int input, filter, padding, and stride, the shape will be symmetric.
 
@@ -176,13 +175,6 @@ class AvgPoolGraphElement(GraphFactory):
         (3, 3, 30, 30)
 
   '''
-
-  def __init__(self, kernel = 3, padding = 0, stride = 1):
-    super().__init__()
-    self._krnl = kernel
-    self._pad = padding
-    self._strd = stride
-
 
   def connect(self, other):
     ret = PoolElement(self._krnl, self._pad, self._strd, mode = 'average' ,previous_element = [ other ])

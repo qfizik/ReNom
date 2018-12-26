@@ -66,6 +66,10 @@ class graph_element(abc.ABC):
 
   def walk_tree(func):
     def cleanup(self):
+      '''
+      This method reset all the elements in the
+      tree to a non-visited state.
+      '''
       if self._visited is False:
         return
       self._visited = False
@@ -74,21 +78,32 @@ class graph_element(abc.ABC):
       for elem in self._next_elements:
         cleanup(elem)
 
-    def walk_func(self, func, *args, **kwargs):
-      if self._visited is True:
-        return
+    def walk_func(self, func, dct, *args, **kwargs):
+      if self._visited is True: return
+
       self._visited = True
+      assert isinstance(dct, dict)
       for prev in self._previous_elements:
-        walk_func(prev, func, *args, **kwargs)
-      func(self, *args, **kwargs)
+        walk_func(prev, func, dct, *args, **kwargs)
+
+      ret = func(self, *args, **kwargs)
+      if ret is not None:
+        if self.depth not in dct:
+            dct[self.depth] = []
+        dct[self.depth].append(ret)
+
       self._next_elements.sort()
       for elem in self._next_elements:
         if elem.depth == self.depth + 1:
-          walk_func(elem, func, *args, **kwargs)
+          walk_func(elem, func, dct, *args, **kwargs)
+
+
     @functools.wraps(func)
     def ret_func(self, *args, **kwargs):
-      walk_func(self, func, *args, **kwargs)
+      ret = {}
+      walk_func(self, func, ret, *args, **kwargs)
       cleanup(self)
+      return ret
     return ret_func
 
 
@@ -180,7 +195,7 @@ class operational_element(graph_element):
     @functools.wraps(func)
     def ret_func(self, *args, tag = None, **kwargs):
       if tag in  self._tags or tag is None:
-        func(self, *args, **kwargs)
+        return func(self, *args, **kwargs)
     return ret_func
 
   def get_call_dict(self, tag = None):
@@ -203,15 +218,14 @@ class operational_element(graph_element):
       dct[self.depth].append(self._op.perform)
 
   def gather_operations_with_role(self, role, tag = None):
-    self._storage.register('Role', [])
-    self._gather_roles(role)
-    return self._storage.retrieve('Role')
+    ret = self._gather_roles(role)
+    return ret
 
   @graph_element.walk_tree
   @check_tags
   def _gather_roles(self, role):
     if role in self._op.roles:
-      self._storage.retrieve('Role').append(self._op)
+      return self._op
 
   def gather_operations(self, op, tag = None):
     self._storage.register('Operations', [])

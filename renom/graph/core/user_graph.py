@@ -129,6 +129,7 @@ class UserGraph(graph_element):
     def __init__(self, call_list, graph_inputs, losses):
       self.call_list = call_list
       self.dispatchers = graph_inputs
+      print(self.dispatchers)
       self.loss = losses
 
     def execute(self, epochs = None, steps = 1):
@@ -156,6 +157,7 @@ class UserGraph(graph_element):
       for depth in self.call_list.keys():
         for call in self.call_list[depth]:
           call()
+          print('Forwarding')
 
     def loss(self):
       return self.loss_func
@@ -163,8 +165,12 @@ class UserGraph(graph_element):
   def getInferenceExecutor(self):
     ins = self._fwd.gather_operations_with_role('input')
     lss = self._fwd.gather_operations_with_role('loss')
+    inputs = []
+    for d in ins.keys(): inputs.extend(ins[d])
+    losses = []
+    for d in lss.keys(): losses.extend(lss[d])
     dct = self._fwd.get_call_dict('Forward')
-    ret = UserGraph.Executor(dct, ins, lss)
+    ret = UserGraph.Executor(dct, inputs, losses)
     return ret
 
   def getTrainingExecutor(self, optimizer = None):
@@ -213,11 +219,11 @@ class UserGraph(graph_element):
   def update(self, optimizer=None):
     if optimizer is not None:
       ups = self._bwd_graphs[0].gather_operations_with_role('update')
-      #for up in ups:
-      for i in range(len(ups)):
-        ups[i].set_update_op(optimizer)
-        ups[i] = None # Avoiding destruction errors
-    self._fwd.continue_forward(tag = 'Update')
+      for d in ups:
+          for i in range(len(ups[d])):
+              ups[d][i].set_update_op(optimizer)
+              ups[d][i] = None # Avoiding destruction errors
+    self._fwd.continue_forward(tag = 'update')
 
   def print_tree(self):
     #print('I am a {0:s} at depth {1:d}'.format(self.name, self.depth))
