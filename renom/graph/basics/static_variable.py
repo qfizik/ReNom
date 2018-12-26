@@ -11,9 +11,11 @@ class static_value(operation):
         self._outputs = value
         self._vars = {'y': self._outputs}
 
-    def setup(self, inputs): pass
+    def setup(self, inputs):
+        pass
 
-    def perform(self): pass
+    def perform(self):
+        pass
 
 
 class StaticVariable(UserGraph):

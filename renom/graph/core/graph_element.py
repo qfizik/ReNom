@@ -59,10 +59,12 @@ class graph_element(abc.ABC):
         return self.depth < other.depth
 
     @abc.abstractmethod
-    def forward(self): pass
+    def forward(self):
+        pass
 
     @abc.abstractmethod
-    def __repr__(self): pass
+    def __repr__(self):
+        pass
 
     def walk_tree(func):
         def cleanup(self):

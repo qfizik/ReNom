@@ -32,27 +32,38 @@ class shared_val:
         else:
             raise AttributeError('Setting val above initial value')
 
-    def __int__(self): return self._val
+    def __int__(self):
+        return self._val
 
-    def __float__(self): return float(self._val)
+    def __float__(self):
+        return float(self._val)
 
-    def __mul__(self, other): return self._val * int(other)
+    def __mul__(self, other):
+        return self._val * int(other)
 
-    def __add__(self, other): return self._val + int(other)
+    def __add__(self, other):
+        return self._val + int(other)
 
-    def __eq__(self, other): return self._val == int(other)
+    def __eq__(self, other):
+        return self._val == int(other)
 
-    def __index__(self): return self._val
+    def __index__(self):
+        return self._val
 
-    def __repr__(self): return self._val.__repr__()
+    def __repr__(self):
+        return self._val.__repr__()
 
-    def __lt__(self, other): return self._val < int(other)
+    def __lt__(self, other):
+        return self._val < int(other)
 
-    def __gt__(self, other): return self._val > int(other)
+    def __gt__(self, other):
+        return self._val > int(other)
 
-    def __neg__(self): return -self._val
+    def __neg__(self):
+        return -self._val
 
-    def __floordiv__(self, other): return self._val // int(other)
+    def __floordiv__(self, other):
+        return self._val // int(other)
 
 
 class GraphMultiStorage:
@@ -104,7 +115,7 @@ class GraphMultiStorage:
             return
 
         for gpu in self.gpus:
-            with rm.cuda.RenomHandler(gpu) as handle:
+            with rm.cuda.RenomHandler(gpu):
                 arr = None
                 if self._initializer is not None:
                     arr = self._initializer(self.shape)
@@ -121,9 +132,9 @@ class GraphMultiStorage:
     def shape(self, val):
         if not isinstance(val[0], shared_val):
             new_val = shared_val(val[0])
-            l = list(val)
-            l[0] = new_val
-            val = tuple(l)
+            lst = list(val)
+            lst[0] = new_val
+            val = tuple(lst)
         assert isinstance(val[0], shared_val)
         self._shape = tuple(val)
 

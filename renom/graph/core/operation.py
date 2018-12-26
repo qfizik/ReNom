@@ -76,19 +76,26 @@ class operation(abc.ABC):
         '''
         pass
 
-    def get_output_signature(self): return self._vars
+    def get_output_signature(self):
+        return self._vars
 
-    def __repr__(self): return self._vars['y'].__repr__()
+    def __repr__(self):
+        return self._vars['y'].__repr__()
 
-    def as_ndarray(self): return self._vars['y'].as_ndarray()
+    def as_ndarray(self):
+        return self._vars['y'].as_ndarray()
 
-    def get_key(self, key): return self._vars.get(key, None)
+    def get_key(self, key):
+        return self._vars.get(key, None)
 
-    def set_alias(self, key, alias): self._vars[alias] = self._vars[key]
+    def set_alias(self, key, alias):
+        self._vars[alias] = self._vars[key]
 
-    def optimize(self): return True
+    def optimize(self):
+        return True
 
-    def finalize(self): pass
+    def finalize(self):
+        pass
 
 
 class StateHolder:
@@ -122,4 +129,4 @@ class StateHolder:
 
     def pop(self):
         self._cur_time -= 1
-        return self._states[self._cur_time+1]
+        return self._states[self._cur_time + 1]

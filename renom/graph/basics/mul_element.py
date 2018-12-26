@@ -6,7 +6,8 @@ class mul_forward(operation):
 
     name = 'Mul (F)'
 
-    def __init__(self): pass
+    def __init__(self):
+        pass
 
     def setup(self, inputs):
         a = inputs[0]['y']

@@ -19,7 +19,8 @@ class reshape_op(operation):
         self._outputs = GraphMultiStorage(shape=new_shape, gpus=gpus, ptrs=self._inputs)
         self._vars = {'y': self._outputs}
 
-    def perform(self): pass
+    def perform(self):
+        pass
 
 
 class reshape_op_back(operation):
@@ -36,9 +37,11 @@ class reshape_op_back(operation):
         self._outputs = GraphMultiStorage(shape=shape, gpus=gpus, ptrs=self._inputs)
         self._vars = {'y': self._outputs}
 
-    def perform(self): pass
+    def perform(self):
+        pass
 
-    def __repr__(self): return self._outputs.__repr__()
+    def __repr__(self):
+        return self._outputs.__repr__()
 
 
 class ReshapeElement(UserGraph):

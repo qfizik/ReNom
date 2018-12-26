@@ -18,7 +18,7 @@ def _prepare_prevs(previous_elements):
 
 class UserGraph(graph_element):
     '''
-      A learnable graph element is responsible for storing and performing the forward, backward and update operations in a normal neural-network setting.
+        TODO: Fix Docstring
     '''
 
     _has_back = False
@@ -54,7 +54,7 @@ class UserGraph(graph_element):
         if isinstance(forward_operation, operation):
             self._fwd = operational_element(operation=forward_operation, tags=['Forward'])
         elif isinstance(forward_operation, operational_element):
-            forward_graph = forward_operation
+            raise NotImplementedError()
         else:
             raise AttributeError('Uknown forward operation type')
 
@@ -118,7 +118,8 @@ class UserGraph(graph_element):
     def name(self):
         return self._name
 
-    def __call__(self, *args, **kwargs): return self.connect(*args, **kwargs)
+    def __call__(self, *args, **kwargs):
+        return self.connect(*args, **kwargs)
 
     def __repr__(self):
         self.forward()
@@ -222,15 +223,17 @@ class UserGraph(graph_element):
         self._fwd.continue_forward(tag='Update')
 
     def print_tree(self):
-        #print('I am a {0:s} at depth {1:d}'.format(self.name, self.depth))
         self._fwd.print_tree()
 
-    def get_forward_output(self): return self._fwd
+    def get_forward_output(self):
+        return self._fwd
 
-    def get_backward_output(self, num=0): return self._bwd_graphs[num]
+    def get_backward_output(self, num=0):
+        return self._bwd_graphs[num]
 
     @property
-    def output(self): return self._fwd.output
+    def output(self):
+        return self._fwd.output
 
     def as_ndarray(self):
         self.forward()
@@ -247,5 +250,3 @@ class UserLossGraph(UserGraph):
             self._bwd_graphs[0].add_input(prev)
         self._bwd_graphs[0].add_input(self._fwd)
         return self
-
-    def disconnect(self): raise NotImplementedError()

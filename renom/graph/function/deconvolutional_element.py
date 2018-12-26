@@ -45,7 +45,6 @@ class deconvo_forward(operation):
         self._weights = weights
         self._bias = bias
 
-        #imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
         imgs = tuple(self._stride[i] * (input_shape[i + 2] - 1) +
                      self._kernel[i] - 2 * self._padding[i] for i in range(dims))
         output_shape = [input_shape[0], self._channels, *imgs]
@@ -123,8 +122,8 @@ class deconvo_backward(operation):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             rm.cuda.cuConvolutionForward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc,
                                          self._inputs[gpu], self._fwd_w[gpu], self._outputs[gpu], 0)
-            rm.cuda.cuConvolutionBackwardFilter(
-                handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc, self._inputs[gpu], self._fwd_in[gpu], self._weights_out[gpu])
+            rm.cuda.cuConvolutionBackwardFilter(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc,
+                                                self._inputs[gpu], self._fwd_in[gpu], self._weights_out[gpu])
             rm.cuda.cuConvolutionBackwardBias(handle, self._inputs[gpu], self._bias_out[gpu])
 
 
@@ -147,7 +146,8 @@ class deconvo_backward_cpu(deconvo_backward):
             [x for x in range(2, len(dy.shape), 1)]), keepdims=True)
         db = np.sum(db, axis=0, keepdims=True)
 
-        #col = im2col(dy, x.shape[2:], self._fwd_op._kernel, self._fwd_op._stride, self._fwd_op._padding, self._fwd_op._dilation)
+        # col = im2col(dy, x.shape[2:], self._fwd_op._kernel, self._fwd_op._stride,
+        #                       self._fwd_op._padding, self._fwd_op._dilation)
         #dx = np.tensordot(col, w, ([1, 2, 3], [1, 2, 3]))
         #dx = np.rollaxis(dx, 3, 1)
         #dw = np.tensordot(x, col, ([0, 2, 3], [0, 4, 5]))

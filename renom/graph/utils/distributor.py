@@ -8,10 +8,11 @@ class dispatch(operation):
     Dispatch class, responsible for feeding input data to the graph model.
 
     Performing this operation produces the next output value until the requested batch size cannot be fulfilled.
-    Once the batch size can no longer be fulfilled with the given input source, the operation produces a StopIteration exception,
-    which the user is requested to catch.
+    Once the batch size can no longer be fulfilled with the given input source,
+    the operation produces a StopIteration exception, which the user is requested to catch.
 
-    To run through the input source again, the reset method should be called, which will handle reinitializing the internal states.
+    To run through the input source again, the reset method should be called,
+    which will handle reinitializing the internal states.
     '''
     name = 'Data Dispatcher'
     roles = ['input']
@@ -131,16 +132,21 @@ class DistributorElement:
         self._data_graph = data_entry_element(data_op)
         self._label_graph = data_entry_element(lbls_op)
 
-    def forward(self): pass
+    def forward(self):
+        pass
 
-    def getOutputGraphs(self): return self._data_graph, self._label_graph
+    def getOutputGraphs(self):
+        return self._data_graph, self._label_graph
 
-    def change_data(self, new_data): self._dt_op.value = new_data
+    def change_data(self, new_data):
+        self._dt_op.value = new_data
 
-    def change_label(self, new_label): self._lb_op.value = new_label
+    def change_label(self, new_label):
+        self._lb_op.value = new_label
 
     def reset(self):
         self._dt_op.reset()
         self._lb_op.reset()
 
-    def __repr__(self): return self._data_graph.__repr__()
+    def __repr__(self):
+        return self._data_graph.__repr__()

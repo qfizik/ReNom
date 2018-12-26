@@ -319,7 +319,8 @@ class adam_update(optimizer_factory):
             for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
                 ndy = self._outputs[gpu].empty_like_me()
                 rm.cuda.cu_optimizer_adam(self.alpha, self.epsilon, rb1, self.beta1, rb2, self.beta2, self.min,
-                                          self.time % self.CHECK_ZERO_VALUE == 0, self._mom1[gpu], self._mom2[gpu], self._dy[gpu], ndy)
+                                          self.time % self.CHECK_ZERO_VALUE == 0, self._mom1[gpu],
+                                          self._mom2[gpu], self._dy[gpu], ndy)
                 self._outputs[gpu] -= ndy
             self.rb1 = rb1 * self.beta1
             self.rb2 = rb2 * self.beta2

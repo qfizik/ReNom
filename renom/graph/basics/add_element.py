@@ -49,7 +49,8 @@ class add_back(operation):
         self._vars = {'y': self._outputs, 'dy': self._outputs,
                       id(self._fwd_op.get_key(self._key)): self._outputs}
 
-    def perform(self): pass
+    def perform(self):
+        pass
 
 
 class AddElement(UserGraph):

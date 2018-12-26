@@ -16,9 +16,11 @@ class variable_input(operation):
         val = GraphMultiStorage()
         self._vars = {'y': val}
 
-    def setup(self, inputs): pass
+    def setup(self, inputs):
+        pass
 
-    def perform(self): pass
+    def perform(self):
+        pass
 
 
 class graph_variable(UserGraph):
@@ -45,7 +47,8 @@ class GraphFactory(abc.ABC):
             self(*other)
 
     @abc.abstractmethod
-    def connect(self, other): pass
+    def connect(self, other):
+        pass
 
     def __call__(self, *other):
         for param in self.params:
@@ -164,7 +167,7 @@ class GraphFactory(abc.ABC):
         """
         f = h5py.File(filename, 'r')
         values = f['values']
-        types = f['types']
+        #types = f['types']
 
         names = sorted(values.keys())
 
@@ -180,7 +183,7 @@ class GraphFactory(abc.ABC):
             target = get_attr(self, name)
 
             values_grp = values[name]
-            types_grp = types[name]
+            #types_grp = types[name]
 
             for k, v in values_grp.items():
                 v = v.value

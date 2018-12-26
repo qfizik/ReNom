@@ -51,8 +51,10 @@ class batch_norm_forward(operation):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             #rm.cuda.cusub(self._mv_m[gpu], self._mv_m[gpu], self._mv_m[gpu], handle)
             #rm.cuda.cusub(self._mv_v[gpu], self._mv_v[gpu], self._mv_v[gpu], handle)
-            rm.cuda.cuBatchNormalizatoinForward(handle, self._inputs[gpu], self._mv_m[gpu], self._mv_v[gpu], self._weights[gpu], self._bias[gpu],
-                                                self._outputs[gpu], self._mean[gpu], self._sq_var[gpu], self._momentum, mode, self._inference, self._epsilon)
+            rm.cuda.cuBatchNormalizatoinForward(handle, self._inputs[gpu], self._mv_m[gpu],
+                                                self._mv_v[gpu], self._weights[gpu], self._bias[gpu],
+                                                self._outputs[gpu], self._mean[gpu], self._sq_var[gpu],
+                                                self._momentum, mode, self._inference, self._epsilon)
 
 
 class batch_norm_forward_cpu(batch_norm_forward):
@@ -104,7 +106,8 @@ class batch_norm_backward(operation):
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             rm.cuda.cuBatchNormalizatoinBackward(handle, self._fwd_ins[gpu], self._fwd_w[gpu], self._inputs[gpu],
-                                                 self._mean[gpu], self._var[gpu], self._outputs[gpu], self._weights_back[gpu], self._bias_back[gpu], 0)
+                                                 self._mean[gpu], self._var[gpu], self._outputs[gpu],
+                                                 self._weights_back[gpu], self._bias_back[gpu], 0)
 
 
 class batch_norm_backward_cpu(batch_norm_backward):

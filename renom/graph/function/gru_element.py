@@ -149,7 +149,7 @@ class gru_backward(operation):
             while(self._state._cur_time > 0):
                 cur_state = self._state.peek()
                 x = cur_state['x' + str(gpu)]
-                y = cur_state['y' + str(gpu)]
+                #y = cur_state['y' + str(gpu)]
                 hminus = cur_state['hminus' + str(gpu)]
                 ABC = cur_state['ABC' + str(gpu)]
 

@@ -19,7 +19,7 @@ class lrn_forward(operation):
         input_shape = inputs.shape
         self._inputs = inputs
 
-        out_shape = inputs.shape
+        out_shape = input_shape
 
         self.gpus = inputs.gpus
         outs = GraphMultiStorage(shape=out_shape, gpus=self.gpus)

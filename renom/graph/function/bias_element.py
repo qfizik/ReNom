@@ -9,7 +9,8 @@ class bias_forward(operation):
     name = 'Bias (F)'
     consumes = ['b']
 
-    def __init__(self): pass
+    def __init__(self):
+        pass
 
     def setup(self, inputs):
 

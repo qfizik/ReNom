@@ -16,7 +16,8 @@ class constant_loss_backward(operation):
         self._outputs = outputs
         self._vars = {'y': outputs, 'dy': outputs}
 
-    def perform(self): pass
+    def perform(self):
+        pass
 
 
 class ConstantLoss(UserGraph):

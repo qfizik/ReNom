@@ -103,7 +103,7 @@ class convo_forward(operation):
         self._vars = {'w': self._weights, 'b': self._bias, 'y': self._outputs}
 
         if rm.is_cuda_active():
-            with rm.cuda.RenomHandler() as handle:
+            with rm.cuda.RenomHandler():
                 if dims == 2:
                     self._conv_desc = rm.cuda.ConvolutionDescriptor(
                         self._padding, self._stride, self._dilation, rm.precision)
@@ -140,7 +140,8 @@ class convo_forward(operation):
             workspace = (convo_forward.workspace_size,
                          convo_forward.workspace[gpu]) if convo_forward.workspace_size > 0 else None
             rm.cuda.cuConvolutionForwardBiasActivation(
-                handle, self._conv_desc, self._filter_desc, self._inputs[gpu], self._weights[gpu], self._outputs[gpu], self._bias[gpu], self._info[0], workspace)
+                handle, self._conv_desc, self._filter_desc, self._inputs[gpu],
+                self._weights[gpu], self._outputs[gpu], self._bias[gpu], self._info[0], workspace)
 
 
 class convo_forward_cpu(convo_forward):
@@ -193,7 +194,8 @@ class convo_backward(operation):
             self._algo = {'data': 0, 'filter': 0}
 
     def finalize(self):
-        if not rm.is_cuda_active(): return
+        if not rm.is_cuda_active():
+            return
         self._algo = {'data': self._fwd_op._bwd_info['data']
                       [0], 'filter': self._fwd_op._bwd_info['filter'][0]}
 
@@ -202,8 +204,10 @@ class convo_backward(operation):
             workspace = (convo_forward.workspace_size,
                          convo_forward.workspace[gpu]) if convo_forward.workspace_size > 0 else None
             rm.cuda.cuActivationBackward(handle, self._fwd_op._outputs[gpu], self._inputs[gpu])
-            rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc, self._fwd_in[gpu], self._fwd_w[
-                                          gpu], self._inputs[gpu], self._weights_out[gpu], self._bias_out[gpu], self._outputs[gpu], self._algo, workspace)
+            rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc,
+                                          self._fwd_in[gpu], self._fwd_w[gpu], self._inputs[gpu],
+                                          self._weights_out[gpu], self._bias_out[gpu], self._outputs[gpu],
+                                          self._algo, workspace)
 
 
 class convo_backward_cpu(convo_backward):

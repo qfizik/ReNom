@@ -13,8 +13,9 @@ class _forward_operation(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            dx = self._inputs[gpu]
+            x = self._inputs[gpu]
             y = self._outputs[gpu]
+            some_kernel_module.call_some_kernel(x, y)
             pass
 
 
@@ -22,6 +23,7 @@ class _forward_operation_cpu(_forward_operation):
 
     def perform(self):
         x = self._inputs['cpu']
+        ret = calculate_ret(x)
         # Calculate ret
         self._outputs['cpu'] = ret
 
@@ -46,6 +48,7 @@ class _backward_operation_cpu(_backward_operation):
 
     def perform(self):
         dy = self._inputs['cpu']
+        ret = calculate_ret(dy)
         # Calculate ret
         self._outputs['cpu'] = ret
 

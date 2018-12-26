@@ -84,7 +84,7 @@ class operational_element(graph_element):
         self.setup_all()
         finished = False
         while not finished:
-            rets = self._smooth_iteration(flatten = True)
+            rets = self._smooth_iteration(flatten=True)
             finished = all(r is True for r in rets)
         self._finalize()
 
@@ -129,7 +129,8 @@ class operational_element(graph_element):
             self._op.name, self.depth, self._tags))
 
     @property
-    def name(self): return self._op.name
+    def name(self):
+        return self._op.name
 
     def add_next(self, new_next):
         assert isinstance(new_next, operational_element)
@@ -142,9 +143,11 @@ class operational_element(graph_element):
         ret = self.get_output()['y']
         return ret
 
-    def get_output(self): return self._op.get_output_signature()
+    def get_output(self):
+        return self._op.get_output_signature()
 
-    def as_ndarray(self): return self._op.as_ndarray()
+    def as_ndarray(self):
+        return self._op.as_ndarray()
 
     def __repr__(self):
         return self._op.__repr__()

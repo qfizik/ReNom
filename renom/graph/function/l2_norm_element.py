@@ -42,7 +42,6 @@ class l2norm_forward_cpu(l2norm_forward):
     def perform(self):
         x = self._inputs['cpu']
         w = self._weights['cpu']
-        scale = self._scale
 
         norm = np.sqrt(np.sum(x * x, axis=1, keepdims=True)) + 1e-7
         self._norm = norm
