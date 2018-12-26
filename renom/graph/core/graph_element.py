@@ -30,6 +30,8 @@ class graph_element(abc.ABC):
         self._next_elements = []
         self.update_depth()
 
+    # Rename input and next to graph-like naming
+    # Only possibly?
     def add_input(self, new_input):
         if new_input not in self._previous_elements:
             self._previous_elements.append(new_input)
@@ -66,6 +68,7 @@ class graph_element(abc.ABC):
     def __repr__(self):
         pass
 
+    @staticmethod
     def walk_tree(func):
         def cleanup(self):
             '''
@@ -114,7 +117,7 @@ class graph_element(abc.ABC):
             return ret
         return ret_func
 
-    def clear(self):
+    def detach(self):
         for elem in self._previous_elements:
             elem.remove_next(self)
         self._previous_elements = []

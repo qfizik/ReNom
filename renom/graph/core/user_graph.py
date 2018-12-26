@@ -88,6 +88,7 @@ class UserGraph(graph_element):
         self.simple_forward()
         return self
 
+    # rename to super class equivalent
     def disconnect(self):
         while len(self._previous_elements) > 0:
             self.remove_input(self._previous_elements[0])

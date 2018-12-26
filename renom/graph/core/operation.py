@@ -38,11 +38,17 @@ class operation(abc.ABC):
               knows where the loss should be found.
 
     '''
-    produces = []
-    consumes = []
-    _vars = {'y': None}
-    roles = []
+    # Tuples are immutable lists.
+    produces = tuple()
+    consumes = tuple()
+    roles = tuple()
+    # Remove vars
 
+    # Ideally we make the connection between inputs and variables more explicit
+    # inputargs = namedtuple('input_values', 'y', 'a', 'b')
+    # inputs = [inputargs(*d) for d in self.inputs]
+
+    # setup should be moved to __init__
     @abc.abstractmethod
     def setup(self, inputs):
         '''

@@ -7,7 +7,7 @@ import numpy as np
 class bias_forward(operation):
 
     name = 'Bias (F)'
-    consumes = ['b']
+    consumes = ('b',)
 
     def __init__(self):
         pass
@@ -45,7 +45,7 @@ class bias_forward_cpu(bias_forward):
 class bias_backward(operation):
 
     name = 'Bias (B)'
-    produces = ['b']
+    produces = ('b',)
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
