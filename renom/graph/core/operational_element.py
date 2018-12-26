@@ -2,48 +2,6 @@ import numpy as np
 import functools
 from .graph_element import graph_element
 
-class graph_storage:
-  '''
-        A utility class designed to work together with the walk_tree function.
-        All operational elements will share a reference to the same _vars dictionary
-        through the graph_storage class.
-  '''
-  _vars = { }
-
-  def register(self, key, value):
-    if key == 'CallDict':
-      self.destroyCallDict()
-    self._vars[key] = value
-
-  def retrieve(self, key):
-    return self._vars.get(key, None)
-
-  def merge(self, other):
-    for key in other._vars.keys():
-      self._vars[key] = other._vars[key]
-    other._vars = self._vars
-
-  def destroyCallDict(self):
-    if 'CallDict' in self._vars and self._vars['CallDict'] is not None:
-      dct = self._vars['CallDict']
-      for depth in dct:
-        for op in range(len(dct[depth])):
-          dct[depth][op] = None
-      self._vars.pop('CallDict', None)
-
-  '''
-    There is currently a bug in Python when attempting to delete function references in a list.
-    Manually setting each element to be None prevents the list from trying to do anything with
-    with the reference upon deletion.
-  '''
-  def __del__(self):
-    if 'CallDict' in self._vars:
-      self.destroyCallDict()
-    if 'Updates' in self._vars:
-      updts = self._vars['Updates']
-      for i in range(len(updts)):
-        updts[i] = None
-      self._vars.pop('Updates', None)
 
 class operational_element(graph_element):
   '''
@@ -56,7 +14,6 @@ class operational_element(graph_element):
   def __init__(self, operation, previous_elements = None, tags = None):
     super(operational_element, self).__init__(previous_elements = previous_elements)
 
-    self._storage = graph_storage()
     self.prev_inputs = None
     self._op = operation
 
@@ -68,7 +25,6 @@ class operational_element(graph_element):
 
   def add_input(self, new_input):
     super().add_input(new_input)
-    self._storage.merge(new_input._storage)
 
   def add_tags(self, new_tags):
     for tag in new_tags:
@@ -88,27 +44,18 @@ class operational_element(graph_element):
   def get_call_dict(self):
     return self._op.perform
 
-  def gather_operations_with_role(self, role, tag = None):
-    ret = self._gather_roles(role)
-    return ret
-
   @graph_element.walk_tree
   @check_tags
-  def _gather_roles(self, role):
+  def gather_operations_with_role(self, role):
     if role in self._op.roles:
       return self._op
 
-  def gather_operations(self, op, tag = None):
-    self._storage.register('Operations', [])
-    self._gather_ops(op)
-    return self._storage.retrieve('Operations')
-
   @graph_element.walk_tree
   @check_tags
-  def _gather_ops(self, op):
+  def gather_operations(self, op, tag = None):
     if isinstance(self._op, op):
-      lst = self._storage.retrieve('Operations')
-      lst.append(self._op)
+      return self._op
+
 
   def inputs_changed(self):
     inputs = []
@@ -138,12 +85,10 @@ class operational_element(graph_element):
 
   def finalize(self):
     self.setup_all()
-    self._storage.register('Finalized', [])
     finished = False
     while not finished:
-      self._smooth_iteration()
-      rets = self._storage.retrieve('Finalized')
-      finished = all(r is True for r in rets)
+      rets = self._smooth_iteration()
+      finished = all(all(t is True for t in rets[r]) is True for r in rets)
     self._finalize()
 
   @graph_element.walk_tree
@@ -151,12 +96,9 @@ class operational_element(graph_element):
     lst = self._storage.retrieve('Finalized')
     lst.append(self._op.optimize())
 
-
   @graph_element.walk_tree
   def _finalize(self):
     self._op.finalize()
-
-
 
 
   def calculate_forward(self, tag = None):

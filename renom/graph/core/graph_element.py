@@ -78,29 +78,35 @@ class graph_element(abc.ABC):
       for elem in self._next_elements:
         cleanup(elem)
 
-    def walk_func(self, func, dct, *args, **kwargs):
+    def walk_func(self, func, res, *args, **kwargs):
       if self._visited is True: return
 
       self._visited = True
-      assert isinstance(dct, dict)
+      assert isinstance(res, dict) or isinstance(res, list)
       for prev in self._previous_elements:
-        walk_func(prev, func, dct, *args, **kwargs)
+        walk_func(prev, func, res, *args, **kwargs)
 
       ret = func(self, *args, **kwargs)
       if ret is not None:
-        if self.depth not in dct:
-            dct[self.depth] = []
-        dct[self.depth].append(ret)
+        if isinstance(res, dict):
+          if self.depth not in res:
+            res[self.depth] = []
+          res[self.depth].append(ret)
+        else:
+          res.append(ret)
 
       self._next_elements.sort()
       for elem in self._next_elements:
         if elem.depth == self.depth + 1:
-          walk_func(elem, func, dct, *args, **kwargs)
+          walk_func(elem, func, res, *args, **kwargs)
 
 
     @functools.wraps(func)
-    def ret_func(self, *args, **kwargs):
-      ret = {}
+    def ret_func(self, *args, flatten = False, **kwargs):
+      if flatten is True:
+        ret = []
+      else:
+        ret = {}
       walk_func(self, func, ret, *args, **kwargs)
       cleanup(self)
       return ret

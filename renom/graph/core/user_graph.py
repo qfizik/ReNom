@@ -162,23 +162,20 @@ class UserGraph(graph_element):
       return self.loss_func
 
   def getInferenceExecutor(self):
-    ins = self._fwd.gather_operations_with_role('input')
-    lss = self._fwd.gather_operations_with_role('loss')
-    inputs = []
-    for d in ins.keys(): inputs.extend(ins[d])
-    losses = []
-    for d in lss.keys(): losses.extend(lss[d])
+    ins = self._fwd.gather_operations_with_role('input', flatten = True)
+    lss = self._fwd.gather_operations_with_role('loss', flatten = True)
     dct = self._fwd.get_call_dict(tag = 'Forward')
-    ret = UserGraph.Executor(dct, inputs, losses)
+    ret = UserGraph.Executor(dct, ins, lss)
     return ret
 
   def getTrainingExecutor(self, optimizer = None):
-    ups = self._bwd_graphs[0].gather_operations_with_role('update')
-    for i in range(len(ups)):
-      ups[i].set_update_op(optimizer)
-      ups[i] = None # Avoiding destruction errors
-    ins = self._bwd_graphs[0].gather_operations_with_role('input')
-    lss = self._bwd_graphs[0].gather_operations_with_role('loss')
+    if optimizer is not None:
+      ups = self._bwd_graphs[0].gather_operations_with_role('update', flatten = True)
+      for i in range(len(ups)):
+        ups[i].set_update_op(optimizer)
+        ups[i] = None # Avoiding destruction errors
+    ins = self._bwd_graphs[0].gather_operations_with_role('input', flatten = True)
+    lss = self._bwd_graphs[0].gather_operations_with_role('loss', flatten = True)
     self._fwd.continue_setup()
     dct = self._bwd_graphs[0].get_call_dict()
     ret = UserGraph.Executor(dct, ins, lss)

@@ -113,6 +113,7 @@ class convo_forward(operation):
 
 
   def optimize(self):
+    if not rm.is_cuda_active(): return True
     with rm.cuda.RenomHandler() as handle:
       self._info = rm.cuda.cuGetConvolutionFwdInfo(handle, self._conv_desc, self._filter_desc, self._inputs[0], self._outputs[0])
       self._bwd_info = rm.cuda.cuGetConvolutionBwdInfo(handle, self._conv_desc, self._filter_desc, self._inputs[0], self._outputs[0])
