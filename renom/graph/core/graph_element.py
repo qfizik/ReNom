@@ -39,18 +39,24 @@ class graph_element(abc.ABC):
         self.update_depth()
 
     def add_next(self, new_next):
-        self._next_elements.append(new_next)
+        if new_next not in self._next_elements:
+            self._next_elements.append(new_next)
 
     def remove_input(self, prev_input):
         if prev_input in self._previous_elements:
             prev_input.remove_next(self)
             self._previous_elements.remove(prev_input)
+        self.update_depth()
 
     def remove_next(self, prev_next):
         if prev_next in self._next_elements:
             self._next_elements.remove(prev_next)
 
     def update_depth(self):
+        if len(self._previous_elements) == 0:
+            self.depth = 0
+            return
+        
         for prev in self._previous_elements:
             if prev.depth >= self.depth:
                 self.depth = prev.depth + 1

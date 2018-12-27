@@ -1,5 +1,6 @@
 import renom as rm
 import numpy as np
+import pytest
 
 
 def compare(nd_value, ad_value):
@@ -140,3 +141,65 @@ def test_sequential(use_gpu):
     ])
     z = model(v).as_ndarray()
     assert z.shape == (4, 5)
+
+class noop(rm.graph.core.operation):
+    name = 'noop'
+    def setup(self, inputs):
+        pass
+    def perform(self):
+        pass
+
+@pytest.fixture(params = [rm.graph.core.operational_element , rm.graph.core.UserGraph])
+def graph_nodes(request):
+    if request.param is rm.graph.core.operational_element:
+        nodes = {
+            'A' : rm.graph.core.operational_element(operation = noop(), tags=['Dummy']),
+            'B' : rm.graph.core.operational_element(operation = noop(), tags=['Dummy']),
+            'C' : rm.graph.core.operational_element(operation = noop(), tags=['Dummy']),
+        }
+    elif rm.graph.core.UserGraph:
+        nodes = {
+            'A' : rm.graph.core.UserGraph(forward_operation = noop()),
+            'B' : rm.graph.core.UserGraph(forward_operation = noop()),
+            'C' : rm.graph.core.UserGraph(forward_operation = noop()),
+        }
+    return nodes
+
+
+
+def test_graph_depth(graph_nodes):
+
+    if len(graph_nodes) != 3 and not all(v in graph_nodes for v in ['A', 'B', 'C']):
+        raise AssertionError('Graph nodes should produce a dict of A, B and C')
+
+    A = graph_nodes['A']
+    B = graph_nodes['B']
+    C = graph_nodes['C']
+    assert A.depth == 0 and B.depth == 0 and C.depth == 0
+
+    B.add_input(A)  # A(0) -> B(1), C(0)
+    assert A.depth == 0 and B.depth == 1 and C.depth == 0
+
+    C.add_input(B)  # A(0) -> B(1) -> C(2)
+    assert A.depth == 0 and B.depth == 1 and C.depth == 2
+
+    C.detach()      # A(0) -> B(1), C(0)
+    assert A.depth == 0 and B.depth == 1 and C.depth == 0
+
+    C.add_input(B)  # A(0) -> B(1) -> C(2)
+    assert A.depth == 0 and B.depth == 1 and C.depth == 2
+
+    B.detach()      # A(0), B(0), C(0)
+    assert A.depth == 0 and B.depth == 0 and C.depth == 0
+
+    C.add_input(A)  # A(0) -> C(1), B(0)
+    assert A.depth == 0 and B.depth == 0 and C.depth == 1
+
+    B.add_input(A)  # A(0) -> (B(1) , C(1))
+    assert A.depth == 0 and B.depth == 1 and C.depth == 1
+
+    B.add_input(A)  # A(0) -> (B(1) , C(1))
+    assert A.depth == 0 and B.depth == 1 and C.depth == 1
+
+    B.detach()      # A(0) -> C(1), B(0)
+    assert A.depth == 0 and B.depth == 0 and C.depth == 1
