@@ -295,7 +295,9 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
     'cpu', 1, 2, 3, 4
 ])
 def test_save_load(devices_to_load):
-    if devices_to_load != 'cpu' and not rm.cuda.has_cuda() or (rm.cuda.cuGetDeviceCount() < devices_to_load):
+    print(devices_to_load)
+    if devices_to_load != 'cpu':
+        if not rm.cuda.has_cuda() or (rm.cuda.cuGetDeviceCount() < devices_to_load):
             pytest.skip()
 
     model = rm.graph.SequentialSubGraph([
