@@ -103,7 +103,6 @@ class get_item_back_cpu(get_item_back):
 
 class GetItemElement(UserGraph):
 
-    _has_back = True
     _name = 'Add Element'
 
     def __init__(self, index, previous_elements=None):

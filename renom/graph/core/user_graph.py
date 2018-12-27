@@ -23,17 +23,17 @@ class UserGraph(graph_element):
         activations and losses into elements that can be interpreted by the graph
         engine, using operational_element objects.
 
-        The translation from UserGraph graph to operational_element graph is automatic,
-        given that the user that the UserGraph is well constructed.
-
         UserGraph follows a princinple of a relationship between forward operations and
         backward operations as 1-to-n, enforcing only a single forward operation but
         allowing several backward operations to this operation.
+        Once these operations are passed to __init__, UserGraph automatically converts
+        these operations to operational_elements and maintains the underlying graph.
 
-
+        When the graph is constructed, the user should call either getInferenceExecutor
+        or getTrainingExecutor, which will gather only the relevant information from the
+        operational_element graph to support the execute method, which places on the devices.
     '''
 
-    _has_back = False
     _name = 'Undefined'
 
     def __init__(self, forward_operation, backward_operations=None, previous_elements=None):
@@ -95,8 +95,7 @@ class UserGraph(graph_element):
             self._fwd.add_input(prev_graph_input)
 
         for num, elem in enumerate(previous_elements):
-            if self.has_back and elem.has_back:
-                elem.connect_back(self, pos=num)
+            elem.connect_back(self, pos=num)
         self.connected = True
         self.simple_forward()
         return self
@@ -109,18 +108,19 @@ class UserGraph(graph_element):
         super().detach()
 
     def connect_back(self, previous_element, pos=0):
+        if len(self._bwd_graphs) == 0:
+            return
+
         backward_graph_input = previous_element.get_backward_output(pos)
-        for graph in self._bwd_graphs:
-            graph.add_input(backward_graph_input)
+        if backward_graph_input is not None:
+            for graph in self._bwd_graphs:
+                graph.add_input(backward_graph_input)
 
     def disconnect_back(self, previous_element, pos=0):
         backward_graph_input = previous_element.get_backward_output(pos)
         for graph in self._bwd_graphs:
             graph.remove_input(backward_graph_input)
 
-    @property
-    def has_back(self):
-        return self._has_back
 
     @property
     def name(self):
@@ -236,7 +236,10 @@ class UserGraph(graph_element):
         return self._fwd
 
     def get_backward_output(self, num=0):
-        return self._bwd_graphs[num]
+        if len(self._bwd_graphs) == 0:
+            return None
+        else:
+            return self._bwd_graphs[num]
 
     @property
     def output(self):
@@ -249,7 +252,6 @@ class UserGraph(graph_element):
 
 class UserLossGraph(UserGraph):
 
-    has_back = True
 
     def connect(self, previous_elements):
         if isinstance(previous_elements, UserGraph):

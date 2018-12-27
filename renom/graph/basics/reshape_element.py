@@ -46,7 +46,6 @@ class reshape_op_back(operation):
 
 class ReshapeElement(UserGraph):
 
-    has_back = True
 
     def __init__(self, shape, previous_element=None):
         self._shape = shape

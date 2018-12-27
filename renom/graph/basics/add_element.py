@@ -55,7 +55,6 @@ class add_back(operation):
 
 class AddElement(UserGraph):
 
-    _has_back = True
     _name = 'Add Element'
 
     def __init__(self, previous_elements=None):

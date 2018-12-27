@@ -66,7 +66,7 @@ class softmax_backward_cpu(softmax_backward):
 
 class SoftmaxElement(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, previous_elements=None):
         fwd_op = softmax_forward() if rm.is_cuda_active() else softmax_forward_cpu()

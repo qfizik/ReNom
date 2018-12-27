@@ -73,7 +73,7 @@ class bias_backward_cpu(bias_backward):
 
 class BiasElement(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, previous_element=None):
 

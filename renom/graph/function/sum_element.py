@@ -64,7 +64,7 @@ class sum_backward_cpu(sum_backward):
 class SumElement(UserGraph):
 
     name = 'Sum'
-    has_back = True
+    
 
     def __init__(self, previous_elements=None):
         fwd_op = sum_forward() if rm.is_cuda_active() else sum_forward_cpu()

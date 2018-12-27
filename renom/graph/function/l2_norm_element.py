@@ -152,7 +152,7 @@ class l2norm_weight_backward_cpu(l2norm_weight_backward):
 
 class L2NormGraph(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, scale, previous_element=None):
 

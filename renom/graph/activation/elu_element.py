@@ -66,7 +66,7 @@ class elu_backward_cpu(elu_backward):
 
 class EluElement(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, alpha=0.01, previous_elements=None):
         fwd_op = elu_forward(alpha) if rm.is_cuda_active() else elu_forward_cpu(alpha)

@@ -160,7 +160,7 @@ class deconvo_backward_cpu(deconvo_backward):
 
 class DeconvolutionalGraph(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, channels=3, kernel=3, padding=0, stride=1, previous_element=None):
 

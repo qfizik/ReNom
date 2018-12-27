@@ -116,7 +116,7 @@ class dropout_backward_cpu(dropout_backward):
 
 class DropoutElement(UserGraph):
 
-    has_back = True
+    
     _inference = False
 
     def __init__(self, dropout_rate=0.5, previous_elements=None):

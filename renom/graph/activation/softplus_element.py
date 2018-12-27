@@ -61,7 +61,7 @@ class softplus_backward_cpu(softplus_backward):
 
 class SoftplusElement(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, previous_elements=None):
         fwd_op = softplus_forward() if rm.is_cuda_active() else softplus_forward_cpu()

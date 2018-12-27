@@ -91,7 +91,7 @@ class embedding_weight_backward_cpu(embedding_weight_backward):
 
 class EmbeddingGraph(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, output_size, previous_element=None):
 

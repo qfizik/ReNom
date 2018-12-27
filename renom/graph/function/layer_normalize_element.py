@@ -176,7 +176,7 @@ class layer_norm_backward_cpu(layer_norm_backward):
 
 class LayerNormElement(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, gain, previous_elements=None):
         fwd_op = layer_norm_forward(gain) if rm.is_cuda_active() else layer_norm_forward_cpu(gain)

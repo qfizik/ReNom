@@ -6,6 +6,8 @@ import renom.utility.initializer as init
 
 class weight_norm_forward(operation):
 
+    name = 'Weight Normalization (F)'
+
     def __init__(self, output_size, gain):
         self._output_size = output_size
         self._g = gain
@@ -129,7 +131,7 @@ class weight_norm_backward_cpu(weight_norm_backward):
 
 class WeightNormElement(UserGraph):
 
-    has_back = True
+
 
     def __init__(self, output_size, gain, previous_elements=None):
         fwd_op = weight_norm_forward(output_size, gain) if rm.is_cuda_active(

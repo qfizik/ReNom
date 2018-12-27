@@ -268,7 +268,7 @@ class lstm_backward_cpu(lstm_backward):
 
 class LstmElement(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, output_size, previous_elements=None):
         fwd_op = lstm_forward(output_size) if rm.is_cuda_active() else lstm_forward_cpu(output_size)

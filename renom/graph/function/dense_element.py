@@ -41,7 +41,7 @@ class DenseGraphElement(GraphFactory):
 
 class DenseGraph(UserGraph):
 
-    has_back = True
+    
 
     def __init__(self, output_size, initializer, previous_element=None):
 

@@ -20,7 +20,6 @@ class static_value(operation):
 
 class StaticVariable(UserGraph):
 
-    _has_back = False
     _name = 'Static Element'
 
     def __init__(self, value, num_gpus=1):

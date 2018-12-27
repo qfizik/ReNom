@@ -6,6 +6,8 @@ import renom.utility.initializer as init
 
 class gru_forward(operation):
 
+    name = 'Gru (F)'
+
     def __init__(self, output_size):
         self._output_size = output_size
 
@@ -242,7 +244,7 @@ class gru_backward_cpu(gru_backward):
 
 class GruElement(UserGraph):
 
-    has_back = True
+
 
     def __init__(self, output_size, previous_elements=None):
         fwd_op = gru_forward(output_size) if rm.is_cuda_active() else gru_forward_cpu(output_size)

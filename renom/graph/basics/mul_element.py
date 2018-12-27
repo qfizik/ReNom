@@ -48,7 +48,6 @@ class mul_backward(operation):
 
 class MulElement(UserGraph):
 
-    _has_back = True
     _name = 'Mul Element'
 
     def __init__(self, previous_elements=None):
