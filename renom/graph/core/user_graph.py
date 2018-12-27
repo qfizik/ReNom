@@ -71,35 +71,30 @@ class UserGraph(graph_element):
 
     def connect(self, previous_elements):
         if self.connected is True:
-            self.disconnect()
+            self.detach()
             assert len(self._previous_elements) == 0 and len(self._fwd._previous_elements) == 0
 
         if isinstance(previous_elements, UserGraph):
             previous_elements = [previous_elements]
 
         for elem in previous_elements:
+            self.add_input(elem)
             prev_graph_input = elem.get_forward_output()
             self._fwd.add_input(prev_graph_input)
 
         for num, elem in enumerate(previous_elements):
-            if elem.has_back:
+            if self.has_back and elem.has_back:
                 elem.connect_back(self, pos=num)
         self.connected = True
         self.simple_forward()
         return self
 
     # rename to super class equivalent
-    def disconnect(self):
-        while len(self._previous_elements) > 0:
-            self.remove_input(self._previous_elements[0])
-        while len(self._fwd._previous_elements) > 0:
-            self._fwd.remove_input(self._fwd._previous_elements[0])
+    def detach(self):
+        self._fwd.detach()
         for graph in self._bwd_graphs:
-            while len(graph._previous_elements) > 0:
-                graph.remove_input(graph._previous_elements[0])
-        while len(self._next_elements) > 0:
-            self._next_elements[0]._fwd.remove_input(self._fwd)
-            self._next_elements[0].remove_input(self)
+            graph.detach()
+        super().detach()
 
     def connect_back(self, previous_element, pos=0):
         backward_graph_input = previous_element.get_backward_output(pos)
@@ -197,7 +192,6 @@ class UserGraph(graph_element):
     def backward(self):
         if len(self._bwd_graphs[0]._previous_elements) == 0:
             loss = rm.graph.ConstantLoss(previous_element=self)
-            loss._bwd_graphs[0].add_input(self._fwd)
         self._fwd.continue_forward(tag='Backward')
         return self
 
@@ -243,8 +237,11 @@ class UserGraph(graph_element):
 
 class UserLossGraph(UserGraph):
 
+    has_back = True
+
     def connect(self, previous_elements):
-        assert isinstance(previous_elements, list) and len(previous_elements) == 2
+        if isinstance(previous_elements, UserGraph):
+            previous_elements = [previous_elements]
         super().connect(previous_elements)
         for elem in previous_elements:
             prev = elem.get_forward_output()

@@ -48,7 +48,7 @@ class operation(abc.ABC):
     # inputargs = namedtuple('input_values', 'y', 'a', 'b')
     # inputs = [inputargs(*d) for d in self.inputs]
 
-    # setup should be moved to __init__
+    # setup functionality should be implemented as __init__
     @abc.abstractmethod
     def setup(self, inputs):
         '''
@@ -86,7 +86,7 @@ class operation(abc.ABC):
         return self._vars
 
     def __repr__(self):
-        return self._vars['y'].__repr__()
+        return self.name + ':\n' + self._vars['y'].__repr__()
 
     def as_ndarray(self):
         return self._vars['y'].as_ndarray()

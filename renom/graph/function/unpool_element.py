@@ -4,6 +4,27 @@ from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFacto
 import numpy as np
 
 
+class MaxUnPoolElement(UserGraph):
+
+    has_back = True
+
+    def __init__(self, prev_pool, previous_element=None):
+        fwd_op = unpool_forward(prev_pool) if rm.is_cuda_active() else unpool_forward_cpu(prev_pool)
+        bwd_ops = [unpool_backward(fwd_op) if rm.is_cuda_active() else unpool_backward_cpu(fwd_op)]
+        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
+
+
+class MaxUnPoolGraphElement(GraphFactory):
+
+    def __init__(self, prev_pool):
+        super().__init__()
+        self._prev_pool = prev_pool._fwd._op
+
+    def connect(self, other):
+        ret = MaxUnPoolElement(self._prev_pool, previous_element=[other])
+        return ret
+
+
 class unpool_forward(operation):
 
     name = 'Pool (F)'
@@ -88,24 +109,3 @@ class unpool_backward_cpu(unpool_backward):
                      self._prev_pool._padding, mode='max', alternate_input=dy)
 
         self._outputs['cpu'] = dx
-
-
-class MaxUnPoolElement(UserGraph):
-
-    has_back = True
-
-    def __init__(self, prev_pool, previous_element=None):
-        fwd_op = unpool_forward(prev_pool) if rm.is_cuda_active() else unpool_forward_cpu(prev_pool)
-        bwd_ops = [unpool_backward(fwd_op) if rm.is_cuda_active() else unpool_backward_cpu(fwd_op)]
-        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
-
-
-class MaxUnPoolGraphElement(GraphFactory):
-
-    def __init__(self, prev_pool):
-        super().__init__()
-        self._prev = prev_pool._fwd._op
-
-    def connect(self, other):
-        ret = MaxUnPoolElement(self._prev, previous_element=[other])
-        return ret

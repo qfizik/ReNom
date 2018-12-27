@@ -55,13 +55,11 @@ class graph_element(abc.ABC):
     def update_depth(self):
         if len(self._previous_elements) == 0:
             self.depth = 0
-            return
-        
-        for prev in self._previous_elements:
-            if prev.depth >= self.depth:
-                self.depth = prev.depth + 1
-                for next_element in self._next_elements:
-                    next_element.update_depth()
+        else:
+            max_depth = max(p.depth for p in self._previous_elements)
+            self.depth = max_depth + 1
+        for next_element in self._next_elements:
+            next_element.update_depth()
 
     def __lt__(self, other):
         return self.depth < other.depth
@@ -125,10 +123,6 @@ class graph_element(abc.ABC):
 
     def detach(self):
         for elem in self._previous_elements:
-            elem.remove_next(self)
-        self._previous_elements = []
-        self.depth = 0
-        self._start_points = []
+            self.remove_input(elem)
         for elem in self._next_elements:
             elem.remove_input(self)
-        self._next_elements = []

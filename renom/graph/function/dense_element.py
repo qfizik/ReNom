@@ -34,14 +34,26 @@ class DenseGraphElement(GraphFactory):
         self._init = initializer
 
     def connect(self, other):
-        if len(self.params['w']._next_elements) > 0:
-            self.params['w']._fwd._next_elements[0].disconnect()
-        self.params['w'].disconnect()
-        self.params['b'].disconnect()
         ret = DenseGraph(output_size=self.output_size, initializer=self._init,
                          previous_element=[other, self.params['w']])
         ret = self._bias(ret)
         return ret
+
+class DenseGraph(UserGraph):
+
+    has_back = True
+
+    def __init__(self, output_size, initializer, previous_element=None):
+
+        fwd_op = dense_forward(output_size, initializer) if rm.is_cuda_active(
+        ) else dense_forward_cpu(output_size, initializer)
+        bwd_ops = [dense_backward(associated_forward=fwd_op) if rm.is_cuda_active() else dense_backward_cpu(fwd_op),
+                   dense_weight_backward(associated_forward=fwd_op) if rm.is_cuda_active(
+        ) else dense_weight_backward_cpu(fwd_op),
+        ]
+        self.output_size = output_size
+
+        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
 class dense_forward(operation):
@@ -50,7 +62,6 @@ class dense_forward(operation):
     consumes = ['w']
 
     def __init__(self, output_size, initializer):
-
         self._output_size = output_size
         self._init = initializer
 
@@ -156,20 +167,3 @@ class dense_weight_backward_cpu(dense_weight_backward):
     def perform(self):
         ret = np.dot(self._fwd_ins['cpu'].T, self._inputs['cpu'])
         self._outputs['cpu'] = ret
-
-
-class DenseGraph(UserGraph):
-
-    has_back = True
-
-    def __init__(self, output_size, initializer, previous_element=None):
-
-        fwd_op = dense_forward(output_size, initializer) if rm.is_cuda_active(
-        ) else dense_forward_cpu(output_size, initializer)
-        bwd_ops = [dense_backward(associated_forward=fwd_op) if rm.is_cuda_active() else dense_backward_cpu(fwd_op),
-                   dense_weight_backward(associated_forward=fwd_op) if rm.is_cuda_active(
-        ) else dense_weight_backward_cpu(fwd_op),
-        ]
-        self.output_size = output_size
-
-        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)

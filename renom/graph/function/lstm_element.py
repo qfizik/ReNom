@@ -287,7 +287,7 @@ class LstmGraphElement(GraphFactory):
 
     def reset(self):
         if self._l is not None:
-            self._l.disconnect()
+            self._l.detach()
         self._l = None
 
     def connect(self, other):

@@ -35,14 +35,18 @@ class graph_variable(UserGraph):
         assert isinstance(arr, np.ndarray)
         v = self._fwd_op.get_key('y')
         v.__init__(shape=arr.shape, gpus=gpus)
-        for gpu in v.gpus:
-            v[gpu].to_gpu(arr)
+        if v.gpus == 'cpu':
+            v['cpu'] = arr
+        else:
+            for gpu in v.gpus:
+                v[gpu].to_gpu(arr)
 
 
 class GraphFactory(abc.ABC):
 
     def __init__(self, *other):
         self.params = dict()
+        self._prev = None
         if len(other) > 0:
             self(*other)
 
@@ -52,8 +56,12 @@ class GraphFactory(abc.ABC):
 
     def __call__(self, *other):
         for param in self.params:
-            self.params[param].disconnect()
-        return self.connect(*other)
+            self.params[param].detach()
+        if self._prev is not None:
+            self._prev.detach()
+        ret = self.connect(*other)
+        self._prev = ret
+        return ret
 
     def get_model_children(self):
         for k, v in self.__dict__.items():
@@ -165,6 +173,8 @@ class GraphFactory(abc.ABC):
             >>> model = rm.Dense(2)
             >>> model.load("model.hd5")
         """
+        if gpus is None:
+            gpus = 'cpu'
         f = h5py.File(filename, 'r')
         values = f['values']
         #types = f['types']

@@ -90,6 +90,5 @@ class BiasGraphElement(GraphFactory):
         self.params['b'] = graph_variable()
 
     def connect(self, other):
-        self.params['b'].disconnect()
         ret = BiasElement(previous_element=[other, self.params['b']])
         return ret
