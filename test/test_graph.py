@@ -3,19 +3,23 @@ import numpy as np
 import renom as rm
 import pytest
 
-from test_utility import skipgpu
 if rm.precision is not np.float64:
     pytestmark = pytest.mark.skip()
 
 rm.set_renom_seed(30)
 
 
-def compare(nd_value, ad_value):
-    print('ad=')
-    print(ad_value)
-    print('nd=')
-    print(nd_value)
-    assert np.allclose(nd_value, ad_value, atol=1e-5, rtol=1e-3)
+def compare(nd_value, ad_value, abs_tol = 1e-5, rel_tol = 1e-3):
+    ret = nd_value.shape == ad_value.shape
+    ret = ret and np.allclose(nd_value, ad_value, atol=abs_tol, rtol=rel_tol)
+    if ret is False:
+        print('ad=')
+        print(ad_value)
+        print('nd=')
+        print(nd_value)
+        print('difference=')
+        print(nd_value-ad_value)
+    assert ret
 
 
 def rand(*shape):
@@ -212,9 +216,9 @@ def test_gru(test_shape, use_gpu):
 
     compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output).as_ndarray(), abs_tol = 1e-3)
     compare(getNumericalDiff(func, model.params['wr'].output), loss.backward(
-    ).get_gradient(model.params['wr'].output).as_ndarray())
+    ).get_gradient(model.params['wr'].output).as_ndarray(), abs_tol = 1e-3)
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -252,7 +256,6 @@ def test_weight_norm(test_shape, use_gpu):
     (4, 5),
 ])
 def test_layer_norm(test_shape, use_gpu):
-    use_gpu = True
     rm.set_cuda_active(use_gpu)
 
     v = rand(*test_shape)
