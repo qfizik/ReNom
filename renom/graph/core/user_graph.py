@@ -18,7 +18,19 @@ def _prepare_prevs(previous_elements):
 
 class UserGraph(graph_element):
     '''
-        TODO: Fix Docstring
+        The UserGraph class is the main class that will be interfacing with the user.
+        The purpose of the UserGraph class is to translate more abstract ideas of layers,
+        activations and losses into elements that can be interpreted by the graph
+        engine, using operational_element objects.
+
+        The translation from UserGraph graph to operational_element graph is automatic,
+        given that the user that the UserGraph is well constructed.
+
+        UserGraph follows a princinple of a relationship between forward operations and
+        backward operations as 1-to-n, enforcing only a single forward operation but
+        allowing several backward operations to this operation.
+
+
     '''
 
     _has_back = False

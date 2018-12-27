@@ -6,43 +6,23 @@ from .operation import operation
 from .graph_storage import GraphMultiStorage
 import h5py
 
-
-class variable_input(operation):
-
-    name = 'Variable'
-    roles = ['variable']
-
-    def __init__(self):
-        val = GraphMultiStorage()
-        self._vars = {'y': val}
-
-    def setup(self, inputs):
-        pass
-
-    def perform(self):
-        pass
-
-
-class graph_variable(UserGraph):
-
-    def __init__(self):
-        fwd_op = variable_input()
-        self._fwd_op = fwd_op
-        bwd_ops = []
-        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops)
-
-    def set_value(self, arr, gpus=None):
-        assert isinstance(arr, np.ndarray)
-        v = self._fwd_op.get_key('y')
-        v.__init__(shape=arr.shape, gpus=gpus)
-        if v.gpus == 'cpu':
-            v['cpu'] = arr
-        else:
-            for gpu in v.gpus:
-                v[gpu].to_gpu(arr)
-
-
 class GraphFactory(abc.ABC):
+
+    '''
+        A utility class designed to remove the user from the states of the UserGraph implementing
+        classes. The GraphFactory provides two services, allowing the user to rebuild the graph
+        without worrying about states of connection between UserGraph elements and removing the
+        responsibility of maintaining weights and biases from the UserGraph class.
+
+        A class implementing the abstract GraphFactory class is required only to implement the
+        connect method which should return a prepared UserGraph. If an implementing class inherits
+        __init__, the overrided __init__ should also be called.
+
+        If there is a need for weights or biases, etc, then these variables should be stored in the
+        params dictionary which is instantiated for each GraphFactory object. This allows GraphFactory
+        to detach these variables when reconstructing the graph as well as save/load the variables
+        later using the save/load methods.
+    '''
 
     def __init__(self, *other):
         self.params = dict()
@@ -209,3 +189,48 @@ class GraphFactory(abc.ABC):
                 tmp.set_value(v, gpus=devices)
 
         f.close()
+
+
+class graph_variable(UserGraph):
+
+    '''
+        A simple helper class designed to allow the operations access to 'free' memory.
+        The graph_variable provides a single forward operation, variable_input, which
+        does nothing but provide a constant output.
+
+        Any operation requiring a modifiable parameter, which cannot be determined
+        before the size of the graph is determined, can use the output produced by
+        variable_input. This memory is set calling the __init__ method of the
+        GraphMultiStorage output. If this memory is already set, it simply reaffirms
+        that the same size if request and if not, raises an exception.
+    '''
+    def __init__(self):
+        fwd_op = variable_input()
+        self._fwd_op = fwd_op
+        bwd_ops = []
+        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops)
+
+    def set_value(self, arr, gpus=None):
+        assert isinstance(arr, np.ndarray)
+        v = self._fwd_op.get_key('y')
+        v.__init__(shape=arr.shape, gpus=gpus)
+        if v.gpus == 'cpu':
+            v['cpu'] = arr
+        else:
+            for gpu in v.gpus:
+                v[gpu].to_gpu(arr)
+
+class variable_input(operation):
+
+    name = 'Variable'
+    roles = ['variable']
+
+    def __init__(self):
+        val = GraphMultiStorage()
+        self._vars = {'y': val}
+
+    def setup(self, inputs):
+        pass
+
+    def perform(self):
+        pass

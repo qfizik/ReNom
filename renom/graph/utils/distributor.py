@@ -136,6 +136,8 @@ class DistributorElement:
         pass
 
     def getOutputGraphs(self):
+        self._data_graph.detach()
+        self._label_graph.detach()
         return self._data_graph, self._label_graph
 
     def change_data(self, new_data):

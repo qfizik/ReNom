@@ -10,6 +10,20 @@ class graph_element(abc.ABC):
 
       The basic tree maintains a depth variable with the rule that its depth is the maximum
       of its predecessors plus 1. If updated, all following depth values will be recalculated.
+      A node has an n-to-n relationship with previous elements in the graph and next elements,
+      and should not have any relationship with nodes of the same depth as itself.
+
+      Because of the depth in the tree constructed with graph_element, there is a sense of
+      direction in the tree where smaller depths come before higher depths. Any inheriting
+      classes are obliged to implement the method forward which implements the idea of
+      'following' this direction implicated by the depths.
+
+      A class inheriting can use the decorator 'walk_tree' to follow this direction simply.
+      The decorated methods will be called on the entire tree guaranteeing that smaller
+      depths are called first. Examples of how to use walk_tree is found below.
+
+      The classes also contains the abstract __repr__ method, which should be implemented
+      in as informative a way as possible.
 
     '''
 
@@ -72,6 +86,23 @@ class graph_element(abc.ABC):
     def __repr__(self):
         pass
 
+    '''
+        Example of a class using walk_tree:
+            In [1]: import renom as rm
+            In [2]: class simple_graph(rm.graph.core.graph_element.graph_element):
+               ...:     def forward(self): pass
+               ...:     def __repr__(self): pass
+               ...:     @rm.graph.core.graph_element.graph_element.walk_tree
+               ...:     def print_depths(self):
+               ...:         print(self.depth)
+               ...:
+            In [3]: A, B = simple_graph(), simple_graph()
+            In [4]: B.add_input(A)
+            In [5]: B.print_depths()
+            0
+            1
+
+    '''
     @staticmethod
     def walk_tree(func):
         def cleanup(self):

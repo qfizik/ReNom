@@ -20,6 +20,9 @@ class operation(abc.ABC):
               Any key memory regions should be defined in this dict. Memory regions defined in the class,
               but not inserted into the _vars dict will not be considered by the overlaying graph.
 
+                        Note:   Operations designed for backward graphs should alias any gradients to
+                                the ID of the location to which the gradient is associated.
+
           produces, consumes:
               These variables are responsible for defining the relationship between different operations.
               When a UserGraph is created, the graph defines a single forward operations and up todo
@@ -66,6 +69,10 @@ class operation(abc.ABC):
             in which the previous operation was added in the above graph.
 
             Note: As far as possible, this methoud should be made device agnostic.
+
+            TODO: The functionality of setup should be moved to __init__.
+                Currently the class is not finished initializing until setup is properly called.
+                The rest of class initilization found in setup should be moved to __init__.
         '''
         pass
 
