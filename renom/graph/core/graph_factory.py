@@ -163,7 +163,7 @@ class GraphFactory(abc.ABC):
                     else:
                         g['__dict__.' + propname] = propvalue
 
-    def load(self, filename, gpus=None):
+    def load(self, filename, devices=None):
         """Load saved weights to model.
 
         Args:
@@ -173,8 +173,8 @@ class GraphFactory(abc.ABC):
             >>> model = rm.Dense(2)
             >>> model.load("model.hd5")
         """
-        if gpus is None:
-            gpus = 'cpu'
+        if devices is None:
+            devices = 'cpu'
         f = h5py.File(filename, 'r')
         values = f['values']
         #types = f['types']
@@ -206,6 +206,6 @@ class GraphFactory(abc.ABC):
                     name = k
 
                 tmp = obj[name]
-                tmp.set_value(v, gpus=gpus)
+                tmp.set_value(v, gpus=devices)
 
         f.close()

@@ -292,9 +292,12 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
                 and A._bwd_graphs[0].depth == 7
 
 @pytest.mark.parametrize('devices_to_load', [
-    None
+    'cpu', 1, 2, 3, 4
 ])
 def test_save_load(devices_to_load):
+    if devices_to_load != 'cpu' and not rm.cuda.has_cuda() or (rm.cuda.cuGetDeviceCount() < devices_to_load):
+            pytest.skip()
+
     model = rm.graph.SequentialSubGraph([
         rm.graph.DenseGraphElement(3),
         rm.graph.DenseGraphElement(6),
@@ -312,7 +315,7 @@ def test_save_load(devices_to_load):
         rm.graph.DenseGraphElement(6),
         rm.graph.DenseGraphElement(2),
     ])
-    model.load(tmp_filename)
+    model.load(tmp_filename, devices = devices_to_load)
     y2 = model(x).as_ndarray()
     assert np.allclose(y1, y2)
 
