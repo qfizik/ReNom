@@ -334,3 +334,22 @@ def test_save_load(devices_to_load):
 
     import os
     os.remove(tmp_filename)
+
+@pytest.mark.parametrize('ttype',[
+    np.int, np.int32, np.int64,
+    np.float, np.float32, np.float64
+])
+def test_dtype(ttype, use_gpu):
+
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DenseGraphElement(6),
+        rm.graph.DenseGraphElement(2),
+    ])
+
+    x = np.random.rand(5,4).astype(ttype)
+    y1 = model(x)
+    assert y1.as_ndarray().dtype == rm.precision
+
+def test_pinnedmem(): #TODO
+    pytest.skip()

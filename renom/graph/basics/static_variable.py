@@ -23,6 +23,8 @@ class StaticVariable(UserGraph):
     _name = 'Static Element'
 
     def __init__(self, value, num_gpus=1):
+        if value.dtype is not rm.precision:
+            value = value.astype(rm.precision)
         if rm.is_cuda_active():
             gpu_list = [gpu for gpu in range(num_gpus)]
         else:
