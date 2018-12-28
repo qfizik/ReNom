@@ -205,6 +205,7 @@ def test_graph_depth(graph_nodes):
 @pytest.mark.parametrize('B_has_back', [True, False])
 @pytest.mark.parametrize('C_has_back', [True, False])
 def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
+    rm.set_cuda_active(False)
     class dummy_graph_A(rm.graph.core.UserGraph):
         has_back = A_has_back
 
@@ -305,10 +306,13 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
     'cpu', 1, 2, 3, 4
 ])
 def test_save_load(devices_to_load):
-    print(devices_to_load)
     if devices_to_load != 'cpu':
         if not rm.cuda.has_cuda() or (rm.cuda.cuGetDeviceCount() < devices_to_load):
             pytest.skip()
+        rm.set_cuda_active(True)
+        devices_to_load = [d for d in range(devices_to_load)]
+    else:
+        rm.set_cuda_active(False)
 
     model = rm.graph.SequentialSubGraph([
         rm.graph.DenseGraphElement(3),
@@ -319,7 +323,11 @@ def test_save_load(devices_to_load):
     x = np.random.rand(5, 4)
     y1 = model(x).as_ndarray()
 
-    tmp_filename = 'tmpfile-4341lk5s.h5'
+    import random, string
+    pre_filename = 'tmpfile-'
+    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(11))
+    type_filename = '.h5'
+    tmp_filename = pre_filename + rand_filename + type_filename
     model.save(tmp_filename)
 
     model = rm.graph.SequentialSubGraph([
