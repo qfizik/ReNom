@@ -206,20 +206,12 @@ def test_graph_depth(graph_nodes):
 @pytest.mark.parametrize('C_has_back', [True, False])
 def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
     rm.set_cuda_active(False)
-    class dummy_graph_A(rm.graph.core.UserGraph):
-        has_back = A_has_back
 
-    class dummy_graph_B(rm.graph.core.UserGraph):
-        has_back = B_has_back
-
-    class dummy_graph_C(rm.graph.core.UserGraph):
-        has_back = C_has_back
-
-    A = dummy_graph_A(forward_operation=noop(), backward_operations=[
+    A = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
                       noop()] if A_has_back else None)
-    B = dummy_graph_B(forward_operation=noop(), backward_operations=[
+    B = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
                       noop()] if B_has_back else None)
-    C = dummy_graph_C(forward_operation=noop(), backward_operations=[
+    C = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
                       noop()] if C_has_back else None)
     assert A.depth == 0 and B.depth == 0 and C.depth == 0
     assert A_has_back and len(A._bwd_graphs) == 1 or len(A._bwd_graphs) == 0
