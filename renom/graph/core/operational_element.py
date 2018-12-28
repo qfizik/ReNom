@@ -16,8 +16,6 @@ class operational_element(graph_element):
         super(operational_element, self).__init__(previous_elements=previous_elements)
 
         self.prev_inputs = None
-        #assert isinstance(operation_args, list)
-        #self._opcls = operation
         self._op = operation
 
         self._tags = []
@@ -118,7 +116,6 @@ class operational_element(graph_element):
         if not self.inputs_changed():
             return
         inputs = [prev.get_output() for prev in self._previous_elements]
-        #self._op = self._opcls(inputs, *self._opargs)
         self._op.setup(inputs)
         self.prev_inputs = inputs
 

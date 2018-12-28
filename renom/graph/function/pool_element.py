@@ -114,8 +114,6 @@ class pool_backward_cpu(pool_backward):
 
 class PoolElement(UserGraph):
 
-    
-
     def __init__(self, kernel, padding, stride, mode, previous_element=None):
         self._krnl = kernel
         self._pad = padding

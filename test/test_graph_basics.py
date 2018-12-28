@@ -144,24 +144,27 @@ def test_sequential(use_gpu):
     z = model(v).as_ndarray()
     assert z.shape == (4, 5)
 
+
 class noop(rm.graph.core.operation):
     name = 'noop'
-    _vars = {'y' : rm.graph.core.GraphMultiStorage(shape=(0,),gpus='cpu')}
+    _vars = {'y': rm.graph.core.GraphMultiStorage(shape=(0,), gpus='cpu')}
+
     def setup(self, inputs):
         pass
+
     def perform(self):
         pass
 
 
 @pytest.mark.parametrize('graph_nodes', [
-    {   'A' : rm.graph.core.operational_element(operation = noop(), tags=['Dummy']),
-        'B' : rm.graph.core.operational_element(operation = noop(), tags=['Dummy']),
-        'C' : rm.graph.core.operational_element(operation = noop(), tags=['Dummy'])
-    },
-    {   'A' : rm.graph.core.UserGraph(forward_operation = noop()),
-        'B' : rm.graph.core.UserGraph(forward_operation = noop()),
-        'C' : rm.graph.core.UserGraph(forward_operation = noop())
-    },
+    {'A': rm.graph.core.operational_element(operation=noop(), tags=['Dummy']),
+        'B': rm.graph.core.operational_element(operation=noop(), tags=['Dummy']),
+        'C': rm.graph.core.operational_element(operation=noop(), tags=['Dummy'])
+     },
+    {'A': rm.graph.core.UserGraph(forward_operation=noop()),
+        'B': rm.graph.core.UserGraph(forward_operation=noop()),
+        'C': rm.graph.core.UserGraph(forward_operation=noop())
+     },
 ])
 def test_graph_depth(graph_nodes):
     A = graph_nodes['A']
@@ -197,20 +200,26 @@ def test_graph_depth(graph_nodes):
     B.detach()      # A(0) -> C(1), B(0)
     assert A.depth == 0 and B.depth == 0 and C.depth == 1
 
+
 @pytest.mark.parametrize('A_has_back', [True, False])
 @pytest.mark.parametrize('B_has_back', [True, False])
 @pytest.mark.parametrize('C_has_back', [True, False])
 def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
     class dummy_graph_A(rm.graph.core.UserGraph):
         has_back = A_has_back
+
     class dummy_graph_B(rm.graph.core.UserGraph):
         has_back = B_has_back
+
     class dummy_graph_C(rm.graph.core.UserGraph):
         has_back = C_has_back
 
-    A = dummy_graph_A(forward_operation = noop(), backward_operations = [noop()] if A_has_back else None)
-    B = dummy_graph_B(forward_operation = noop(), backward_operations = [noop()] if B_has_back else None)
-    C = dummy_graph_C(forward_operation = noop(), backward_operations = [noop()] if C_has_back else None)
+    A = dummy_graph_A(forward_operation=noop(), backward_operations=[
+                      noop()] if A_has_back else None)
+    B = dummy_graph_B(forward_operation=noop(), backward_operations=[
+                      noop()] if B_has_back else None)
+    C = dummy_graph_C(forward_operation=noop(), backward_operations=[
+                      noop()] if C_has_back else None)
     assert A.depth == 0 and B.depth == 0 and C.depth == 0
     assert A_has_back and len(A._bwd_graphs) == 1 or len(A._bwd_graphs) == 0
 
@@ -265,13 +274,13 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
         assert B._bwd_graphs[0].depth == 0 and A._bwd_graphs[0].depth == 1
 
     if A_has_back and B_has_back and C_has_back:
-        L = rm.graph.core.UserLossGraph(forward_operation = noop(), backward_operations = [noop()])
+        L = rm.graph.core.UserLossGraph(forward_operation=noop(), backward_operations=[noop()])
         # A_f -> B_f -> C_f -> L_f -> L_b -> C_b -> B_b -> A_b
         L(C)
         assert A.depth == 0 and B.depth == 1 and C.depth == 2 and L.depth == 3
         assert A._fwd.depth == 0 and B._fwd.depth == 1 and C._fwd.depth == 2 and L._fwd.depth == 3
         assert L._bwd_graphs[0].depth == 4 and C._bwd_graphs[0].depth == 5 \
-                and B._bwd_graphs[0].depth == 6 and A._bwd_graphs[0].depth == 7
+            and B._bwd_graphs[0].depth == 6 and A._bwd_graphs[0].depth == 7
 
         # A_f -> B_f -> C_f, C_b -> B_b -> A_b
         L.detach()
@@ -289,7 +298,8 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
         assert A.depth == 0 and B.depth == 1 and C.depth == 2
         assert A._fwd.depth == 0 and B._fwd.depth == 1 and C._fwd.depth == 2
         assert C._bwd_graphs[0].depth == 5 and B._bwd_graphs[0].depth == 6 \
-                and A._bwd_graphs[0].depth == 7
+            and A._bwd_graphs[0].depth == 7
+
 
 @pytest.mark.parametrize('devices_to_load', [
     'cpu', 1, 2, 3, 4
@@ -306,7 +316,7 @@ def test_save_load(devices_to_load):
         rm.graph.DenseGraphElement(2),
     ])
 
-    x = np.random.rand(5,4)
+    x = np.random.rand(5, 4)
     y1 = model(x).as_ndarray()
 
     tmp_filename = 'tmpfile-4341lk5s.h5'
@@ -317,7 +327,7 @@ def test_save_load(devices_to_load):
         rm.graph.DenseGraphElement(6),
         rm.graph.DenseGraphElement(2),
     ])
-    model.load(tmp_filename, devices = devices_to_load)
+    model.load(tmp_filename, devices=devices_to_load)
     y2 = model(x).as_ndarray()
     assert np.allclose(y1, y2)
 
@@ -326,7 +336,7 @@ def test_save_load(devices_to_load):
             rm.graph.DenseGraphElement(6),
             rm.graph.DenseGraphElement(3),
             rm.graph.DenseGraphElement(2),
-            ])
+        ])
         model.load(tmp_filename)
         raise AssertionError('Model should not be able to load different shape')
     except:
@@ -335,7 +345,8 @@ def test_save_load(devices_to_load):
     import os
     os.remove(tmp_filename)
 
-@pytest.mark.parametrize('ttype',[
+
+@pytest.mark.parametrize('ttype', [
     np.int, np.int32, np.int64,
     np.float, np.float32, np.float64
 ])
@@ -348,9 +359,10 @@ def test_dtype(ttype, use_gpu):
         rm.graph.DenseGraphElement(2),
     ])
 
-    x = np.random.rand(5,4).astype(ttype)
+    x = np.random.rand(5, 4).astype(ttype)
     y1 = model(x)
     assert y1.as_ndarray().dtype == rm.precision
 
-def test_pinnedmem(): #TODO
+
+def test_pinnedmem():  # TODO
     pytest.skip()

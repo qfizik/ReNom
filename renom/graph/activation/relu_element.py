@@ -65,8 +65,6 @@ class relu_backward_cpu(relu_backward):
 
 class ReluElement(UserGraph):
 
-    
-
     def __init__(self, previous_elements=None):
         fwd_op = relu_forward() if rm.is_cuda_active() else relu_forward_cpu()
         bwd_ops = [relu_backward(fwd_op) if rm.is_cuda_active() else relu_backward_cpu(fwd_op)]

@@ -73,8 +73,6 @@ class bias_backward_cpu(bias_backward):
 
 class BiasElement(UserGraph):
 
-    
-
     def __init__(self, previous_element=None):
 
         fwd_op = bias_forward() if rm.is_cuda_active() else bias_forward_cpu()

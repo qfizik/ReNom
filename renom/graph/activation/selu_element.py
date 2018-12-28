@@ -75,8 +75,6 @@ class selu_backward_cpu(selu_backward):
 
 class SeluElement(UserGraph):
 
-    
-
     def __init__(self, previous_elements=None):
         fwd_op = selu_forward() if rm.is_cuda_active() else selu_forward_cpu()
         bwd_ops = [selu_backward(fwd_op) if rm.is_cuda_active() else selu_backward_cpu(fwd_op)]

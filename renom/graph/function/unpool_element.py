@@ -6,8 +6,6 @@ import numpy as np
 
 class MaxUnPoolElement(UserGraph):
 
-    
-
     def __init__(self, prev_pool, previous_element=None):
         fwd_op = unpool_forward(prev_pool) if rm.is_cuda_active() else unpool_forward_cpu(prev_pool)
         bwd_ops = [unpool_backward(fwd_op) if rm.is_cuda_active() else unpool_backward_cpu(fwd_op)]

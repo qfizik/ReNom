@@ -63,8 +63,6 @@ class tanh_backward_cpu(tanh_backward):
 
 class TanhElement(UserGraph):
 
-    
-
     def __init__(self, previous_elements=None):
         fwd_op = tanh_forward() if rm.is_cuda_active() else tanh_forward_cpu()
         bwd_ops = [tanh_backward(fwd_op) if rm.is_cuda_active() else tanh_backward_cpu(fwd_op)]

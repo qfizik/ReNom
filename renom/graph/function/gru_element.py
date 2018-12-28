@@ -244,8 +244,6 @@ class gru_backward_cpu(gru_backward):
 
 class GruElement(UserGraph):
 
-
-
     def __init__(self, output_size, previous_elements=None):
         fwd_op = gru_forward(output_size) if rm.is_cuda_active() else gru_forward_cpu(output_size)
         bwd_ops = [gru_backward(fwd_op) if rm.is_cuda_active() else gru_backward_cpu(fwd_op)]

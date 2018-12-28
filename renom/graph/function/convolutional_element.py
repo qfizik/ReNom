@@ -236,8 +236,6 @@ class convo_backward_cpu(convo_backward):
 
 class ConvolutionalGraph(UserGraph):
 
-    
-
     def __init__(self, channels=3, kernel=3, padding=0, stride=1, initializer=None, previous_element=None):
 
         self._chnls = channels

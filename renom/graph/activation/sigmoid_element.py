@@ -62,8 +62,6 @@ class sigmoid_backward_cpu(sigmoid_backward):
 
 class SigmoidElement(UserGraph):
 
-    
-
     def __init__(self, previous_elements=None):
         fwd_op = sigmoid_forward() if rm.is_cuda_active() else sigmoid_forward_cpu()
         bwd_ops = [sigmoid_backward(fwd_op) if rm.is_cuda_active()

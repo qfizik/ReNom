@@ -6,6 +6,7 @@ from .operation import operation
 from .graph_storage import GraphMultiStorage
 import h5py
 
+
 class GraphFactory(abc.ABC):
 
     '''
@@ -204,6 +205,7 @@ class graph_variable(UserGraph):
         GraphMultiStorage output. If this memory is already set, it simply reaffirms
         that the same size if request and if not, raises an exception.
     '''
+
     def __init__(self):
         fwd_op = variable_input()
         self._fwd_op = fwd_op
@@ -219,6 +221,7 @@ class graph_variable(UserGraph):
         else:
             for gpu in v.gpus:
                 v[gpu].to_gpu(arr)
+
 
 class variable_input(operation):
 

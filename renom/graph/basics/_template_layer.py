@@ -55,7 +55,6 @@ class _backward_operation_cpu(_backward_operation):
 
 class _element(UserGraph):
 
-
     def __init__(self, previous_elements=None):
         fwd_op = _forward_operation() if rm.is_cuda_active() else _forward_operation_cpu()
         bwd_ops = [_backward_operation(fwd_op) if rm.is_cuda_active()

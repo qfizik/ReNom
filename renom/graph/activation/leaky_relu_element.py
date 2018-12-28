@@ -67,8 +67,6 @@ class leaky_relubackward_cpu(leaky_relubackward):
 
 class LeakyReluElement(UserGraph):
 
-    
-
     def __init__(self, slope=0.01, previous_elements=None):
         fwd_op = leaky_reluforward(slope) if rm.is_cuda_active() else leaky_reluforward_cpu(slope)
         bwd_ops = [leaky_relubackward(fwd_op) if rm.is_cuda_active()

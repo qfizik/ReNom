@@ -152,8 +152,6 @@ class l2norm_weight_backward_cpu(l2norm_weight_backward):
 
 class L2NormGraph(UserGraph):
 
-    
-
     def __init__(self, scale, previous_element=None):
 
         fwd_op = l2norm_forward(scale) if rm.is_cuda_active() else l2norm_forward_cpu(scale)

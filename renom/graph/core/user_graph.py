@@ -6,16 +6,6 @@ import renom as rm
 import numpy as np
 
 
-def _prepare_prevs(previous_elements):
-    if not isinstance(previous_elements, list):
-        previous_elements = [previous_elements]
-    for i, prev in enumerate(previous_elements):
-        assert isinstance(prev, np.ndarray) or isinstance(prev, UserGraph)
-        if isinstance(prev, np.ndarray):
-            previous_elements[i] = rm.graph.StaticVariable(prev)
-    return previous_elements
-
-
 class UserGraph(graph_element):
     '''
         The UserGraph class is the main class that will be interfacing with the user.
@@ -42,7 +32,7 @@ class UserGraph(graph_element):
             backward_operations = []
 
         if previous_elements is not None:
-            previous_elements = _prepare_prevs(previous_elements)
+            previous_elements = UserGraph._prepare_prevs(previous_elements)
 
         super().__init__(previous_elements=previous_elements)
 
@@ -59,6 +49,16 @@ class UserGraph(graph_element):
         for op in backward_operations:
             bwd_graph = operational_element(op, tags=['Backward'])
             self._bwd_graphs.append(bwd_graph)
+
+    @staticmethod
+    def _prepare_prevs(previous_elements):
+        if not isinstance(previous_elements, list):
+            previous_elements = [previous_elements]
+        for i, prev in enumerate(previous_elements):
+            assert isinstance(prev, np.ndarray) or isinstance(prev, UserGraph)
+            if isinstance(prev, np.ndarray):
+                previous_elements[i] = rm.graph.StaticVariable(prev)
+        return previous_elements
 
     def _create_fwd_graph(self, forward_operation):
         assert isinstance(forward_operation, operation) or isinstance(
@@ -100,7 +100,6 @@ class UserGraph(graph_element):
         self.simple_forward()
         return self
 
-    # rename to super class equivalent
     def detach(self):
         self._fwd.detach()
         for graph in self._bwd_graphs:
@@ -120,7 +119,6 @@ class UserGraph(graph_element):
         backward_graph_input = previous_element.get_backward_output(pos)
         for graph in self._bwd_graphs:
             graph.remove_input(backward_graph_input)
-
 
     @property
     def name(self):
@@ -167,9 +165,6 @@ class UserGraph(graph_element):
                 for call in self.call_list[depth]:
                     call()
 
-        def loss(self):
-            return self.loss_func
-
     def getInferenceExecutor(self):
         ins = self._fwd.gather_operations_with_role('input', flatten=True)
         lss = self._fwd.gather_operations_with_role('loss', flatten=True)
@@ -203,7 +198,7 @@ class UserGraph(graph_element):
 
     def backward(self):
         if len(self._bwd_graphs[0]._previous_elements) == 0:
-            loss = rm.graph.ConstantLoss(previous_element=self)
+            rm.graph.ConstantLoss(previous_element=self)
         self._fwd.continue_forward(tag='Backward')
         return self
 
@@ -246,12 +241,13 @@ class UserGraph(graph_element):
         return self._fwd.output
 
     def as_ndarray(self):
-        self.forward()
         return self._fwd.as_ndarray()
 
 
 class UserLossGraph(UserGraph):
-
+    '''
+        A special case of the UserGraph where we
+    '''
 
     def connect(self, previous_elements):
         if isinstance(previous_elements, UserGraph):

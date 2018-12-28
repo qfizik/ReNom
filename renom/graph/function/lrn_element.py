@@ -96,8 +96,6 @@ class lrn_backward_cpu(lrn_backward):
 
 class LrnElement(UserGraph):
 
-    
-
     def __init__(self, n=5, k=2, a=1e-4, b=0.75, previous_element=None):
         self._n = n
         self._k = k

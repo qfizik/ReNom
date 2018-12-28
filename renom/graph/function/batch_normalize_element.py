@@ -140,8 +140,6 @@ class batch_norm_backward_cpu(batch_norm_backward):
 
 class BatchNormalizer(UserGraph):
 
-    
-
     def __init__(self, momentum=0.99, epsilon=1e-5, mode='activation', previous_elements=None):
         fwd_op = batch_norm_forward() if rm.is_cuda_active() else batch_norm_forward_cpu()
         bwd_ops = [batch_norm_backward(fwd_op) if rm.is_cuda_active()

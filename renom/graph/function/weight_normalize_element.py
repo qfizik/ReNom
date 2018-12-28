@@ -131,8 +131,6 @@ class weight_norm_backward_cpu(weight_norm_backward):
 
 class WeightNormElement(UserGraph):
 
-
-
     def __init__(self, output_size, gain, previous_elements=None):
         fwd_op = weight_norm_forward(output_size, gain) if rm.is_cuda_active(
         ) else weight_norm_forward_cpu(output_size, gain)

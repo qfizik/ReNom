@@ -9,7 +9,7 @@ if rm.precision is not np.float64:
 rm.set_renom_seed(30)
 
 
-def compare(nd_value, ad_value, abs_tol = 1e-5, rel_tol = 1e-3):
+def compare(nd_value, ad_value, abs_tol=1e-5, rel_tol=1e-3):
     ret = nd_value.shape == ad_value.shape
     ret = ret and np.allclose(nd_value, ad_value, atol=abs_tol, rtol=rel_tol)
     if ret is False:
@@ -124,7 +124,7 @@ def test_dense(test_shape, use_gpu):
     loss = l(m)
 
     def func():
-        val.forward()
+        loss.forward()
         ret = loss.as_ndarray()
         return ret
 
@@ -152,7 +152,7 @@ def test_sum(test_shape, use_gpu):
     loss = l(m)
 
     def func():
-        val.forward()
+        loss.forward()
         ret = loss.as_ndarray()
         return ret
 
@@ -216,9 +216,9 @@ def test_gru(test_shape, use_gpu):
 
     compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray(), abs_tol = 1e-3)
+    ).get_gradient(model.params['w'].output).as_ndarray(), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wr'].output), loss.backward(
-    ).get_gradient(model.params['wr'].output).as_ndarray(), abs_tol = 1e-3)
+    ).get_gradient(model.params['wr'].output).as_ndarray(), abs_tol=1e-3)
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -238,7 +238,7 @@ def test_weight_norm(test_shape, use_gpu):
     loss = l(m)
 
     def func():
-        val.forward()
+        loss.forward()
         ret = loss.as_ndarray()
         return ret
 
@@ -266,7 +266,7 @@ def test_layer_norm(test_shape, use_gpu):
     loss = l(m)
 
     def func():
-        val.forward()
+        loss.forward()
         ret = loss.as_ndarray()
         return ret
 
@@ -290,7 +290,7 @@ def test_lrn(test_shape, use_gpu):
     loss = l(m)
 
     def func():
-        val.forward()
+        loss.forward()
         ret = loss.as_ndarray()
         return ret
 
@@ -312,7 +312,7 @@ def test_embedding(test_shape, use_gpu):
     loss = l(m)
 
     def func():
-        val.forward()
+        loss.forward()
         ret = loss.as_ndarray()
         return ret
 
@@ -393,7 +393,7 @@ def test_l2_norm(use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
+        l.forward()
         ret = l.as_ndarray()
         return ret
 
@@ -419,7 +419,6 @@ def test_max_pool(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -444,7 +443,6 @@ def test_avg_pool(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -471,8 +469,6 @@ def test_unpool(test_shape, use_gpu):
     l = loss(m2)
 
     def func():
-        m.forward()
-        m2.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -584,7 +580,6 @@ def test_softmax(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -606,7 +601,6 @@ def test_softplus(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -628,7 +622,6 @@ def test_relu(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -652,7 +645,6 @@ def test_elu(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -676,7 +668,6 @@ def test_selu(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -700,7 +691,6 @@ def test_leaky_relu(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -723,7 +713,6 @@ def test_maxout(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -747,7 +736,6 @@ def test_tanh(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -771,7 +759,6 @@ def test_sigmoid(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -796,7 +783,6 @@ def test_dropout(test_shape, use_gpu):
 
     def func():
         rm.set_renom_seed(15)
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret
@@ -845,8 +831,6 @@ def test_batch_norm(test_shape, use_gpu):
     l = loss(m)
 
     def func():
-        m2.forward()
-        m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret

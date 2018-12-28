@@ -39,9 +39,8 @@ class DenseGraphElement(GraphFactory):
         ret = self._bias(ret)
         return ret
 
-class DenseGraph(UserGraph):
 
-    
+class DenseGraph(UserGraph):
 
     def __init__(self, output_size, initializer, previous_element=None):
 

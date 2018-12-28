@@ -116,8 +116,6 @@ class maxout_backward_cpu(maxout_backward):
 
 class MaxoutElement(UserGraph):
 
-    
-
     def __init__(self, slice_size=1, previous_elements=None):
         fwd_op = maxout_forward(slice_size) if rm.is_cuda_active(
         ) else maxout_forward_cpu(slice_size)

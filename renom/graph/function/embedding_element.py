@@ -91,8 +91,6 @@ class embedding_weight_backward_cpu(embedding_weight_backward):
 
 class EmbeddingGraph(UserGraph):
 
-    
-
     def __init__(self, output_size, previous_element=None):
 
         fwd_op = embedding_forward(output_size) if rm.is_cuda_active(
