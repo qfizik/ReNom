@@ -10,7 +10,21 @@ F = False
 
 
 class update_operation(operation):
+    '''
+        The update operation is a special type of operation, designed in such a way that its contents can
+        be replaced at any time. A normal operation functions through connecting to its inputs and outputs,
+        as determined by the graph of operational elements that contain the operation.
 
+        In order to connect the update operation, the UserGraph feeds it three components, the consumer,
+        the producer and a shared key. The update operation then assumes that the gradient found under
+        the key locatedin the producer should be applied to the value in the consumer with the same key.
+
+        To change the mode of operation, the update_operation receives an optimizer_factory type object,
+        which produces the setup and perform functionality of the update operation.
+        Graphs would otherwise have to rebuild with a different operation, through this optimizer_factory
+        delivering the operation functionality, we can keep the same update_operation in the graph but
+        allow it to change during training.
+    '''
     name = 'Update Operation'
     roles = ['update']
     _communicator = None
