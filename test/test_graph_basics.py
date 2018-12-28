@@ -340,6 +340,7 @@ def test_save_load(devices_to_load):
     np.float, np.float32, np.float64
 ])
 def test_dtype(ttype, use_gpu):
+    rm.set_cuda_active(use_gpu)
 
     model = rm.graph.SequentialSubGraph([
         rm.graph.DenseGraphElement(3),
