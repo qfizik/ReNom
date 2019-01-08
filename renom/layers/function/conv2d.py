@@ -74,10 +74,10 @@ class conv2d(Node):
         with cu.RenomHandler() as handle:
             if isinstance(activation, Relu) and b is not None:
                 cu.cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc,
-                                                      _x, _w, y, get_gpu(b), algorithms['forward'])
+                                                      _x, _w, y, get_gpu(b), 0)
             else:
                 cu.cuConvolutionForward(handle, conv_desc, filter_desc,
-                                        _x, _w, y, algorithms['forward'])
+                                        _x, _w, y, 0)
                 if b is not None:
                     cu.cu_add_bias(get_gpu(b), y)
 
@@ -125,7 +125,7 @@ class conv2d(Node):
                 db = np.zeros((1, self.attrs._w.shape[0], 1, 1))
             cu.cuConvolutionBackward(handle, self.attrs._conv_desc, self.attrs._filter_desc,
                                      get_gpu(self.attrs._x), get_gpu(self.attrs._w), get_gpu(dy),
-                                     dw, get_gpu(db), dx, self.attrs._algorithms['backward'], **kwargs)
+                                     dw, get_gpu(db), dx, {'data':0,'filter':0}, **kwargs)
         if isinstance(self.attrs._w, Node):
             self.attrs._w._update_diff(context, dw, **kwargs)
 

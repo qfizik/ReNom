@@ -561,7 +561,8 @@ class square(UnaryOp):
     @classmethod
     def _oper_gpu(cls, arg):
         ret = GPUValue(shape=arg.shape)
-        cupow(get_gpu(arg), 2, ret)
+        with RenomHandler() as handle:
+            cupow(get_gpu(arg), 2, ret, handle)
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):

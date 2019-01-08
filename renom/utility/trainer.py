@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import numpy as np
-from renom.cuda import use_device, is_cuda_active, get_gpu
+from renom.cuda import use_device, is_cuda_active
+if is_cuda_active():
+    from renom import get_gpu
 from renom.core import Node
 
 

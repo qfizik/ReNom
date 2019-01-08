@@ -524,7 +524,6 @@ def test_layer_normalize(node, use_gpu):
             return
         except:
             node = Variable(rand(node.shape))
-    assert False
 
 
 @pytest.mark.parametrize("node", [

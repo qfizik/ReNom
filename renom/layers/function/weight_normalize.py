@@ -76,8 +76,13 @@ class weight_normalize(Node):
         w = get_gpu(self.attrs._w)
         gain = get_gpu(self.attrs._gain)
         weight = get_gpu(self.attrs._weight)
-        dx = get_gpu(op.dot(dy, w.T))
-        normal_dw = get_gpu(op.dot(x.T, dy))
+        dx = x.empty_like_me()
+        normal_dw = w.empty_like_me()
+        with cu.RenomHandler() as handle:
+            cu.cublas_gemm(get_gpu(dy), 0, w, 1, dx, handle)
+            cu.cublas_gemm(x, 1, get_gpu(dy), 0, normal_dw, handle)
+        #dx = get_gpu(op.dot(dy, w.T))
+        #normal_dw = get_gpu(op.dot(x.T, dy))
 
         if isinstance(self.attrs._x, Node):
             self.attrs._x._update_diff(context, dx, **kwargs)

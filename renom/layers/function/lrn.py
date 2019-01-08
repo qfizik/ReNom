@@ -54,7 +54,7 @@ class lrn(Node):
     def _oper_gpu(cls, x, n, k, a, b):
         lrn_desc = cu.LRNDescriptor(n, a, b, k)
         y = get_gpu(x).empty_like_me()
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuLocalResponseNormalizationForward(handle, lrn_desc, get_gpu(x), get_gpu(y))
         ret = cls._create_node(y)
         ret.attrs._x = x
@@ -64,7 +64,7 @@ class lrn(Node):
     def _backward_gpu(self, context, dy, **kwargs):
         if isinstance(self.attrs._x, Node):
             dx = get_gpu(self).empty_like_me()
-            with cu.cudnn_handler() as handle:
+            with cu.RenomHandler() as handle:
                 cu.cuLocalResponseNormalizationBackward(
                     handle, self.attrs._lrn_desc, get_gpu(self.attrs._x), get_gpu(self), dx, get_gpu(dy))
             self.attrs._x._update_diff(context, dx, **kwargs)

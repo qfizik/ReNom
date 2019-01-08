@@ -43,7 +43,7 @@ class convnd(Node):
             output_shape.append((x.shape[i + 2] + padding[i] * 2 - kernel[i]) // stride[i] + 1)
         y = GPUValue(shape=tuple(output_shape))
 
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuConvolutionForward(handle, conv_desc, filter_desc, get_gpu(x), get_gpu(w), y, 0)
             if b is not None:
                 cu.cu_add_bias(get_gpu(b), y)
@@ -74,7 +74,7 @@ class convnd(Node):
         dw, db, dx = (get_gpu(g).empty_like_me() if g is not None else None
                       for g in (self.attrs._w, self.attrs._b, self.attrs._x))
 
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuConvolutionBackward(handle, self.attrs._conv_desc, self.attrs._filter_desc,
                                      get_gpu(self.attrs._x), get_gpu(
                                          self.attrs._w), get_gpu(dy), dw, db, dx,

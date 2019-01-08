@@ -713,7 +713,7 @@ class GPUValue(object):
             clone = self.zeros_like_me()
             if n == 2:
                 new_shape = list(clone.shape)
-                with cublas.cublas_handler() as cublas_handle:
+                with renom.cuda.RenomHandler() as cublas_handle:
                     cublas.cublas_transpose(cublas_handle, self, clone)
                 new_shape[0] = clone.shape[1]
                 new_shape[1] = clone.shape[0]

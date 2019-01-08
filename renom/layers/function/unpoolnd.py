@@ -35,7 +35,7 @@ class max_unpoolnd(Node):
     @classmethod
     def _oper_gpu(cls, x, prev_pool):
         dx = GPUValue(shape=prev_pool.attrs._x.shape)
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuPoolingBackward(handle, prev_pool.attrs._pool_desc, get_gpu(
                 prev_pool.attrs._x), get_gpu(prev_pool), get_gpu(x), dx)
         ret = cls._create_node(dx)
@@ -84,7 +84,7 @@ class average_unpoolnd(Node):
     @classmethod
     def _oper_gpu(cls, x, prev_pool):
         dx = GPUValue(shape=prev_pool.attrs._x.shape)
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuPoolingBackward(handle, prev_pool.attrs._pool_desc, get_gpu(
                 prev_pool.attrs._x), get_gpu(prev_pool), get_gpu(x), dx)
         ret = cls._create_node(dx)

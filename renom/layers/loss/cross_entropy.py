@@ -31,7 +31,8 @@ class cross_entropy(Node):
     def _oper_gpu(cls, lhs, rhs, reduce_sum):
         log_lhs = log(lhs + 1e-8)
         if reduce_sum:
-            ret = cls._create_node(-cu.cusum(get_gpu(log_lhs * rhs)))
+            with cu.RenomHandler() as handle:
+                ret = cls._create_node(-cu.cusum(get_gpu(log_lhs * rhs), handle))
         else:
             ret = cls._create_node(-get_gpu(log_lhs * rhs))
         ret.attrs._log_lhs = log_lhs
