@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNom 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-20 15:40+0900\n"
+"POT-Creation-Date: 2019-01-09 15:47+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,8 +26,10 @@ msgid "You have to take following steps to use ReNom in your environment."
 msgstr "ReNomを使用するための準備として, 以下のステップを実行してください."
 
 #: ../../rsts/installation/main.rst:6
-msgid "Install the python(we cofirm the operation in python 2.7 and python 3.4)"
-msgstr "Python2.7もしくはPython3.4をインストール."
+msgid ""
+"Install the python(we confirm the operation in python 2.7, 3.4, 3.5 and "
+"3.6)"
+msgstr "Python2.7, 3.4, 3.5, 3.6のいずれかをインストール."
 
 #: ../../rsts/installation/main.rst:7
 msgid "Install the ReNom environment"
