@@ -1403,7 +1403,7 @@ def test_copy_from_another_gpu():
     [rand((1, 2, 3)), (0, 2)],
     [rand((1, 2, 3)), (0, 1, 2)],
 ])
-def test_cusum(a, axis):
+def vest_cusum(a, axis):
     with use_cuda():
         g = renom.core.GPUValue(a)
 

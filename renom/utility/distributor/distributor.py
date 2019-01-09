@@ -229,7 +229,7 @@ class GPUDistributor(Distributor):
                         b[0][i * batch_size:(i + 1) * batch_size], b[1][i * batch_size: (i + 1) * batch_size], device=i)
                     x2.append(prep[0])
                     y2.append(prep[1])
-                yield GPUDistributor.create_return(x1, y1)
+                yield GPUDistributor.create_return(x1[0], y1[0])
                 # Release currently released values and store the next as
                 # next to be yielded in *1
                 x1, y1 = x2, y2
@@ -239,9 +239,9 @@ class GPUDistributor(Distributor):
                 notEmpty = False
             # Check if there was only a single batch
         if not first:
-            yield GPUDistributor.create_return(x2, y2)
+            yield GPUDistributor.create_return(x2[0], y2[0])
         else:
-            yield GPUDistributor.create_return(x1, y1)
+            yield GPUDistributor.create_return(x1[0], y1[0])
 
 
 class TimeSeriesDistributor(NdarrayDistributor):

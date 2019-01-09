@@ -58,7 +58,7 @@ class Sgd(Optimizer):
                   [-0.1523091 , -0.03280939,  0.32063919]], dtype=float32)
     '''
 
-    def __init__(self, lr=0.1, momentum=0.4, nesterov=True):
+    def __init__(self, lr=0.1, momentum=0.4, nesterov=False):
         self._lr = lr
         self._momentum = momentum
         self._nesterov = nesterov

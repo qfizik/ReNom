@@ -753,7 +753,8 @@ class mean(Node):
                     axis_list[axis] = 1
                     newshape = tuple(axis_list)
             ret = GPUValue(shape=newshape)
-            cudiv(cusum(get_gpu(arg), axis=axis, keepdims=keepdims), size, ret)
+            with RenomHandler() as handle:
+                cudiv(cusum(get_gpu(arg), handle, axis=axis, keepdims=keepdims), size, ret, handle)
         return ret
 
     def __new__(cls, arg, axis=None, keepdims=False):
