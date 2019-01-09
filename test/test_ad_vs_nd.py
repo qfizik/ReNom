@@ -1472,7 +1472,7 @@ def test_max(node, axis, use_gpu, keep_dimensions):
         return sum(rm.amax(node, axis=axis, keepdims=keep_dimensions))
 
     def func2(node):
-        v = rm.amax(node, axis=axis, keepdims=keep_dimensions) 
+        v = rm.amax(node, axis=axis, keepdims=keep_dimensions)
         return sum(v + 10)
     compare(func2, node, node)
 

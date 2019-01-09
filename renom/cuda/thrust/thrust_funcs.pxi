@@ -766,7 +766,7 @@ cdef _cu_reduce_min(size_t max_grids, size_t num_threads,
 
 
 def cu_reduce_min(gpu_value1, axis=None, keepdims=False, max_grids=65536, num_threads=512):
-    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_min, None, <cudaStream_t><uintptr_t> 0)
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_min, None, < cudaStream_t > <uintptr_t > 0)
 
 
 cdef _cu_reduce_max(size_t max_grids, size_t num_threads,
@@ -842,7 +842,7 @@ def cu_reduce_argmin(gpu_value1, axis=None, max_grids=65536, num_threads=512):
         div = 1
 
     keepdims = False
-    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmin, (mod, div), <cudaStream_t><uintptr_t> 0)
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmin, (mod, div), < cudaStream_t > <uintptr_t > 0)
 
 
 cdef _cu_reduce_argmax(size_t max_grids, size_t num_threads,
@@ -889,7 +889,7 @@ def cu_reduce_argmax(gpu_value1, axis=None, max_grids=65536, num_threads=512):
 
     keepdims = False
 
-    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmax, (mod, div), <cudaStream_t><uintptr_t> 0)
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmax, (mod, div), < cudaStream_t > <uintptr_t > 0)
 
 
 def cu_add_bias(bias, gpu_value):

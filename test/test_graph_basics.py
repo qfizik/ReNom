@@ -208,11 +208,11 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
     rm.set_cuda_active(False)
 
     A = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
-                      noop()] if A_has_back else None)
+        noop()] if A_has_back else None)
     B = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
-                      noop()] if B_has_back else None)
+        noop()] if B_has_back else None)
     C = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
-                      noop()] if C_has_back else None)
+        noop()] if C_has_back else None)
     assert A.depth == 0 and B.depth == 0 and C.depth == 0
     assert A_has_back and len(A._bwd_graphs) == 1 or len(A._bwd_graphs) == 0
 
@@ -315,9 +315,11 @@ def test_save_load(devices_to_load):
     x = np.random.rand(5, 4)
     y1 = model(x).as_ndarray()
 
-    import random, string
+    import random
+    import string
     pre_filename = 'tmpfile-'
-    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(11))
+    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                            for _ in range(11))
     type_filename = '.h5'
     tmp_filename = pre_filename + rand_filename + type_filename
     model.save(tmp_filename)

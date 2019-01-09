@@ -42,7 +42,7 @@ class smoothed_l1(Node):
         if reduce_sum:
             with cu.RenomHandler() as handle:
                 loss = cu.cusum(get_gpu(flag * 0.5 * (d * d) +
-                                    (1 - flag) * (abs_d - 0.5 * delta) * delta), handle)
+                                        (1 - flag) * (abs_d - 0.5 * delta) * delta), handle)
         else:
             loss = get_gpu(flag * 0.5 * (d * d) + (1 - flag) * (abs_d - 0.5 * delta) * delta)
         ret = cls._create_node(loss / N)
