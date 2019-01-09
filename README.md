@@ -4,43 +4,21 @@ Documents are available on the ReNom.jp web site.
 
 - http://renom.jp/index.html
 
-## ReNom version 2.6.2
+## ReNom version 2.7.0
 - http://renom.jp/rsts/renomdl/main.html
 
-#### Changes from 2.5
+#### Changes from 2.6
 
 Please refer to `changes` at renom.jp.
-
-- Improved performance.
-- Add function `curand_set_seed` to determine the curand random number generator's seed.
-- Add argument `ignore_bias` to all parametrized class.
-- Add argument `reduce_sum` to all loss function class.
-- Add `Weight Normalize`.
-- Add `Layer Normalize`.
-- Add `GPUDistributor`.
-- Add `Gru`.
-- Add `Convlution 3d, nd`.
-- Add `Max, Avg Pooling 3d, nd`.
-- Add `Unpooling 2d`.
-
-#### Changes from 2.6.1
-- Bug fix of the class ConvNd, PoolNd(To be acceptable 1d data.)
-- Bug fix of the class Unpool2d, Unpoolnd2.
 
 
 ## Requirements
 
-- python2.7, 3.4
-- numpy 1.13.0, 1.12.1
-- pytest 3.0.7
-- cython 0.24
+- python >= 2.7, >= 3.4
 - cuda-toolkit 8.0, 9.1
 - cudnn 7.1
-- matplotlib 2.0.2
-- pandas 0.20.3
-- scikit-learn 0.18.2
-- scipy 0.19.0
-- tqdm 4.19.4
+
+For required python modules please refer to the requirements.txt.
 
 ## Installation
 
@@ -51,6 +29,7 @@ First clone the ReNom repository.
 Then move to the ReNom folder, install the module using pip.
 
 	cd ReNom
+  pip install -r requirements.txt
 	pip install -e .
 
 To activate CUDA, you have to build cuda modules before `pip install -e .` 

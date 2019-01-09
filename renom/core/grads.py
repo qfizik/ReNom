@@ -201,8 +201,8 @@ def _grad(self, initial=None, detach_graph=True, weight_decay=None, **kwargs):
 
     Args:
         initial (ndarray): Initial value of following the graph.
-        detach_graph (boolean): If it's True, the computational graph will be destroyed.
-        weight_decay (int): Sets the default weight decay of the model.
+        detach_graph (bool): If it's True, the computational graph will be destroyed.
+        weight_decay (float): Sets the default weight decay of the model.
                             See the Variable class for more info.
     '''
     if not self._has_autoupdate():

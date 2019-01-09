@@ -12,5 +12,6 @@ ReNom version 2.6.0
     rsts/introduction/main
     rsts/installation/main
     rsts/api/main
+    rsts/onnx/main
     rsts/change_history/main
     rsts/license/main

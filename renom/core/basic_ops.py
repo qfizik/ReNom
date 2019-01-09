@@ -986,7 +986,6 @@ class Mark(Pos):
     def __new__(cls, arg, model):
         ret = super(Mark, cls).__new__(cls, arg)
         ret.modelref = weakref.ref(model)
-
         return ret
 
     def _reduce_graph(self):

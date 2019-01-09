@@ -283,4 +283,4 @@ setup(
     name='renom',
     packages=find_packages(),
     include_dirs=[numpy.get_include(), os.getcwd() + '/renom/cuda/'],
-    version='2.6.2')
+    version='2.7.0')

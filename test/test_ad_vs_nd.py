@@ -636,10 +636,9 @@ def test_conv2d_with_dilation(node, size, raise_error, use_gpu):
     [Variable(rand((1, 1, 4, 8))), False],
     [Variable(rand((1, 1, 4))), False],
 ])
-def test_convnd(node, error):  # , use_gpu, ignore_bias):
+def test_convnd(node, error, use_gpu, ignore_bias):
     node = Variable(node)
-    # assert_cuda_active(use_gpu)
-    assert_cuda_active(True)
+    assert_cuda_active(use_gpu)
     layer = ConvNd(channel=1, filter=3, stride=1)  # , ignore_bias=ignore_bias)
 
     def func(node):
@@ -869,7 +868,7 @@ def test_max_poolnd(node, use_gpu):
 
     node = Variable(node)
     assert_cuda_active(True)
-    layer = MaxPoolNd(kernel=3, padding=2, stride=2)
+    layer = MaxPoolNd(kernel=2, padding=2, stride=2)
 
     print('starting testing')
     np.set_printoptions(suppress=True)

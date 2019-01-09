@@ -97,7 +97,7 @@ class GlorotNormal(Initializer):
 class HeNormal(Initializer):
 
     '''He normal initializer.
-       Initializes parameters according to [1]
+   Initializes parameters according to [1]
 
     .. math::
 
@@ -125,7 +125,7 @@ class HeNormal(Initializer):
 class HeUniform(Initializer):
 
     '''He uniform initializer.
-       Initializes parameters according to [1]
+   Initializes parameters according to [1]
 
     .. math::
 

@@ -11,7 +11,7 @@ try:
     from renom.cuda.renomhandler import *
     from renom.cuda.nccl.nccl import *
     _has_cuda = True
-except ImportError as e:
+except ImportError:
     gpu_allocator = None
     curand_generator = None
     _has_cuda = False

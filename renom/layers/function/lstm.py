@@ -44,7 +44,7 @@ class lstm(Node):
         if b is not None:
             u += b
         m = u.shape[1] // 4
-        u, gated = np.split(u, [m, ], axis=1)
+        u, gated = np.split(u.as_ndarray(), [m, ], axis=1)
         u = tanh(u)
 
         gated = sigmoid(gated)

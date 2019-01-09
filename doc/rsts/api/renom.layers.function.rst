@@ -10,8 +10,14 @@ renom.layers.function
 .. automodule:: renom.layers.function.convnd
     :members: Conv3d, ConvNd
 
+.. automodule:: renom.layers.function.group_conv2d
+    :members: GroupConv2d
+
 .. automodule:: renom.layers.function.deconv2d
     :members: Deconv2d
+
+.. automodule:: renom.layers.function.deconvnd
+    :members: DeconvNd
 
 .. automodule:: renom.layers.function.dense
     :members: Dense

@@ -2,11 +2,14 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 import numpy as np
-from renom.core import Node, to_value, get_gpu
+from renom.core import Node, to_value
+import renom.cuda as cu
+if cu.has_cuda():
+    from renom.cuda.gpuvalue import GPUValue, get_gpu
 
 
 def build_truth(y, total_w, total_h, cells, classes):
-    u"""Use to transform a list of objects per image into a image*cells*cells*(5+classes) matrix.
+    """Use to transform a list of objects per image into a image*cells*cells*(5+classes) matrix.
     Each cell in image can only be labeled for 1 object.
 
     "5" represents: objectness (0 or 1) and X Y W H

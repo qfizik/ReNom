@@ -45,7 +45,7 @@ class peephole_lstm(Node):
             u += b
 
         m = u.shape[1] // 4
-        u, gate_u = np.split(u, [m, ], axis=1)
+        u, gate_u = np.split(u.as_ndarray(), [m, ], axis=1)
         u = tanh(u)
 
         fg = sigmoid(s * wc[:, :m] + gate_u[:, :m])

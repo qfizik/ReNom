@@ -268,7 +268,6 @@ def poolnim(original, dy, kernel, stride, padding, mode="max"):
                               for i in range(len(original.shape[2:]))]
             ret[batch, in_channel] = place_back_pools(
                 padded_image[batch, in_channel], kernel, stride, func, dy[batch, in_channel])[padding_slices]
-    print(ret)
     return ret
 
 

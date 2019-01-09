@@ -140,7 +140,7 @@ class Amin(Abase):
     Args:
         arg (Variable, ndarray): Input matrix.
         axis (int): Perform calculation along this argument.
-        keepdims (bool): If `Ture` is passed, reduced dimentions remain.
+        keepdims (bool): If `Ture` is passed, reduced dimensions remain.
 
     Example:
         >>> import numpy as np

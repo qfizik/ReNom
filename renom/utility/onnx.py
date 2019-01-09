@@ -1,4 +1,4 @@
-from __future__ import print_function, division
+from __future__ import print_function, division, absolute_import
 
 import collections
 import onnx.helper
@@ -62,6 +62,17 @@ def _value_info(value):
 
 
 def export_onnx(name, model, x, path, printtext=False):
+    """
+    This function exports an onnx file
+
+    Args:
+        name(str): The name of computational graph.
+        model(Model): Neural Network Model
+        x(ndarray): Dummy input for building a computational graph.
+        path(str): The onnx file path to which the model will be export.
+        printtext(bool): If True is given, this function print the str(model).
+
+    """
     OBJNAMES.clear()
 
     if not isinstance(x, renom.Variable):

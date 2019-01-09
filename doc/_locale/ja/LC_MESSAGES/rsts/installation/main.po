@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNom 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-13 13:29+0900\n"
+"POT-Creation-Date: 2018-12-20 15:40+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -31,16 +31,14 @@ msgstr "Python2.7もしくはPython3.4をインストール."
 
 #: ../../rsts/installation/main.rst:7
 msgid "Install the ReNom environment"
-msgstr "ReNomをのインストール.
+msgstr "ReNomをのインストール"
 
 #: ../../rsts/installation/main.rst:9
 msgid ""
 "First, you have to install the python. There are many web pages that "
 "explain how to intall the python. And, you can download ReNom from "
 "following link."
-msgstr "最初にPythonをインストールする必要があります."
-"ここではPythonをインストールする方法については説明しません."
-"ReNomは以下のリンク(github)よりダウンロードすることができます."
+msgstr "最初にPythonをインストールする必要があります.ここではPythonをインストールする方法については説明しません.ReNomは以下のリンク(github)よりダウンロードすることができます."
 
 #: ../../rsts/installation/main.rst:13
 msgid "URL: https://github.com/ReNom-dev-team/ReNom"
@@ -48,63 +46,24 @@ msgstr ""
 
 #: ../../rsts/installation/main.rst:15
 msgid "If you already installed the GPU environments."
-msgstr "Cuda ToolkitやcuDNNをインストールし, GPUを使用するための環境が"
-"整っている場合, 以下のコマンドを実行することでReNomをインストールできます."
+msgstr ""
+"Cuda ToolkitやcuDNNをインストールし, GPUを使用するための環境が整っている場合, "
+"以下のコマンドを実行することでReNomをインストールできます."
 
 #: ../../rsts/installation/main.rst:24
 msgid "If you did not set the GPU environments."
-msgstr "CPU環境のみで実行する場合, 以下のコマンドを実行してください.
+msgstr "CPU環境のみで実行する場合, 以下のコマンドを実行してください"
 
 #: ../../rsts/installation/main.rst:32
 msgid "**Requirements**"
 msgstr ""
 
 #: ../../rsts/installation/main.rst:34
-msgid "ReNom requires following libraries."
-msgstr "ReNom では以下のライブラリが必要です."
+msgid "Please refer to the README.md file in the ReNom github page."
+msgstr ""
 
 #: ../../rsts/installation/main.rst:36
-msgid "Linux / Ubuntu"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:37
-msgid "Python 2.7, 3.4"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:38
-msgid "Numpy 1.13.0, 1.12.1 http://www.numpy.org/"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:39
-msgid "cuDNN 5.1 https://developer.nvidia.com/cudnn"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:40
-msgid "CUDA ToolKit 8.0 https://developer.nvidia.com/cuda-toolkit"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:41
-msgid "bottle 0.12.13 https://bottlepy.org/docs/dev/"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:42
-msgid "matplotlib 2.0.2 https://matplotlib.org"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:43
-msgid "networkx 1.11 https://networkx.github.io"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:44
-msgid "pandas 0.20.3 http://pandas.pydata.org"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:45
-msgid "scikit-learn 0.18.2 http://scikit-learn.org/stable/"
-msgstr ""
-
-#: ../../rsts/installation/main.rst:46
-msgid "scipy https://www.scipy.org"
+msgid "https://github.com/ReNom-dev-team/ReNom"
 msgstr ""
 
 #~ msgid "ReNom is available on Github."
@@ -132,5 +91,41 @@ msgstr ""
 #~ msgstr "以下のリンク先からレポジトリをクローンできるようになります.(2017/8/8)"
 
 #~ msgid "Requirements"
+#~ msgstr ""
+
+#~ msgid "ReNom requires following libraries."
+#~ msgstr "ReNom では以下のライブラリが必要です."
+
+#~ msgid "Linux / Ubuntu"
+#~ msgstr ""
+
+#~ msgid "Python 2.7, 3.4"
+#~ msgstr ""
+
+#~ msgid "Numpy 1.13.0, 1.12.1 http://www.numpy.org/"
+#~ msgstr ""
+
+#~ msgid "cuDNN 5.1 https://developer.nvidia.com/cudnn"
+#~ msgstr ""
+
+#~ msgid "CUDA ToolKit 8.0 https://developer.nvidia.com/cuda-toolkit"
+#~ msgstr ""
+
+#~ msgid "bottle 0.12.13 https://bottlepy.org/docs/dev/"
+#~ msgstr ""
+
+#~ msgid "matplotlib 2.0.2 https://matplotlib.org"
+#~ msgstr ""
+
+#~ msgid "networkx 1.11 https://networkx.github.io"
+#~ msgstr ""
+
+#~ msgid "pandas 0.20.3 http://pandas.pydata.org"
+#~ msgstr ""
+
+#~ msgid "scikit-learn 0.18.2 http://scikit-learn.org/stable/"
+#~ msgstr ""
+
+#~ msgid "scipy https://www.scipy.org"
 #~ msgstr ""
 
