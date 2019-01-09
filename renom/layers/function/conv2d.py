@@ -205,10 +205,11 @@ class Conv2d(Parametrized):
                 input_size[1:])
         self.params = {"w": Variable(self._initializer(
             size_f), auto_update=True, weight_decay=self._weight_decay)}
-        self._descriptors = {
-            'conv_desc': cu.ConvolutionDescriptor(self._padding, self._stride, self._dilation, precision),
-            'filter_desc': cu.FilterDescriptor(self.params["w"].shape, precision),
-        }
+        if cu.is_cuda_active():
+            self._descriptors = {
+                'conv_desc': cu.ConvolutionDescriptor(self._padding, self._stride, self._dilation, precision),
+                'filter_desc': cu.FilterDescriptor(self.params["w"].shape, precision),
+            }
         if not self._ignore_bias:
             self.params["b"] = Variable(
                 np.zeros((1, self._channel, 1, 1), dtype=precision), auto_update=True)
