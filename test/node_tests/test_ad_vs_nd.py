@@ -862,16 +862,13 @@ def test_average_unpoolnd(node, use_gpu):
     Variable(rand((2, 3, 4, 5))),
     Variable(rand((1, 1, 2, 3))),
     Variable(rand((1, 1, 3))),
-    Variable(rand((1, 1, 2))),
 ])
 def test_max_poolnd(node, use_gpu):
 
     node = Variable(node)
-    assert_cuda_active(True)
-    layer = MaxPoolNd(kernel=2, padding=2, stride=2)
+    assert_cuda_active(use_gpu)
+    layer = MaxPoolNd(kernel=3, padding=2, stride=2)
 
-    print('starting testing')
-    np.set_printoptions(suppress=True)
 
     def func(node):
         return sum(layer(node))
