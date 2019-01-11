@@ -869,7 +869,6 @@ def test_max_poolnd(node, use_gpu):
     assert_cuda_active(use_gpu)
     layer = MaxPoolNd(kernel=3, padding=2, stride=2)
 
-
     def func(node):
         return sum(layer(node))
     for trial in range(3):

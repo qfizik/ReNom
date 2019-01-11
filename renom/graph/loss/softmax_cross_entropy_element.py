@@ -5,7 +5,7 @@ import numpy as np
 
 class softmax_cross_entropy_forward(operation):
 
-    name = 'Softmax (F)'
+    name = 'Softmax Cross Entropy(F)'
     roles = ['loss']
 
     def setup(self, inputs):
@@ -62,7 +62,7 @@ class softmax_cross_entropy_forward_cpu(softmax_cross_entropy_forward):
 
 class softmax_cross_entropy_backward(operation):
 
-    name = 'Softmax (B)'
+    name = 'Softmax Cross Entropy(B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
