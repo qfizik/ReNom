@@ -5,7 +5,7 @@ import weakref
 import numpy as np
 from numbers import Number
 from renom import precision
-from renom import GET_ACTIVE_NODE, get_model_graph, SET_NODE_DICT
+import renom.debug_graph
 import renom.cuda
 if renom.cuda.has_cuda():
     from renom.cuda.base import cuda_base
@@ -60,8 +60,20 @@ class Node(np.ndarray):
 
     SHOWMARK = False
 
+    _node_hook = None
+
+    @classmethod
+    def set_hook(cls, hook):
+        cls._node_hook = hook
+
     def __new__(cls, value):
         ret = cls._create_node(value)
+        return ret
+
+    @classmethod
+    def _run_node_hook(cls, ret):
+        if cls._node_hook:
+            ret = cls._node_hook.leave_create(cls, ret)
         return ret
 
     @classmethod
@@ -83,11 +95,10 @@ class Node(np.ndarray):
                 precision().dtype, ret.dtype))
 
         ret.attrs = GraphAttrs()
-        if GET_ACTIVE_NODE() is not None:
-            SET_NODE_DICT(id(ret), ret)
+        if renom.debug_graph.GET_ACTIVE_NODE() is not None:
+            renom.debug_graph.SET_NODE_DICT(id(ret), ret)
 
-        if ret.SHOWMARK and get_model_graph():
-            ret = renom.core.NodeMark(ret, ret)
+        ret = cls._run_node_hook(ret)
 
         return ret
 
@@ -555,28 +566,35 @@ class Variable(Node):
     Args:
         value (Variable,ndarray): Input array.
         auto_update (bool): Auto update flag.
-        weight_decay (int):
-            Weight decay allows the user to choose if weight decay is to be used in any
-            of their variables.
-            If weight decay is not defined in the Variable (I.e. defaults to None),
-            then no weight decay is performed.
+        weight_decay (float): Weight decay rate
 
-            For convenience, one can define a variable with a weight decay of 0 and provide
-            the weight decay argument when building the gradients to default all weights to the
-            same λ for weight decay.
+    Weight decay allows the user to choose if weight decay is to be used in any
+    of their variables.
+    If weight decay is not defined in the Variable (I.e. defaults to None),
+    then no weight decay is performed.
 
-            Individually assigned weight decay takes precedence over this default value,
-            allowing users to customize the weight decay in the network.
+    For convenience, one can define a variable with a weight decay of 0 and provide
+    the weight decay argument when building the gradients to default all weights to the
+    same λ for weight decay.
 
-            In summary, weight decay updates according to the following table.
-            ┌───────────┬───────────┬──────────────┐
-            │ Variable  │   Grad    │   Result     │
-            ├───────────┼───────────┼──────────────┤
-            │ None      │   <Any>   │   No Update  │
-            │ 0.3       │   <Any>   │   0.3        │
-            │ 0         │   None/0  │   No Update  │
-            │ 0         │   0.3     │   0.3        │
-            └───────────┴───────────┴──────────────┘
+    Individually assigned weight decay takes precedence over this default value,
+    allowing users to customize the weight decay in the network.
+
+    In summary, weight decay updates according to the following table.
+
+    +-----------+-----------+--------------+
+    | Variable  |   Grad    |   Result     |
+    +===========+===========+==============+
+    | None      |   <Any>   |   No Update  |
+    +-----------+-----------+--------------+
+    | 0.3       |   <Any>   |   0.3        |
+    +-----------+-----------+--------------+
+    | 0         |   None/0  |   No Update  |
+    +-----------+-----------+--------------+
+    | 0         |   0.3     |   0.3        |
+    +-----------+-----------+--------------+
+
+
 
     Example:
         >>> import numpy as np

@@ -307,7 +307,6 @@ class ModelGraphContext:
 
     def getbox(self, node, nextbox, curmodel):
         nodeid = id(node)
-
         target = node.modelref()
         modelinfo = self.models.get(id(target))
         if modelinfo:
@@ -342,12 +341,10 @@ class ModelGraphContext:
             return
 
         if isinstance(node, renom.core.Mark):
-
             box = self.getbox(node, nextbox, curmodel)
             if box:
                 if nextbox is not None:
                     box.addnext(nextbox)
-
                 nextbox = box
 
         id_node = id(node)
@@ -399,15 +396,22 @@ class ModelGraphContext:
         self.walk_model(nnmodel)
         self.walk_node(value)
         self.build_subgraph()
-
         return self.root.graph
 
 
-MODEL_GRAPH = False
+class GraphHook:
+    def call_enter(self, model, x, args, kwargs):
+        return renom.core.EnterModel(x, model), args, kwargs
 
+    def call_leave(self, model, ret, x, args, kwargs):
+        return renom.core.LeaveModel(ret, model)
 
-def get_model_graph():
-    return MODEL_GRAPH
+    def on_forward(self, model, forward, x, args, kwargs):
+        return forward(x, *args, **kwargs)
+
+    def leave_create(self, nodecls, ret):
+        ret = renom.core.NodeMark(ret, ret)
+        return ret
 
 
 def SET_MODEL_GRAPH(use):
@@ -428,8 +432,13 @@ def SET_MODEL_GRAPH(use):
 
     '''
 
-    global MODEL_GRAPH
-    MODEL_GRAPH = use
+    if use:
+        hook = GraphHook()
+        renom.Model.set_hook(hook)
+        renom.Node.set_hook(hook)
+    else:
+        renom.Model.set_hook(None)
+        renom.Node.set_hook(None)
 
 
 def showmark(cls):

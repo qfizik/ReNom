@@ -12,10 +12,13 @@ from renom.cuda.base.cuda_base import cuCreateStream, cuDestroyStream
 # _cublas_handlers[desired_id] to receive the value
 _cublas_handlers = {}
 
-cdef createCublashandler():
-  cdef cublasHandle_t handle
-  check(cublasCreate(&handle))
-  return <uintptr_t> handle
+
+def createCublasHandle(stream = None):
+  cdef cublasHandle_t ret 
+  check(cublasCreate(&ret))
+  if stream is not None:
+    cublasSetStream(ret, <cudaStream_t><uintptr_t> stream)
+  return <uintptr_t> ret
 
 def destroyCublas():
   cdef int i
@@ -46,7 +49,7 @@ def cublas_handler():
 def cublas_scal(alf, gpu_value):
     cdef int size = gpu_value.size
     cdef uintptr_t ptr = <uintptr_t>gpu_value._ptr
-    cdef uintptr_t handle = <uintptr_t> get_handle()
+    cdef uintptr_t handle = <uintptr_t> 0
 
     cuda_base.check_heap_device(gpu_value)
     # cdef can only be defined at the function level
@@ -59,11 +62,11 @@ def cublas_scal(alf, gpu_value):
     return
 
 # AXPY
-cpdef cublas_axpy(gpu_value1, gpu_value2):
+cpdef cublas_axpy(gpu_value1, gpu_value2, renomhandle):
     cdef int n = gpu_value1.size
     cdef uintptr_t ptr1 = <uintptr_t>gpu_value1._ptr
     cdef uintptr_t ptr2 = <uintptr_t>gpu_value2._ptr
-    cdef uintptr_t handle = <uintptr_t> get_handle()
+    cdef uintptr_t handle = <uintptr_t> renomhandle.cublas_handler
 
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
     # cdef can only be defined at the function level
@@ -90,20 +93,9 @@ The function return value is the integer converted value of this pointer
 To reuse this stream as a C-defined cudaStream_t variable, simply cast the
 returned integer value back to cublasHandle_t
 '''
-cdef get_handle(idx = 0):
-  # This function is a mess lol
-  global _stream
-  cdef uintptr_t tmp
-  if not idx in _cublas_handlers:
-    tmp = createCublashandler()
-    _cublas_handlers[idx] = tmp
-    check(cublasSetStream(<cublasHandle_t><uintptr_t>tmp, _stream))
-
-  return _cublas_handlers[idx]
-
 
 # GEMM
-def cublas_gemm(gpu_value1, t1, gpu_value2, t2, gpu_value3):
+def cublas_gemm(gpu_value1, t1, gpu_value2, t2, gpu_value3, renomhandle):
     cuda_base.check_heap_device(gpu_value1, gpu_value2, gpu_value3)
 
     shape1 = gpu_value1.shape or (1, 1)
@@ -121,7 +113,7 @@ def cublas_gemm(gpu_value1, t1, gpu_value2, t2, gpu_value3):
     if len(shape1) > 2:
         raise Exception("Operation cuBlas gemm is only accept 2 dimentional matrix.")
 
-    cdef uintptr_t handle = <uintptr_t> get_handle()
+    cdef uintptr_t handle = <uintptr_t> renomhandle.cublas_handler
     # cdef can only be defined at the function level
     cdef float alpha = 1.0, beta = 0.0
     cdef double alpha2 = 1.0, beta2 = 0.0
@@ -141,7 +133,8 @@ def cublas_geam( a, gpu_value1, t1, b, gpu_value2, t2, gpu_value3, hand = None):
     cdef uintptr_t ptr1 = <uintptr_t>gpu_value1._ptr
     cdef uintptr_t ptr2 = <uintptr_t>gpu_value2._ptr
     cdef uintptr_t ptr3 = <uintptr_t>gpu_value3._ptr
-    cdef uintptr_t handle = <uintptr_t> get_handle() if handle is None else <uintptr_t> hand
+    #cdef uintptr_t handle = <uintptr_t> 0 if handle is None else <uintptr_t> 0 
+    cdef uintptr_t handle = <uintptr_t> hand.cublas_handler
     cdef cublasOperation_t c1 = CUBLAS_OP_T if t1 == 1 else CUBLAS_OP_N
     cdef cublasOperation_t c2 = CUBLAS_OP_T if t2 == 1 else CUBLAS_OP_N
 
@@ -169,4 +162,4 @@ def cublas_geam( a, gpu_value1, t1, b, gpu_value2, t2, gpu_value3, hand = None):
 
 def cublas_transpose(handle, gpu_value1, gpu_value2):
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
-    cublas_geam(1.0, gpu_value1, 1, 0.0, gpu_value1, 1, gpu_value2, handle)
+    cublas_geam(1.0, gpu_value1, 1, 0.0, gpu_value1, 1, gpu_value2, hand = handle)

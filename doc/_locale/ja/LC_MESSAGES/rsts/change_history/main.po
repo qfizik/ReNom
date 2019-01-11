@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNom 2.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-13 19:15+0900\n"
+"POT-Creation-Date: 2018-12-20 15:40+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,95 +18,50 @@ msgstr ""
 "Generated-By: Babel 2.6.0\n"
 
 #: ../../rsts/change_history/main.rst:2
-msgid "Changes 2.5 => 2.6"
+msgid "Changes 2.6 => 2.7"
 msgstr ""
 
 #: ../../rsts/change_history/main.rst:4
-msgid ""
-"Implemented a method for setting seed to curand random number generator. "
-":py:meth:`renom.cuda.curand_set_seed`"
-msgstr ""
-"乱数生成器curandにシードをセットするための, curand_set_seed関数を追加. "
-":py:meth:`renom.cuda.curand_set_seed`"
-
-#: ../../rsts/change_history/main.rst:6
-msgid ""
-"Added argument `ignore_bias` to all parameterized class. As example, see "
-"doc of Dense class. :py:meth:`renom.layers.function.dense.Dense`."
-msgstr "DenseクラスなどのParametrizedクラスを継承したクラスに対し, 引数 ``ignore_bias`` を追加. "
+msgid "Support ONNX(https://onnx.ai/)."
+msgstr "ONNX形式のモデル出力をサポート(https://onnx.ai/)"
 
 #: ../../rsts/change_history/main.rst:8
-msgid ""
-"Added argument `reduce_sum` to all loss function class. As example, see "
-"MeanSquaredError class. "
-":py:meth:`renom.layers.loss.mean_squared_error.MeanSquaredError`."
-msgstr ""
-"すべての誤差関数クラス(例えばMeanSquaredErrorクラス)に引数 ``reduce_sum`` を追加. "
-":py:meth:`renom.layers.loss.mean_squared_error.MeanSquaredError`."
+msgid "Add ``GroupConvolution``"
+msgstr "``GroupConvolution``を追加"
 
-#: ../../rsts/change_history/main.rst:10
-msgid ""
-"Added ``Weight Normalize``. See "
-":py:meth:`renom.layers.function.weight_normalize.WeightNormalize`"
+#: ../../rsts/change_history/main.rst:8
+msgid ":py:meth:`renom.layers.function.group_conv2d.GroupConv2d`."
 msgstr ""
-"``WeightNormalize`` クラスを追加. "
-":py:meth:`renom.layers.function.weight_normalize.WeightNormalize`"
 
-#: ../../rsts/change_history/main.rst:12
-msgid ""
-"Added ``Layer Normalize``. See "
-":py:meth:`renom.layers.function.layer_normalize.LayerNormalize`"
+#: ../../rsts/change_history/main.rst:11
+msgid "Add ``DeconvNd``"
+msgstr "``DeconvNd``を追加"
+
+#: ../../rsts/change_history/main.rst:11
+msgid ":py:meth:`renom.layers.function.deconvnd.DeconvNd`."
 msgstr ""
-"``LayerNormalize`` クラスを追加. "
-":py:meth:`renom.layers.function.layer_normalize.LayerNormalize`"
 
 #: ../../rsts/change_history/main.rst:14
-msgid ""
-"Added ``GPUDistributor``. See "
-":py:meth:`renom.utility.distributor.distributor.GPUDistributor`"
+msgid "Add Nesterov's Accelerated Gradient Method to SGD."
+msgstr "Nesterovの加速勾配降下法をSgdに追加."
+
+#: ../../rsts/change_history/main.rst:14
+msgid ":py:meth:`renom.optimizer.Sgd`."
 msgstr ""
-"``GPUDistributor`` クラスを追加. "
-":py:meth:`renom.utility.distributor.distributor.GPUDistributor`"
 
-#: ../../rsts/change_history/main.rst:16
-msgid "Added ``Gru``. See :py:meth:`renom.layers.function.gru.Gru`"
-msgstr "``Gru`` クラスを追加. :py:meth:`renom.layers.function.gru.Gru`"
+#: ../../rsts/change_history/main.rst:17
+msgid "Add ``He Normal`` weight initializer."
+msgstr "重みの初期化方法``He Normal``を追加."
 
-#: ../../rsts/change_history/main.rst:18
-msgid "Added ``Conv3d``. See :py:meth:`renom.layers.function.convnd.Conv3d`"
-msgstr "``Conv3d`` クラスを追加. :py:meth:`renom.layers.function.convnd.Conv3d`"
+#: ../../rsts/change_history/main.rst:17
+msgid ":py:meth:`renom.utility.initializer.HeNormal`."
+msgstr ""
 
 #: ../../rsts/change_history/main.rst:20
-msgid "Added ``ConvNd``. See :py:meth:`renom.layers.function.convnd.ConvNd`"
-msgstr "``ConvNd`` クラスを追加. :py:meth:`renom.layers.function.convnd.ConvNd`"
+msgid "Add ``He Uniform`` weight initializer."
+msgstr "重みの初期化方法``He Uniform``を追加."
 
-#: ../../rsts/change_history/main.rst:22
-msgid ""
-"Added ``Average, Max Pool3d``. See "
-":py:meth:`renom.layers.function.poolnd.AvgPool3d` and See "
-":py:meth:`renom.layers.function.poolnd.MaxPool3d`"
+#: ../../rsts/change_history/main.rst:20
+msgid ":py:meth:`renom.utility.initializer.HeUniform`."
 msgstr ""
-"``Average, Max Pool3d`` "
-"を追加. :py:meth:`renom.layers.function.poolnd.AvgPool3d`, "
-":py:meth:`renom.layers.function.poolnd.MaxPool3d`"
-
-#: ../../rsts/change_history/main.rst:26
-msgid ""
-"Added ``Average, Max PoolNd``. See "
-":py:meth:`renom.layers.function.poolnd.AvgPoolNd` and "
-":py:meth:`renom.layers.function.poolnd.MaxPoolNd`."
-msgstr ""
-"``Average, Max PoolNd``. を追加. "
-":py:meth:`renom.layers.function.poolnd.AvgPoolNd`, "
-":py:meth:`renom.layers.function.poolnd.MaxPoolNd`."
-
-#: ../../rsts/change_history/main.rst:30
-msgid ""
-"Added ``Average, Max Unpool2d``. See "
-":py:meth:`renom.layers.function.poolnd.AvgUnPool2d` and "
-":py:meth:`renom.layers.function.poolnd.MaxUnPool2d`."
-msgstr ""
-"``Average, Max Pool2d``. を追加. "
-":py:meth:`renom.layers.function.poolnd.AvgUnPool2d`, "
-":py:meth:`renom.layers.function.poolnd.MaxUnPool2d`."
 

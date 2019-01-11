@@ -21,7 +21,9 @@ class dropout(Node):
     def __new__(cls, x, dropout_ratio=0.5, inference=False):
         if inference:
             return x
-        return cls.calc_value(x, 1. - dropout_ratio)
+        ret = cls.calc_value(x, 1. - dropout_ratio)
+        ret._ratio = dropout_ratio
+        return ret
 
     @classmethod
     def _oper_cpu(cls, x, dropout_ratio):

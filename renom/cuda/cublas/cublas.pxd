@@ -30,6 +30,26 @@ cdef extern from "cublas_v2.h":
         CUBLAS_STATUS_NOT_SUPPORTED = 15,
         CUBLAS_STATUS_LICENSE_ERROR = 16
 
+    ctypedef enum cublasMath_t:
+        CUBLAS_DEFAULT_MATH,
+        CUBLAS_TENSOR_OP_MATH
+
+    ctypedef enum cublasGemmAlgo_t:
+        CUBLAS_GEMM_DEFAULT = 0,
+        CUBLAS_GEMM_DEFAULT_TENSOR_OP = 25
+
+    ctypedef enum cudaDataType_t:
+        CUDA_R_16F,
+        CUDA_C_16F,
+        CUDA_R_32F,
+        CUDA_C_32F,
+        CUDA_R_64F,
+        CUDA_C_64F,
+        CUDA_R_8I,
+        CUDA_C_8I,
+        CUDA_R_8U,
+        CUDA_C_8U
+
     # ---------------- CUBLAS BLAS1 functions ----------------
     # NRM2
     cublasStatus_t cublasSnrm2(cublasHandle_t, int n, const float * x, int incx)
@@ -374,6 +394,47 @@ cdef extern from "cublas_v2.h":
                      const cuDoubleComplex * B, int ldb,
                      cuDoubleComplex beta, cuDoubleComplex * C,
                      int ldc)
+    #
+    # GEMMEX
+    cublasStatus_t cublasSgemmEx(cublasHandle_t handle,
+                           cublasOperation_t transa,
+                           cublasOperation_t transb,
+                           int m,
+                           int n,
+                           int k,
+                           const float    *alpha,
+                           const void     *A,
+                           cudaDataType_t Atype,
+                           int lda,
+                           const void     *B,
+                           cudaDataType_t Btype,
+                           int ldb,
+                           const float    *beta,
+                           void           *C,
+                           cudaDataType_t Ctype,
+                           int ldc)
+
+    cublasStatus_t cublasGemmEx(cublasHandle_t handle,
+                                cublasOperation_t transa,
+                                cublasOperation_t transb,
+                                int m,
+                                int n,
+                                int k,
+                                const void    *alpha,
+                                const void     *A,
+                                cudaDataType_t Atype,
+                                int lda,
+                                const void     *B,
+                                cudaDataType_t Btype,
+                                int ldb,
+                                const void    *beta,
+                                void           *C,
+                                cudaDataType_t Ctype,
+                                int ldc,
+                                cudaDataType_t computeType,
+                                cublasGemmAlgo_t algo)
+
+
     # -------------------------------------------------------
     # SYRK
     cublasStatus_t cublasSsyrk(cublasHandle_t, char uplo, char trans, int n, int k, float alpha,
@@ -503,6 +564,8 @@ cdef extern from "cublas_v2.h":
     cublasStatus_t cublasCreate(cublasHandle_t * handle)
     cublasStatus_t cublasSetStream(cublasHandle_t handle, cudaStream_t stream)
     cublasStatus_t cublasGetStream(cublasHandle_t handle, cudaStream_t *stream)
+    cublasStatus_t cublasSetMathMode(cublasHandle_t handle, cublasMath_t mode)
+    cublasStatus_t cublasGetMathMode(cublasHandle_t handle, cublasMath_t *mode)
     cublasStatus_t cublasDestroy ( cublasHandle_t handle);
 
     # ---------------- CUBLAS BLAS-like extension ----------------
@@ -563,5 +626,4 @@ cdef extern from "cublas_v2.h":
                                cuDoubleComplex * C,
                                int ldc)
 
-
-cpdef cublas_axpy(gpu_value1, gpu_value2)
+cpdef cublas_axpy(gpuvalue1, gpuvalue2, renomhandle)

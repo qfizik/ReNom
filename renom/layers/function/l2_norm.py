@@ -15,7 +15,7 @@ class l2_norm(Node):
 
     @classmethod
     def _oper_cpu(cls, x, w):
-        norm = np.sqrt(np.sum(x * x, axis=1, keepdims=True)) + 1e-7
+        norm = np.sqrt(np.sum(x * x, axis=1, keepdims=True)) + 1e-5
         z = (x / norm) * w
         ret = cls._create_node(z)
         ret.attrs._norm = norm
@@ -25,7 +25,7 @@ class l2_norm(Node):
 
     @classmethod
     def _oper_gpu(cls, x, w):
-        norm = rm.sqrt(rm.sum(x * x, axis=1, keepdims=True)) + 1e-7
+        norm = rm.sqrt(rm.sum(x * x, axis=1, keepdims=True)) + 1e-5
         z = (x / norm) * w
         ret = cls._create_node(get_gpu(z))
         ret.attrs._norm = norm

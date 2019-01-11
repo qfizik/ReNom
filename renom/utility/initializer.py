@@ -28,6 +28,15 @@ class Initializer(object):
         raise NotImplementedError
 
 
+class Constant(Initializer):
+
+    def __init__(self, value):
+        self._init_value = value
+
+    def __call__(self, shape):
+        return np.full(shape, self._init_value).astype(precision)
+
+
 class GlorotUniform(Initializer):
 
     '''Glorot uniform initializer [1]_ initializes parameters sampled by
@@ -88,7 +97,7 @@ class GlorotNormal(Initializer):
 class HeNormal(Initializer):
 
     '''He normal initializer.
-       Initializes parameters according to [1]
+   Initializes parameters according to [1]
 
     .. math::
 
@@ -111,6 +120,36 @@ class HeNormal(Initializer):
             fan_in = shape[1] * size
         std = np.sqrt(2 / fan_in)
         return (np.random.randn(*shape) * std).astype(precision)
+
+
+class HeUniform(Initializer):
+
+    '''He uniform initializer.
+   Initializes parameters according to [1]
+
+    .. math::
+
+
+        &U(max, min) \\\\
+        &max = sqrt(6/(input\_size)) \\\\
+        &min = -sqrt(6/(input\_size))
+
+    .. [1] https://arxiv.org/abs/1502.01852
+       Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification
+
+    '''
+
+    def __init__(self):
+        super(HeUniform, self).__init__()
+
+    def __call__(self, shape):
+        if len(shape) == 2:
+            fan_in = shape[0]
+        elif len(shape) == 4:
+            size = np.prod(shape[2:])
+            fan_in = shape[1] * size
+        lim = np.sqrt(6 / (fan_in))
+        return (np.random.rand(*shape) * 2 * lim - lim).astype(precision)
 
 
 class Gaussian(Initializer):

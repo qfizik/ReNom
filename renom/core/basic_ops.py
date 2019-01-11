@@ -127,7 +127,8 @@ def cu_broad_cast(hs, dy):
                 if s == 1:
                     axis.append(i)
             if axis:
-                dy = cusum(dy, axis=tuple(axis))
+                with renom.cuda.RenomHandler() as handle:
+                    dy = cusum(dy, handle, axis=tuple(axis))
             dy = dy.reshape(hs.shape)
     return dy
 
@@ -832,6 +833,7 @@ class Reshape(Node):
         ret = super(Reshape, cls).__new__(cls, value)
         ret.attrs._array = array
         ret.attrs._shape = array.shape
+        ret._shape_to = shape
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):
@@ -984,11 +986,14 @@ class Mark(Pos):
     def __new__(cls, arg, model):
         ret = super(Mark, cls).__new__(cls, arg)
         ret.modelref = weakref.ref(model)
-
         return ret
 
     def _reduce_graph(self):
         return
+
+    @classmethod
+    def _run_node_hook(cls, ret):
+        return ret
 
 
 class NodeMark(Mark):
@@ -1001,15 +1006,7 @@ class ModelMark(Mark):
 
 class EnterModel(ModelMark):
     pass
-#    def __init__(self, *args, **kwargs):
-#        super().__init__(*args, **kwargs)
-#        print('enter', [type(a) for a in args])
-#        import pdb;pdb.set_trace()
 
 
 class LeaveModel(ModelMark):
     pass
-#    def __init__(self, *args, **kwargs):
-#        super().__init__(*args, **kwargs)
-#        print('leave', [type(a) for a in args])
-#        import pdb;pdb.set_trace()

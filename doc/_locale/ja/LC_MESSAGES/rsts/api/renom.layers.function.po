@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNom 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-13 16:26+0900\n"
+"POT-Creation-Date: 2018-12-20 15:40+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -55,7 +55,9 @@ msgstr "上記の理由から'feature'モードは4次元テンソルが入力�
 #: of renom.layers.function.batch_normalize.BatchNormalize:15
 #: renom.layers.function.conv2d.Conv2d:9 renom.layers.function.convnd.ConvNd:10
 #: renom.layers.function.deconv2d.Deconv2d:9
+#: renom.layers.function.deconvnd.DeconvNd:10
 #: renom.layers.function.dense.Dense:6
+#: renom.layers.function.group_conv2d.GroupConv2d:9
 msgid ""
 "If the argument `input_size` is passed, this layers' weight is "
 "initialized in the __init__ function. Otherwise, the weight is "
@@ -66,10 +68,12 @@ msgstr ""
 
 #: of renom.layers.function.batch_normalize.BatchNormalize
 #: renom.layers.function.conv2d.Conv2d renom.layers.function.convnd.ConvNd
-#: renom.layers.function.deconv2d.Deconv2d renom.layers.function.dense.Dense
+#: renom.layers.function.deconv2d.Deconv2d
+#: renom.layers.function.deconvnd.DeconvNd renom.layers.function.dense.Dense
 #: renom.layers.function.dropout.Dropout
 #: renom.layers.function.dropout.SpatialDropout
-#: renom.layers.function.embedding.Embedding renom.layers.function.gru.Gru
+#: renom.layers.function.embedding.Embedding
+#: renom.layers.function.group_conv2d.GroupConv2d renom.layers.function.gru.Gru
 #: renom.layers.function.layer_normalize.LayerNormalize
 #: renom.layers.function.lrn.Lrn renom.layers.function.lstm.Lstm
 #: renom.layers.function.parameterized.Model.load
@@ -105,6 +109,8 @@ msgstr "Zero division エラーを避けるために用いる微小な定数"
 #: of renom.layers.function.batch_normalize.BatchNormalize:27
 #: renom.layers.function.conv2d.Conv2d:25
 #: renom.layers.function.convnd.ConvNd:24
+#: renom.layers.function.deconvnd.DeconvNd:24
+#: renom.layers.function.group_conv2d.GroupConv2d:25
 msgid "If `True` is given, bias will not be added."
 msgstr "True が与えられた場合, biasパラメータは使用されない."
 
@@ -112,8 +118,10 @@ msgstr "True が与えられた場合, biasパラメータは使用されない.
 #: renom.layers.function.conv2d.Conv2d:27
 #: renom.layers.function.convnd.ConvNd:26
 #: renom.layers.function.deconv2d.Deconv2d:27
+#: renom.layers.function.deconvnd.DeconvNd:26
 #: renom.layers.function.dense.Dense:16
 #: renom.layers.function.embedding.Embedding:17
+#: renom.layers.function.group_conv2d.GroupConv2d:27
 #: renom.layers.function.gru.Gru:13 renom.layers.function.lstm.Lstm:32
 msgid "Initializer object for weight initialization."
 msgstr "重みパラメータの初期値を与えるInitializerオブジェクト."
@@ -122,11 +130,14 @@ msgstr "重みパラメータの初期値を与えるInitializerオブジェク�
 #: renom.layers.function.conv2d.Conv2d:31
 #: renom.layers.function.convnd.ConvNd:30
 #: renom.layers.function.deconv2d.Deconv2d:31
+#: renom.layers.function.deconvnd.DeconvNd:30
 #: renom.layers.function.dense.Dense:20
 #: renom.layers.function.dropout.Dropout:11
 #: renom.layers.function.dropout.SpatialDropout:10
 #: renom.layers.function.embedding.Embedding:21
-#: renom.layers.function.flatten.Flatten:5 renom.layers.function.gru.Gru:17
+#: renom.layers.function.flatten.Flatten:5
+#: renom.layers.function.group_conv2d.GroupConv2d:33
+#: renom.layers.function.gru.Gru:17
 #: renom.layers.function.layer_normalize.LayerNormalize:12
 #: renom.layers.function.lrn.Lrn:22 renom.layers.function.lstm.Lstm:36
 #: renom.layers.function.parameterized.Model.load:7
@@ -155,6 +166,7 @@ msgstr "2D畳み込み関数."
 
 #: of renom.layers.function.conv2d.Conv2d:3
 #: renom.layers.function.deconv2d.Deconv2d:3
+#: renom.layers.function.group_conv2d.GroupConv2d:3
 msgid ""
 "This class creates a convolution filter to be convolved with the input "
 "tensor. The instance of this class only accepts and outputs 4d tensors."
@@ -163,6 +175,8 @@ msgstr "このクラスは畳込フィルタを持ち, 入力に対してフィ�
 #: of renom.layers.function.conv2d.Conv2d:7
 #: renom.layers.function.convnd.ConvNd:8
 #: renom.layers.function.deconv2d.Deconv2d:7
+#: renom.layers.function.deconvnd.DeconvNd:8
+#: renom.layers.function.group_conv2d.GroupConv2d:7
 msgid ""
 "At instantiation, in the case of int input, filter, padding, and stride, "
 "the shape will be symmetric."
@@ -171,23 +185,29 @@ msgstr "インスタンス化時に,フィルタサイズ, パディング, ス�
 #: of renom.layers.function.conv2d.Conv2d:13
 #: renom.layers.function.convnd.ConvNd:14
 #: renom.layers.function.deconv2d.Deconv2d:13
+#: renom.layers.function.deconvnd.DeconvNd:14
+#: renom.layers.function.group_conv2d.GroupConv2d:13
 msgid "The dimensionality of the output."
 msgstr "出力チャンネル数"
 
 #: of renom.layers.function.conv2d.Conv2d:15
 #: renom.layers.function.convnd.ConvNd:16
+#: renom.layers.function.deconvnd.DeconvNd:16
+#: renom.layers.function.group_conv2d.GroupConv2d:15
 #: renom.layers.function.pool2d.AveragePool2d:4
 #: renom.layers.function.pool2d.MaxPool2d:4
 msgid "Filter size of the convolution kernel."
 msgstr "フィルタサイズ"
 
 #: of renom.layers.function.conv2d.Conv2d:17
+#: renom.layers.function.group_conv2d.GroupConv2d:17
 #: renom.layers.function.pool2d.AveragePool2d:6
 #: renom.layers.function.pool2d.MaxPool2d:6
 msgid "Size of the zero-padding around the image."
 msgstr "ゼロパディングサイズ"
 
 #: of renom.layers.function.conv2d.Conv2d:19
+#: renom.layers.function.group_conv2d.GroupConv2d:19
 #: renom.layers.function.pool2d.AveragePool2d:8
 #: renom.layers.function.pool2d.MaxPool2d:8
 msgid "Stride-size of the convolution."
@@ -195,24 +215,30 @@ msgstr "ストライドサイズ"
 
 #: of renom.layers.function.conv2d.Conv2d:21
 #: renom.layers.function.deconv2d.Deconv2d:21
+#: renom.layers.function.group_conv2d.GroupConv2d:21
 msgid "Dilation of the convolution."
 msgstr "膨張サイズ"
 
 #: of renom.layers.function.conv2d.Conv2d:23
 #: renom.layers.function.convnd.ConvNd:22
 #: renom.layers.function.deconv2d.Deconv2d:23
+#: renom.layers.function.deconvnd.DeconvNd:22
+#: renom.layers.function.group_conv2d.GroupConv2d:23
 msgid "Input unit size. This must be a tuple like (Channel, Height, Width)."
 msgstr "入力データサイズ. (channel, height, width)形式のtupleに対応."
 
 #: of renom.layers.function.conv2d.Conv2d:43
+#: renom.layers.function.group_conv2d.GroupConv2d:45
 msgid "Tensor data format is **NCHW**."
 msgstr "テンソルデータのフォーマットは **NCHW** の並び順となっている."
 
 #: of renom.layers.function.convnd.ConvNd:1
+#: renom.layers.function.deconvnd.DeconvNd:1
 msgid "Nd convolution layer."
 msgstr "N次元畳み込み関数."
 
 #: of renom.layers.function.convnd.ConvNd:3
+#: renom.layers.function.deconvnd.DeconvNd:3
 msgid ""
 "This class creates a convolution filter to be convolved with the input "
 "tensor. The instance of this class accepts tensors of any dimensionality "
@@ -222,14 +248,17 @@ msgstr ""
 "GPUモードでは2~3次元テンソルデータを入力として受け付ける."
 
 #: of renom.layers.function.convnd.ConvNd:18
+#: renom.layers.function.deconvnd.DeconvNd:18
 msgid "Size of the zero - padding around the image."
 msgstr "ゼロパディングサイズ"
 
 #: of renom.layers.function.convnd.ConvNd:20
+#: renom.layers.function.deconvnd.DeconvNd:20
 msgid "Stride - size of the convolution."
 msgstr "ストライドサイズ"
 
 #: of renom.layers.function.convnd.ConvNd:42
+#: renom.layers.function.deconvnd.DeconvNd:42
 msgid "Tensor data format is **NC(D*)**."
 msgstr "テンソルデータのフォーマットは **NC(D*)**　の並び順となっている."
 
@@ -240,6 +269,16 @@ msgstr "3次元畳み込み関数. ConvNd関数においてN=3とした畳込み
 #: of renom.layers.function.convnd.Conv3d:3
 msgid "Tensor data format is **NCHWD**."
 msgstr "テンソルデータのフォーマットは **NCHWD** の並び順となっている."
+
+#: of renom.layers.function.group_conv2d.GroupConv2d:1
+msgid "2d grouped convolution layer."
+msgstr "2Dグループ畳み込み関数."
+
+#: of renom.layers.function.group_conv2d.GroupConv2d:29
+msgid ""
+"Number of groups to split convolution into. Must be divisor of input and "
+"output channels."
+msgstr "畳み込み演算を実行するグループの数. 出力チャネル数と入力チャネル数の約数でなければならない."
 
 #: of renom.layers.function.deconv2d.Deconv2d:15
 msgid "Filter size to witch used as convolution kernel."
@@ -293,10 +332,15 @@ msgid "Dropout ratio."
 msgstr "ドロップアウト率"
 
 #: of renom.layers.function.dropout.Dropout:33
-msgid ""
-"Hinton, Geoffrey E.; Srivastava, Nitish; Krizhevsky, Alex; Sutskever, "
-"Ilya; Salakhutdinov, Ruslan R. (2012). Improving neural networks by "
-"preventing co-adaptation of feature detectors"
+msgid "Hinton, Geoffrey E.; Srivastava, Nitish; Krizhevsky, Alex; Sutskever,"
+msgstr ""
+
+#: of renom.layers.function.dropout.Dropout:34
+msgid "Ilya; Salakhutdinov, Ruslan R. (2012)."
+msgstr ""
+
+#: of renom.layers.function.dropout.Dropout:35
+msgid "Improving neural networks by preventing co-adaptation of feature detectors"
 msgstr ""
 
 #: of renom.layers.function.dropout.SpatialDropout:1
@@ -554,9 +598,9 @@ msgstr "計算グラフを作成するためのコンテキストを管理する
 msgid ""
 "This context manager can controls that whether model's weight parameter "
 "be updated."
-msgstr "コンテキストマネージャ内においてGradsクラスのupdate()関数による重みパラメータの"
-"パラメータを実行した場合, そのコンテキストを持つModelの属性として定義された重みパラメータは"
-"更新されない."
+msgstr ""
+"コンテキストマネージャ内においてGradsクラスのupdate()関数による重みパラメータのパラメータを実行した場合, "
+"そのコンテキストを持つModelの属性として定義された重みパラメータは更新されない."
 
 #: of renom.layers.function.parameterized.Model.values:1
 msgid "Generates nested tuple of underlying models and params of models."
@@ -629,8 +673,9 @@ msgstr "Average poolingクラス."
 msgid ""
 "Max unpooling function. Unpools an input in a network where a previous "
 "pooling has occured."
-msgstr "Max unpooling関数. この関数より先にMax poolingが実行されている必要がある."
-"Max unpooling関数は, Max Pooling時に選択されたインデックスを元にUnpoolingを行う."
+msgstr ""
+"Max unpooling関数. この関数より先にMax poolingが実行されている必要がある.Max unpooling関数は, Max "
+"Pooling時に選択されたインデックスを元にUnpoolingを行う."
 
 #: of renom.layers.function.unpool2d.AverageUnPool2d:4
 #: renom.layers.function.unpool2d.MaxUnPool2d:4
@@ -642,27 +687,37 @@ msgstr "入力データ"
 msgid ""
 "The previous pool to be unpooled. In the case of none, the model searches"
 " through the history for the previous layer."
-msgstr "MaxPool2d関数の出力, もしくはNoneを引数にとる. "
-"Noneの場合, 計算グラフ上から対応するMaxpooling関数の出力を探索する. "
+msgstr ""
+"MaxPool2d関数の出力, もしくはNoneを引数にとる. Noneの場合, "
+"計算グラフ上から対応するMaxpooling関数の出力を探索する. "
 
 #: of renom.layers.function.unpool2d.AverageUnPool2d:12
 #: renom.layers.function.unpool2d.MaxUnPool2d:12
 msgid "The input shape requirement: ``x.shape == previous_pool.shape``"
-msgstr "UnPooling関数に入力されるデータ ``x`` は 対応するPooling関数の出力 ``previous_pool`` "
-"が持つshapeと等しい必要がある."
-" ``x.shape == previous_pool.shape`` "
-
+msgstr ""
+"UnPooling関数に入力されるデータ ``x`` は 対応するPooling関数の出力 ``previous_pool`` "
+"が持つshapeと等しい必要がある. ``x.shape == previous_pool.shape`` "
 
 #: of renom.layers.function.unpool2d.AverageUnPool2d:15
 #: renom.layers.function.unpool2d.MaxUnPool2d:15
 msgid "The output shape will be: ``ret.shape == previous_pool.input.shape``"
-msgstr "同様に, UnPooling関数の出力はpooling関数への入力と等しいshapeを持つ."
-" ``ret.shape == previous_pool.input.shape`` "
+msgstr ""
+"同様に, UnPooling関数の出力はpooling関数への入力と等しいshapeを持つ. ``ret.shape == "
+"previous_pool.input.shape`` "
 
 #: of renom.layers.function.unpool2d.AverageUnPool2d:1
 msgid ""
 "Average unpooling function. Unpools an input in a network where a "
 "previous pooling has occured."
-msgstr "Average unpooling関数. この関数より先にAverage poolingが実行されている必要がある."
-"Average unpooling関数は, Average pooling時に選択されたインデックスを元にUnpoolingを行う."
+msgstr ""
+"Average unpooling関数. この関数より先にAverage poolingが実行されている必要がある.Average "
+"unpooling関数は, Average pooling時に選択されたインデックスを元にUnpoolingを行う."
+
+#~ msgid ""
+#~ "Hinton, Geoffrey E.; Srivastava, Nitish; "
+#~ "Krizhevsky, Alex; Sutskever, Ilya; "
+#~ "Salakhutdinov, Ruslan R. (2012). Improving "
+#~ "neural networks by preventing co-"
+#~ "adaptation of feature detectors"
+#~ msgstr ""
 

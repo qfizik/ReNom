@@ -4,9 +4,18 @@ from renom.core import to_value
 from renom import precision
 
 
-def out_size(size, k, s, p, d=(1, 1)):
-    return ((np.array(size) + np.array(p) * 2 - np.array(k) - (np.array(k) - 1) *
-             (np.array(d) - 1)) // np.array(s) + 1).astype(np.int)
+def out_size(size, k, s, p, d=(1, 1), ceil_mode=False):
+    size = np.array(size)
+    k = np.array(k)
+    s = np.array(s)
+    p = np.array(p)
+    d = np.array(d)
+    dk = k + (k - 1) * (d - 1)
+    if ceil_mode:
+        out = ((size + p * 2 - dk + s - 1) // s + 1).astype(np.int)
+    else:
+        out = ((size + p * 2 - dk) // s + 1).astype(np.int)
+    return out
 
 
 def transpose_out_size(size, k, s, p, d=(1, 1)):
@@ -31,8 +40,7 @@ def im2col(img, size, kernel, stride, padding, dilation=(1, 1), padWith=0.):
         for j in range(k_w):
             jdw = j * d_w
             ju = jdw + s_w * out_w
-            col[:, :, k_h - 1 - i, k_w - 1 - j, :,
-                :] = img_n[:, :, idh:iu:s_h, jdw:ju:s_w]
+            col[:, :, k_h - 1 - i, k_w - 1 - j, :, :] = img_n[:, :, idh:iu:s_h, jdw:ju:s_w]
     return col
 
 
@@ -188,8 +196,10 @@ def imnpool(img, kernel, stride, padding, padWith=0, mode="max", alternate_input
     for batch in range(N):
         tmp = []
         for in_channel in range(in_channels):
-            ret2 = place_pools(padded_image[batch, in_channel], kernel, stride, func,
-                               alternate_input=alternate_input[batch, in_channel] if alternate_input is not None else None)
+            ret2 = place_pools(padded_image[batch, in_channel],
+                               kernel, stride, func,
+                               alternate_input=alternate_input[batch, in_channel]
+                               if alternate_input is not None else None)
             tmp.append(ret2)
         ret.append(tmp)
     ret = np.array(ret)
@@ -243,7 +253,7 @@ def poolnim(original, dy, kernel, stride, padding, mode="max"):
     elif mode is "average":
         func = back_average_pool
 
-    _, _, in_dims = original.shape[0], original.shape[1], original.shape[2:]
+    _, _, in_dims = original.shape[0], original.shape[1], original.shape[2:]  # noqa
     dimensionality = len(in_dims)
     pad_list = [(0, 0), (0, 0)]
     pad_list.extend([(padding[i], padding[i]) for i in range(dimensionality)])
@@ -258,7 +268,6 @@ def poolnim(original, dy, kernel, stride, padding, mode="max"):
                               for i in range(len(original.shape[2:]))]
             ret[batch, in_channel] = place_back_pools(
                 padded_image[batch, in_channel], kernel, stride, func, dy[batch, in_channel])[padding_slices]
-    print(ret)
     return ret
 
 

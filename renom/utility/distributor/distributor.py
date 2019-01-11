@@ -6,9 +6,11 @@ import numpy as np
 from renom.core import Node
 from renom.cuda import has_cuda, is_cuda_active
 from renom.config import precision
+import collections
 
 if has_cuda():
     import renom.cuda.base.cuda_base as cu
+    from renom.cuda import RenomHandler
     from renom.cuda.gpuvalue import get_gpu
     cuda_imported = True
 else:
@@ -171,7 +173,7 @@ class GPUDistributor(Distributor):
         y (ndarray): Target data.
     '''
 
-    def __init__(self, x, y, **kwargs):
+    def __init__(self, x, y, gpus=1, **kwargs):
         if not cuda_imported:
             raise ImportError(
                 "Failed to import cuda during distributor.py import, cannot launch GPUDistributor.")
@@ -179,18 +181,19 @@ class GPUDistributor(Distributor):
         super(GPUDistributor, self).__init__(x=x, y=y, data_table=kwargs.get("data_table"))
         assert len(x) == len(y), "Input batches must have same number as output batches"
         self._data_size = len(x)
+        self._gpus = gpus
 
     @staticmethod
-    def preload_single(batch):
-        with cu.asyncBehaviour():
+    def preload_single(batch, device=0):
+        with RenomHandler(device) as handle:
             batch = batch.astype(np.dtype(precision))
-            cu.pinNumpy(batch)
-            ret = Node(get_gpu(batch))
+            pin = handle.getPinnedMemory(batch)
+            ret = Node(get_gpu(pin))
         return ret
 
     @staticmethod
-    def preload_pair(batch1, batch2):
-        return GPUDistributor.preload_single(batch1), GPUDistributor.preload_single(batch2)
+    def preload_pair(batch1, batch2, device=0):
+        return GPUDistributor.preload_single(batch1, device), GPUDistributor.preload_single(batch2, device)
 
     @staticmethod
     def create_return(batch1, batch2):
@@ -198,7 +201,7 @@ class GPUDistributor(Distributor):
 
     def batch(self, batch_size, shuffle=True, steps=None):
         # return super(GPUDistributor, self).batch(batch_size, shuffle)
-        generator = super(GPUDistributor, self).batch(batch_size, shuffle, steps)
+        generator = super(GPUDistributor, self).batch(batch_size * self._gpus, shuffle, steps)
         notEmpty = True
         first = True
         while(notEmpty):
@@ -206,17 +209,27 @@ class GPUDistributor(Distributor):
                 # On entering, we preload the first two batches
                 if first:
                     b = next(generator)
-                    example_batch = b[0] if b[0].size * \
-                        b[0].itemsize >= b[1].size * b[1].itemsize else b[1]
-                    cu.initPinnedMemory(example_batch.astype(np.dtype(precision)))
-                    x1, y1 = GPUDistributor.preload_pair(b[0], b[1])
+                    x1, y1 = [], []
+                    for i in range(self._gpus):
+                        prep = GPUDistributor.preload_pair(
+                            b[0][i * batch_size:(i + 1) * batch_size],
+                            b[1][i * batch_size: (i + 1) * batch_size], device=i)
+                        x1.append(prep[0])
+                        y1.append(prep[1])
+                    #x1, y1 = GPUDistributor.preload_pair(b[0], b[1])
                     first = False
                 b = next(generator)
 
                 # We continue to preload an extra batch until we are finished
                 # Values yet to be returned are stored in *2
                 x2, y2 = GPUDistributor.preload_pair(b[0], b[1])
-                yield GPUDistributor.create_return(x1, y1)
+                x2, y2 = [], []
+                for i in range(self._gpus):
+                    prep = GPUDistributor.preload_pair(
+                        b[0][i * batch_size:(i + 1) * batch_size], b[1][i * batch_size: (i + 1) * batch_size], device=i)
+                    x2.append(prep[0])
+                    y2.append(prep[1])
+                yield GPUDistributor.create_return(x1[0], y1[0])
                 # Release currently released values and store the next as
                 # next to be yielded in *1
                 x1, y1 = x2, y2
@@ -226,10 +239,9 @@ class GPUDistributor(Distributor):
                 notEmpty = False
             # Check if there was only a single batch
         if not first:
-            yield GPUDistributor.create_return(x2, y2)
+            yield GPUDistributor.create_return(x2[0], y2[0])
         else:
-            yield GPUDistributor.create_return(x1, y1)
-        cu.freePinnedMemory()
+            yield GPUDistributor.create_return(x1[0], y1[0])
 
 
 class TimeSeriesDistributor(NdarrayDistributor):

@@ -43,8 +43,8 @@ class convnd(Node):
             output_shape.append((x.shape[i + 2] + padding[i] * 2 - kernel[i]) // stride[i] + 1)
         y = GPUValue(shape=tuple(output_shape))
 
-        with cu.cudnn_handler() as handle:
-            cu.cuConvolutionForward(handle, conv_desc, filter_desc, get_gpu(x), get_gpu(w), y)
+        with cu.RenomHandler() as handle:
+            cu.cuConvolutionForward(handle, conv_desc, filter_desc, get_gpu(x), get_gpu(w), y, 0)
             if b is not None:
                 cu.cu_add_bias(get_gpu(b), y)
 
@@ -74,10 +74,11 @@ class convnd(Node):
         dw, db, dx = (get_gpu(g).empty_like_me() if g is not None else None
                       for g in (self.attrs._w, self.attrs._b, self.attrs._x))
 
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuConvolutionBackward(handle, self.attrs._conv_desc, self.attrs._filter_desc,
                                      get_gpu(self.attrs._x), get_gpu(
-                                         self.attrs._w), get_gpu(dy), dw, db, dx, **kwargs)
+                                         self.attrs._w), get_gpu(dy), dw, db, dx,
+                                     {'data': 0, 'filter': 0}, **kwargs)
         if isinstance(self.attrs._w, Node):
             self.attrs._w._update_diff(context, dw, **kwargs)
 
@@ -97,9 +98,9 @@ def check_input(var, length):
             tuple([var for _ in range(length)]), dtype=np.int32)
     elif not var.dtype == np.int32:
         var = var.astype(np.int32)
-    if length < 2:
+    if length < 2 and is_cuda_active():
         length = 2
-    assert len(var) is length
+    assert len(var) is length, str(len(var)) + '/' + str(length)
     return var
 
 
@@ -159,7 +160,7 @@ class ConvNd(Parametrized):
         if is_cuda_active():
             assert self._dims < 4, "GPU Version currently only supports 2 and 3 dimensions"
 
-        if self._dims == 1:
+        if self._dims == 1 and is_cuda_active():
             self._kernel = np.append(self._kernel, 1).astype(np.int32)
             self._padding = np.append(self._padding, 0).astype(np.int32)
             self._stride = np.append(self._stride, 1).astype(np.int32)

@@ -36,6 +36,7 @@ class Sgd(Optimizer):
     Args:
         lr (float): Learning rate.
         momentum (float): Momentum coefficient of optimization.
+        nesterov (bool): If true, applies nesterov's accelerated gradient.
 
     Example:
         >>> import numpy as np
@@ -57,31 +58,48 @@ class Sgd(Optimizer):
                   [-0.1523091 , -0.03280939,  0.32063919]], dtype=float32)
     '''
 
-    def __init__(self, lr=0.1, momentum=0.4):
+    def __init__(self, lr=0.1, momentum=0.4, nesterov=False):
         self._lr = lr
         self._momentum = momentum
+        self._nesterov = nesterov
         self._params = {}
 
     def _get_cpu(self, dy, node):
-
         node_id = id(node)
         pdy = self._params.get(node_id, 0)
-        ret = self._lr * dy + self._momentum * pdy
-        if self._momentum > 0:
+
+        if self._nesterov:
+            prev_dy = pdy
+            pdy = self._momentum * pdy + self._lr * dy
+            ret = (1 + self._momentum) * pdy - self._momentum * prev_dy
+            self._params[node_id] = pdy
+        else:
+            ret = self._lr * dy + self._momentum * pdy
             self._params[node_id] = ret
+
         if isinstance(ret, Node):
             ret.detach_graph()
         return ret
 
     def _get_gpu(self, dy, node):
-
         node_id = id(node)
         pdy = self._params.get(node_id, get_gpu(dy).zeros_like_me())
         ndy = get_gpu(dy).empty_like_me()
-        cu.cu_optimizer_sgd(self._lr, self._momentum, get_gpu(dy), get_gpu(pdy), ndy)
+        with cu.RenomHandler() as handle:
+            if self._nesterov:
+                mdy = get_gpu(dy).empty_like_me()
+                cu.cu_optimizer_sgd(self._lr, self._momentum, get_gpu(dy),
+                                    get_gpu(pdy), mdy, handle)
+                cu.cu_optimizer_sgd(1 + self._momentum, -self._momentum,
+                                    get_gpu(mdy), get_gpu(pdy), ndy, handle)
+                self._params[node_id] = mdy
+            else:
+                cu.cu_optimizer_sgd(self._lr, self._momentum, get_gpu(dy),
+                                    get_gpu(pdy), ndy, handle)
 
         if self._momentum > 0:
             self._params[node_id] = ndy
+
         return ndy
 
     def reset(self):

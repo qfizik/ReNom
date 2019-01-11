@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNom 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-13 13:29+0900\n"
+"POT-Creation-Date: 2018-12-20 16:11+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,6 +62,21 @@ msgid ""
 "Xavier Glorot, Yoshua Bengio. Understanding the difficulty of training "
 "deep feedforward neural networks."
 msgstr ""
+
+#: of renom.utility.initializer.HeNormal:1
+msgid "He normal initializer. Initializes parameters according to [1]"
+msgstr "Heの正規分布によって重みパラメータを初期化する."
+
+#: of renom.utility.initializer.HeNormal:9
+#: renom.utility.initializer.HeUniform:11
+msgid ""
+"https://arxiv.org/abs/1502.01852 Delving Deep into Rectifiers: Surpassing"
+" Human-Level Performance on ImageNet Classification"
+msgstr ""
+
+#: of renom.utility.initializer.HeUniform:1
+msgid "He uniform initializer. Initializes parameters according to [1]"
+msgstr "Heの一様分布によって重みパラメータを初期化する."
 
 #: of renom.utility.initializer.Gaussian:1
 msgid ""
@@ -383,7 +398,6 @@ msgid "Derived class of Distributor which manages ndarray data."
 msgstr "ndarray形式のデータを扱うためのDistributorの派生クラス."
 
 #: of renom.utility.distributor.distributor.GPUDistributor:1
-#, fuzzy
 msgid "Derived class of Distributor which manages GPUValue data."
 msgstr "ndarray形式のデータを扱うためのDistributorの派生クラス."
 
@@ -509,7 +523,6 @@ msgstr "バッチサイズ"
 
 #: of
 #: renom.utility.distributor.threadingdistributor.ImageDetectionDistributor.batch:6
-#, fuzzy
 msgid ""
 "Images(4 dimension) of input data for Network.   If including labels, "
 "return with transformed labels"
@@ -517,13 +530,11 @@ msgstr "4次元テンソルで表された入力画像データ. 同時に教師
 
 #: of
 #: renom.utility.distributor.threadingdistributor.ImageDetectionDistributor.batch:8
-#, fuzzy
 msgid "Images(4 dimension) of input data for Network."
 msgstr "4次元テンソルで表された入力画像データ."
 
 #: of
 #: renom.utility.distributor.threadingdistributor.ImageDetectionDistributor.batch:9
-#, fuzzy
 msgid "If including labels, return with transformed labels"
 msgstr "4次元テンソルで表された入力画像データ. 同時に教師ラベルが与えられた場合,オーギュメンテーションに対応して教師データは変形される."
 
@@ -599,4 +610,10 @@ msgid ""
 "Images(4 dimension) of augment transformed. If including labels, return "
 "with transformed labels"
 msgstr "4次元テンソルで表された入力画像データ. 同時に教師ラベルが与えられた場合,オーギュメンテーションに対応して教師データは変形される."
+
+#~ msgid "He normal initializer."
+#~ msgstr "Initializerクラスの基底となるクラス."
+
+#~ msgid "He uniform initializer."
+#~ msgstr "Heの一様乱数に基づいて重みの初期化を行う."
 
