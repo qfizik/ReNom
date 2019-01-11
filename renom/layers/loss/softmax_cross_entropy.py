@@ -35,12 +35,13 @@ class softmax_cross_entropy(Node):
         N = lhs.shape[0]
         z = softmax(lhs)
         tmp1 = get_gpu(lhs).empty_like_me()
-        cu.cucross_entropy(get_gpu(z), get_gpu(rhs), get_gpu(tmp1))
-        if reduce_sum:
-            loss = -cu.cusum(get_gpu(tmp1))
-        else:
-            loss = -get_gpu(tmp1)
-        ret = cls._create_node(loss / N)
+        with cu.RenomHandler() as handle:
+            cu.cucross_entropy(get_gpu(z), get_gpu(rhs), get_gpu(tmp1), handle)
+            if reduce_sum:
+                loss = -cu.cusum(get_gpu(tmp1), handle)
+            else:
+                loss = -get_gpu(tmp1)
+            ret = cls._create_node(loss / N)
         ret.attrs._z = z
         ret.attrs._lhs = lhs
         ret.attrs._rhs = rhs

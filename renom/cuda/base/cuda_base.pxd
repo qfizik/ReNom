@@ -198,6 +198,7 @@ cdef extern from "cuda_runtime.h":
     cudaError_t cudaEventRecord(cudaEvent_t event, cudaStream_t stream)
     cudaError_t cudaEventSynchronize(cudaEvent_t)
     cudaError_t cudaEventQuery(cudaEvent_t)
+    cudaError_t cudaEventDestroy(cudaEvent_t)
     cudaError_t cudaMalloc(void ** ptr, size_t size)
     #cudaError_t cudaMallocHost(void ** ptr, size_t size, unsigned int flags)
     cudaError_t cudaSetDevice(int size)
@@ -256,7 +257,19 @@ cdef class GPUHeap(object):
     cpdef memcpyD2H(self, cpu_ptr, size_t nbytes)
     cpdef memcpyD2D(self, gpu_ptr, size_t nbytes)
     cpdef copy_from(self, other, size_t nbytes)
+    cdef loadNumpy(self, array, size_t nbytes)
+    cdef loadPinned(self, PinnedMemory pinned, size_t nbytes)
+    cdef retrieveNumpy(self, array, size_t nbytes)
+    cdef retrievePinned(self, PinnedMemory pinned, size_t nbytes)
 
+
+cdef class PinnedMemory(object):
+    cdef size_t size
+    cdef void* memory_ptr
+    cpdef object shape
+    cpdef object dtype
+    cdef cudaStream_t stream
+    cdef cudaEvent_t event
 
 cdef class GpuAllocator(object):
     cpdef object _pool_lists, _all_pools

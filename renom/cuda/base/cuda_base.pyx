@@ -5,7 +5,6 @@ import traceback
 import contextlib
 import bisect
 import threading
-cimport cuda_base
 
 from libc.stdio cimport printf
 cimport numpy as np
@@ -16,9 +15,9 @@ from libc.stdlib cimport malloc, free
 from libc.stdint cimport uintptr_t, intptr_t
 from libc.string cimport memcpy
 from cuda_utils cimport _VoidPtr
+import renom
 from renom.config import precision
 import collections
-import renom.cuda
 
 # Indicate Python started shutdown process
 cdef int _python_shutdown = 0
@@ -54,90 +53,6 @@ cpdef cuMemset(uintptr_t ptr, int value, size_t size):
     runtime_check(cudaMemset(p, value, size))
     return
 
-# Global C-defined variables cannot be accessed from Python
-cdef void ** ptrs # Keeps an array of pointers for storing pinned memory spaces
-cdef cudaEvent_t * events # Similar to above with regards to events
-# TODO: Make pin_size always word-sized for increased performance in memcpy
-cdef size_t pin_size = 0 # How much space is designed for each pinned memory location
-cdef int using = 0 # Designates which of the allocated spaces is currently being used
-cdef int numPointers = 2 # How many pinned memory spaces we use
-asyncTransferContexts = 0
-usePinned = False
-
-@contextlib.contextmanager
-def asyncBehaviour():
-  global usePinned, asyncTransferContexts
-  usePinned = True
-  asyncTransferContexts += 1
-  yield
-  asyncTransferContexts -= 1
-  if asyncTransferContexts is 0:
-    usePinned = False
-
-# TODO: Create a list of pointers received in pinNumpy and make sure that each
-# pointer is consumed only once! Any subsequent calls with the same address pointer value
-# should be re-pinned again!
-
-
-# This function initiates the pinned memory space based on a sample batch
-# This should be called before trying to pin memory
-def initPinnedMemory(np.ndarray batch_arr):
-    global pin_size, events, ptrs, numPointers
-    cdef int elems
-    elems = getArrayElements(batch_arr)
-    cdef size_t new_size = <size_t> batch_arr.descr.itemsize*elems
-    if not (pin_size is new_size):
-      if new_size is 0 and pin_size is 0:
-        freePinnedMemory()
-      elif new_size > 0:
-        pin_size = new_size
-        ptrs = <void**> malloc(sizeof(void*)*numPointers)
-        events = <cudaEvent_t*> malloc(sizeof(cudaEvent_t)*numPointers)
-        for i in range(numPointers):
-          runtime_check(cudaMallocHost(&(ptrs[i]), pin_size))
-          runtime_check(cudaEventCreate(&(events[i])))
-
-
-
-
-# Pointless right now, as the user closing the program
-# will always free up the allocated memory anyway
-def freePinnedMemory():
-    global ptrs, pin_size, numPointers
-    if pin_size is 0:
-      return
-    cdef int i
-    for i in range(numPointers):
-      cudaFreeHost(ptrs[i])
-    free(ptrs)
-    free(events)
-    pin_size = 0
-
-cdef getArrayElements(np.ndarray arr):
-  cdef int i, elems
-  elems = 1
-  for i in range(arr.ndim):
-    elems *= arr.shape[i]
-  return elems
-
-cdef pinPointer(void* cpu_ptr, size_t nbytes):
-  assert nbytes <= pin_size
-  cudaEventSynchronize(events[using])
-  memcpy(ptrs[using], cpu_ptr, nbytes)
-# This function will accept a numpy array and move its data to the spaces
-# previously allocated using initPinnedMemory.
-def pinNumpy(np.ndarray arr):
-    global ptrs, using, events, pin_size
-    cdef int elems
-    elems = getArrayElements(arr)
-    cdef size_t arr_size = <size_t> arr.descr.itemsize*elems
-    assert arr_size <= pin_size, "Attempting to insert memory larger than what was made available through initPinnedMemory.\n(Allocated,Requested)({:d},{:d})".format(pin_size,arr.descr.itemsize*elems)
-    cdef void * vptr = <void*> arr.data
-    cudaEventSynchronize(events[using])
-    #memcpy(ptrs[using], vptr, pin_size)
-    memcpy(ptrs[using], vptr, arr_size)
-    #using = (using + 1) % numPointers
-    return
 
 '''
 Creates a stream
@@ -159,21 +74,21 @@ def cuCreateStream(name = None):
       nvtxNameCudaStreamA(stream, cname)
     return < uintptr_t > stream
 
-cdef cudaStream_t mainstream = <cudaStream_t><uintptr_t> 0
-cdef cudaStream_t cudnnstream = <cudaStream_t><uintptr_t> 0
+def cuCreateEvent():
+  cdef cudaEvent_t event
+  runtime_check(cudaEventCreate( & event))
+  return < uintptr_t > event
 
 
-def setMainStream(stream):
-    global mainstream
-    mainstream = <cudaStream_t><uintptr_t> stream
+cpdef streamInsertEvent(stream, event):
+  cdef cudaStream_t s = <cudaStream_t><uintptr_t> stream
+  cdef cudaEvent_t e = <cudaEvent_t><uintptr_t> event
+  runtime_check(cudaEventRecord(e, s))
 
-def setCudnnStream(stream):
-  global cudnnstream
-  cudnnstream = <cudaStream_t><uintptr_t> stream
+cpdef streamWaitEvent(event):
+  cdef cudaEvent_t e = <cudaEvent_t><uintptr_t> event
+  runtime_check(cudaEventSynchronize(e))
 
-def insertEvent(GPUHeap heap):
-  global mainstream
-  runtime_check(cudaEventRecord(heap.event, mainstream))
 
 def heapReady(GPUHeap heap):
   ret = cudaEventQuery(heap.event)
@@ -319,42 +234,14 @@ def cuMemcpyD2D(uintptr_t gpu_ptr1, uintptr_t gpu_ptr2, int size):
 
 cdef void cuMemcpyH2DAsync(void* cpu_ptr, uintptr_t gpu_ptr, int size, uintptr_t stream):
     # cpu to gpu
-    global ptrs, using, events, numPointers
-    if pin_size > 0:
-      cpu_ptr = ptrs[using]
     runtime_check(cudaMemcpyAsync(<void *>gpu_ptr, cpu_ptr, size, cudaMemcpyHostToDevice, <cudaStream_t> stream))
-    if pin_size > 0:
-      cudaEventRecord(events[using], <cudaStream_t> stream)
-      cudaStreamWaitEvent(NULL, events[using], 0)
-      using = (using + 1) % numPointers
     return
 
-cdef printPtrSum():
-  global ptrs, pin_size, using
-  cdef float * ptr = <float*> ptrs[using]
-  cdef int i, elems
-  cdef float sum = 0
-  elems = pin_size / sizeof(float)
-  for i in range(elems-1):
-    sum += ptr[i]
-  print("Range sum is: {}".format(sum))
-
-cdef void cuMemcpyH2Dvar(void* cpu_ptr, uintptr_t gpu_ptr, int size, uintptr_t stream):
-  # cpu to gpu
-  global ptrs, using, events, numPointers, pin_size, mainstream
-  if pin_size > 0 and size <= pin_size and usePinned:
-    runtime_check(cudaMemcpyAsync(<void *>gpu_ptr, ptrs[using], size, cudaMemcpyHostToDevice, <cudaStream_t> stream))
-    runtime_check(cudaEventRecord(events[using], (<cudaStream_t> stream)))
-    runtime_check(cudaStreamWaitEvent(mainstream, events[using], 0))
-    using = (using + 1) % numPointers
-  else:
-    runtime_check(cudaMemcpy(<void *>gpu_ptr, cpu_ptr, size, cudaMemcpyHostToDevice))
-  return
 
 
-def cuMemcpyD2HAsync(uintptr_t gpu_ptr, np.ndarray[float, ndim=1, mode="c"] cpu_ptr, int size, int stream=0):
+cdef cuMemcpyD2HAsync(void* cpu_ptr, uintptr_t gpu_ptr, int size, uintptr_t stream):
     # gpu to cpu
-    runtime_check(cudaMemcpyAsync( & cpu_ptr[0], < const void*>gpu_ptr, size, cudaMemcpyDeviceToHost, < cudaStream_t > stream))
+    runtime_check(cudaMemcpyAsync(cpu_ptr, <void*> gpu_ptr, size, cudaMemcpyDeviceToHost, < cudaStream_t > stream))
     return
 
 
@@ -370,6 +257,67 @@ def check_heap_device(*heaps):
     if devices != current:
         raise RuntimeError('Invalid device_id: %s currennt: %s' % (devices, current))
 
+
+cdef class PinnedMemory(object):
+    def __init__(self, array_to_pin, stream):
+        cdef int i
+        self.size = array_to_pin.itemsize*array_to_pin.size
+        self.shape = array_to_pin.shape
+        self.dtype = array_to_pin.dtype
+        self.stream = <cudaStream_t><uintptr_t> stream
+        runtime_check(cudaEventCreate(&self.event))
+        runtime_check(cudaMallocHost(&self.memory_ptr, self.size))
+
+    def __dealloc__(self):
+        runtime_check(cudaFreeHost(self.memory_ptr))
+
+    def get_size(self):
+        return <uintptr_t> self.size
+
+    def pin(self, np.ndarray arr):
+        cdef size_t sz = arr.descr.itemsize * arr.size
+        if sz != self.size:
+            raise ValueError("Trying to pin array of different size than originally initialized")
+        runtime_check(cudaEventSynchronize(self.event))
+        memcpy(self.memory_ptr, <void*> arr.data, self.size)
+
+    def unpin(self, np.ndarray arr):
+        cdef size_t sz = arr.descr.itemsize * arr.size
+        if sz != self.size:
+            raise ValueError("Trying to pin array of different size than originally initialized")
+        runtime_check(cudaEventSynchronize(self.event))
+        memcpy(<void*> arr.data, self.memory_ptr, self.size)
+
+    def __int__(self):
+        return <uintptr_t> self.memory_ptr
+
+    def get_ptr(self):
+        return <uintptr_t> self.memory_ptr
+
+    @property
+    def dtype(self):
+        return self.dtype
+
+    @property
+    def shape(self):
+        return self.shape
+
+    @property
+    def nbytes(self):
+        return self.size
+
+cdef void *get_pointer(pyobject):
+  cdef void* ptr
+  cdef _VoidPtr vptr
+  if isinstance(pyobject, pnp.ndarray):
+    buf = pyobject.ravel()
+    vptr = _VoidPtr(buf)
+    ptr = <void*> vptr.ptr
+  elif isinstance(pyobject, PinnedMemory):
+    ptr = <void*><uintptr_t> pyobject.get_ptr()
+  else:
+    raise TypeError("Unknown cpu ptr type, expected ndarray or pinned memory")
+  return ptr
 
 cdef class GPUHeap(object):
     def __init__(self, nbytes, ptr, device_id, stream=0):
@@ -387,6 +335,7 @@ cdef class GPUHeap(object):
 
     def __int__(self):
         return self.ptr
+
 
     def __dealloc__(self):
         # Python functions should be avoided as far as we can
@@ -414,26 +363,60 @@ cdef class GPUHeap(object):
             cudaSetDevice(cur)
 
 
-    cpdef memcpyH2D(self, cpu_ptr, size_t nbytes):
+    cpdef memcpyH2D(self, pyobject_to_load, size_t nbytes):
         # todo: this copy is not necessary
         # This pointer is already exposed with the Cython numpy implementation
-        buf = cpu_ptr.ravel()
-        cdef _VoidPtr ptr = _VoidPtr(buf)
 
-        with renom.cuda.use_device(self.device_id):
-            #cuMemcpyH2D(ptr.ptr, self.ptr, nbytes)
-            cuMemcpyH2Dvar(ptr.ptr, self.ptr, nbytes, <uintptr_t> get_gpu_allocator()._memsync_stream)
+        if isinstance(pyobject_to_load, pnp.ndarray):
+            self.loadNumpy(pyobject_to_load, nbytes)
+        elif isinstance(pyobject_to_load, PinnedMemory):
+            self.loadPinned(pyobject_to_load, nbytes)
 
-    cpdef memcpyD2H(self, cpu_ptr, size_t nbytes):
+    cdef loadNumpy(self, numpy_to_load, size_t nbytes):
+      cdef void* ptr
+      cdef _VoidPtr vptr
+      buf = numpy_to_load.ravel()
+      vptr = _VoidPtr(buf)
+      ptr = <void*> vptr.ptr
+      cuMemcpyH2D(ptr, self.ptr, nbytes)
+
+    cdef loadPinned(self, PinnedMemory pinned_to_load, size_t nbytes):
+      cdef void* ptr
+      ptr = <void*><uintptr_t> pinned_to_load
+      cuMemcpyH2DAsync(ptr, self.ptr, nbytes, <uintptr_t> pinned_to_load.stream)
+      with renom.cuda.RenomHandler() as handle:
+        pass
+        #streamInsertEvent(<uintptr_t> handle.stream, <uintptr_t> pinned_to_load.event)
+        #runtime_check(cudaStreamWaitEvent(<cudaStream_t><uintptr_t> handle.stream, <cudaEvent_t><uintptr_t> pinned_to_load.event, 0))
+
+
+    cpdef memcpyD2H(self, pyobject_to_load, size_t nbytes):
+        if isinstance(pyobject_to_load, pnp.ndarray):
+            self.retrieveNumpy(pyobject_to_load, nbytes)
+        elif isinstance(pyobject_to_load, PinnedMemory):
+            self.retrievePinned(pyobject_to_load, nbytes)
+
+
+    cdef retrieveNumpy(self, cpu_ptr, size_t nbytes):
         shape = cpu_ptr.shape
         cpu_ptr = pnp.reshape(cpu_ptr, -1)
 
         cdef _VoidPtr ptr = _VoidPtr(cpu_ptr)
 
-        with renom.cuda.use_device(self.device_id):
-            cuMemcpyD2H(self.ptr, ptr.ptr, nbytes)
+        assert nbytes <= self.nbytes, '{} / {}'.format(nbytes, self.nbytes)
+        cuMemcpyD2H(self.ptr, ptr.ptr, nbytes)
 
         pnp.reshape(cpu_ptr, shape)
+
+    cdef retrievePinned(self, PinnedMemory cpu_ptr, size_t nbytes):
+        assert nbytes <= self.nbytes
+        ptr = <void*><uintptr_t> cpu_ptr
+        cuMemcpyD2HAsync(ptr, self.ptr, nbytes, <uintptr_t> cpu_ptr.stream)
+        with renom.cuda.RenomHandler() as handle:
+          #pass
+          streamInsertEvent(<uintptr_t> handle.stream, <uintptr_t> cpu_ptr.event)
+        
+
 
     cpdef memcpyD2D(self, gpu_ptr, size_t nbytes):
         assert self.device_id == gpu_ptr.device_id
@@ -478,7 +461,6 @@ cdef class GpuAllocator(object):
     def __init__(self):
         self._pool_lists = collections.defaultdict(list)
         # We create one stream for all the GPUHeaps to share
-        self._memsync_stream = cuCreateStream("Memcpy Stream")
         self._rlock = threading.RLock()
 
     @property
@@ -499,12 +481,12 @@ cdef class GpuAllocator(object):
         When a pool is to be freed, we first record the current status of the stream in which it was used,
         so as to make sure that it is not prematurely released for use by other GPUValues requesting a pool.
         '''
-        global mainstream
         if _python_shutdown:
             return
-
-        if not <uintptr_t> mainstream == 0:
-            insertEvent(pool)
+        cdef cudaStream_t strm
+        with renom.cuda.RenomHandler(pool.device_id) as handle:
+            strm = <cudaStream_t><uintptr_t> handle.stream
+            streamInsertEvent(<uintptr_t> strm, <uintptr_t> pool.event)
 
         if pool.nbytes:
             device_id = pool.device_id

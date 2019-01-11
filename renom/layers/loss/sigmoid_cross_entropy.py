@@ -38,12 +38,13 @@ class sigmoid_cross_entropy(Node):
         tmp1 = get_gpu(lhs).empty_like_me()
         tmp2 = get_gpu(lhs).empty_like_me()
         cu.cusigmoid(get_gpu(lhs), z)
-        cu.cucross_entropy(get_gpu(z), get_gpu(rhs), tmp1)
-        cu.cucross_entropy(get_gpu(-z + 1.), get_gpu(-rhs + 1.), tmp2)
-        if reduce_sum:
-            loss = cu.cusum(-(tmp1 + tmp2)) / N
-        else:
-            loss = -(tmp1 + tmp2) / N
+        with cu.RenomHandler() as handle:
+            cu.cucross_entropy(get_gpu(z), get_gpu(rhs), tmp1, handle)
+            cu.cucross_entropy(get_gpu(-z + 1.), get_gpu(-rhs + 1.), tmp2, handle)
+            if reduce_sum:
+                loss = cu.cusum(-(tmp1 + tmp2), handle) / N
+            else:
+                loss = -(tmp1 + tmp2) / N
         ret = cls._create_node(loss)
         ret.attrs._z = z
         ret.attrs._lhs = lhs

@@ -71,8 +71,8 @@ class group_conv2d(Node):
         filter_desc = cu.FilterDescriptor(w.shape, precision)
 
         y = GPUValue(shape=tuple([N, ] + list(out_shape)))
-        with cu.cudnn_handler() as handle:
-            cu.cuConvolutionForward(handle, conv_desc, filter_desc, get_gpu(x), get_gpu(w), y)
+        with cu.RenomHandler() as handle:
+            cu.cuConvolutionForward(handle, conv_desc, filter_desc, get_gpu(x), get_gpu(w), y, 0)
             if b is not None:
                 cu.cu_add_bias(get_gpu(b), y)
 
@@ -126,12 +126,12 @@ class group_conv2d(Node):
         dw, db, dx = (get_gpu(g).empty_like_me() if g is not None else None
                       for g in (self.attrs._w, self.attrs._b, self.attrs._x))
 
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             if db is None:
                 db = np.zeros((1, self.attrs._w.shape[0], 1, 1))
             cu.cuConvolutionBackward(handle, self.attrs._conv_desc, self.attrs._filter_desc,
                                      get_gpu(self.attrs._x), get_gpu(self.attrs._w), get_gpu(dy),
-                                     get_gpu(dw), get_gpu(db), get_gpu(dx), **kwargs)
+                                     get_gpu(dw), get_gpu(db), get_gpu(dx), {'data': 0, 'filter': 0}, **kwargs)
         if isinstance(self.attrs._w, Node):
             self.attrs._w._update_diff(context, dw, **kwargs)
 

@@ -27,7 +27,7 @@ def get_gpu(array):
     if f:
         return f()
 
-    if isinstance(array, np.ndarray):
+    if isinstance(array, np.ndarray) or isinstance(array, PinnedMemory):
         return GPUValue(array=array)
     elif isinstance(array, Number):
         return array
@@ -375,7 +375,6 @@ class GPUValue(object):
         if not is_cuda_active():
             raise ValueError('Cuda is not active. '
                              'Use renom.cuda.set_cuda_active() to activate.')
-
         if shape is not None:
             self.shape = tuple(shape)
         else:
@@ -444,6 +443,15 @@ class GPUValue(object):
         ret = GPUValue(ptr=self._ptr, shape=a.shape)
         return ret
 
+    def batch_slice(self, num_batches):
+        shp = list(self.shape)
+        shp[0] = num_batches
+        sz = calc_int_prod(shp)
+        new_bytes = sz * self.itemsize
+        assert new_bytes <= self.nbytes
+        ret = GPUValue(ptr=self._ptr, shape=tuple(shp))
+        return ret
+
     def get_gpu(self):
         return self
 
@@ -463,13 +471,18 @@ class GPUValue(object):
 
     def zeros_like_me(self):
         ret = self.empty_like_me()
-        cufill(0., ret)
+        with renom.cuda.RenomHandler() as handle:
+            cufill(0., ret, handle)
         return ret
 
     def ones_like_me(self):
         ret = self.empty_like_me()
-        cufill(1., ret)
+        with renom.cuda.RenomHandler() as handle:
+            cufill(1., ret, handle)
         return ret
+
+    def __repr__(self):
+        return self.new_array().__repr__()
 
     def new_array(self):
         em = np.empty(self.shape, dtype=self.dtype)
@@ -495,7 +508,7 @@ class GPUValue(object):
 
         # todo: value.flatten() copies buffer
         with use_device(self.device_id):
-            self._ptr.memcpyH2D(value.ravel(), value.nbytes)
+            self._ptr.memcpyH2D(value, value.nbytes)
 
     def copy_from(self, other):
         self._ptr.copy_from(other._ptr, self.nbytes)
@@ -539,36 +552,48 @@ class GPUValue(object):
 
     def __pos__(self):
         ret = self.empty_like_me()
-        cumul(self, 1, ret)
+        with renom.cuda.RenomHandler() as handle:
+            cumul(self, 1, ret, handle)
         return ret
 
     def __neg__(self):
         ret = self.empty_like_me()
-        cumul(self, -1, ret)
+        with renom.cuda.RenomHandler() as handle:
+            cumul(self, -1, ret, handle)
         return ret
 
     def __add__(self, other):
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
             # Only data type float32 is acceptable.
-            cuadd(self, other, ret)
+            cuadd(self, other, ret, handle)
             return ret
+
+    def dot(self, other):
+        assert len(self.shape) == 2 and len(other.shape) == 2
+        assert self.shape[1] == other.shape[0]
+        new_shape = (self.shape[0], other.shape[1])
+        ret = GPUValue(shape=new_shape)
+        with renom.cuda.RenomHandler(self.device_id) as handle:
+            cublas.cublas_gemm(self, 0, other, 0, ret, handle)
+        return ret
 
     def __iadd__(self, other):
         with use_device(self.device_id):
             assert getattr(self, "shape", (1,)) == getattr(self, "shape", (1,))
-            cublas.cublas_axpy(get_gpu(other), get_gpu(self))
+            with renom.cuda.RenomHandler() as handle:
+                cublas.cublas_axpy(get_gpu(other), get_gpu(self), handle)
             return self
 
     def __mul__(self, other):
         if not isinstance(self, GPUValue):
             return other.__rmul__(self)
 
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cumul(self, other, ret)
+            cumul(self, other, ret, handle)
             return ret
 
     def __rmul__(self, other):
@@ -594,48 +619,49 @@ class GPUValue(object):
         if not isinstance(self, GPUValue):
             return other.__rtruediv__(self)
 
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cudiv(self, other, ret)
+            cudiv(self, other, ret, handle)
             return ret
 
     def __rtruediv__(self, other):
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            curdiv(self, other, ret)
+            curdiv(self, other, ret, handle)
             return ret
 
     def __itruediv__(self, other):
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             assert getattr(self, "shape", (1,)) == getattr(self, "shape", (1,))
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cudiv(self, other, ret)
+            cudiv(self, other, ret, handle)
             return ret
 
     def __sub__(self, other):
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cusub(self, other, ret)
+            cusub(self, other, ret, handle)
             return ret
 
     def __isub__(self, other):
         with use_device(self.device_id):
             assert getattr(self, "shape", (1,)) == getattr(self, "shape", (1,))
-            cublas.cublas_axpy(-get_gpu(other), get_gpu(self))
+            with renom.cuda.RenomHandler() as handle:
+                cublas.cublas_axpy(-get_gpu(other), get_gpu(self), handle)
             return self
 
     def _oper_pow(self, other):
         if not isinstance(self, GPUValue):
             return other.__rpow__(self, modulo)
 
-        with use_device(self.device_id):
+        with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cupow(self, other, ret)
+            cupow(self, other, ret, handle)
             return ret
 
     def __pow__(self, other, modulo):
@@ -687,7 +713,7 @@ class GPUValue(object):
             clone = self.zeros_like_me()
             if n == 2:
                 new_shape = list(clone.shape)
-                with cublas.cublas_handler() as cublas_handle:
+                with renom.cuda.RenomHandler() as cublas_handle:
                     cublas.cublas_transpose(cublas_handle, self, clone)
                 new_shape[0] = clone.shape[1]
                 new_shape[1] = clone.shape[0]

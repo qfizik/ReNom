@@ -22,7 +22,7 @@ class softmax(UnaryOp):
     @classmethod
     def _oper_gpu(cls, arg):
         z = get_gpu(arg).empty_like_me()
-        with cu.cudnn_handler() as handle:
+        with cu.RenomHandler() as handle:
             cu.cuSoftmaxForward(handle, get_gpu(arg), z, mode=1)
         return z
 
@@ -34,7 +34,7 @@ class softmax(UnaryOp):
 
     def _backward_gpu(self, context, dy, **kwargs):
         if isinstance(self.attrs._arg, Node):
-            with cu.cudnn_handler() as handle:
+            with cu.RenomHandler() as handle:
                 dx = get_gpu(self).empty_like_me()
                 cu.cuSoftmaxBackward(handle, get_gpu(self), get_gpu(dy), dx, mode=1)
             self.attrs._arg._update_diff(context, dx, **kwargs)

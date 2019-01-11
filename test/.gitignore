@@ -1,0 +1,2 @@
+# Ignore html generated from pytest-cov
+htmlcov/

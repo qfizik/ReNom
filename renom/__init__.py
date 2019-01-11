@@ -55,6 +55,7 @@ from renom.layers.function import *
 from renom.layers.loss import *
 from renom.optimizer import *
 from renom.debug_graph import *
+from renom import graph
 import numpy as np
 
 

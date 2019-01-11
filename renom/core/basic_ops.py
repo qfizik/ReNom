@@ -127,7 +127,8 @@ def cu_broad_cast(hs, dy):
                 if s == 1:
                     axis.append(i)
             if axis:
-                dy = cusum(dy, axis=tuple(axis))
+                with renom.cuda.RenomHandler() as handle:
+                    dy = cusum(dy, handle, axis=tuple(axis))
             dy = dy.reshape(hs.shape)
     return dy
 

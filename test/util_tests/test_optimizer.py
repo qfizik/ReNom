@@ -73,8 +73,9 @@ def optimizer_check(optimizer=None):
 
 
 def gpu_check(opt):
-    node = Variable(np.array(np.random.rand(3, 3, 3, 3), dtype=precision))
-    grad = Variable(np.array(np.random.rand(3, 3, 3, 3), dtype=precision))
+    np.random.seed(45)
+    node = Variable(np.array(np.random.rand(3, 3), dtype=precision))
+    grad = Variable(np.array(np.random.rand(3, 3), dtype=precision))
 
     set_cuda_active(False)
     for _ in range(3):

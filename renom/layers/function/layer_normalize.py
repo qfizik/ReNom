@@ -141,12 +141,14 @@ class layer_normalize(Node):
             self.attrs._x._update_diff(context, dx, **kwargs)
 
         if isinstance(self.attrs._gain, Node):
-            self.attrs._gain._update_diff(context, cu.cusum(
-                self.attrs._normalized * get_gpu(dy), axis=0, keepdims=True), **kwargs)
+            with cu.RenomHandler() as handle:
+                self.attrs._gain._update_diff(context, cu.cusum(
+                    self.attrs._normalized * get_gpu(dy), handle, axis=0, keepdims=True), **kwargs)
 
         if isinstance(self.attrs._bias, Node):
-            self.attrs._bias._update_diff(context, cu.cusum(
-                get_gpu(dy), axis=0, keepdims=True), **kwargs)
+            with cu.RenomHandler() as handle:
+                self.attrs._bias._update_diff(context, cu.cusum(
+                    get_gpu(dy), handle, axis=0, keepdims=True), **kwargs)
 
 
 class LayerNormalize(Parametrized):
