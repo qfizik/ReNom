@@ -155,5 +155,5 @@ class graph_element(abc.ABC):
     def detach(self):
         for elem in self._previous_elements:
             self.remove_input(elem)
-        for elem in self._next_elements:
+        for elem in self._next_elements[::-1]:
             elem.remove_input(self)

@@ -179,12 +179,14 @@ def test_graph_depth(graph_nodes):
     assert A.depth == 0 and B.depth == 1 and C.depth == 2
 
     C.detach()      # A(0) -> B(1), C(0)
+    assert len(C._next_elements) == 0 and len(C._previous_elements) == 0
     assert A.depth == 0 and B.depth == 1 and C.depth == 0
 
     C.add_input(B)  # A(0) -> B(1) -> C(2)
     assert A.depth == 0 and B.depth == 1 and C.depth == 2
 
     B.detach()      # A(0), B(0), C(0)
+    assert len(B._next_elements) == 0 and len(B._previous_elements) == 0
     assert A.depth == 0 and B.depth == 0 and C.depth == 0
     assert len(B._previous_elements) == 0 and len(B._next_elements) == 0
 
@@ -198,6 +200,7 @@ def test_graph_depth(graph_nodes):
     assert A.depth == 0 and B.depth == 1 and C.depth == 1
 
     B.detach()      # A(0) -> C(1), B(0)
+    assert len(B._next_elements) == 0 and len(B._previous_elements) == 0
     assert A.depth == 0 and B.depth == 0 and C.depth == 1
 
 
@@ -225,6 +228,7 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
 
     # A_f, A_b, B_f, B_b, C_f, C_b
     B.detach()
+    assert len(B._next_elements) == 0 and len(B._previous_elements) == 0
     assert A.depth == 0 and B.depth == 0 and C.depth == 0
     assert A._fwd.depth == 0 and B._fwd.depth == 0 and C._fwd.depth == 0
     if A_has_back and B_has_back:
@@ -250,6 +254,7 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
 
     # A_f, A_b, B_f, B_b, C_f, C_b
     B.detach()
+    assert len(B._next_elements) == 0 and len(B._previous_elements) == 0
     assert A.depth == 0 and B.depth == 0 and C.depth == 0
     assert A._fwd.depth == 0 and B._fwd.depth == 0 and C._fwd.depth == 0
     if A_has_back and B_has_back:
