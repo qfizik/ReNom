@@ -34,7 +34,6 @@ class dispatch(operation):
         self._attached = None
 
     def setup(self, inputs):
-        self._storage = storage
         self._batch_vars = [v.shape[0] for v in self._outputs]
 
     @property

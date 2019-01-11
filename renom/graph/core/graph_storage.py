@@ -162,6 +162,9 @@ class GraphMultiStorage:
         return self._gpuvalues[index]
 
     def __setitem__(self, index, value):
+        if self.gpus == 'cpu':
+            self._gpuvalues[index] = value
+            return
         if tuple(value.shape) != tuple(self.shape):
             print(value.shape, self.shape)
             raise AssertionError('Setting value without same shape')
