@@ -195,7 +195,7 @@ class Grads:
                         self.update_node(node, opt)
 
 
-    def gradient_clipping(self, gradient=None,threshold=0.5,norm=2):
+    def clipGradient(self, threshold=0.5, norm=2):
         """
         This function clips the gradient if gradient is above threshold.
         The calculation is dones as shown below:
@@ -221,29 +221,28 @@ class Grads:
 
         """
 
-        assert gradient is not None, "insert a model"
-
         # setting variables etc.
-        variables = gradient.variables
+        variables = self.variables
+        if len(variables) == 0:
+            return
         norm = float(norm)
         threshold = float(threshold)
 
         if norm == float("inf"):
             # h infinity
-            total_norm = np.max([np.max(i) for i in np.max(variables.values())])
+            total_norm = np.max([i for i in variables.values()])
         else:
             # regular norm
             total_norm = 0
             for i in variables:
-                arr = variables[i]**norm
-                total_norm += arr.sum()
-            total_norm = total_norm **(1/total_norm)
+                arr = variables[i] ** norm
+                total_norm += rm.sum(arr)
+            total_norm = total_norm ** (1 / total_norm)
 
         # process gradient
         if threshold < total_norm:
-
             for i in variables:
-                variables[i] = threshold * variables[i]/(total_norm + 1e-6)
+                variables[i] = threshold * variables[i] / (total_norm + 1e-6)
 
 
 
