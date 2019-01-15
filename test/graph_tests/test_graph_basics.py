@@ -95,7 +95,7 @@ def test_inference_executor(use_gpu):
     data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
     exe = loss(layer(data), target).getInferenceExecutor()
     losses = exe.execute(epochs=3)
-    assert all(losses[i] >= losses[i+1] for i in range(len(losses)-1))
+    assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
 
 
 def test_training_executor(use_gpu):
@@ -110,7 +110,7 @@ def test_training_executor(use_gpu):
     data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
     exe = loss(layer(data), target).getTrainingExecutor()
     losses = exe.execute(epochs=3)
-    assert all(losses[i] >= losses[i+1] for i in range(len(losses)-1))
+    assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
 
 
 def test_finalizer(use_gpu):

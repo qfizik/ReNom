@@ -27,9 +27,10 @@ class Executor:
           This function executes computational graph.
 
           Args:
-              epochs:
+              epochs (int): Number of epochs.
+              progress (bool): If True is given, the progress will be shown.
         '''
-        nth_epoch = 1
+        nth_epoch = 0
         all_losses = []
         for disp in self.dispatchers:
             disp.reset()
@@ -57,7 +58,7 @@ class Executor:
                         "epoch:{:03d} avg-loss:{:5.3f}".format(nth_epoch, np.mean(epoch_loss_list)))
                     bar.close()
                 nth_epoch += 1
-            return all_losses
+        return all_losses
 
     def __del__(self):
         for i in range(len(self.dispatchers)):
