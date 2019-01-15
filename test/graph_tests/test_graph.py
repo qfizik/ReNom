@@ -18,7 +18,7 @@ def compare(nd_value, ad_value, abs_tol=1e-5, rel_tol=1e-3):
         print('nd=')
         print(nd_value)
         print('difference=')
-        print(nd_value-ad_value)
+        print(nd_value - ad_value)
     assert ret
 
 

@@ -155,3 +155,10 @@ class DistributorElement:
 
     def __repr__(self):
         return self._data_graph.__repr__()
+
+    def __len__(self):
+        '''
+            Returns number of iteration N.
+            N = ceil(data_size / batch_size)
+        '''
+        return np.ceil(len(self._data) / float(len(self._batch_size)))

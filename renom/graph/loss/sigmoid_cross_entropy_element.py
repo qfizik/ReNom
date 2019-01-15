@@ -5,7 +5,7 @@ import numpy as np
 
 class sigmoid_forward(operation):
 
-    name = 'Sigmoid (F)'
+    name = 'Sigmoid Cross Entropy(F)'
     roles = ['Loss']
 
     def setup(self, inputs):
@@ -53,7 +53,7 @@ class sigmoid_forward_cpu(sigmoid_forward):
 
 class sigmoid_backward(operation):
 
-    name = 'Sigmoid (B)'
+    name = 'Sigmoid Cross Entropy(B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

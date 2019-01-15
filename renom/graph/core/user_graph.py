@@ -1,9 +1,74 @@
+import numpy as np
+from tqdm import tqdm
+import renom as rm
 from .graph_element import graph_element
 from .operational_element import operational_element
 from .update_graph import update_operation
 from .operation import operation
-import renom as rm
-import numpy as np
+
+
+class Executor:
+    '''
+      The Executor class is ...
+
+      Args:
+          call_list (list):
+          graph_element (GraphElement):
+          losses (GraphElement):
+    '''
+
+    def __init__(self, call_list, graph_inputs, losses):
+        self.call_list = call_list
+        self.dispatchers = graph_inputs
+        self.loss = losses
+
+    def execute(self, epochs, progress=True):
+        '''
+          This function executes computational graph.
+
+          Args:
+              epochs:
+        '''
+        nth_epoch = 1
+        all_losses = []
+        for disp in self.dispatchers:
+            disp.reset()
+        while(nth_epoch <= epochs):
+            try:
+                loss = 0
+                if progress:
+                    bar = tqdm()
+                epoch_loss_list = []
+                while(True):
+                    self.perform_step()
+                    loss = float(self.loss[0].as_ndarray())
+                    epoch_loss_list.append(loss)
+                    if progress:
+                        bar.set_description("epoch:{:03d} loss:{:5.3f}".format(nth_epoch, loss))
+                        bar.update(1)
+            except StopIteration:
+                epoch_loss_list.pop(-1)
+                all_losses.append(np.sum(epoch_loss_list))
+                for disp in self.dispatchers:
+                    disp.reset()
+                if progress:
+                    bar.n = bar.n - 1
+                    bar.set_description(
+                        "epoch:{:03d} avg-loss:{:5.3f}".format(nth_epoch, np.mean(epoch_loss_list)))
+                    bar.close()
+                nth_epoch += 1
+            return all_losses
+
+    def __del__(self):
+        for i in range(len(self.dispatchers)):
+            self.dispatchers[i] = None
+        for i in range(len(self.loss)):
+            self.loss[i] = None
+
+    def perform_step(self):
+        for depth in self.call_list.keys():
+            for call in self.call_list[depth]:
+                call()
 
 
 class UserGraph(graph_element):
@@ -131,48 +196,11 @@ class UserGraph(graph_element):
         self.forward()
         return self._fwd.__repr__()
 
-    class Executor:
-
-        def __init__(self, call_list, graph_inputs, losses):
-            self.call_list = call_list
-            self.dispatchers = graph_inputs
-            self.loss = losses
-
-        def execute(self, epochs=None, steps=1):
-            if epochs is None:
-                return
-            losses = []
-            while(epochs > 0):
-                try:
-                    loss = 0
-                    while(True):
-                        # rm.cuda.cuDeviceSynchronize()
-                        self.perform_step()
-                        loss += self.loss[0].as_ndarray()  # .get_loss()
-                except StopIteration:
-                    print(loss)
-                    losses.append(loss)
-                    for disp in self.dispatchers:
-                        disp.reset()
-                    epochs -= 1
-            return losses
-
-        def __del__(self):
-            for i in range(len(self.dispatchers)):
-                self.dispatchers[i] = None
-            for i in range(len(self.loss)):
-                self.loss[i] = None
-
-        def perform_step(self):
-            for depth in self.call_list.keys():
-                for call in self.call_list[depth]:
-                    call()
-
     def getInferenceExecutor(self):
         ins = self._fwd.gather_operations_with_role('input', flatten=True)
         lss = self._fwd.gather_operations_with_role('loss', flatten=True)
         dct = self._fwd.get_call_dict(tag='Forward')
-        ret = UserGraph.Executor(dct, ins, lss)
+        ret = Executor(dct, ins, lss)
         return ret
 
     def getTrainingExecutor(self, optimizer=None):
@@ -181,11 +209,14 @@ class UserGraph(graph_element):
             for i in range(len(ups)):
                 ups[i].set_update_op(optimizer)
                 ups[i] = None  # Avoiding destruction errors
+
+        # Find inputs (DistributorGraphelement)
         ins = self._bwd_graphs[0].gather_operations_with_role('input', flatten=True)
+        # Find loss function (UserLossGraph)
         lss = self._bwd_graphs[0].gather_operations_with_role('loss', flatten=True)
         self._fwd.continue_setup()
         dct = self._bwd_graphs[0].get_call_dict()
-        ret = UserGraph.Executor(dct, ins, lss)
+        ret = Executor(dct, ins, lss)
         return ret
 
     def simple_forward(self):
