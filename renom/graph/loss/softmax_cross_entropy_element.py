@@ -50,6 +50,7 @@ class softmax_cross_entropy_forward_cpu(softmax_cross_entropy_forward):
     def perform(self):
         x = self._inputs['cpu']
         y = self._lbls['cpu']
+        assert x.shape == y.shape
         N = len(x)
         maxes = np.max(x, axis=1, keepdims=True)
         u = np.exp(x - maxes)

@@ -68,6 +68,8 @@ class dispatch(operation):
         self._perm = other._perm
 
     def reset(self, perm=None):
+        if self._finished is False:
+            return
         self._batch_num = 0
         self._finished = False
         if perm is not None:

@@ -159,6 +159,8 @@ class GraphMultiStorage:
         return len(self._gpus)
 
     def __getitem__(self, index):
+        if self._ptrs is not None and self.gpus == 'cpu':
+            return self._ptrs[index].reshape(self.shape)
         return self._gpuvalues[index]
 
     def __setitem__(self, index, value):
