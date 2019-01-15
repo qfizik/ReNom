@@ -141,7 +141,7 @@ class UserGraph(graph_element):
         def execute(self, epochs=None, steps=1):
             if epochs is None:
                 return
-            losses = [ ]
+            losses = []
             while(epochs > 0):
                 try:
                     loss = 0
