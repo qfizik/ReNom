@@ -95,6 +95,8 @@ class dispatch_cpu(dispatch):
         self._outputs.shape[0].value = len(arr)
         if len(arr) < self._batch_size:
             self._finished = True
+            if self._attached is not None:
+                self._attached._finished = True
             if len(arr) == 0:
                 raise StopIteration
         self._outputs['cpu'] = arr

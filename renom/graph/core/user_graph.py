@@ -141,6 +141,7 @@ class UserGraph(graph_element):
         def execute(self, epochs=None, steps=1):
             if epochs is None:
                 return
+            losses = [ ]
             while(epochs > 0):
                 try:
                     loss = 0
@@ -150,9 +151,11 @@ class UserGraph(graph_element):
                         loss += self.loss[0].as_ndarray()  # .get_loss()
                 except StopIteration:
                     print(loss)
+                    losses.append(loss)
                     for disp in self.dispatchers:
                         disp.reset()
                     epochs -= 1
+            return losses
 
         def __del__(self):
             for i in range(len(self.dispatchers)):
