@@ -195,7 +195,7 @@ class Grads:
                         self.update_node(node, opt)
 
 
-    def clipGradient(self, threshold=0.5, norm=2):
+    def clip_gradient(self, threshold=0.5, norm=2):
         """
         This function clips the gradient if gradient is above threshold.
         The calculation is dones as shown below:
