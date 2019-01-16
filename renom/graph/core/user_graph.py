@@ -34,7 +34,7 @@ class Executor:
         all_losses = []
         for disp in self.dispatchers:
             disp.reset()
-        while(nth_epoch <= epochs):
+        while(nth_epoch < epochs):
             try:
                 loss = 0
                 if progress:
