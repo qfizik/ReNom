@@ -195,6 +195,57 @@ class Grads:
                         self.update_node(node, opt)
 
 
+    def clip_gradient(self, threshold=0.5, norm=2):
+        """
+        This function clips the gradient if gradient is above threshold.
+        The calculation is dones as shown below:
+
+        .. math::
+
+            \hat{g} \leftarrow \frac{\partial \epsilon}{\partial \theta} \\
+            if ||\hat{g}|| \geq {\it threshold} \hspace{5pt} {\bf then}\\
+            \hat{g} \leftarrow \frac{threshold}{||\hat{g}||}\hat{g} \\
+
+        Args:
+            gradient: gradient object
+            threshold(float): theshold
+            norm(int): norm of gradient
+
+        Examples::
+            >>> from **** import gradient_clipping
+            >>>
+            >>> grad = loss.grad()
+            >>> gradient_clipping(grad, threshold=0.5)
+            >>>
+            >>> grad.update(Sgd(lr=0.01))
+
+        """
+
+        # setting variables etc.
+        variables = self.variables
+        if len(variables) == 0:
+            return
+        norm = float(norm)
+        threshold = float(threshold)
+
+        if norm == float("inf"):
+            # h infinity
+            total_norm = np.max([i for i in variables.values()])
+        else:
+            # regular norm
+            total_norm = 0
+            for i in variables:
+                arr = variables[i] ** norm
+                total_norm += rm.sum(arr)
+            total_norm = total_norm ** (1 / total_norm)
+
+        # process gradient
+        if threshold < total_norm:
+            for i in variables:
+                variables[i] = threshold * variables[i] / (total_norm + 1e-6)
+
+
+
 def _grad(self, initial=None, detach_graph=True, weight_decay=None, **kwargs):
     '''This method follows computational graph and returns the gradients of
     Variable object.
