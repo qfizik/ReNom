@@ -48,7 +48,6 @@ def test_basic_lstm():
         layer.reset()
         l = loss(layer(v), t)
         l_arr = l.as_ndarray()
-        print(l_arr)
         assert l_arr < p_l
         p_l = l_arr
         l.backward().update(opt)
@@ -77,34 +76,34 @@ def test_optimizer(use_gpu):
     for i in range(5):
         l = loss(layer(v), t)
         l_arr = l.as_ndarray()
-        print(l_arr)
         assert l_arr < p_l
         p_l = l_arr
         l.backward().update(opt)
 
 
+@pytest.mark.skipif(rm.precision != np.float64, reason='Requires precise testing')
 def test_inference_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
-    v = np.random.rand(20, 3)
+    v = np.random.rand(20, 3).astype(rm.precision)
     layer = rm.graph.DenseGraphElement(4)
-    t = np.random.rand(20, 4)
+    t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.sgd_update()
     data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
     exe = loss(layer(data), target).getInferenceExecutor()
     losses = exe.execute(epochs=3)
-    assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
+    assert all(losses[i] == losses[i + 1] for i in range(len(losses) - 1))
 
 
 def test_training_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
-    v = np.random.rand(20, 3)
+    v = np.random.rand(20, 3).astype(rm.precision)
     layer = rm.graph.DenseGraphElement(4)
-    t = np.random.rand(20, 4)
+    t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.sgd_update()
     data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
