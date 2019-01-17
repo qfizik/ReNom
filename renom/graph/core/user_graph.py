@@ -71,6 +71,16 @@ class Executor:
             for call in self.call_list[depth]:
                 call()
 
+    def set_input_data(self, data, target):
+        assert len(self.dispatchers) == 2, 'This method assumes standard input methods'
+        assert isinstance(data, np.ndarray) and isinstance(
+            target, np.ndarray), 'The data should be given as NumPy arrays.'
+        assert len(data) == len(target), 'Data and Target should have the same number of points'
+        # TODO: These are magic numbers. There should be a convention for which
+        # is which instead!
+        self.dispatchers[0].value = data
+        self.dispatchers[1].value = target
+
 
 class UserGraph(graph_element):
     '''

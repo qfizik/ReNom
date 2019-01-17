@@ -194,7 +194,6 @@ class Grads:
                     if id(node) in self.variables:
                         self.update_node(node, opt)
 
-
     def clip_gradient(self, threshold=0.5, norm=2):
         """
         This function clips the gradient if gradient is above threshold.
@@ -243,7 +242,6 @@ class Grads:
         if threshold < total_norm:
             for i in variables:
                 variables[i] = threshold * variables[i] / (total_norm + 1e-6)
-
 
 
 def _grad(self, initial=None, detach_graph=True, weight_decay=None, **kwargs):
