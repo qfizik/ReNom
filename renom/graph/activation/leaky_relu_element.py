@@ -77,6 +77,13 @@ class LeakyReluElement(UserGraph):
 class LeakyReluGraphElement(GraphFactory):
 
     def __init__(self, slope=0.01):
+        '''Initializer for Leaky Relu graph producing GraphFactory.
+
+            Args:
+                slope (float): Slope to apply to variables less than 0.
+
+            For more detail, see :class:`.LeakyRelu`
+        '''
         super().__init__()
         self._slope = slope
 

@@ -71,8 +71,6 @@ class SigmoidElement(UserGraph):
 
 class SigmoidGraphElement(GraphFactory):
 
-    def __init__(self):
-        super().__init__()
 
     def connect(self, other):
         ret = SigmoidElement(previous_elements=other)

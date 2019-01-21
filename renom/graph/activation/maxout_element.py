@@ -126,6 +126,14 @@ class MaxoutElement(UserGraph):
 class MaxoutGraphElement(GraphFactory):
 
     def __init__(self, slice_size=1):
+        '''Initializer for Elu graph producing GraphFactory.
+
+            Args:
+                slice_size (int): The size of slices to perform maxout on.
+
+            For more detail, see :class:`.Maxout`
+
+        '''
         self._sz = slice_size
         super().__init__()
 
