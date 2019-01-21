@@ -14,11 +14,10 @@ help() {
 }
 
 build_as_lang() {
-  rm -rf _build/html
   if [ "$1" = "ja" ] || [ "$1" = "en" ]; then
     make -e SPHINXOPTS="-D language=$1" html
-    mv _build/html _build/$1
   elif [ "$1" = "all" ]; then
+    rm -rf _build/html
     make -e SPHINXOPTS="-D language=ja" html
     mv _build/html _build/ja
     make html
