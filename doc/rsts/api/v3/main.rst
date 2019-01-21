@@ -1,5 +1,5 @@
-renom.graph
-===========
+renom.graph(v3)
+==============
 
 .. automodule:: renom.graph
 
