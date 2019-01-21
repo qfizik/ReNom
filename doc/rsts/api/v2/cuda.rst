@@ -1,4 +1,4 @@
-renom.cuda(v2/v3)
+renom.cuda
 ================
 
 .. automodule:: renom.cuda

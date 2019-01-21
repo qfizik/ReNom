@@ -1,4 +1,4 @@
-renom.core(v2)
+renom.core
 ============
 
 .. automodule:: renom.core

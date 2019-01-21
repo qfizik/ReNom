@@ -1,5 +1,5 @@
-renom.operation(v2)
-=====================
+renom.operation
+=================
 
 .. automodule:: renom.operation
 

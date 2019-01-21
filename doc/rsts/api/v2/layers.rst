@@ -1,4 +1,4 @@
-renom.layers(v2)
+renom.layers
 ==============
 
 .. toctree::
