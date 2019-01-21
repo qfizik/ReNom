@@ -122,7 +122,7 @@ class Dropout(Model):
                  [ 0.        ,  1.20190084],
                  [ 0.12551689,  0.39880058]], dtype=float32)
 
-    .. [dropout] Hinton, Geoffrey E.; Srivastava, Nitish; Krizhevsky, Alex; Sutskever,
+    .. [dropout] Hinton, Geoffrey E.; Srivastava, Nitish; Krizhevsky, Alex; Sutskever, \
                                                 Ilya; Salakhutdinov, Ruslan R. (2012).
         Improving neural networks by preventing co-adaptation of feature detectors
 

@@ -5,7 +5,10 @@ import numpy as np
 
 
 class DenseGraphElement(GraphFactory):
-    '''Fully connected layer as described bellow.
+    '''Fully connected layer as described below.
+
+        See also :py:class:`~renom.layers.function.dense.Dense`
+        See also :class:`~renom.graph.function.BiasGraphElement`
 
           :math:`f(x)= w \cdot x + b`
 
@@ -14,6 +17,9 @@ class DenseGraphElement(GraphFactory):
           initializer (Initializer): Initializer object for weight initialization.
 
       Example:
+
+      .. code-block:: python
+
           In [1]: import numpy as np
           In [2]: import renom as rm
           In [3]: x = np.random.rand(3, 2)

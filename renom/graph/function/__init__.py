@@ -10,7 +10,7 @@ from .convolutional_element import ConvolutionalGraphElement
 from .deconvolutional_element import DeconvolutionalGraphElement
 from .pool_element import MaxPoolGraphElement, AvgPoolGraphElement
 from .unpool_element import MaxUnPoolGraphElement
-from .batch_normalize_element import BatchNormalizeElement
+from .batch_normalize_element import BatchNormalizeGraphElement
 from .bias_element import BiasGraphElement
 from .dropout_element import DropoutGraphElement
 from .sum_element import SumGraphElement

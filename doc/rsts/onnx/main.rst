@@ -13,7 +13,7 @@ renom.utility.onnx
     :show-inheritance:
 
 How to export a neural network model
-___________________________________
+____________________________________
 
     .. code-block:: python
 

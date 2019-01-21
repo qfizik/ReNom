@@ -33,7 +33,7 @@ class ConstantLoss(UserLossGraph):
         self._bwd_graphs[0].add_input(self._fwd)
 
 
-class ConstantLossElement(GraphFactory):
+class ConstantLossGraphElement(GraphFactory):
 
     def connect(self, other):
         return ConstantLoss(previous_element=other)

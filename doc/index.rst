@@ -6,8 +6,10 @@
 ReNom version 2.7
 =================
 
+Welcome to renom. This documentation is not finished yet.
+
 .. toctree::
-    :maxdepth: 3
+    :hidden:
 
     rsts/introduction/main
     rsts/installation/main

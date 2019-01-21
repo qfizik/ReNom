@@ -1,4 +1,4 @@
-from .constant_loss_element import ConstantLossElement, ConstantLoss
+from .constant_loss_element import ConstantLossGraphElement, ConstantLoss
 from .cross_entropy_element import CrossEntropyGraphElement
 from .softmax_cross_entropy_element import SoftmaxCrossEntropyGraphElement, softmax_cross_entropy_forward
 from .sigmoid_cross_entropy_element import SigmoidCrossEntropyGraphElement
