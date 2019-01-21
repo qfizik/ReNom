@@ -119,7 +119,7 @@ def test_dense(test_shape, use_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.DenseGraphElement(output_size=2)
-    l = rm.graph.ConstantLossElement()
+    l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
 
@@ -147,7 +147,7 @@ def test_sum(test_shape, use_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.SumGraphElement()
-    l = rm.graph.ConstantLossElement()
+    l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
 
@@ -172,7 +172,7 @@ def test_lstm(test_shape, use_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.LstmGraphElement(output_size=4)
-    l = rm.graph.ConstantLossElement()
+    l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
 
@@ -203,7 +203,7 @@ def test_gru(test_shape, use_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.GruGraphElement(output_size=4)
-    l = rm.graph.ConstantLossElement()
+    l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
 
@@ -233,7 +233,7 @@ def test_weight_norm(test_shape, use_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.WeightNormGraphElement(output_size=3)
-    l = rm.graph.ConstantLossElement()
+    l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
 
@@ -261,7 +261,7 @@ def test_layer_norm(test_shape, use_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.LayerNormGraphElement()
-    l = rm.graph.ConstantLossElement()
+    l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
 
@@ -285,7 +285,7 @@ def test_lrn(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.LrnGraphElement()
-    l = rm.graph.ConstantLossElement()
+    l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
 
@@ -307,7 +307,7 @@ def test_embedding(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.EmbeddingGraphElement(output_size=2)
-    l = rm.graph.ConstantLossElement()
+    l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
 
@@ -336,7 +336,7 @@ def test_conv(test_shape, use_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.ConvolutionalGraphElement(channels=2)
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -364,7 +364,7 @@ def test_deconv(test_shape, use_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.DeconvolutionalGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -388,7 +388,7 @@ def test_l2_norm(use_gpu):
                     [2.3, 3.2]]]])
     val = rm.graph.StaticVariable(v)
     model = rm.graph.L2NormGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -414,7 +414,7 @@ def test_max_pool(test_shape, use_gpu):
     v = np.random.randint(0, 5000, test_shape).astype(rm.precision)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.MaxPoolGraphElement(kernel=3, padding=0, stride=1)
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -438,7 +438,7 @@ def test_avg_pool(test_shape, use_gpu):
     v = np.random.randint(0, 5000, test_shape).astype(rm.precision)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.AvgPoolGraphElement(kernel=3, padding=0, stride=1)
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -462,7 +462,7 @@ def test_unpool(test_shape, use_gpu):
     v = np.random.randint(0, 5000, test_shape).astype(rm.precision)
     val = rm.graph.StaticVariable(v)
     model1 = rm.graph.MaxPoolGraphElement(kernel=3, padding=0, stride=1)
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model1(val)
     model2 = rm.graph.MaxUnPoolGraphElement(m)
     m2 = model2(m)
@@ -575,7 +575,7 @@ def test_softmax(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.SoftmaxGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -596,7 +596,7 @@ def test_softplus(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.SoftplusGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -617,7 +617,7 @@ def test_relu(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.ReluGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -640,7 +640,7 @@ def test_elu(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.EluGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -663,7 +663,7 @@ def test_selu(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.SeluGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -686,7 +686,7 @@ def test_leaky_relu(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.LeakyReluGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -708,7 +708,7 @@ def test_maxout(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.MaxoutGraphElement(slice_size=2)
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -731,7 +731,7 @@ def test_tanh(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.TanhGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -754,7 +754,7 @@ def test_sigmoid(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.SigmoidGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -777,7 +777,7 @@ def test_dropout(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     model = rm.graph.DropoutGraphElement()
-    loss = rm.graph.ConstantLossElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
@@ -824,8 +824,8 @@ def test_batch_norm(test_shape, use_gpu):
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v)
     m1 = rm.graph.DenseGraphElement(output_size=3)
-    model = rm.graph.BatchNormalizeElement()
-    loss = rm.graph.ConstantLossElement()
+    model = rm.graph.BatchNormalizeGraphElement()
+    loss = rm.graph.ConstantLossGraphElement()
     m2 = m1(val)
     m = model(m2)
     l = loss(m)

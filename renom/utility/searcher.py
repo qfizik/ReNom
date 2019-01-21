@@ -180,10 +180,10 @@ class BayesSearcher(Searcher):
             name as a key and each parameter space as a value.
 
     Note:
-        This class requires the module GPy [1]_.
+        This class requires the module GPy [GPYref]_.
         You can install it using pip. ``pip install gpy``
 
-    .. [1] GPy - Gaussian Process framework http://sheffieldml.github.io/GPy/
+    .. [GPYref] GPy - Gaussian Process framework http://sheffieldml.github.io/GPy/
     """
 
     def __init__(self, parameters):

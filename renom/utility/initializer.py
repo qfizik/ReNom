@@ -39,7 +39,7 @@ class Constant(Initializer):
 
 class GlorotUniform(Initializer):
 
-    '''Glorot uniform initializer [1]_ initializes parameters sampled by
+    '''Glorot uniform initializer [GlorotRef]_ initializes parameters sampled by
     following uniform distribution "U(max, min)".
 
     .. math::
@@ -67,7 +67,7 @@ class GlorotUniform(Initializer):
 
 class GlorotNormal(Initializer):
 
-    '''Glorot normal initializer [1]_ initializes parameters sampled by
+    '''Glorot normal initializer [GlorotRef]_ initializes parameters sampled by
     following normal distribution "N(0, std)".
 
     .. math::
@@ -75,7 +75,7 @@ class GlorotNormal(Initializer):
         &N(0, std) \\\\
         &std = sqrt(2/(input\_size + output\_size)) \\\\
 
-    .. [1] Xavier Glorot, Yoshua Bengio.
+    .. [GlorotRef] Xavier Glorot, Yoshua Bengio.
         Understanding the difficulty of training deep feedforward neural networks.
     '''
 
@@ -97,14 +97,14 @@ class GlorotNormal(Initializer):
 class HeNormal(Initializer):
 
     '''He normal initializer.
-   Initializes parameters according to [1]
+   Initializes parameters according to [HeNormRef]_
 
     .. math::
 
         &N(0, std) \\\\
         &std = sqrt(2/(input\_size)) \\\\
 
-    .. [1] https://arxiv.org/abs/1502.01852
+    .. [HeNormRef] https://arxiv.org/abs/1502.01852
        Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification
 
     '''
@@ -125,7 +125,7 @@ class HeNormal(Initializer):
 class HeUniform(Initializer):
 
     '''He uniform initializer.
-   Initializes parameters according to [1]
+   Initializes parameters according to [HeUniformRef]_
 
     .. math::
 
@@ -134,7 +134,7 @@ class HeUniform(Initializer):
         &max = sqrt(6/(input\_size)) \\\\
         &min = -sqrt(6/(input\_size))
 
-    .. [1] https://arxiv.org/abs/1502.01852
+    .. [HeUniformRef] https://arxiv.org/abs/1502.01852
        Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification
 
     '''

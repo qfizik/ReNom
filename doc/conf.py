@@ -41,6 +41,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.autosummary',
     'sphinx.ext.jsmath',
     'sphinx.ext.napoleon',
     'IPython.sphinxext.ipython_console_highlighting'
@@ -147,7 +148,9 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'collapse_navigation': False
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 html_theme_path = ["_themes/sphinx_rtd_theme-master"]
@@ -359,6 +362,11 @@ texinfo_documents = [
 #
 # texinfo_no_detailmenu = False
 
+
+# If true, generates autosummary stubs
+# The new files will be placed in the directories specified
+# in the :toctree: options of the autosummary directives.
+autosummary_generate = True
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}

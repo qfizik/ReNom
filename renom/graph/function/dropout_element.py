@@ -14,25 +14,26 @@ class DropoutGraphElement(GraphFactory):
         dropout_ratio (float): Dropout ratio.
 
     Example:
-    In [1]: import numpy as np
-    In [2]: import renom as rm
-    In [3]: x = np.random.rand(3,2)
-    In [4]: x
-    Out[4]:
-    array([[ 0.92146051,  0.09946255],
-           [ 0.05895275,  0.78195323],
-           [ 0.98867317,  0.03215612]])
-    In [5]: layer = rm.graph.DropoutGraphElement(0.8)
-    In [6]: z = layer(x).as_ndarray()
-    In [7]: z
-    Out[7]:
-    array([[ 0.        ,  0.        ],
-           [ 0.11790549,  0.        ],
-           [ 1.97734635,  0.        ]])
 
-    .. [dropout] Hinton, Geoffrey E.; Srivastava, Nitish; Krizhevsky, Alex; Sutskever,
-                                                Ilya; Salakhutdinov, Ruslan R. (2012).
-        Improving neural networks by preventing co-adaptation of feature detectors
+    .. code-block:: python
+
+        In [1]: import numpy as np
+        In [2]: import renom as rm
+        In [3]: x = np.random.rand(3,2)
+        In [4]: x
+        Out[4]:
+        array([[ 0.92146051,  0.09946255],
+               [ 0.05895275,  0.78195323],
+               [ 0.98867317,  0.03215612]])
+        In [5]: layer = rm.graph.DropoutGraphElement(0.8)
+        In [6]: z = layer(x).as_ndarray()
+        In [7]: z
+        Out[7]:
+        array([[ 0.        ,  0.        ],
+               [ 0.11790549,  0.        ],
+               [ 1.97734635,  0.        ]])
+
+
 
     """
 

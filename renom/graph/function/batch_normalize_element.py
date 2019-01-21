@@ -147,7 +147,9 @@ class BatchNormalizer(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class BatchNormalizeElement(GraphFactory):
+class BatchNormalizeGraphElement(GraphFactory):
+    '''See :class:`.BatchNormalize` for more.
+    '''
 
     def __init__(self, momentum=0.99, epsilon=1e-5, mode='activation'):
         super().__init__()

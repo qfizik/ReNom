@@ -44,7 +44,7 @@ class GraphFactory(abc.ABC):
         self._prev = ret
         return ret
 
-    def get_model_children(self):
+    def _get_model_children(self):
         for k, v in self.__dict__.items():
             if isinstance(v, GraphFactory):
                 yield k, v
@@ -59,18 +59,18 @@ class GraphFactory(abc.ABC):
             if hasattr(self, name):
                 values[2][name] = getattr(self, name)
 
-        for k, v in self.get_model_children():
+        for k, v in self._get_model_children():
             childvalues = ({}, {}, {})
             v._get_values(childvalues)
             values[0][k] = childvalues
 
-    def values(self):
+    def _values(self):
         ret = ({}, {}, {})
         self._get_values(ret)
         return ret
 
-    def flatten_values(self):
-        values = self.values()
+    def _flatten_values(self):
+        values = self._values()
         value_list = []
 
         def flatten(names, values):
@@ -122,7 +122,7 @@ class GraphFactory(abc.ABC):
 
         """
 
-        value_list = self.flatten_values()
+        value_list = self._flatten_values()
         with h5py.File(filename, 'w') as f:
             values_grp = f.create_group('values')
             types_grp = f.create_group('types')
