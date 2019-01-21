@@ -1,4 +1,4 @@
-renom.optimizer
+renom.optimizer(v2)
 ================
 
 .. automodule:: renom.optimizer
