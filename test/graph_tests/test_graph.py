@@ -2,6 +2,7 @@ import decorator
 import numpy as np
 import renom as rm
 import pytest
+from itertools import product
 
 if rm.precision is not np.float64:
     pytestmark = pytest.mark.skip()
@@ -105,6 +106,66 @@ def getNumericalDiff(lossMethod, testValue):
         v = loss / (dx * c)
         diff[nindex] = v
     return diff
+
+
+@pytest.mark.parametrize("test_shape1, test_shape2, oper", [
+    *product(
+        [
+            (2, 2),
+            (2, 1),
+            (1, 1),
+            (1, 2),
+            (1,),
+        ],
+        [
+            (2, 2),
+            (2, 1),
+            (1, 1),
+            (1, 2),
+            (1,),
+        ],
+        [
+            rm.graph.core.UserGraph.__add__,
+            rm.graph.core.UserGraph.__iadd__,
+            rm.graph.core.UserGraph.__radd__,
+
+            rm.graph.core.UserGraph.__sub__,
+            rm.graph.core.UserGraph.__isub__,
+            rm.graph.core.UserGraph.__rsub__,
+
+            rm.graph.core.UserGraph.__mul__,
+            rm.graph.core.UserGraph.__imul__,
+            rm.graph.core.UserGraph.__rmul__,
+
+            rm.graph.core.UserGraph.__div__,
+            rm.graph.core.UserGraph.__idiv__,
+            rm.graph.core.UserGraph.__rdiv__,
+
+            rm.graph.core.UserGraph.__truediv__,
+            rm.graph.core.UserGraph.__itruediv__,
+            rm.graph.core.UserGraph.__rtruediv__,
+        ]
+    ),
+])
+def test_basic_binary_operations(test_shape1, test_shape2, oper, use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    v1 = rand(*test_shape1)
+    val1 = rm.graph.StaticVariable(v1)
+    v2 = rand(*test_shape2)
+    val2 = rm.graph.StaticVariable(v2)
+    lf = rm.graph.ConstantLossGraphElement()
+    loss = lf(oper(val1, val2))
+
+    def func():
+        loss.forward()
+        ret = loss.as_ndarray()
+        return ret
+
+    compare(getNumericalDiff(func, val1.value),
+            loss.backward().get_gradient(val1.value).as_ndarray())
+    compare(getNumericalDiff(func, val2.value),
+            loss.backward().get_gradient(val2.value).as_ndarray())
 
 
 @pytest.mark.parametrize("test_shape", [

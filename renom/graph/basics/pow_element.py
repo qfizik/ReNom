@@ -4,11 +4,12 @@ from renom.graph.core import operation, GraphMultiStorage, operational_element, 
 from renom.core import broad_cast, cu_broad_cast
 
 
-class mul_forward(operation):
+class pow_forward(operation):
 
-    name = 'Mul (F)'
+    name = 'Pow (F)'
 
     def __init__(self):
+        assert "This class needs to be fixed."
         self._a = None
         self._b = None
 
@@ -25,20 +26,20 @@ class mul_forward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            rm.cuda.cumul(self._a[gpu], self._b[gpu], self._c[gpu], handle)
+            rm.cuda.cupow(self._a[gpu], self._b[gpu], self._c[gpu], handle)
 
 
-class mul_forward_cpu(mul_forward):
+class pow_forward_cpu(pow_forward):
 
     def perform(self):
         a = self._a['cpu']
         b = self._b['cpu']
-        self._c['cpu'] = a * b
+        self._c['cpu'] = a ** b
 
 
-class mul_backward(operation):
+class pow_backward(operation):
 
-    name = 'Mul (B)'
+    name = 'Pow (B)'
 
     def __init__(self, associated_forward, key):
         self._fwd_op = associated_forward
@@ -54,8 +55,10 @@ class mul_backward(operation):
 
         a = self._fwd_op.get_key("a")
         b = self._fwd_op.get_key("b")
+        c = self._fwd_op.get_key("y")
         self._a = a if key == "a" else b
         self._b = b if key == "a" else a
+        self._c = c
         self.gpus = gpus
         self._vars = {'y': outputs, 'dy': outputs, id(key_value): outputs}
         self._outputs = outputs
@@ -64,43 +67,56 @@ class mul_backward(operation):
         for i, (gpu, handle) in enumerate(rm.cuda.RenomHandlers(self.gpus)):
             a = self._a[gpu]
             b = self._b[gpu]
+            c = self._c[gpu]
             dy = self._inputs[gpu]
-            if a.shape != dy.shape:
-                dy = cu_broad_cast(a, dy * b)
+            if self._key == "a":
+                dy = dy * a.__pow__(b - 1) * b
             else:
-                dy = dy * b
+                log_b = b.empty_like_me()
+                rm.cuda.culoge(b, log_b)
+                dy = log_b * c * dy
+
+            if a.shape != dy.shape:
+                dy = cu_broad_cast(a, dy)
+            else:
+                dy = dy
             self._outputs[gpu] = dy
 
 
-class mul_backward_cpu(mul_backward):
+class pow_backward_cpu(pow_backward):
 
     def perform(self):
         a = self._a['cpu']
         b = self._b['cpu']
+        c = self._c['cpu']
         dy = self._inputs['cpu']
-        if a.shape == dy.shape:
-            self._outputs['cpu'] = dy * b
+        if self._key == "a":
+            dy = dy * a**(b - 1) * b
         else:
-            self._outputs['cpu'] = broad_cast(a, dy * b)
+            dy = dy * c * np.log(b)
+        if a.shape == dy.shape:
+            self._outputs['cpu'] = dy
+        else:
+            self._outputs['cpu'] = broad_cast(a, dy)
 
 
-class MulElement(UserGraph):
+class PowElement(UserGraph):
 
-    _name = 'Mul Element'
+    _name = 'Pow Element'
 
     def __init__(self, previous_elements=None):
 
-        fwd_op = mul_forward() if rm.is_cuda_active() else mul_forward_cpu()
-        bwd_ops = [mul_backward(fwd_op, 'b') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'b'),
-                   mul_backward(fwd_op, 'a') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'a')]
+        fwd_op = pow_forward() if rm.is_cuda_active() else pow_forward_cpu()
+        bwd_ops = [pow_backward(fwd_op, 'b') if rm.is_cuda_active() else pow_backward_cpu(fwd_op, 'b'),
+                   pow_backward(fwd_op, 'a') if rm.is_cuda_active() else pow_backward_cpu(fwd_op, 'a')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-def _mul(self, other):
-    ret = MulElement([self, other])
+def _pow(self, other):
+    ret = PowElement([self, other])
     return ret
 
 
-UserGraph.__mul__ = _mul
-UserGraph.__imul__ = _mul
-UserGraph.__rmul__ = _mul
+UserGraph.__pow__ = _pow
+UserGraph.__ipow__ = _pow
+UserGraph.__rpow__ = _pow
