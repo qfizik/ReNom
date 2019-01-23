@@ -40,7 +40,7 @@ class GraphAttrs(object):
 
 
 class Node(np.ndarray):
-    '''This is the base class of all operation function.
+    '''This is the base class of all of the auto-differentiation compatible operation function.
     Node class inherits numpy ndarray class.
 
     Example:
