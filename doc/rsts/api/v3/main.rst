@@ -5,6 +5,7 @@ renom.graph(v3)
 
 
 .. toctree::
+    :maxdepth: 1
 
     function
     activation

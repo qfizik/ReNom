@@ -75,6 +75,13 @@ class EluElement(UserGraph):
 class EluGraphElement(GraphFactory):
 
     def __init__(self, alpha=0.01):
+        '''Initializer for Elu graph producing GraphFactory.
+
+            Args:
+                alpha (float): Alpha coefficient for Elu.
+
+            For more details, see :class:`.Elu`
+        '''
         super().__init__()
         self._alpha = alpha
 

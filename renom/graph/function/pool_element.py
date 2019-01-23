@@ -127,6 +127,19 @@ class PoolElement(UserGraph):
 
 class PoolGraphElement(GraphFactory):
     def __init__(self, kernel=3, padding=0, stride=1):
+        '''General initializer for pooling functions.
+
+            Args:
+                kernel (int): The size of the kernel to apply on the images \
+                accross all dimensions
+                padding (int): The size of the padding to add to the edges of \
+                each image.
+                stride (int): The step size between the points where the \
+                kernels are to be applied.
+
+
+
+        '''
         super().__init__()
         self._krnl = kernel
         self._pad = padding
@@ -135,23 +148,8 @@ class PoolGraphElement(GraphFactory):
 
 class MaxPoolGraphElement(PoolGraphElement):
     '''Max pooling function.
-      In the case of int input, filter, padding, and stride, the shape will be symmetric.
 
-      Args:
-          filter (int): Filter size of the convolution kernel.
-          padding (int): Size of the zero-padding around the image.
-          stride (int): Stride-size of the convolution.
-
-      Example:
-          In [1] import numpy as np
-          In [2] import renom as rm
-          In [3]
-          In [4] x = np.random.rand(3, 3, 32, 32)
-          In [5] layer = rm.graph.MaxPoolGraphElement(kernel = 3)
-          In [6] z = layer(x).as_ndarray()
-          In [7] z.shape
-          Out[7]
-          (3, 3, 30, 30)
+      For use-reference, see :class:`.MaxPool2d`
 
     '''
 
@@ -162,23 +160,8 @@ class MaxPoolGraphElement(PoolGraphElement):
 
 class AvgPoolGraphElement(PoolGraphElement):
     '''Average pooling function.
-      In the case of int input, filter, padding, and stride, the shape will be symmetric.
 
-      Args:
-          filter (tuple,int): Filter size of the convolution kernel.
-          padding (tuple,int): Size of the zero-padding around the image.
-          stride (tuple,int): Stride-size of the convolution.
-
-      Example:
-          In [1] import numpy as np
-          In [2] import renom as rm
-          In [3]
-          In [4] x = np.random.rand(3, 3, 32, 32)
-          In [5] layer = rm.graph.AvgPoolGraphElement(kernel = 3)
-          In [6] z = layer(x).as_ndarray()
-          In [7] z.shape
-          Out[7]
-          (3, 3, 30, 30)
+      For use-reference, see :class:`.AveragePool2d`
 
     '''
 
