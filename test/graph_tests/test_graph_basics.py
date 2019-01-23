@@ -125,7 +125,27 @@ def test_validation_executor(use_gpu):
     v2, t2 = v1 * 2, t1 * 2
     exe.set_input_data(v2, t2)
     losses2 = np.array(exe.execute(epochs=3))
-    assert np.allclose(losses1 * 4, losses2)
+    assert np.allclose(losses1 * 4, losses2, atol = 1)
+
+def test_step_executor(use_gpu):
+    rm.set_cuda_active(use_gpu)
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v1 = np.random.rand(10, 2).astype(rm.precision)
+    layer = rm.graph.DenseGraphElement(4)
+    t1 = np.random.rand(10, 4).astype(rm.precision)
+    loss = rm.graph.MeanSquaredGraphElement()
+    data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
+    exe = loss(layer(data), target).getInferenceExecutor()
+    loss1 = np.array(exe.execute(epochs=1))
+    loss2 = 0
+    for i in range(0, 10, 2):
+        v2, t2 = v1[i:i+2] * 2, t1[i:i+2] * 2
+        loss2 += exe.step(v2, t2)
+    assert np.allclose(loss1 * 4, loss2, atol = 1)
+
+
 
 
 def test_finalizer(use_gpu):
