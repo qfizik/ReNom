@@ -121,7 +121,8 @@ class operational_element(graph_element):
         if rm.logging_level >= 50:
             print('{time!s}: Setting up {name!s:}'.format(time=time.ctime(), name=self._op.name))
             for i, inp in enumerate(inputs):
-                print('{time!s}: Input #{0:d} has shape {1!s}'.format(i, inp['y'].shape, time=time.ctime()))
+                print('{time!s}: Input #{0:d} has shape {1!s}'.format(
+                    i, inp['y'].shape, time=time.ctime()))
         self._op.setup(inputs)
         self.prev_inputs = inputs
 

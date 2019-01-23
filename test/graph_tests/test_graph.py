@@ -204,7 +204,6 @@ def test_basic_unary_operations(test_shape1, oper, use_gpu, num_gpu):
             loss.backward().get_gradient(val1.value).as_ndarray())
 
 
-
 @pytest.mark.parametrize("test_shape", [
     (2, 2),
     (2, 1),

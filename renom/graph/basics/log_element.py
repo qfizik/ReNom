@@ -73,4 +73,5 @@ def log(self):
     ret = LogElement([self])
     return ret
 
+
 UserGraph.log = log
