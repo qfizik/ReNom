@@ -58,6 +58,7 @@ from renom.debug_graph import *
 from renom import graph
 import numpy as np
 
+logging_level = 0
 
 def set_renom_seed(seed=30):
     if is_cuda_active():

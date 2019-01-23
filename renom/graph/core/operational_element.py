@@ -1,6 +1,8 @@
 import numpy as np
 import functools
 from .graph_element import graph_element
+import renom as rm
+import time
 
 
 class operational_element(graph_element):
@@ -42,7 +44,7 @@ class operational_element(graph_element):
     @graph_element.walk_tree
     @check_tags
     def get_call_dict(self):
-        return self._op.perform
+        return self._op
 
     @graph_element.walk_tree
     @check_tags
@@ -116,6 +118,10 @@ class operational_element(graph_element):
         if not self.inputs_changed():
             return
         inputs = [prev.get_output() for prev in self._previous_elements]
+        if rm.logging_level >= 50:
+            print('{time!s}: Setting up {name!s:}'.format(time=time.ctime(), name=self._op.name))
+            for i, inp in enumerate(inputs):
+                print('{time!s}: Input #{0:d} has shape {1!s}'.format(i, inp['y'].shape, time=time.ctime()))
         self._op.setup(inputs)
         self.prev_inputs = inputs
 
