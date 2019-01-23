@@ -4,6 +4,7 @@ renom.optimizer
 .. automodule:: renom.optimizer
 
 .. autosummary::
+    :template: template.rst
     :toctree: autosum/
     :nosignatures:
 

@@ -4,6 +4,7 @@ renom.cuda
 .. automodule:: renom.cuda
 
 .. autosummary::
+    :template: template.rst
     :toctree: autosum/
     :nosignatures:
 
