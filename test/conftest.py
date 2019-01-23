@@ -17,7 +17,7 @@ def num_gpu(request):
     """
     Gpu switch for test.
     """
-    if request.param > 1 and (not renom.has_cuda() or renom.get_gpu_card_num() < 2):
+    if request.param > 1 and (not renom.has_cuda() or renom.get_device_count() < 2):
         pytest.skip()
     return request.param
 

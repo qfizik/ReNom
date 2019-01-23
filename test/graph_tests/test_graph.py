@@ -835,22 +835,22 @@ def test_sigmoid(test_shape, use_gpu, num_gpu):
     (6,),
     (2, 20),
 ])
-def test_dropout(test_shape, use_gpu):
+def test_dropout(test_shape, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
-    val = rm.graph.StaticVariable(v)
+    val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.DropoutGraphElement()
     loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
 
     def func():
-        rm.set_renom_seed(15)
+        rm.set_renom_seed(15, all_devices=True)
         l.forward()
         ret = l.as_ndarray()
         return ret
 
-    rm.set_renom_seed(15)
+    rm.set_renom_seed(15, all_devices=True)
     compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
 
 

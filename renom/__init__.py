@@ -59,9 +59,15 @@ from renom import graph
 import numpy as np
 
 
-def set_renom_seed(seed=30):
+def set_renom_seed(seed=30, all_devices=False):
+    """This function sets given seed to both numpy and curand random number generator.
+
+    Args:
+        seed(int): Seed.
+        all_devices(bool): If True is given, the seed will be set to each device's curand generator.
+    """
     if is_cuda_active():
-        curand_set_seed(seed)
+        curand_set_seed(seed, all_devices=all_devices)
     np.random.seed(seed)
 
 
