@@ -27,15 +27,14 @@ _cuda_is_active = False
 _cuda_is_disabled = False
 
 
-def get_gpu_card_num():
-    cmd = "nvidia-smi -L"
-    ret = subprocess.check_output(cmd.split()).decode("utf-8")
-    pattern = re.compile("^GPU [0-9]")
-    gpu_count = 0
-    for line in ret.split("\n"):
-        if re.match(pattern, line):
-            gpu_count += 1
-    return gpu_count
+def get_device_count():
+    """Returns the number of availeble gpu device.
+    If cuda is not detected, this returns 0.
+    """
+    if has_cuda():
+        return cuGetDeviceCount()
+    else:
+        return 0
 
 
 def set_cuda_active(activate=True):
@@ -117,7 +116,7 @@ def curand_generator(seed=None):
     return gen
 
 
-def curand_set_seed(seed):
+def curand_set_seed(seed, all_devices=False):
     """Set a seed to curand random number generator.
     The curand generator is used when cuda is activated.
 
@@ -140,9 +139,18 @@ def curand_set_seed(seed):
          [ 4.  0.]]
 
     """
-    deviceid = cuGetDevice()
-    assert deviceid in _CuRandGens, "Curand not set"
-    _CuRandGens[deviceid].set_seed(seed)
+    if all_devices:
+        for deviceid in range(get_device_count()):
+            if deviceid not in _CuRandGens:
+                _create_curand(seed)
+            else:
+                _CuRandGens[deviceid].set_seed(seed)
+    else:
+        deviceid = cuGetDevice()
+        if deviceid not in _CuRandGens:
+            _create_curand(seed)
+        else:
+            _CuRandGens[deviceid].set_seed(seed)
 
 
 def release_mem_pool():
