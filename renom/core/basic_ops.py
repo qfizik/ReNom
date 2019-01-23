@@ -896,6 +896,7 @@ class Transpose2d(UnaryOp):
 
 
 Node.T = property(lambda self: Transpose2d(self))
+Node.T.__doc__ = "This returns transposed array."
 
 
 class Transpose(Node):

@@ -49,6 +49,7 @@ class Node(np.ndarray):
         >>> vx = rm.Variable(np.random.rand(3, 2))
         >>> isinstance(vx, rm.Node)
         True
+
     '''
 
     _gpu = None
@@ -129,6 +130,8 @@ class Node(np.ndarray):
 
     @property
     def auto_update(self):
+        '''If this is True, gradient related to this object will be calculated.
+        '''
         if self._auto_update:
             if self._model:
                 if not self._model.auto_update:
@@ -164,6 +167,12 @@ class Node(np.ndarray):
         self._model = model
 
     def get_gpu(self):
+        '''This function transfers own matrix to gpu device and
+        returns it as a GPUValue object.
+
+        Returns:
+            (GPUValue): Matrix transferred to gpu device.
+        '''
         if not self._gpu:
             self._gpu = GPUValue(self)
         return self._gpu
@@ -173,12 +182,12 @@ class Node(np.ndarray):
         self._gpu = gpu
 
     def to_cpu(self):
-        '''Send the data from GPU device to CPU.'''
+        '''Transfer the data from GPU device to CPU.'''
         if self._gpu:
             self._gpu.to_cpu(self)
 
     def to_gpu(self):
-        '''Send the data on CPU to GPU device.
+        '''Transfer the data on CPU to GPU device.
         This method only available if cuda is activated otherwise this raises `ValueError`.
 
         Example:
@@ -226,7 +235,11 @@ class Node(np.ndarray):
                 self.setflags(write=writable)
 
     def as_ndarray(self):
-        '''This method returns itself as ndarray object.'''
+        '''This method returns itself as ndarray object.
+
+        Returns:
+            (ndarray): Returns an array as a ndarray object.
+        '''
         self.to_cpu()
         if self._gpu:
             return self._gpu.new_array()
@@ -240,7 +253,7 @@ class Node(np.ndarray):
             return np.array(ret)
 
     def release_gpu(self):
-        '''This method releases array data on GPU.'''
+        '''This method releases array data on GPU pointed by this object.'''
         if self._gpu:
             self._gpu = None
 
@@ -275,8 +288,8 @@ class Node(np.ndarray):
         return False
 
     def detach_graph(self):
-        '''This method destroys computational graph.'''
-
+        '''This method destroys computational graph.
+        '''
         for v in self._get_graph():
             if isinstance(v, Node):
                 v.detach_graph()
