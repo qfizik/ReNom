@@ -2,6 +2,9 @@ import numpy as np
 import traceback
 import contextlib
 import warnings
+import subprocess
+import re
+
 try:
     from renom.cuda.base.cuda_base import *
     from renom.cuda.cublas.cublas import *
@@ -22,6 +25,17 @@ except ImportError:
 
 _cuda_is_active = False
 _cuda_is_disabled = False
+
+
+def get_gpu_card_num():
+    cmd = "nvidia-smi -L"
+    ret = subprocess.check_output(cmd.split()).decode("utf-8")
+    pattern = re.compile("^GPU [0-9]")
+    gpu_count = 0
+    for line in ret.split("\n"):
+        if re.match(pattern, line):
+            gpu_count += 1
+    return gpu_count
 
 
 def set_cuda_active(activate=True):
