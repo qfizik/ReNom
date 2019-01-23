@@ -25,14 +25,24 @@ class GraphFactory(abc.ABC):
         later using the save/load methods.
     '''
 
-    def __init__(self, *other):
+    def __init__(self):
+        '''Generic UserGraph initializer.
+
+            Initializes the parameter field as an empty dictionary and
+            sets the previous output to None.
+
+        '''
         self.params = dict()
         self._prev = None
-        if len(other) > 0:
-            self(*other)
 
     @abc.abstractmethod
     def connect(self, other):
+        '''This method connects the UserGraph to another graph.
+
+            If the previous output is None, the GraphFactory will \
+            attempt to detach the previous UserGraph output to produce \
+            a disconnected graph.
+        '''
         pass
 
     def __call__(self, *other):

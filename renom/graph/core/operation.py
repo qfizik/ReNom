@@ -2,6 +2,8 @@ import numpy as np
 import renom as rm
 import abc
 import functools
+import time
+import warnings
 
 
 class operation(abc.ABC):
@@ -91,6 +93,15 @@ class operation(abc.ABC):
 
     def get_output_signature(self):
         return self._vars
+
+    def logged_perform(self):
+        if rm.logging_level >= 50:
+            print('{time!s}: performing {0.name}'.format(self, time=time.ctime()))
+        self.perform()
+        if rm.logging_level >= 10:
+            out = self.as_ndarray()
+            if np.any(np.isnan(out)):
+                warnings.warn('{time!s}: Encountered NaN value in output.'.format(time=time.ctime()))
 
     def __repr__(self):
         return self.name + ':\n' + self._vars['y'].__repr__()

@@ -82,6 +82,7 @@ class GraphMultiStorage:
           the 'cpu' special string.
     '''
     ready = False
+    _shape = None
 
     def __init__(self, shape=None, gpus=None, initializer=None, ptrs=None):
         if self.ready is True:

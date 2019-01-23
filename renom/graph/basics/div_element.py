@@ -4,9 +4,9 @@ from renom.graph.core import operation, GraphMultiStorage, operational_element, 
 from renom.core import broad_cast, cu_broad_cast
 
 
-class mul_forward(operation):
+class div_forward(operation):
 
-    name = 'Mul (F)'
+    name = 'Div (F)'
 
     def __init__(self):
         self._a = None
@@ -25,20 +25,20 @@ class mul_forward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            rm.cuda.cumul(self._a[gpu], self._b[gpu], self._c[gpu], handle)
+            rm.cuda.cudiv(self._a[gpu], self._b[gpu], self._c[gpu], handle)
 
 
-class mul_forward_cpu(mul_forward):
+class div_forward_cpu(div_forward):
 
     def perform(self):
         a = self._a['cpu']
         b = self._b['cpu']
-        self._c['cpu'] = a * b
+        self._c['cpu'] = a / b
 
 
-class mul_backward(operation):
+class div_backward(operation):
 
-    name = 'Mul (B)'
+    name = 'Div (B)'
 
     def __init__(self, associated_forward, key):
         self._fwd_op = associated_forward
@@ -65,42 +65,54 @@ class mul_backward(operation):
             a = self._a[gpu]
             b = self._b[gpu]
             dy = self._inputs[gpu]
-            if a.shape != dy.shape:
-                dy = cu_broad_cast(a, dy * b)
+            if self._key == "a":
+                dy = dy / b
             else:
-                dy = dy * b
+                dy = a**(-2.0) * -1.0 * b * dy
+            if a.shape != dy.shape:
+                dy = cu_broad_cast(a, dy)
+            else:
+                dy = dy
             self._outputs[gpu] = dy
 
 
-class mul_backward_cpu(mul_backward):
+class div_backward_cpu(div_backward):
 
     def perform(self):
         a = self._a['cpu']
         b = self._b['cpu']
         dy = self._inputs['cpu']
-        if a.shape == dy.shape:
-            self._outputs['cpu'] = dy * b
+        if self._key == "a":
+            dy = dy / b
         else:
-            self._outputs['cpu'] = broad_cast(a, dy * b)
+            dy = a**(-2.0) * -1.0 * b * dy
+        if a.shape == dy.shape:
+            self._outputs['cpu'] = dy
+        else:
+            self._outputs['cpu'] = broad_cast(a, dy)
 
 
-class MulElement(UserGraph):
+class DivElement(UserGraph):
 
-    _name = 'Mul Element'
+    _name = 'Div Element'
 
     def __init__(self, previous_elements=None):
 
-        fwd_op = mul_forward() if rm.is_cuda_active() else mul_forward_cpu()
-        bwd_ops = [mul_backward(fwd_op, 'b') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'b'),
-                   mul_backward(fwd_op, 'a') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'a')]
+        fwd_op = div_forward() if rm.is_cuda_active() else div_forward_cpu()
+        bwd_ops = [div_backward(fwd_op, 'b') if rm.is_cuda_active() else div_backward_cpu(fwd_op, 'b'),
+                   div_backward(fwd_op, 'a') if rm.is_cuda_active() else div_backward_cpu(fwd_op, 'a')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-def _mul(self, other):
-    ret = MulElement([self, other])
+def _div(self, other):
+    ret = DivElement([self, other])
     return ret
 
 
-UserGraph.__mul__ = _mul
-UserGraph.__imul__ = _mul
-UserGraph.__rmul__ = _mul
+UserGraph.__div__ = _div
+UserGraph.__idiv__ = _div
+UserGraph.__rdiv__ = _div
+
+UserGraph.__truediv__ = _div
+UserGraph.__itruediv__ = _div
+UserGraph.__rtruediv__ = _div
