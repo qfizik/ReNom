@@ -171,6 +171,40 @@ def test_basic_binary_operations(test_shape1, test_shape2, oper, use_gpu, num_gp
             loss.backward().get_gradient(val2.value).as_ndarray())
 
 
+@pytest.mark.parametrize("test_shape1, oper", [
+    *product(
+        [
+            (2, 2),
+            (2, 1),
+            (1, 1),
+            (1, 2),
+            (1,),
+        ],
+        [
+            rm.graph.basics.sqrt,
+            rm.graph.basics.log,
+            rm.graph.basics.square,
+            rm.graph.basics.exp,
+        ]
+    ),
+])
+def test_basic_unary_operations(test_shape1, oper, use_gpu, num_gpu):
+    rm.set_cuda_active(use_gpu)
+    v1 = rand(*test_shape1)
+    val1 = rm.graph.StaticVariable(v1, num_gpus=num_gpu)
+    lf = rm.graph.ConstantLossGraphElement()
+    loss = lf(oper(val1))
+
+    def func():
+        loss.forward()
+        ret = loss.as_ndarray()
+        return ret
+
+    compare(getNumericalDiff(func, val1.value),
+            loss.backward().get_gradient(val1.value).as_ndarray())
+
+
+
 @pytest.mark.parametrize("test_shape", [
     (2, 2),
     (2, 1),
