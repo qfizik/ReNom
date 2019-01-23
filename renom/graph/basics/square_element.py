@@ -73,4 +73,5 @@ def square(self):
     ret = SquareElement([self])
     return ret
 
+
 UserGraph.square = square

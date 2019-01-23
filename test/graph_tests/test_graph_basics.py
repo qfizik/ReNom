@@ -336,6 +336,17 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
             and A._bwd_graphs[0].depth == 7
 
 
+def get_random_filename():
+    import random
+    import string
+    pre_filename = 'tmpfile-'
+    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                            for _ in range(11))
+    type_filename = '.h5'
+    tmp_filename = pre_filename + rand_filename + type_filename
+    return tmp_filename
+
+
 @pytest.mark.parametrize('devices_to_load', [
     'cpu', 1, 2, 3, 4
 ])
@@ -357,13 +368,7 @@ def test_save_load(devices_to_load):
     x = np.random.rand(5, 4)
     y1 = model(x).as_ndarray()
 
-    import random
-    import string
-    pre_filename = 'tmpfile-'
-    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                            for _ in range(11))
-    type_filename = '.h5'
-    tmp_filename = pre_filename + rand_filename + type_filename
+    tmp_filename = get_random_filename()
     model.save(tmp_filename)
 
     model = rm.graph.SequentialSubGraph([
@@ -388,6 +393,29 @@ def test_save_load(devices_to_load):
 
     import os
     os.remove(tmp_filename)
+
+
+def test_version_save_compability():
+
+    x = np.random.rand(1, 4)
+
+    v2_model = rm.Sequential([
+        rm.Dense(5),
+        rm.Dense(3),
+        rm.Dense(1),
+    ])
+
+    y1 = v2_model(x)
+    tmp_filename = get_random_filename()
+    v2_model.save(tmp_filename)
+    v3_model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(5),
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DenseGraphElement(1),
+    ])
+    v3_model.load(tmp_filename)
+    y2 = v3_model(x).as_ndarray()
+    assert np.allclose(y1, y2)
 
 
 @pytest.mark.parametrize('ttype', [
