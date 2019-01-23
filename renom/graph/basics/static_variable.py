@@ -6,6 +6,7 @@ from renom.graph.core import GraphMultiStorage, operational_element, UserGraph, 
 class static_value(operation):
 
     name = 'Static Variable'
+    roles = ['static']
 
     def __init__(self, value):
         self._outputs = value
@@ -16,6 +17,15 @@ class static_value(operation):
 
     def perform(self):
         pass
+
+    @property
+    def value(self):
+        return self._outputs
+
+    @value.setter
+    def value(self, val):
+        self._outputs = val
+        self._vars = {'y': self._outputs}
 
 
 class StaticVariable(UserGraph):

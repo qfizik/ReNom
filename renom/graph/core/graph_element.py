@@ -39,7 +39,7 @@ class graph_element(abc.ABC):
         for prev in previous_elements:
             prev.add_next(self)
         # This should perform a copy, not a reference store.
-        self._previous_elements = previous_elements
+        self._previous_elements = previous_elements.copy()
         self.depth = depth
         self._next_elements = []
         self.update_depth()
@@ -153,7 +153,7 @@ class graph_element(abc.ABC):
         return ret_func
 
     def detach(self):
-        for elem in self._previous_elements:
+        for elem in self._previous_elements[::-1]:
             self.remove_input(elem)
         for elem in self._next_elements[::-1]:
             elem.remove_input(self)

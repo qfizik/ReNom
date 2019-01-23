@@ -43,6 +43,7 @@ class dispatch(operation):
     @value.setter
     def value(self, new_val):
         self._value = new_val
+        self._finished = True
         self.reset()
 
     def perform(self):
