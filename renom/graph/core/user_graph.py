@@ -21,6 +21,7 @@ class Executor:
         self.call_list = call_list
         self.dispatchers = graph_inputs
         self.loss = losses
+        self._events = {}
 
     def execute(self, epochs, progress=True):
         '''
@@ -30,24 +31,44 @@ class Executor:
               epochs (int): Number of epochs.
               progress (bool): If True is given, the progress will be shown.
         '''
+        # Preprocessing Start
+        if 'Initialize' in self._events:
+            self._events['Initialize'](self)
         nth_epoch = 0
         all_losses = []
         for disp in self.dispatchers:
             disp.reset()
+        # Preprocessing End
+        # Loop Start
         while(nth_epoch < epochs):
             try:
+                # Init Epoch Start
+                if 'Epoch-Start' in self._events:
+                    self._events['Epoch-Start'](self)
                 loss = 0
                 if progress:
                     bar = tqdm()
                 epoch_loss_list = []
+                # Init Epoch End
                 while(True):
+                    # Single Step Start
+                    if 'Step-Start' in self._events:
+                        self._events['Step-Start'](self)
                     self.perform_step()
+                    # Single Step End
+                    # Retrieve Loss Start
+                    if 'Loss-Start' in self._events:
+                        self._events['Loss-Start'](self)
                     loss = float(self.loss[0].as_ndarray())
                     epoch_loss_list.append(loss)
                     if progress:
                         bar.set_description("epoch:{:03d} loss:{:5.3f}".format(nth_epoch, loss))
                         bar.update(1)
+                    # Retrieve Loss End
             except StopIteration:
+                # Epoch Finish Start
+                if 'Epoch-Finish' in self._events:
+                    self._events['Epoch-Finish'](self)
                 epoch_loss_list.pop(-1)
                 all_losses.append(np.sum(epoch_loss_list))
                 for disp in self.dispatchers:
@@ -58,6 +79,8 @@ class Executor:
                         "epoch:{:03d} avg-loss:{:5.3f}".format(nth_epoch, np.mean(epoch_loss_list)))
                     bar.close()
                 nth_epoch += 1
+                # Epoch Finish End
+        # Loop End
         return all_losses
 
     def __del__(self):
@@ -80,6 +103,11 @@ class Executor:
         # is which instead!
         self.dispatchers[0].value = data
         self.dispatchers[1].value = target
+
+    def register_event(self, event_name, event_function):
+        assert isinstance(event_name, str)
+        assert callable(event_function)
+        self._events[event_name] = event_function
 
 
 class UserGraph(graph_element):
