@@ -92,7 +92,10 @@ class Executor:
     def perform_step(self):
         for depth in self.call_list.keys():
             for call in self.call_list[depth]:
-                call()
+                if rm.logging_level >= 10:
+                    call.logged_perform()
+                else:
+                    call.perform()
 
     def set_input_data(self, data, target):
         assert len(self.dispatchers) == 2, 'This method assumes standard input methods'
