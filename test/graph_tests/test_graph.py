@@ -28,6 +28,7 @@ def rand(*shape):
         shape = shape[0]
     return np.array(np.random.rand(*shape), dtype=np.float64)
 
+
 def fixed(*shape):
     if isinstance(shape[0], tuple):
         shape = shape[0]
@@ -311,7 +312,6 @@ def test_reduce_unary_operations2(params, oper, use_gpu, num_gpu):
 
     compare(getNumericalDiff(func, val1.value),
             loss.backward().get_gradient(val1.value).as_ndarray())
-
 
 
 @pytest.mark.parametrize("test_shape", [

@@ -86,7 +86,6 @@ class mean_backward(operation):
                 self._outputs[gpu] = dy
 
 
-
 class mean_backward_cpu(mean_backward):
 
     def perform(self):
@@ -120,6 +119,7 @@ class MeanGraphElement(GraphFactory):
     def connect(self, other):
         ret = MeanElement(other)
         return ret
+
 
 def mean(self, axis=None, keepdims=False):
     return MeanElement([self], axis=axis, keepdims=keepdims)

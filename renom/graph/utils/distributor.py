@@ -85,6 +85,9 @@ class dispatch(operation):
     def set_batch_size(self, batch_size):
         self._batch_size = batch_size
 
+    def __len__(self):
+        return int(np.ceil(len(self._value) / self._batch_size))
+
 
 class dispatch_cpu(dispatch):
 
