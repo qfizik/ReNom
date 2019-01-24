@@ -459,6 +459,44 @@ namespace renom{
         };
 
         template <typename VTYPE>
+        struct ValueWithCount {
+            size_t count;
+            VTYPE val;
+
+            // operator float() for debugging
+            __device__ inline operator VTYPE() {return val;}
+        };
+
+        template <typename VTYPE>
+        class Reduce_Mean {
+        public:
+            typedef ValueWithCount<VTYPE> REDUCE_VALUE;
+            typedef VTYPE SRC_VALUE;
+            typedef VTYPE RESULT_VALUE;
+
+            __device__ inline static void set(const size_t pos, const VTYPE &val, REDUCE_VALUE &ret) {
+                ret.count = 1;
+                ret.val = val;
+            }
+
+            __device__ inline static void reduce_src(const size_t pos, const VTYPE &val, REDUCE_VALUE &ret) {
+                ret.count += 1;
+                ret.val += val;
+            }
+
+            __device__ inline static void reduce_share(const REDUCE_VALUE &v, REDUCE_VALUE &ret) {
+                ret.count += 1;
+                ret.val += v.val;
+            }
+
+            __device__ inline static void set_result(const REDUCE_VALUE &v, RESULT_VALUE &ret, const Reduce_Mean *) {
+                ret = (VTYPE)(v.val / (VTYPE)v.count);
+            }
+
+        };
+
+
+        template <typename VTYPE>
         struct ValueWithPos {
             size_t pos;
             VTYPE val;
@@ -673,7 +711,6 @@ namespace renom{
                     continue;
                 }
 
-
                 size_t src_top_idx = calc_index(num_axis, reduction_infos_out_size, reduction_infos_in_size, reduction_infos_group_size, sequence_stride, idx_result);
                 size_t cur_idx = src_top_idx + calc_index(num_axis, seq_infos_out_size, seq_infos_in_size, seq_infos_group_size, 0, nth_in_seq);
 
@@ -752,6 +789,22 @@ namespace renom{
             reduce_array<Reduce_Add<VALUE_TYPE> >(num_blocks, num_threads, src, src_size, result, result_size,
                 src_per_result, sequence_stride, num_axis, reduction_infos, seq_infos, Reduce_Add<VALUE_TYPE>(), stream);
         }
+
+        void thrust_reduce_mean(
+            size_t num_blocks, size_t num_threads,
+            VALUE_TYPE *src, size_t src_size,
+            VALUE_TYPE *result, size_t result_size,
+            size_t src_per_result,
+            size_t sequence_stride,
+            size_t num_axis,
+            reduce_shape_infos *reduction_infos,
+            reduce_shape_infos *seq_infos,
+            cudaStream_t stream)
+        {
+            reduce_array<Reduce_Mean<VALUE_TYPE> >(num_blocks, num_threads, src, src_size, result, result_size,
+                src_per_result, sequence_stride, num_axis, reduction_infos, seq_infos, Reduce_Mean<VALUE_TYPE>(), stream);
+        }
+
 
         void thrust_reduce_min(
             size_t num_blocks, size_t num_threads,
