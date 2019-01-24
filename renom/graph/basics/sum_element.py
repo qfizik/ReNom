@@ -83,7 +83,6 @@ class sum_backward(operation):
                 self._outputs[gpu] = dy
 
 
-
 class sum_backward_cpu(sum_backward):
 
     def perform(self):
@@ -116,6 +115,7 @@ class SumGraphElement(GraphFactory):
     def connect(self, other):
         ret = SumElement(other)
         return ret
+
 
 def sum(self, axis=None, keepdims=False):
     return SumElement([self], axis=axis, keepdims=keepdims)

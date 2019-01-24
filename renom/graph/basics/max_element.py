@@ -146,7 +146,6 @@ class max_backward_cpu(max_backward):
         self._outputs['cpu'] = zeros
 
 
-
 class MaxElement(UserGraph):
 
     name = 'Max'
@@ -163,6 +162,7 @@ class MaxGraphElement(GraphFactory):
     def connect(self, other):
         ret = MaxElement(other)
         return ret
+
 
 def max(self, axis=None, keepdims=False):
     return MaxElement([self], axis=axis, keepdims=keepdims)

@@ -122,6 +122,34 @@ def test_training_executor(use_gpu):
     assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
 
 
+def test_training_executor_validation(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v1 = np.random.rand(20, 3).astype(rm.precision)
+    v2 = np.random.rand(6, 3).astype(rm.precision)
+    layer = rm.graph.DenseGraphElement(4)
+    t1 = np.random.rand(20, 4).astype(rm.precision)
+    t2 = np.random.rand(6, 4).astype(rm.precision)
+    loss = rm.graph.MeanSquaredGraphElement()
+    opt = rm.graph.sgd_update()
+    data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
+    graph = loss(layer(data), target)
+    t_exe = graph.getTrainingExecutor(opt, with_validation=(v2, t2))
+    v_exe = graph.getInferenceExecutor()
+
+    def check_validation(info):
+        global validation_loss
+        validation_loss = info['validation_loss']
+        assert validation_loss != np.nan
+    t_exe.register_event('Epoch-Finish', check_validation)
+
+    t_exe.execute(epochs=3)
+    v_exe.set_input_data(v2, t2)
+    v_loss = v_exe.execute(epochs=1)
+    assert np.allclose(validation_loss, v_loss)
+
+
 def test_validation_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 

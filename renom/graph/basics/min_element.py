@@ -146,7 +146,6 @@ class min_backward_cpu(min_backward):
         self._outputs['cpu'] = zeros
 
 
-
 class MinElement(UserGraph):
 
     name = 'Min'
@@ -163,6 +162,7 @@ class MinGraphElement(GraphFactory):
     def connect(self, other):
         ret = MinElement(other)
         return ret
+
 
 def min(self, axis=None, keepdims=False):
     return MinElement([self], axis=axis, keepdims=keepdims)

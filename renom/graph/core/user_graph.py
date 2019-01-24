@@ -135,20 +135,23 @@ class UserGraph(graph_element):
         return self._fwd.__repr__()
 
     def getInferenceExecutor(self):
+        ops = {}
         ins = self._fwd.gather_operations_with_role('input', flatten=True)
         lss = self._fwd.gather_operations_with_role('loss', flatten=True)
         ins.extend(self._fwd.gather_operations_with_role('static', flatten=True))
         dct = self._fwd.get_call_dict(tag='Forward')
-        ret = Executor(dct, ins, lss)
+        ops['graph_inputs'] = ins
+        ops['losses'] = lss
+        ret = Executor(dct, ops)
         return ret
 
-    def getTrainingExecutor(self, optimizer=None):
+    def getTrainingExecutor(self, optimizer=None, with_validation=None):
         if optimizer is not None:
             ups = self._bwd_graphs[0].gather_operations_with_role('update', flatten=True)
             for i in range(len(ups)):
                 ups[i].set_update_op(optimizer)
                 ups[i] = None  # Avoiding destruction errors
-
+        ops = {}
         # Find inputs (DistributorGraphelement)
         ins = self._bwd_graphs[0].gather_operations_with_role('input', flatten=True)
         ins.extend(self._fwd.gather_operations_with_role('static', flatten=True))
@@ -156,7 +159,14 @@ class UserGraph(graph_element):
         lss = self._bwd_graphs[0].gather_operations_with_role('loss', flatten=True)
         self._fwd.continue_setup()
         dct = self._bwd_graphs[0].get_call_dict()
-        ret = Executor(dct, ins, lss)
+        ops['graph_inputs'] = ins
+        ops['losses'] = lss
+        ret = Executor(dct, ops)
+        if with_validation is not None:
+            assert isinstance(with_validation, tuple) and len(with_validation) == 2
+            val_d, val_t = with_validation[0], with_validation[1]
+            val_dct = self._fwd.get_call_dict(tag='Forward')
+            ret._set_validation(val_d, val_t, val_dct)
         return ret
 
     def simple_forward(self):
