@@ -1428,11 +1428,12 @@ def test_cu_reduce_min(a, axis):
     with use_cuda():
         g = renom.core.GPUValue(a)
 
-        ret = renom.cuda.cu_reduce_min(g, axis, keepdims=False)
-        close_shape(ret.new_array(), np.min(a, axis, keepdims=False))
+        with renom.cuda.RenomHandler() as handle:
+            ret = renom.cuda.cu_reduce_min(g, handle, axis, keepdims=False)
+            close_shape(ret.new_array(), np.min(a, axis, keepdims=False))
 
-        ret = renom.cuda.cu_reduce_min(g, axis, keepdims=True)
-        close_shape(ret.new_array(), np.min(a, axis, keepdims=True))
+            ret = renom.cuda.cu_reduce_min(g, handle, axis, keepdims=True)
+            close_shape(ret.new_array(), np.min(a, axis, keepdims=True))
 
 
 @test_utility.skipgpu
@@ -1446,8 +1447,9 @@ def test_cu_reduce_arg_min(a, axis):
     with use_cuda():
         g = renom.core.GPUValue(a)
 
-        ret = renom.cuda.cu_reduce_argmin(g, axis)
-        close_shape(ret.new_array(), np.argmin(a, axis))
+        with renom.cuda.RenomHandler() as handle:
+            ret = renom.cuda.cu_reduce_argmin(g, handle, axis)
+            close_shape(ret.new_array(), np.argmin(a, axis))
 
 
 @test_utility.skipgpu
@@ -1464,12 +1466,13 @@ def test_cu_reduce_max(a, axis):
     with use_cuda():
         g = renom.core.GPUValue(a)
 
-        ret = renom.cuda.cu_reduce_max(g, axis, keepdims=False)
-        renom.cuda.cuDeviceSynchronize()
-        close_shape(ret.new_array(), np.max(a, axis, keepdims=False))
+        with renom.cuda.RenomHandler() as handle:
+            ret = renom.cuda.cu_reduce_max(g, handle, axis, keepdims=False)
+            renom.cuda.cuDeviceSynchronize()
+            close_shape(ret.new_array(), np.max(a, axis, keepdims=False))
 
-        ret = renom.cuda.cu_reduce_max(g, axis, keepdims=True)
-        close_shape(ret.new_array(), np.max(a, axis, keepdims=True))
+            ret = renom.cuda.cu_reduce_max(g, handle, axis, keepdims=True)
+            close_shape(ret.new_array(), np.max(a, axis, keepdims=True))
 
 
 @test_utility.skipgpu
@@ -1483,9 +1486,10 @@ def test_cu_reduce_arg_max(a, axis):
     with use_cuda():
         g = renom.core.GPUValue(a)
 
-        ret = renom.cuda.cu_reduce_argmax(g, axis)
-        renom.cuda.cuDeviceSynchronize()
-        close_shape(ret.new_array(), np.argmax(a, axis))
+        with renom.cuda.RenomHandler() as handle:
+            ret = renom.cuda.cu_reduce_argmax(g, handle, axis)
+            renom.cuda.cuDeviceSynchronize()
+            close_shape(ret.new_array(), np.argmax(a, axis))
 
 
 @test_utility.skipgpu
