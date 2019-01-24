@@ -60,6 +60,7 @@ import numpy as np
 
 logging_level = 0
 
+
 def set_renom_seed(seed=30, all_devices=False):
     """This function sets given seed to both numpy and curand random number generator.
 

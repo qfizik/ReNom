@@ -276,11 +276,11 @@ class LstmElement(UserGraph):
 
 class LstmGraphElement(GraphFactory):
 
-    def __init__(self, output_size=3):
+    def __init__(self, output_size=3, weight_decay=None):
         super().__init__()
         self._output_size = output_size
-        self.params['w'] = graph_variable()
-        self.params['wr'] = graph_variable()
+        self.params['w'] = graph_variable(weight_decay=weight_decay)
+        self.params['wr'] = graph_variable(weight_decay=weight_decay)
         self._l = None
 
     def reset(self):

@@ -917,6 +917,7 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
 ])
 def test_batch_norm(test_shape, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
+    rm.set_renom_seed(45)
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     m1 = rm.graph.DenseGraphElement(output_size=3)

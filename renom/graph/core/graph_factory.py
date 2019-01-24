@@ -165,7 +165,14 @@ class GraphFactory(abc.ABC):
             >>> model.load("model.hd5")
         """
         if devices is None:
-            devices = 'cpu'
+            if rm.is_cuda_active():
+                devices = 1
+            else:
+                devices = 'cpu'
+
+        if isinstance(devices, int):
+            devices = [d for d in range(devices)]
+
         f = h5py.File(filename, 'r')
         values = f['values']
         #types = f['types']
@@ -216,8 +223,12 @@ class graph_variable(UserGraph):
         that the same size if request and if not, raises an exception.
     '''
 
-    def __init__(self):
+    def set_weight_decay(self, weight_decay):
+        self._fwd_op._val.set_weight_decay(weight_decay)
+
+    def __init__(self, weight_decay=None):
         fwd_op = variable_input()
+        fwd_op._val.set_weight_decay(weight_decay)
         self._fwd_op = fwd_op
         bwd_ops = []
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops)
@@ -240,6 +251,7 @@ class variable_input(operation):
 
     def __init__(self):
         val = GraphMultiStorage()
+        self._val = val
         self._vars = {'y': val}
 
     def setup(self, inputs):
