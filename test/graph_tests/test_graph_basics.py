@@ -11,6 +11,17 @@ def compare(nd_value, ad_value):
     assert np.allclose(nd_value, ad_value, atol=1e-5, rtol=1e-3)
 
 
+def get_random_filename():
+    import random
+    import string
+    pre_filename = 'tmpfile-'
+    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                            for _ in range(11))
+    type_filename = '.h5'
+    tmp_filename = pre_filename + rand_filename + type_filename
+    return tmp_filename
+
+
 def test_basic_add():
 
     v1 = np.random.rand(2, 2)
@@ -125,7 +136,8 @@ def test_validation_executor(use_gpu):
     v2, t2 = v1 * 2, t1 * 2
     exe.set_input_data(v2, t2)
     losses2 = np.array(exe.execute(epochs=3))
-    assert np.allclose(losses1 * 4, losses2, atol = 1)
+    assert np.allclose(losses1 * 4, losses2, atol=1)
+
 
 def test_step_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
@@ -141,11 +153,9 @@ def test_step_executor(use_gpu):
     loss1 = np.array(exe.execute(epochs=1))
     loss2 = 0
     for i in range(0, 10, 2):
-        v2, t2 = v1[i:i+2] * 2, t1[i:i+2] * 2
+        v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
         loss2 += exe.step(v2, t2)
-    assert np.allclose(loss1 * 4, loss2, atol = 1)
-
-
+    assert np.allclose(loss1 * 4, loss2, atol=1)
 
 
 def test_finalizer(use_gpu):
@@ -180,6 +190,35 @@ def test_sequential(use_gpu):
     ])
     z = model(v).as_ndarray()
     assert z.shape == (4, 5)
+
+
+def test_weight_decay(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v = np.random.rand(4, 4)
+    dense = rm.graph.DenseGraphElement(3, weight_decay=0.05)
+    import os
+    tmp_filename = get_random_filename()
+    try:
+        m1 = dense(v)
+        m_arr1 = m1.as_ndarray()
+        dense.save(tmp_filename)
+        m1.backward().update()
+        w1 = dense.params['w'].as_ndarray()
+
+        dense.load(tmp_filename)
+        dense.params['w'].set_weight_decay(0.50)
+        m2 = dense(v)
+        m_arr2 = m2.as_ndarray()
+        m2.backward().update()
+        w2 = dense.params['w'].as_ndarray()
+        assert np.allclose(m_arr1, m_arr2)
+        assert not np.allclose(w1, w2)
+    except Exception as e:
+        os.remove(tmp_filename)
+        raise e
+    os.remove(tmp_filename)
 
 
 class noop(rm.graph.core.operation):
@@ -395,7 +434,8 @@ def test_save_load(devices_to_load):
     os.remove(tmp_filename)
 
 
-def test_version_save_compability():
+def test_version_save_compability(use_gpu):
+    rm.set_cuda_active(use_gpu)
 
     x = np.random.rand(1, 4)
 
@@ -416,6 +456,9 @@ def test_version_save_compability():
     v3_model.load(tmp_filename)
     y2 = v3_model(x).as_ndarray()
     assert np.allclose(y1, y2)
+
+    import os
+    os.remove(tmp_filename)
 
 
 @pytest.mark.parametrize('ttype', [

@@ -31,10 +31,10 @@ class DenseGraphElement(GraphFactory):
           Out[7]: (3, 3)
     '''
 
-    def __init__(self, output_size=3, initializer=None):
+    def __init__(self, output_size=3, initializer=None, weight_decay=None):
         super().__init__()
         self.output_size = output_size
-        self.params['w'] = graph_variable()
+        self.params['w'] = graph_variable(weight_decay=weight_decay)
         self._bias = rm.graph.BiasGraphElement()
         self.params['b'] = self._bias.params['b']
         self._init = initializer

@@ -101,7 +101,8 @@ class operation(abc.ABC):
         if rm.logging_level >= 10:
             out = self.as_ndarray()
             if np.any(np.isnan(out)):
-                warnings.warn('{time!s}: Encountered NaN value in output.'.format(time=time.ctime()))
+                warnings.warn(
+                    '{time!s}: Encountered NaN value in output.'.format(time=time.ctime()))
 
     def __repr__(self):
         return self.name + ':\n' + self._vars['y'].__repr__()

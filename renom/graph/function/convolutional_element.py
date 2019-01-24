@@ -37,14 +37,14 @@ class ConvolutionalGraphElement(GraphFactory):
           Tensor data format is **NCHW**.
     """
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1, initializer=None):
+    def __init__(self, channels=3, kernel=3, padding=0, stride=1, initializer=None, weight_decay=None):
         super().__init__()
         self._chnls = channels
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
         self._init = initializer
-        self.params['w'] = graph_variable()
+        self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['b'] = graph_variable()
 
     def connect(self, other):

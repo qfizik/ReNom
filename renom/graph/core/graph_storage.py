@@ -83,6 +83,7 @@ class GraphMultiStorage:
     '''
     ready = False
     _shape = None
+    _weight_decay = None
 
     def __init__(self, shape=None, gpus=None, initializer=None, ptrs=None):
         if self.ready is True:
@@ -163,6 +164,11 @@ class GraphMultiStorage:
         if self._ptrs is not None and self.gpus == 'cpu':
             return self._ptrs[index].reshape(self.shape)
         return self._gpuvalues[index]
+
+    def set_weight_decay(self, weight_decay):
+        if weight_decay is not None:
+            assert weight_decay > 0 and weight_decay < 1
+        self._weight_decay = weight_decay
 
     def __setitem__(self, index, value):
         if self.gpus == 'cpu':
