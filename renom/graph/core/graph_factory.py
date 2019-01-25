@@ -226,9 +226,11 @@ class graph_variable(UserGraph):
     def set_weight_decay(self, weight_decay):
         self._fwd_op._val.set_weight_decay(weight_decay)
 
-    def __init__(self, weight_decay=None):
-        fwd_op = variable_input()
-        fwd_op._val.set_weight_decay(weight_decay)
+    def allow_update(self, should_allow):
+        pass
+
+    def __init__(self, weight_decay=None, allow_update=True):
+        fwd_op = variable_input(weight_decay, allow_update)
         self._fwd_op = fwd_op
         bwd_ops = []
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops)
@@ -249,8 +251,10 @@ class variable_input(operation):
     name = 'Variable'
     roles = ['variable']
 
-    def __init__(self):
+    def __init__(self, weight_decay=None, allow_update=True):
         val = GraphMultiStorage()
+        val.set_weight_decay(weight_decay)
+        val.set_updatable(allow_update)
         self._val = val
         self._vars = {'y': val}
 

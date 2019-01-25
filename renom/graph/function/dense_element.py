@@ -31,18 +31,21 @@ class DenseGraphElement(GraphFactory):
           Out[7]: (3, 3)
     '''
 
-    def __init__(self, output_size=3, initializer=None, weight_decay=None):
+    def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self.output_size = output_size
         self.params['w'] = graph_variable(weight_decay=weight_decay)
-        self._bias = rm.graph.BiasGraphElement()
-        self.params['b'] = self._bias.params['b']
+        self._ignore_bias = ignore_bias
+        if not ignore_bias:
+            self._bias = rm.graph.BiasGraphElement()
+            self.params['b'] = self._bias.params['b']
         self._init = initializer
 
     def connect(self, other):
         ret = DenseGraph(output_size=self.output_size, initializer=self._init,
                          previous_element=[other, self.params['w']])
-        ret = self._bias(ret)
+        if not self._ignore_bias:
+            ret = self._bias(ret)
         return ret
 
 

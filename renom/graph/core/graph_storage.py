@@ -103,6 +103,7 @@ class GraphMultiStorage:
         self._finished_setup = False
         self._ptrs = ptrs
         self.shape = shape
+        self._should_update = True
         if ptrs is not None:
             assert isinstance(ptrs, GraphMultiStorage)
             shp = list(self.shape)
@@ -185,6 +186,10 @@ class GraphMultiStorage:
         if weight_decay is not None:
             assert weight_decay > 0 and weight_decay < 1
         self._weight_decay = weight_decay
+
+    def set_updatable(self, updatable):
+        assert isinstance(updatable, bool)
+        self._should_update = updatable
 
     def __setitem__(self, index, value):
         if self.gpus == 'cpu':
