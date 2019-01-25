@@ -413,6 +413,25 @@ def get_random_filename():
     tmp_filename = pre_filename + rand_filename + type_filename
     return tmp_filename
 
+@pytest.mark.skipif(not rm.cuda.has_cuda() or rm.cuda.cuGetDeviceCount() < 2, reason='Requires GPU')
+def test_share_arr():
+    rm.set_cuda_active(True)
+
+    storage = rm.graph.core.graph_storage.GraphMultiStorage
+    init = rm.utility.initializer.GlorotUniform()
+    shape = (2, 2)
+
+
+    val = storage(shape=shape, gpus = [0, 1], initializer = init)
+    A = val[0].new_array()
+    B = val[1].new_array()
+    assert not np.allclose(A, B)
+    rm.cuda.ShareInitialization()
+
+    val = storage(shape=shape, gpus = [0, 1], initializer = init)
+    A = val[0].new_array()
+    B = val[1].new_array()
+    assert np.allclose(A, B)
 
 @pytest.mark.parametrize('devices_to_load', [
     'cpu', 1, 2, 3, 4
