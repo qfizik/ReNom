@@ -84,8 +84,10 @@ class GraphMultiStorage:
     ready = False
     _shape = None
     _weight_decay = None
+    _should_share = False
 
-    def __init__(self, shape=None, gpus=None, initializer=None, ptrs=None):
+    def __init__(self, shape=None, gpus=None, initializer=None,
+                 share_init=None, ptrs=None):
         if self.ready is True:
             assert self.shape == shape
             return
@@ -95,6 +97,8 @@ class GraphMultiStorage:
             gpus = [0]
         self.gpus = gpus
         self._gpuvalues = {}
+        if share_init is not None:
+            self._should_share = share_init
         self._initializer = initializer
         self._finished_setup = False
         self._ptrs = ptrs
@@ -116,11 +120,19 @@ class GraphMultiStorage:
                 self['cpu'] = np.empty(self.shape)
             return
 
+        def get_arr():
+            arr = None
+            if self._initializer is not None:
+                arr = self._initializer(self.shape)
+            return arr
+
+        if self._should_share:
+            arr = get_arr()
+
         for gpu in self.gpus:
             with rm.cuda.RenomHandler(gpu):
-                arr = None
-                if self._initializer is not None:
-                    arr = self._initializer(self.shape)
+                if not self._should_share:
+                    arr = get_arr()
                 meminfo = rm.cuda.cuGetMemInfo()
                 assert np.prod(self.shape) * np.dtype(rm.precision).itemsize <= meminfo[0]
                 self[gpu] = rm.GPUValue(array=arr, shape=self.shape,
@@ -139,6 +151,10 @@ class GraphMultiStorage:
             val = tuple(lst)
         assert isinstance(val[0], shared_val)
         self._shape = tuple(val)
+
+    @staticmethod
+    def share_init_by_default(should_share):
+        GraphMultiStorage._should_share = should_share
 
     @property
     def gpus(self):
