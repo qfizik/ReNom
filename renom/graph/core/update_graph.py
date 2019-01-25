@@ -70,6 +70,6 @@ class update_operation(operation):
                 self._dy['cpu'] += self._outputs['cpu'] * wd
 
     def perform(self):
-        self.check_weight_decay()
-
-        self._update_op.update()
+        if self._outputs._should_update:
+            self.check_weight_decay()
+            self._update_op.update()
