@@ -49,9 +49,11 @@ class DropoutGraphElement(GraphFactory):
 class dropout_forward(operation):
 
     name = 'Dropout (F)'
+    roles = ['inference']
 
     def __init__(self, dropout_rate=0.5):
         self._dropout_rate = dropout_rate
+        self._inference = False
 
     def setup(self, inputs):
         inputs = inputs[0]['y']
@@ -66,21 +68,28 @@ class dropout_forward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            rm.cuda.curand_generator().rand_bernoulli(self._mask[gpu], 1 - self._dropout_rate)
-            rm.cuda.cudiv(self._mask[gpu], self._dropout_rate, self._mask[gpu], handle)
-            rm.cuda.cumul(self._mask[gpu], self._inputs[gpu], self._outputs[gpu], handle)
+            if self._inference:
+                rm.cuda.cumul(self._inputs[gpu], 1, self._outputs[gpu], handle)
+            else:
+                rm.cuda.curand_generator().rand_bernoulli(self._mask[gpu], 1 - self._dropout_rate)
+                rm.cuda.cudiv(self._mask[gpu], self._dropout_rate, self._mask[gpu], handle)
+                rm.cuda.cumul(self._mask[gpu], self._inputs[gpu], self._outputs[gpu], handle)
 
 
 class dropout_forward_cpu(dropout_forward):
 
     def perform(self):
-        x = self._inputs['cpu']
-        dropout_ratio = 1 - self._dropout_rate
-        mask = np.array(np.random.rand(*x.shape) < dropout_ratio,
-                        dtype=rm.precision) / dropout_ratio
-        ret = x * mask
-        self._mask['cpu'] = mask
-        self._outputs['cpu'] = ret
+        if self._inference:
+            x = self._inputs['cpu']
+            self._outputs['cpu'] = x
+        else:
+            x = self._inputs['cpu']
+            dropout_ratio = 1 - self._dropout_rate
+            mask = np.array(np.random.rand(*x.shape) < dropout_ratio,
+                            dtype=rm.precision) / dropout_ratio
+            ret = x * mask
+            self._mask['cpu'] = mask
+            self._outputs['cpu'] = ret
 
 
 class dropout_backward(operation):
