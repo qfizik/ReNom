@@ -148,6 +148,11 @@ class UserGraph(graph_element):
     def set_inference(self, inference=True):
         self._fwd._op._inference = inference
 
+    def set_all_inference(self, inference=True):
+        infs = self._fwd.gather_operations_with_role('inference', flatten=True)
+        for inf in infs:
+            inf._inference = inference
+
     def getTrainingExecutor(self, optimizer=None, with_validation=None):
         if optimizer is not None:
             ups = self._bwd_graphs[0].gather_operations_with_role('update', flatten=True)
