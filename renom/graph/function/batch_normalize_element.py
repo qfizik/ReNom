@@ -9,6 +9,7 @@ mode_dict = {
     "activation": BATCH_NORMALIZE_ELEMENTWISE,
     "feature": BATCH_NORMALIZE_FEATUREMAP}
 
+
 class batch_norm_forward(operation):
 
     name = 'Batch Normalize (F)'
@@ -96,9 +97,9 @@ class batch_norm_forward_cpu(batch_norm_forward):
             momentum = self._momentum
             N = np.prod([x.shape[s] for s in axs])
             self._mv_m['cpu'] = (1 - momentum) * self._mv_m['cpu'] + \
-                                momentum * mean
+                momentum * mean
             self._mv_v['cpu'] = (1 - momentum) * self._mv_v['cpu'] + \
-                                momentum * var * N / max(N - 1., 1.)
+                momentum * var * N / max(N - 1., 1.)
 
 
 class batch_norm_backward(operation):
@@ -173,7 +174,8 @@ class BatchNormalizeGraphElement(GraphFactory):
     '''See :class:`.BatchNormalize` for more.
     '''
 
-    def __init__(self, momentum=0.99, epsilon=1e-5, mode=BATCH_NORMALIZE_ELEMENTWISE, weight_decay=None, ignore_bias=False):
+    def __init__(self, momentum=0.99, epsilon=1e-5, mode=BATCH_NORMALIZE_ELEMENTWISE,
+                 weight_decay=None, ignore_bias=False):
         super().__init__()
         self._mom = momentum
         self._eps = epsilon

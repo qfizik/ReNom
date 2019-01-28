@@ -1012,7 +1012,7 @@ def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
     else:
         mode = rm.graph.batch_normalize_element.BATCH_NORMALIZE_ELEMENTWISE
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.BatchNormalizeGraphElement(mode = mode, ignore_bias=ignore_bias)
+    model = rm.graph.BatchNormalizeGraphElement(mode=mode, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLossGraphElement()
     m2 = model(val)
     m = model(m2)
