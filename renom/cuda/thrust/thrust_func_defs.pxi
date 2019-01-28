@@ -71,6 +71,19 @@ cdef extern from * namespace "renom":
         reduce_shape_infos *seq_infos,
         cudaStream_t stream)
 
+
+    cdef void thrust_reduce_mean(
+        size_t num_blocks, size_t num_threads,
+        VALUE_TYPE *src, size_t src_size,
+        VALUE_TYPE *result, size_t result_size,
+        size_t src_per_result,
+        size_t sequence_stride,
+        size_t num_axis,
+        reduce_shape_infos *reduction_infos,
+        reduce_shape_infos *seq_infos,
+        cudaStream_t stream)
+
+
     cdef void thrust_reduce_min(
         size_t num_blocks, size_t num_threads,
         VALUE_TYPE *src, size_t src_size,

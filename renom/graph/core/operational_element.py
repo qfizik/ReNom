@@ -44,7 +44,8 @@ class operational_element(graph_element):
     @graph_element.walk_tree
     @check_tags
     def get_call_dict(self):
-        return self._op
+        if not isinstance(self._op, rm.graph.core.graph_factory.variable_input):
+            return self._op
 
     @graph_element.walk_tree
     @check_tags

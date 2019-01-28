@@ -153,6 +153,10 @@ def curand_set_seed(seed, all_devices=False):
             _CuRandGens[deviceid].set_seed(seed)
 
 
+def ShareInitialization(should_share=True):
+    rm.graph.core.graph_storage.GraphMultiStorage.share_init_by_default(should_share)
+
+
 def release_mem_pool():
     """This function releases GPU memory pool.
 

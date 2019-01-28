@@ -13,4 +13,3 @@ from .unpool_element import MaxUnPoolGraphElement
 from .batch_normalize_element import BatchNormalizeGraphElement
 from .bias_element import BiasGraphElement
 from .dropout_element import DropoutGraphElement
-from .sum_element import SumGraphElement

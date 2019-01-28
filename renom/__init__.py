@@ -41,6 +41,7 @@ ReNom (Top Level)
 
 """
 from __future__ import absolute_import
+import argparse
 from renom.config import precision
 from renom import cuda
 from renom import core
@@ -73,4 +74,50 @@ def set_renom_seed(seed=30, all_devices=False):
     np.random.seed(seed)
 
 
-__version__ = "2.6.2"
+__version__ = "3.0.0"
+
+
+def show_config(args):
+    import os
+    import platform
+    os_name = platform.system()
+    os_platform = platform.platform()
+    os_version = platform.version()  # NOQA
+    python_version = platform.python_version()
+    installed_location = os.path.join('/', *list(__file__.split("/")[:-2]))
+    if cuda.has_cuda():
+        cuda_driver_version = "None"  # NOQA
+        cuda_toolkit_version = "None"  # NOQA
+        cuda_cudnn_version = "None"  # NOQA
+        connected_gpu_list = []  # NOQA
+    else:
+        cuda_driver_version = "None"  # NOQA
+        cuda_toolkit_version = "None"  # NOQA
+        cuda_cudnn_version = "None"  # NOQA
+        connected_gpu_list = []  # NOQA
+
+    print()
+    # 1. OS information.
+    print("       OS : {}({})".format(os_name, os_platform))
+    # 2. Python information.
+    print("   Python : {}".format(python_version))
+    # 3. Cuda information.
+    # 4. CuDNN information.
+    # 5. ReNom version.
+    print(" Location : {}".format(installed_location))
+    print()
+
+
+def console_scripts():
+    parser = argparse.ArgumentParser(description='ReNomDL support scripts.')
+    subparsers = parser.add_subparsers()
+    parser_add = subparsers.add_parser('show',
+                                       help='Show configuration of current environment.')
+    parser_add.set_defaults(handler=show_config)
+
+    args = parser.parse_args()
+    if hasattr(args, 'handler'):
+        args.handler(args)
+    else:
+        # 未知のサブコマンドの場合はヘルプを表示
+        parser.print_help()

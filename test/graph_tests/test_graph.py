@@ -29,6 +29,12 @@ def rand(*shape):
     return np.array(np.random.rand(*shape), dtype=np.float64)
 
 
+def fixed(*shape):
+    if isinstance(shape[0], tuple):
+        shape = shape[0]
+    return np.arange(np.prod(shape)).astype(np.float64).reshape(shape)
+
+
 def randInteger(*shape):
     if isinstance(shape[0], tuple):
         shape = shape[0]
@@ -204,17 +210,121 @@ def test_basic_unary_operations(test_shape1, oper, use_gpu, num_gpu):
             loss.backward().get_gradient(val1.value).as_ndarray())
 
 
+@pytest.mark.parametrize("params, oper", [
+    *product(
+        [
+            [(2, 2), None, False],
+            [(2, 2), None, True],
+            [(2, 2), 0, False],
+            [(2, 2), 0, True],
+            [(2, 2), 1, False],
+            [(2, 2), 1, True],
+            [(2, 2), (0, 1), False],
+            [(2, 2), (0, 1), True],
+            [(2, 2), (1, 0), False],
+            [(2, 2), (1, 0), True],
+            [(2, 2, 2), None, False],
+            [(2, 2, 2), None, True],
+            [(2, 2, 2), 0, False],
+            [(2, 2, 2), 0, True],
+            [(2, 2, 2), 1, False],
+            [(2, 2, 2), 1, True],
+            [(2, 2, 2), 2, False],
+            [(2, 2, 2), 2, True],
+            [(2, 2, 2), (0, 1), False],
+            [(2, 2, 2), (0, 1), True],
+            [(2, 2, 2), (1, 0), False],
+            [(2, 2, 2), (1, 0), True],
+            [(2, 2, 2), (0, 2), False],
+            [(2, 2, 2), (0, 2), True],
+            [(2, 2, 2), (1, 2), False],
+            [(2, 2, 2), (1, 2), True],
+            [(2, 2, 2), (0, 1, 2), False],
+            [(2, 2, 2), (0, 1, 2), True],
+        ],
+        [
+            rm.graph.basics.sum,
+            rm.graph.basics.mean,
+        ]
+    ),
+])
+def test_reduce_unary_operations1(params, oper, use_gpu, num_gpu):
+    test_shape1, axis, keepdims = params
+    rm.set_cuda_active(use_gpu)
+    v1 = rand(*test_shape1)
+    val1 = rm.graph.StaticVariable(v1, num_gpus=num_gpu)
+    lf = rm.graph.ConstantLossGraphElement()
+    loss = lf(oper(val1, axis=axis, keepdims=keepdims))
+
+    def func():
+        loss.forward()
+        ret = loss.as_ndarray()
+        return ret
+
+    compare(getNumericalDiff(func, val1.value),
+            loss.backward().get_gradient(val1.value).as_ndarray())
+
+
+@pytest.mark.parametrize("params, oper", [
+    *product(
+        [
+            [(2, 2), None, False],
+            [(2, 2), None, True],
+            [(2, 2), 0, False],
+            [(2, 2), 0, True],
+            [(2, 2), 1, False],
+            [(2, 2), 1, True],
+            [(2, 2, 2), None, False],
+            [(2, 2, 2), None, True],
+            [(2, 2, 2), 0, False],
+            [(2, 2, 2), 0, True],
+            [(2, 2, 2), 1, False],
+            [(2, 2, 2), 1, True],
+            [(2, 2, 2), 2, False],
+            [(2, 2, 2), 2, True],
+            [(2, 2, 2, 2), 0, False],
+            [(2, 2, 2, 2), 0, True],
+            [(2, 2, 2, 2), 1, False],
+            [(2, 2, 2, 2), 1, True],
+            [(2, 2, 2, 2), 2, False],
+            [(2, 2, 2, 2), 2, True],
+            [(2, 2, 2, 2), 3, False],
+            [(2, 2, 2, 2), 3, True],
+        ],
+        [
+            rm.graph.basics.min,
+            rm.graph.basics.max,
+        ]
+    ),
+])
+def test_reduce_unary_operations2(params, oper, use_gpu, num_gpu):
+    test_shape1, axis, keepdims = params
+    rm.set_cuda_active(use_gpu)
+    v1 = fixed(*test_shape1)
+    val1 = rm.graph.StaticVariable(v1, num_gpus=num_gpu)
+    lf = rm.graph.ConstantLossGraphElement()
+    loss = lf(oper(val1, axis=axis, keepdims=keepdims))
+
+    def func():
+        loss.forward()
+        ret = loss.as_ndarray()
+        return ret
+
+    compare(getNumericalDiff(func, val1.value),
+            loss.backward().get_gradient(val1.value).as_ndarray())
+
+
 @pytest.mark.parametrize("test_shape", [
     (2, 2),
     (2, 1),
     (1, 2),
     (4, 5),
 ])
-def test_dense(test_shape, use_gpu, num_gpu):
+def test_dense(test_shape, use_gpu, num_gpu, ignore_bias):
     rm.set_cuda_active(use_gpu)
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.DenseGraphElement(output_size=2)
+    model = rm.graph.DenseGraphElement(output_size=2, ignore_bias=ignore_bias)
     l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
@@ -227,32 +337,9 @@ def test_dense(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
     ).get_gradient(model.params['w'].output).as_ndarray())
-    compare(getNumericalDiff(func, model.params['b'].output), loss.backward(
-    ).get_gradient(model.params['b'].output).as_ndarray())
-
-
-@pytest.mark.parametrize("test_shape", [
-    (2, 2),
-    (2, 1),
-    (1, 2),
-    (4, 5),
-])
-def test_sum(test_shape, use_gpu, num_gpu):
-    rm.set_cuda_active(use_gpu)
-
-    v = rand(*test_shape)
-    val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.SumGraphElement()
-    l = rm.graph.ConstantLossGraphElement()
-    m = model(val)
-    loss = l(m)
-
-    def func():
-        loss.forward()
-        ret = loss.as_ndarray()
-        return ret
-
-    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
+    if not ignore_bias:
+        compare(getNumericalDiff(func, model.params['b'].output), loss.backward(
+        ).get_gradient(model.params['b'].output).as_ndarray())
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -292,13 +379,13 @@ def test_lstm(test_shape, use_gpu):
     (1, 2),
     (4, 5),
 ])
-def test_gru(test_shape, use_gpu):
+def test_gru(test_shape, use_gpu, ignore_bias):
     np.random.seed(44)
     rm.set_cuda_active(use_gpu)
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
-    model = rm.graph.GruGraphElement(output_size=4)
+    model = rm.graph.GruGraphElement(output_size=4, ignore_bias=ignore_bias)
     l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)
@@ -423,7 +510,7 @@ def test_embedding(test_shape, use_gpu, num_gpu):
     (2, 3, 4, 5),
     (2, 2, 4, 4, 4),
 ])
-def test_conv(test_shape, use_gpu, num_gpu):
+def test_conv(test_shape, use_gpu, num_gpu, ignore_bias):
     # TODO: Fix this weird issue
     # Fails at seed 30 (some times) for some reason
     np.random.seed(45)
@@ -431,7 +518,7 @@ def test_conv(test_shape, use_gpu, num_gpu):
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.ConvolutionalGraphElement(channels=2)
+    model = rm.graph.ConvolutionalGraphElement(channels=2, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
@@ -915,12 +1002,13 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
     (2, 4),
     (2, 20)
 ])
-def test_batch_norm(test_shape, use_gpu, num_gpu):
+def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
     rm.set_cuda_active(use_gpu)
+    rm.set_renom_seed(45)
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     m1 = rm.graph.DenseGraphElement(output_size=3)
-    model = rm.graph.BatchNormalizeGraphElement()
+    model = rm.graph.BatchNormalizeGraphElement(ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLossGraphElement()
     m2 = m1(val)
     m = model(m2)

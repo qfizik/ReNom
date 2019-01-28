@@ -739,6 +739,37 @@ def cusum(gpu_value1, handle, axis=None, keepdims=False, max_grids=65536, num_th
     return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cusum, None, < cudaStream_t > <uintptr_t > handle.stream)
 
 
+cdef _cumean(size_t max_grids, size_t num_threads,
+             VALUE_TYPE * src, size_t src_size,
+             object result_shape, size_t result_size,
+             size_t src_per_result,
+             size_t sequence_stride,
+             size_t num_axis,
+             reduce_shape_infos * reductions_infos,
+             reduce_shape_infos * seqs_infos,
+             object args,
+             cudaStream_t stream):
+
+    result = renom.core.GPUValue(shape=result_shape)
+    cdef VALUE_TYPE * ptr = <VALUE_TYPE * > < uintptr_t > result._ptr
+
+    thrust_reduce_mean(max_grids, num_threads,
+                       src, src_size,
+                       ptr, result_size,
+                       src_per_result,
+                       sequence_stride,
+                       num_axis,
+                       reductions_infos,
+                       seqs_infos,
+                       stream)
+
+    return result
+
+
+def cumean(gpu_value1, handle, axis=None, keepdims=False, max_grids=65536, num_threads=512):
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cumean, None, < cudaStream_t > <uintptr_t > handle.stream)
+
+
 cdef _cu_reduce_min(size_t max_grids, size_t num_threads,
                     VALUE_TYPE * src, size_t src_size,
                     object result_shape, size_t result_size,
@@ -765,8 +796,8 @@ cdef _cu_reduce_min(size_t max_grids, size_t num_threads,
     return result
 
 
-def cu_reduce_min(gpu_value1, axis=None, keepdims=False, max_grids=65536, num_threads=512):
-    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_min, None, < cudaStream_t > <uintptr_t > 0)
+def cu_reduce_min(gpu_value1, handle, axis=None, keepdims=False, max_grids=65536, num_threads=512):
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_min, None, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 cdef _cu_reduce_max(size_t max_grids, size_t num_threads,
@@ -795,8 +826,8 @@ cdef _cu_reduce_max(size_t max_grids, size_t num_threads,
     return result
 
 
-def cu_reduce_max(gpu_value1, axis=None, keepdims=False, max_grids=65536, num_threads=512):
-    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_max, None, < cudaStream_t > <uintptr_t > 0)
+def cu_reduce_max(gpu_value1, handle, axis=None, keepdims=False, max_grids=65536, num_threads=512):
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_max, None, < cudaStream_t > <uintptr_t > handle.stream)
 
 
 cdef _cu_reduce_argmin(size_t max_grids, size_t num_threads,
@@ -829,20 +860,22 @@ cdef _cu_reduce_argmin(size_t max_grids, size_t num_threads,
     return result
 
 
-def cu_reduce_argmin(gpu_value1, axis=None, max_grids=65536, num_threads=512):
+def cu_reduce_argmin(gpu_value1, handle, axis=None, max_grids=65536, num_threads=512):
+    def cast(arg):
+        return tuple([a if isinstance(a, int) else a.value for a in arg])
+
     if axis is not None:
         if not isinstance(axis, int) or axis >= len(gpu_value1.shape):
             raise ValueError("Invalid axis")
-
-        mod = functools.reduce(operator.__mul__, gpu_value1.shape[axis:], 1)
-        div = functools.reduce(operator.__mul__, gpu_value1.shape[axis + 1:], 1)
+        mod = functools.reduce(operator.__mul__, cast(gpu_value1.shape)[axis:], 1)
+        div = functools.reduce(operator.__mul__, cast(gpu_value1.shape)[axis + 1:], 1)
 
     else:
-        mod = functools.reduce(operator.__mul__, gpu_value1.shape, 1)
+        mod = functools.reduce(operator.__mul__, cast(gpu_value1.shape), 1)
         div = 1
 
     keepdims = False
-    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmin, (mod, div), < cudaStream_t > <uintptr_t > 0)
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmin, (mod, div), < cudaStream_t > <uintptr_t > handle.stream)
 
 
 cdef _cu_reduce_argmax(size_t max_grids, size_t num_threads,
@@ -875,21 +908,24 @@ cdef _cu_reduce_argmax(size_t max_grids, size_t num_threads,
     return result
 
 
-def cu_reduce_argmax(gpu_value1, axis=None, max_grids=65536, num_threads=512):
+def cu_reduce_argmax(gpu_value1, handle, axis=None, max_grids=65536, num_threads=512):
+    def cast(arg):
+        return tuple([a if isinstance(a, int) else a.value for a in arg])
+
     if axis is not None:
         if not isinstance(axis, int) or axis >= len(gpu_value1.shape):
             raise ValueError("Invalid axis")
 
-        mod = functools.reduce(operator.__mul__, gpu_value1.shape[axis:], 1)
-        div = functools.reduce(operator.__mul__, gpu_value1.shape[axis + 1:], 1)
+        mod = functools.reduce(operator.__mul__, cast(gpu_value1.shape)[axis:], 1)
+        div = functools.reduce(operator.__mul__, cast(gpu_value1.shape)[axis + 1:], 1)
 
     else:
-        mod = functools.reduce(operator.__mul__, gpu_value1.shape, 1)
+        mod = functools.reduce(operator.__mul__, cast(gpu_value1.shape), 1)
         div = 1
 
     keepdims = False
 
-    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmax, (mod, div), < cudaStream_t > <uintptr_t > 0)
+    return _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, _cu_reduce_argmax, (mod, div), < cudaStream_t > <uintptr_t > handle.stream)
 
 
 def cu_add_bias(bias, gpu_value):

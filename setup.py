@@ -11,6 +11,12 @@ import distutils.dist
 from distutils import log
 import distutils.command.build
 
+entry_points = {
+    'console_scripts': [
+        'renom = renom:console_scripts',
+    ]
+}
+
 
 distutils.dist.Distribution.cuda_sources = None
 distutils.dist.Distribution.cuda_gpu_arch = None
@@ -275,12 +281,17 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 import numpy
 setup(
+    name='renom',
+    version='3.0.0',
+    author='Grid.Inc',
+    license="ReNom subscription license(http://www.renom.jp/packages/renomdl/rsts/license/main.html)",
+    url="http://www.renom.jp/index.html",
+    entry_points=entry_points,
     install_requires=requires,
     cuda_sources=cuda_sources,
     cuda_gpu_arch='sm_30',
     ext_modules=ext_modules,
     cmdclass={'build_ext': build_ext, 'build_nvcc': build_nvcc},
-    name='renom',
     packages=find_packages(),
     include_dirs=[numpy.get_include(), os.getcwd() + '/renom/cuda/'],
-    version='2.7.0')
+)

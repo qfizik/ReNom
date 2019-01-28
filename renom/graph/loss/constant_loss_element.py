@@ -1,6 +1,6 @@
 import renom as rm
 from renom.graph.core import operation, operational_element, UserLossGraph, GraphMultiStorage, GraphFactory
-from renom.graph.function.sum_element import sum_forward, sum_forward_cpu
+from renom.graph.basics.sum_element import sum_forward, sum_forward_cpu
 import renom.utility.initializer as init
 
 

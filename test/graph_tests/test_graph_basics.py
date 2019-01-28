@@ -11,6 +11,17 @@ def compare(nd_value, ad_value):
     assert np.allclose(nd_value, ad_value, atol=1e-5, rtol=1e-3)
 
 
+def get_random_filename():
+    import random
+    import string
+    pre_filename = 'tmpfile-'
+    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                            for _ in range(11))
+    type_filename = '.h5'
+    tmp_filename = pre_filename + rand_filename + type_filename
+    return tmp_filename
+
+
 def test_basic_add():
 
     v1 = np.random.rand(2, 2)
@@ -111,6 +122,34 @@ def test_training_executor(use_gpu):
     assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
 
 
+def test_training_executor_validation(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v1 = np.random.rand(20, 3).astype(rm.precision)
+    v2 = np.random.rand(6, 3).astype(rm.precision)
+    layer = rm.graph.DenseGraphElement(4)
+    t1 = np.random.rand(20, 4).astype(rm.precision)
+    t2 = np.random.rand(6, 4).astype(rm.precision)
+    loss = rm.graph.MeanSquaredGraphElement()
+    opt = rm.graph.sgd_update()
+    data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
+    graph = loss(layer(data), target)
+    t_exe = graph.getTrainingExecutor(opt, with_validation=(v2, t2))
+    v_exe = graph.getInferenceExecutor()
+
+    def check_validation(info):
+        global validation_loss
+        validation_loss = info['validation_loss']
+        assert validation_loss != np.nan
+    t_exe.register_event('Epoch-Finish', check_validation)
+
+    t_exe.execute(epochs=3)
+    v_exe.set_input_data(v2, t2)
+    v_loss = v_exe.execute(epochs=1)
+    assert np.allclose(validation_loss, v_loss)
+
+
 def test_validation_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
@@ -179,6 +218,35 @@ def test_sequential(use_gpu):
     ])
     z = model(v).as_ndarray()
     assert z.shape == (4, 5)
+
+
+def test_weight_decay(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v = np.random.rand(4, 4)
+    dense = rm.graph.DenseGraphElement(3, weight_decay=0.05)
+    import os
+    tmp_filename = get_random_filename()
+    try:
+        m1 = dense(v)
+        m_arr1 = m1.as_ndarray()
+        dense.save(tmp_filename)
+        m1.backward().update()
+        w1 = dense.params['w'].as_ndarray()
+
+        dense.load(tmp_filename)
+        dense.params['w'].set_weight_decay(0.50)
+        m2 = dense(v)
+        m_arr2 = m2.as_ndarray()
+        m2.backward().update()
+        w2 = dense.params['w'].as_ndarray()
+        assert np.allclose(m_arr1, m_arr2)
+        assert not np.allclose(w1, w2)
+    except Exception as e:
+        os.remove(tmp_filename)
+        raise e
+    os.remove(tmp_filename)
 
 
 class noop(rm.graph.core.operation):
@@ -335,6 +403,37 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
             and A._bwd_graphs[0].depth == 7
 
 
+def get_random_filename():
+    import random
+    import string
+    pre_filename = 'tmpfile-'
+    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits)
+                            for _ in range(11))
+    type_filename = '.h5'
+    tmp_filename = pre_filename + rand_filename + type_filename
+    return tmp_filename
+
+
+@pytest.mark.skipif(not rm.cuda.has_cuda() or rm.cuda.cuGetDeviceCount() < 2, reason='Requires GPU')
+def test_share_arr():
+    rm.set_cuda_active(True)
+
+    storage = rm.graph.core.graph_storage.GraphMultiStorage
+    init = rm.utility.initializer.GlorotUniform()
+    shape = (2, 2)
+
+    val = storage(shape=shape, gpus=[0, 1], initializer=init)
+    A = val[0].new_array()
+    B = val[1].new_array()
+    assert not np.allclose(A, B)
+    rm.cuda.ShareInitialization()
+
+    val = storage(shape=shape, gpus=[0, 1], initializer=init)
+    A = val[0].new_array()
+    B = val[1].new_array()
+    assert np.allclose(A, B)
+
+
 @pytest.mark.parametrize('devices_to_load', [
     'cpu', 1, 2, 3, 4
 ])
@@ -356,13 +455,7 @@ def test_save_load(devices_to_load):
     x = np.random.rand(5, 4)
     y1 = model(x).as_ndarray()
 
-    import random
-    import string
-    pre_filename = 'tmpfile-'
-    rand_filename = ''.join(random.choice(string.ascii_uppercase + string.digits)
-                            for _ in range(11))
-    type_filename = '.h5'
-    tmp_filename = pre_filename + rand_filename + type_filename
+    tmp_filename = get_random_filename()
     model.save(tmp_filename)
 
     model = rm.graph.SequentialSubGraph([
@@ -384,6 +477,33 @@ def test_save_load(devices_to_load):
         raise AssertionError('Model should not be able to load different shape')
     except:
         pass
+
+    import os
+    os.remove(tmp_filename)
+
+
+def test_version_save_compability(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    x = np.random.rand(1, 4)
+
+    v2_model = rm.Sequential([
+        rm.Dense(5),
+        rm.Dense(3),
+        rm.Dense(1),
+    ])
+
+    y1 = v2_model(x)
+    tmp_filename = get_random_filename()
+    v2_model.save(tmp_filename)
+    v3_model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(5),
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DenseGraphElement(1),
+    ])
+    v3_model.load(tmp_filename)
+    y2 = v3_model(x).as_ndarray()
+    assert np.allclose(y1, y2)
 
     import os
     os.remove(tmp_filename)

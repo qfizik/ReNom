@@ -141,12 +141,12 @@ class WeightNormElement(UserGraph):
 
 class WeightNormGraphElement(GraphFactory):
 
-    def __init__(self, output_size, gain=0.1):
+    def __init__(self, output_size, gain=0.1, weight_decay=None):
         super().__init__()
         self._gain = gain
         self._output_size = output_size
         self.params['g'] = graph_variable()
-        self.params['w'] = graph_variable()
+        self.params['w'] = graph_variable(weight_decay=weight_decay)
 
     def connect(self, other):
         ret = WeightNormElement(self._output_size, self._gain, previous_elements=[

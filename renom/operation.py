@@ -128,9 +128,11 @@ class Amax(Abase):
 
     @classmethod
     def _oper_gpu(cls, arg, axis, keepdims):
-        array = get_gpu(arg)
-        value = cu_reduce_max(array, axis, keepdims)
-        index = cu_reduce_argmax(array, axis)
+
+        with RenomHandler() as handle:
+            array = get_gpu(arg)
+            value = cu_reduce_max(array, handle, axis, keepdims)
+            index = cu_reduce_argmax(array, handle, axis)
         return value, index
 
 
@@ -174,9 +176,11 @@ class Amin(Abase):
 
     @classmethod
     def _oper_gpu(cls, arg, axis, keepdims):
-        array = get_gpu(arg)
-        value = cu_reduce_min(array, axis, keepdims)
-        index = cu_reduce_argmin(array, axis)
+
+        with RenomHandler() as handle:
+            array = get_gpu(arg)
+            value = cu_reduce_min(array, handle, axis, keepdims)
+            index = cu_reduce_argmin(array, handle, axis)
         return value, index
 
 

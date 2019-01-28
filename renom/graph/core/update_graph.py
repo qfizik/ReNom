@@ -49,6 +49,7 @@ class update_operation(operation):
         assert self._factory is not None
         self._dy = self._producer.get_key(self._shared_key)
         self._outputs = self._consumer.get_key(self._shared_key)
+        self._wd = None  # For weight decay
         self._vars = {'y': self._dy}
         gpus = self._outputs.gpus
         self.gpus = gpus
@@ -56,11 +57,19 @@ class update_operation(operation):
             self._update_op = self._factory.get_op(self._outputs)
             self._update_op.setup(self._dy, self._outputs)
 
-        if update_operation._communicator is None and not isinstance(self.gpus, str) and len(self.gpus) > 1:
-            update_operation._communicator = rm.cuda.DeviceCommunicator(len(gpus))
+    def check_weight_decay(self):
+        if self._outputs._weight_decay is not None:
+            wd = self._outputs._weight_decay
+            if rm.cuda.is_cuda_active():
+                if self._wd is None:
+                    self._wd = GraphMultiStorage(shape=self._dy.shape, gpus=self.gpus)
+                for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+                    rm.cuda.cumul(self._outputs[gpu], wd, self._wd[gpu], handle)
+                    rm.cuda.cuadd(self._dy[gpu], self._wd[gpu], self._dy[gpu], handle)
+            else:
+                self._dy['cpu'] += self._outputs['cpu'] * wd
 
     def perform(self):
-        if len(self.gpus) > 1 and F:
-            update_operation._communicator.allReduce(self._dy)
-
-        self._update_op.update()
+        if self._outputs._should_update:
+            self.check_weight_decay()
+            self._update_op.update()

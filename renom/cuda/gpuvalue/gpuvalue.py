@@ -315,7 +315,8 @@ def build_shapes(arr, indexes):
 
         else:  # should be sequence
             adv_positions.append(len(slices))
-            maxidx = cu_reduce_max(index.index)
+            with renom.cuda.RenomHandler() as handle:
+                maxidx = cu_reduce_max(index.index, handle)
             if maxidx.new_array() >= shape:
                 raise IndexError()
 

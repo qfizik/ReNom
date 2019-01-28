@@ -5,6 +5,10 @@ from .mul_element import MulElement
 from .sub_element import SubElement
 from .div_element import DivElement
 from .pow_element import PowElement
+from .sum_element import SumElement, sum
+from .mean_element import MeanElement, mean
+from .min_element import MinElement, min
+from .max_element import MaxElement, max
 from .sqrt_element import SqrtElement, sqrt
 from .log_element import LogElement, log
 from .square_element import SquareElement, square

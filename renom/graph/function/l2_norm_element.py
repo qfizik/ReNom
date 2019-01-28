@@ -166,10 +166,10 @@ class L2NormGraph(UserGraph):
 
 class L2NormGraphElement(GraphFactory):
 
-    def __init__(self, scale=20):
+    def __init__(self, scale=20, weight_decay=None):
         super().__init__()
         self.scale = scale
-        self.params['w'] = graph_variable()
+        self.params['w'] = graph_variable(weight_decay=weight_decay)
 
     def connect(self, other):
         ret = L2NormGraph(scale=self.scale, previous_element=[other, self.params['w']])

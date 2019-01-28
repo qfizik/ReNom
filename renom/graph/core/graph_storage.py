@@ -83,8 +83,11 @@ class GraphMultiStorage:
     '''
     ready = False
     _shape = None
+    _weight_decay = None
+    _should_share = False
 
-    def __init__(self, shape=None, gpus=None, initializer=None, ptrs=None):
+    def __init__(self, shape=None, gpus=None, initializer=None,
+                 share_init=None, ptrs=None):
         if self.ready is True:
             assert self.shape == shape
             return
@@ -94,10 +97,13 @@ class GraphMultiStorage:
             gpus = [0]
         self.gpus = gpus
         self._gpuvalues = {}
+        if share_init is not None:
+            self._should_share = share_init
         self._initializer = initializer
         self._finished_setup = False
         self._ptrs = ptrs
         self.shape = shape
+        self._should_update = True
         if ptrs is not None:
             assert isinstance(ptrs, GraphMultiStorage)
             shp = list(self.shape)
@@ -115,11 +121,19 @@ class GraphMultiStorage:
                 self['cpu'] = np.empty(self.shape)
             return
 
+        def get_arr():
+            arr = None
+            if self._initializer is not None:
+                arr = self._initializer(self.shape)
+            return arr
+
+        if self._should_share:
+            arr = get_arr()
+
         for gpu in self.gpus:
             with rm.cuda.RenomHandler(gpu):
-                arr = None
-                if self._initializer is not None:
-                    arr = self._initializer(self.shape)
+                if not self._should_share:
+                    arr = get_arr()
                 meminfo = rm.cuda.cuGetMemInfo()
                 assert np.prod(self.shape) * np.dtype(rm.precision).itemsize <= meminfo[0]
                 self[gpu] = rm.GPUValue(array=arr, shape=self.shape,
@@ -138,6 +152,10 @@ class GraphMultiStorage:
             val = tuple(lst)
         assert isinstance(val[0], shared_val)
         self._shape = tuple(val)
+
+    @staticmethod
+    def share_init_by_default(should_share):
+        GraphMultiStorage._should_share = should_share
 
     @property
     def gpus(self):
@@ -163,6 +181,15 @@ class GraphMultiStorage:
         if self._ptrs is not None and self.gpus == 'cpu':
             return self._ptrs[index].reshape(self.shape)
         return self._gpuvalues[index]
+
+    def set_weight_decay(self, weight_decay):
+        if weight_decay is not None:
+            assert weight_decay > 0 and weight_decay < 1
+        self._weight_decay = weight_decay
+
+    def set_updatable(self, updatable):
+        assert isinstance(updatable, bool)
+        self._should_update = updatable
 
     def __setitem__(self, index, value):
         if self.gpus == 'cpu':

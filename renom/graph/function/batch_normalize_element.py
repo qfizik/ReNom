@@ -151,13 +151,13 @@ class BatchNormalizeGraphElement(GraphFactory):
     '''See :class:`.BatchNormalize` for more.
     '''
 
-    def __init__(self, momentum=0.99, epsilon=1e-5, mode='activation'):
+    def __init__(self, momentum=0.99, epsilon=1e-5, mode='activation', weight_decay=None, ignore_bias=False):
         super().__init__()
         self._mom = momentum
         self._eps = epsilon
         self._mod = mode
-        self.params['w'] = graph_variable()
-        self.params['b'] = graph_variable()
+        self.params['w'] = graph_variable(weight_decay=weight_decay)
+        self.params['b'] = graph_variable(allow_update=not ignore_bias)
 
     def connect(self, other):
         ret = BatchNormalizer(self._mom, self._eps, self._mod, previous_elements=[
