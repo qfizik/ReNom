@@ -13,10 +13,12 @@ def use_gpu(request):
 
 
 @pytest.fixture(params=[1, 2])
-def num_gpu(request):
+def num_gpu(request, use_gpu):
     """
     Gpu switch for test.
     """
+    if not use_gpu and request.param > 1:
+        pytest.skip()
     if request.param > 1 and (not renom.has_cuda() or renom.get_device_count() < 2):
         pytest.skip()
     return request.param
