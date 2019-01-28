@@ -81,7 +81,6 @@ class dropout_forward_cpu(dropout_forward):
     def perform(self):
         if self._inference:
             x = self._inputs['cpu']
-            ratio = self._dropout_rate
             self._outputs['cpu'] = x
         else:
             x = self._inputs['cpu']

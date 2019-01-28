@@ -1000,17 +1000,21 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
 @pytest.mark.parametrize("test_shape", [
     (4, 4),
     (2, 4),
-    (2, 20)
+    (2, 20),
+    (3, 2, 4, 5),
 ])
 def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
     rm.set_cuda_active(use_gpu)
     rm.set_renom_seed(45)
     v = rand(test_shape)
+    if len(test_shape) > 2:
+        mode = rm.graph.batch_normalize_element.BATCH_NORMALIZE_FEATUREMAP
+    else:
+        mode = rm.graph.batch_normalize_element.BATCH_NORMALIZE_ELEMENTWISE
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    m1 = rm.graph.DenseGraphElement(output_size=3)
-    model = rm.graph.BatchNormalizeGraphElement(ignore_bias=ignore_bias)
+    model = rm.graph.BatchNormalizeGraphElement(mode = mode, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLossGraphElement()
-    m2 = m1(val)
+    m2 = model(val)
     m = model(m2)
     l = loss(m)
 
