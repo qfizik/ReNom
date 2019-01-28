@@ -6,8 +6,6 @@ import renom.utility.initializer as init
 
 class optimizer_factory:
 
-    _communicator = None
-
     def __init__(self):
         self._ops = {}
         self.args = ()
@@ -49,9 +47,6 @@ class sgd_update(optimizer_factory):
                 shape=grad.shape, gpus=grad.gpus, initializer=init.Constant(0))
             self._ndy = GraphMultiStorage(
                 shape=grad.shape, gpus=grad.gpus, initializer=init.Constant(0))
-            if optimizer_factory._communicator is None and not isinstance(self.gpus, str) and len(self.gpus) > 1 and T:
-                optimizer_factory._communicator = rm.cuda.DeviceCommunicator(len(self.gpus))
-                self._event = None
 
         def update(self):
             for gpu, handle in rm.cuda.RenomHandlers(self.gpus):

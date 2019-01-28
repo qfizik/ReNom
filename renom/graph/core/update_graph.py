@@ -56,6 +56,8 @@ class update_operation(operation):
         if self._update_op is None:
             self._update_op = self._factory.get_op(self._outputs)
             self._update_op.setup(self._dy, self._outputs)
+        if update_operation._communicator is None and not isinstance(self.gpus, str) and len(self.gpus) > 1:
+            update_operation._communicator = rm.cuda.DeviceCommunicator(len(self.gpus))
 
     def check_weight_decay(self):
         if self._outputs._weight_decay is not None:
@@ -70,6 +72,8 @@ class update_operation(operation):
                 self._dy['cpu'] += self._outputs['cpu'] * wd
 
     def perform(self):
+        if update_operation._communicator is not None:
+            update_operation._communicator.allReduce(self._dy)
         if self._outputs._should_update:
             self.check_weight_decay()
             self._update_op.update()
