@@ -363,24 +363,23 @@ texinfo_documents = [
 #
 # texinfo_no_detailmenu = False
 
-
 autosummary_generate = False
 extended_autosummary_generate = True
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
 
-# Extention
-from sphinx.jinja2glue import BuiltinTemplateLoader
+# Extension for auto summary.
 from jinja2 import FileSystemLoader, TemplateNotFound
 from jinja2.sandbox import SandboxedEnvironment
-from sphinx.ext.autosummary.generate import find_autosummary_in_files, _simple_info, _simple_warn, _underline
 from sphinx import package_dir
-from sphinx.ext.autosummary import import_by_name, get_documenter, setup, get_rst_suffix
-from sphinx.util.inspect import safe_getattr
+from sphinx.jinja2glue import BuiltinTemplateLoader
 from sphinx.util import import_object, rst, logging
 from sphinx.util.osutil import ensuredir
+from sphinx.util.inspect import safe_getattr
 from sphinx.util.rst import escape as rst_escape
+from sphinx.ext.autosummary import import_by_name, get_documenter, setup, get_rst_suffix
+from sphinx.ext.autosummary.generate import find_autosummary_in_files, _simple_info, _simple_warn, _underline
 
 logger = logging.getLogger(__name__)
 
@@ -389,7 +388,6 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                               warn=_simple_warn, info=_simple_info,
                               base_path=None, builder=None, template_dir=None,
                               imported_members=False, app=None):
-    # type: (List[unicode], unicode, unicode, Callable, Callable, unicode, Builder, unicode, bool, Any) -> None  # NOQA
 
     showed_sources = list(sorted(sources))
     if len(showed_sources) > 20:
@@ -483,7 +481,6 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                     template = template_env.get_template('autosummary/base.rst')
 
             def get_members(obj, typ, include_public=[], imported=True):
-                # type: (Any, unicode, List[unicode], bool) -> Tuple[List[unicode], List[unicode]]  # NOQA
                 items = []  # type: List[unicode]
                 for name in dir(obj):
                     try:
@@ -493,6 +490,9 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                     documenter = get_documenter(app, value, obj)
                     if documenter.objtype == typ:
                         if imported or getattr(value, '__module__', None) == obj.__name__:
+                            s = getattr(getattr(obj, name, None), '__module__', None)
+                            if s is None or s.find('renom') < 0:
+                                continue
                             # skip imported members if expected
                             items.append(name)
                 public = [x for x in items
