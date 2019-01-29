@@ -68,7 +68,7 @@ class Grads:
 
     @contextlib.contextmanager
     def unlock_node(self, node):
-        if hasattr(node, "setflags") and not node.flags.writeable:
+        if hasattr(node, 'setflags') and not node.flags.writeable:
             node.setflags(write=True)
             yield
             node.setflags(write=False)
@@ -84,6 +84,14 @@ class Grads:
         return self.stroage.get(selfid, default)
 
     def add(self, node, dy, caller=None):
+        '''This method stores given gradient ``dy`` to the dictionary with a key which is
+        the id of given node object.
+
+        Args:
+            node (Node): Node object whose gradient should be given as dy.
+            dy (Node, ndarray): Gradient related to the argument node.
+            caller (function): **deprecated**
+        '''
         selfid = id(node)
         if selfid in self.variables:
             v = self.variables[selfid]
@@ -108,8 +116,8 @@ class Grads:
 
     def get(self, node, default=_omit):
         '''This function returns the gradient with respect to the given node.
-        In the case of that there isn't the gradient of given node, this function
-        returns 'None'.
+        In the case of that there is no gradient of given node, this function
+        returns ``None`` .
 
         Args:
             node (Node): Returns a gradient with respect to this argument.
@@ -124,11 +132,17 @@ class Grads:
                 return self.variables[id(node)]
             except KeyError:
                 raise Exception(
-                    "Node not found. Ensure that _update_diff was properly called on the node first.")
+                    'Node not found. Ensure that _update_diff was properly called on the node first.')
         else:
             return self.variables.get(id(node), default)
 
     def set(self, node, diff):
+        '''This function will set a gradient to the dictionary using id of given node object as a key.
+
+        Args:
+            node (Node): Node object whose gradient should be given as dy.
+            dy (Node, ndarray): Gradient related to the argument node.
+        '''
         self.variables[id(node)] = diff
 
     def update_node(self, node, opt=None):
@@ -167,18 +181,18 @@ class Grads:
             >>> import renom as rm
             >>> a = rm.Variable(np.arange(4).reshape(2, 2))
             >>> b = rm.Variable(np.arange(4).reshape(2, 2))
-            >>> print("Before", a)
+            >>> print('Before', a)
             Before
              [[ 0.  1.]
              [ 2.  3.]]
             >>> out = rm.sum(2*a + 3*b)
             >>> grad = out.grad(models=(a, ))
-            >>> print("Gradient", grad.get(a))
+            >>> print('Gradient', grad.get(a))
             Gradient
              [[ 2.  2.]
              [ 2.  2.]]
             >>> grad.update()
-            >>> print("Updated", a)
+            >>> print('Updated', a)
             Updated
              [[-2. -1.]
              [ 0.  1.]]
@@ -195,22 +209,14 @@ class Grads:
                         self.update_node(node, opt)
 
     def clip_gradient(self, threshold=0.5, norm=2):
-        """
-        This function clips the gradient if gradient is above threshold.
-        The calculation is dones as shown below:
-
-        .. math::
-
-            \hat{g} \leftarrow \frac{\partial \epsilon}{\partial \theta} \\
-            if ||\hat{g}|| \geq {\it threshold} \hspace{5pt} {\bf then}\\
-            \hat{g} \leftarrow \frac{threshold}{||\hat{g}||}\hat{g} \\
+        '''This function clips the gradient if gradient is above threshold.
 
         Args:
             gradient: gradient object
             threshold(float): theshold
             norm(int): norm of gradient
 
-        Examples::
+        Examples:
             >>> from **** import gradient_clipping
             >>>
             >>> grad = loss.grad()
@@ -218,7 +224,7 @@ class Grads:
             >>>
             >>> grad.update(Sgd(lr=0.01))
 
-        """
+        '''
 
         # setting variables etc.
         variables = self.variables
@@ -227,7 +233,7 @@ class Grads:
         norm = float(norm)
         threshold = float(threshold)
 
-        if norm == float("inf"):
+        if norm == float('inf'):
             # h infinity
             total_norm = np.max([i for i in variables.values()])
         else:
@@ -259,7 +265,7 @@ def _grad(self, initial=None, detach_graph=True, weight_decay=None, **kwargs):
 
     if initial is None:
         if self.size > 1:
-            raise ValueError("Initial diff is required for scalar value.")
+            raise ValueError('Initial diff is required for scalar value.')
 
         if is_cuda_active():
             initial = Node(get_gpu(self).ones_like_me())

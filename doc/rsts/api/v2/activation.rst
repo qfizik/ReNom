@@ -4,6 +4,7 @@ renom.layers.activation
 .. automodule:: renom.layers.activation
 
 .. autosummary::
+    :template: template.rst
     :toctree: autosum/
     :nosignatures:
 

@@ -62,7 +62,8 @@ class sum_backward(operation):
         self.axis = self._fwd_op.axis
         self.keepdims = self._fwd_op.keepdims
         axis = [self.axis] if isinstance(self.axis, (int, type(None))) else self.axis
-        self.expand_shape = tuple([1 if i in axis else s for i, s in enumerate(fwd_inputs.shape)])
+        self.expand_shape = tuple([1 if (i in axis or axis[0] is None)
+                                   else s for i, s in enumerate(fwd_inputs.shape)])
         self._ones = GraphMultiStorage(
             shape=fwd_inputs.shape, gpus=gpus, initializer=init.Constant(1))
         self._vars = {'y': outs, id(fwd_inputs): outs}
@@ -70,9 +71,9 @@ class sum_backward(operation):
     def perform(self):
         axis = self.axis
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            dy = self._inputs[gpu]
+            dy = self._inputs[gpu].reshape(self.expand_shape)
             ones = self._ones[gpu]
-            self._outputs[gpu] = self._inputs[gpu] * self._ones[gpu]
+            self._outputs[gpu] = dy * ones
             if axis is None:
                 self._outputs[gpu] = ones * dy
             else:
@@ -87,7 +88,7 @@ class sum_backward_cpu(sum_backward):
 
     def perform(self):
         axis = self.axis
-        dy = self._inputs['cpu']
+        dy = self._inputs['cpu'].reshape(self.expand_shape)
         ones = self._ones['cpu']
         if axis is None:
             self._outputs['cpu'] = ones * dy
@@ -112,8 +113,13 @@ class SumElement(UserGraph):
 
 class SumGraphElement(GraphFactory):
 
+    def __init__(self, axis=None, keepdims=False):
+        super().__init__()
+        self.axis = axis
+        self.keepdims = keepdims
+
     def connect(self, other):
-        ret = SumElement(other)
+        ret = SumElement(other, axis=self.axis, keepdims=self.keepdims)
         return ret
 
 

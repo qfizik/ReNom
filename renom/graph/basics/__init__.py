@@ -1,12 +1,12 @@
 from .static_variable import StaticVariable
 from .reshape_element import ReshapeGraphElement
-from .add_element import AddElement
-from .mul_element import MulElement
-from .sub_element import SubElement
-from .div_element import DivElement
+from .add_element import AddElement, AddGraphElement
+from .mul_element import MulElement, MulGraphElement
+from .sub_element import SubElement, SubGraphElement
+from .div_element import DivElement, DivGraphElement
 from .pow_element import PowElement
-from .sum_element import SumElement, sum
-from .mean_element import MeanElement, mean
+from .sum_element import SumElement, SumGraphElement, sum
+from .mean_element import MeanElement, MeanGraphElement, mean
 from .min_element import MinElement, min
 from .max_element import MaxElement, max
 from .sqrt_element import SqrtElement, sqrt
