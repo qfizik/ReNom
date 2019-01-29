@@ -245,7 +245,7 @@ class graph_variable(UserGraph):
         self._fwd_op._val.set_weight_decay(weight_decay)
 
     def allow_update(self, should_allow):
-        pass
+        self._fwd._op._val.set_updatable(should_allow)
 
     def __init__(self, weight_decay=None, allow_update=True):
         fwd_op = variable_input(weight_decay, allow_update)

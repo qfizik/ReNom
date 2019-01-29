@@ -213,6 +213,9 @@ def test_updatable_mode():
         rm.graph.DropoutGraphElement(),
     ])
     x = model(v1)
+    assert model.l0.params['w']._fwd._op._val._should_update is True
+    model.set_updatable(False)
+    assert model.l0.params['w']._fwd._op._val._should_update is False
 
 
 
