@@ -1,6 +1,6 @@
 import numpy as np
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
+from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph, GraphFactory
 from renom.core import broad_cast, cu_broad_cast
 
 
@@ -94,6 +94,12 @@ class MulElement(UserGraph):
         bwd_ops = [mul_backward(fwd_op, 'b') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'b'),
                    mul_backward(fwd_op, 'a') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'a')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
+
+
+class MulGraphElement(GraphFactory):
+
+    def connect(self, lhs, rhs):
+        return MulElement([lhs, rhs])
 
 
 def _mul(self, other):

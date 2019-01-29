@@ -1,9 +1,10 @@
-renom.cuda(v2/v3)
+renom.cuda
 ================
 
 .. automodule:: renom.cuda
 
 .. autosummary::
+    :template: template.rst
     :toctree: autosum/
     :nosignatures:
 

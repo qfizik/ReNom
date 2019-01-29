@@ -154,6 +154,11 @@ def getNumericalDiff(lossMethod, testValue):
             rm.graph.core.UserGraph.__truediv__,
             rm.graph.core.UserGraph.__itruediv__,
             rm.graph.core.UserGraph.__rtruediv__,
+
+            lambda a, b: rm.graph.AddGraphElement()(a, b),
+            lambda a, b: rm.graph.DivGraphElement()(a, b),
+            lambda a, b: rm.graph.MulGraphElement()(a, b),
+            lambda a, b: rm.graph.SubGraphElement()(a, b),
         ]
     ),
 ])
@@ -241,10 +246,18 @@ def test_basic_unary_operations(test_shape1, oper, use_gpu, num_gpu):
             [(2, 2, 2), (1, 2), True],
             [(2, 2, 2), (0, 1, 2), False],
             [(2, 2, 2), (0, 1, 2), True],
+
+            [(2, 2, 2, 2), (2, 3), False],
+            [(2, 2, 2, 2), (2, 3), True],
+
+            [(2, 2, 3, 4), (2, 3), False],
+            [(2, 2, 3, 4), (2, 3), True],
         ],
         [
             rm.graph.basics.sum,
             rm.graph.basics.mean,
+            lambda a, axis, keepdims: rm.graph.MeanGraphElement(axis, keepdims)(a),
+            lambda a, axis, keepdims: rm.graph.SumGraphElement(axis, keepdims)(a),
         ]
     ),
 ])

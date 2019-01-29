@@ -1,9 +1,10 @@
-renom.operation(v2)
-=====================
+renom.operation
+=================
 
 .. automodule:: renom.operation
 
 .. autosummary::
+    :template: template.rst
     :toctree: autosum/
     :nosignatures:
 

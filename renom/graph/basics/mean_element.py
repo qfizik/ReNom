@@ -62,7 +62,8 @@ class mean_backward(operation):
         self.axis = self._fwd_op.axis
         self.keepdims = self._fwd_op.keepdims
         axis = [self.axis] if isinstance(self.axis, (int, type(None))) else self.axis
-        self.expand_shape = tuple([1 if i in axis else s for i, s in enumerate(fwd_inputs.shape)])
+        self.expand_shape = tuple([1 if (i in axis or axis[0] is None)
+                                   else s for i, s in enumerate(fwd_inputs.shape)])
         self.reduced_size = np.prod([s for i, s in enumerate(fwd_inputs.shape) if i in axis or self.axis is None],
                                     dtype=rm.precision)
         self._ones = GraphMultiStorage(
@@ -73,9 +74,9 @@ class mean_backward(operation):
         axis = self.axis
         rsize = self.reduced_size
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            dy = self._inputs[gpu]
+            dy = self._inputs[gpu].reshape(self.expand_shape)
             ones = self._ones[gpu]
-            self._outputs[gpu] = self._inputs[gpu] * self._ones[gpu]
+            self._outputs[gpu] = dy * ones
             if axis is None:
                 self._outputs[gpu] = ones * dy / rsize
             else:
@@ -91,7 +92,7 @@ class mean_backward_cpu(mean_backward):
     def perform(self):
         axis = self.axis
         rsize = self.reduced_size
-        dy = self._inputs['cpu']
+        dy = self._inputs['cpu'].reshape(self.expand_shape)
         ones = self._ones['cpu']
         if axis is None:
             self._outputs['cpu'] = ones * dy / rsize
@@ -116,8 +117,13 @@ class MeanElement(UserGraph):
 
 class MeanGraphElement(GraphFactory):
 
+    def __init__(self, axis=None, keepdims=False):
+        super().__init__()
+        self.axis = axis
+        self.keepdims = keepdims
+
     def connect(self, other):
-        ret = MeanElement(other)
+        ret = MeanElement([other], axis=self.axis, keepdims=self.keepdims)
         return ret
 
 
