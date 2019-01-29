@@ -186,7 +186,6 @@ def test_step_executor(use_gpu):
 
 
 def test_inference_mode():
-    np.random.seed(45)
     v1 = np.random.rand(10,2).astype(rm.precision)
     model = rm.graph.SequentialSubGraph([
         rm.graph.DenseGraphElement(3),
@@ -194,8 +193,28 @@ def test_inference_mode():
     ])
     x = model(v1)
     assert model.l1._prev._fwd._op._inference is False
-    model.setInference(True)
+    model.set_inference(True)
     assert model.l1._prev._fwd._op._inference is True
+
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DropoutGraphElement(),
+    ])
+    model.set_inference(True)
+    x = model(v1)
+    assert model.l1._prev._fwd._op._inference is True
+    model.set_inference(False)
+    assert model.l1._prev._fwd._op._inference is False
+
+def test_updatable_mode():
+    v1 = np.random.rand(10,2).astype(rm.precision)
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DropoutGraphElement(),
+    ])
+    x = model(v1)
+
+
 
 def test_finalizer(use_gpu):
     rm.set_cuda_active(use_gpu)

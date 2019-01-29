@@ -34,6 +34,7 @@ class GraphFactory(abc.ABC):
         '''
         self.params = dict()
         self._prev = None
+        self._inference = None
 
     @abc.abstractmethod
     def connect(self, other):
@@ -51,15 +52,25 @@ class GraphFactory(abc.ABC):
         if self._prev is not None:
             self._prev.detach()
         ret = self.connect(*other)
+        if self._inference is not None:
+            ret._fwd._op._inference = True
         self._prev = ret
         return ret
 
-    def setInference(self, infer = True):
-        if self._prev is not None:
-            self._prev.set_inference(infer)
+    def set_updatable(self, should_update=True):
+        for param in self.params.values():
+            param.allow_update(should_update)
         for elem in self.__dict__.values():
             if isinstance(elem, GraphFactory):
-                elem.setInference(infer)
+                elem.set_updatable(should_update)
+
+    def set_inference(self, infer = True):
+        if self._prev is not None:
+            self._prev.set_inference(infer)
+        self._inference = infer
+        for elem in self.__dict__.values():
+            if isinstance(elem, GraphFactory):
+                elem.set_inference(infer)
 
     def _get_model_children(self):
         for k, v in self.__dict__.items():
