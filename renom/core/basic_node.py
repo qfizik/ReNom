@@ -608,7 +608,6 @@ class Variable(Node):
     +-----------+-----------+--------------+
 
 
-
     Example:
         >>> import numpy as np
         >>> import renom as rm
@@ -618,12 +617,16 @@ class Variable(Node):
     '''
 
     weight_decay = None
+    '''Weight decay coefficient.'''
 
     def __new__(cls, value, auto_update=True, weight_decay=None):
         ret = super(Variable, cls).__new__(cls, value)
         ret._auto_update = auto_update
         ret.weight_decay = weight_decay
         return ret
+
+    def __init__(self, value, auto_update=True, weight_decay=None):
+        pass
 
     def backward(self, context, dy, **kwargs):
         pass
