@@ -169,7 +169,6 @@ def test_validation_executor(use_gpu):
 
 def test_step_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
-    rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
     v1 = np.random.rand(10, 2).astype(rm.precision)
@@ -185,6 +184,18 @@ def test_step_executor(use_gpu):
         loss2 += exe.step(v2, t2)
     assert np.allclose(loss1 * 4, loss2, atol=1)
 
+
+def test_inference_mode():
+    np.random.seed(45)
+    v1 = np.random.rand(10,2).astype(rm.precision)
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DropoutGraphElement(),
+    ])
+    x = model(v1)
+    assert model.l1._prev._fwd._op._inference is False
+    model.setInference(True)
+    assert model.l1._prev._fwd._op._inference is True
 
 def test_finalizer(use_gpu):
     rm.set_cuda_active(use_gpu)

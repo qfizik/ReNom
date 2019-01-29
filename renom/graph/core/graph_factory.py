@@ -54,7 +54,7 @@ class GraphFactory(abc.ABC):
         self._prev = ret
         return ret
 
-    def setInference(infer = True):
+    def setInference(self, infer = True):
         if self._prev is not None:
             self._prev.set_inference(infer)
         for elem in self.__dict__.values():
