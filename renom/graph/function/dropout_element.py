@@ -3,7 +3,7 @@ from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable,
 import numpy as np
 
 
-class DropoutGraphElement(GraphFactory):
+class Dropout(GraphFactory):
     """Applies Dropout [dropout]_ to the input.
 
     Dropout function randomly selects a fraction (specified by dropout_ratio) of
@@ -25,7 +25,7 @@ class DropoutGraphElement(GraphFactory):
         array([[ 0.92146051,  0.09946255],
                [ 0.05895275,  0.78195323],
                [ 0.98867317,  0.03215612]])
-        In [5]: layer = rm.graph.DropoutGraphElement(0.8)
+        In [5]: layer = rm.graph.Dropout(0.8)
         In [6]: z = layer(x).as_ndarray()
         In [7]: z
         Out[7]:

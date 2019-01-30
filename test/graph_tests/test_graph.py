@@ -972,7 +972,7 @@ def test_dropout(test_shape, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.DropoutGraphElement()
+    model = rm.graph.Dropout()
     loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)

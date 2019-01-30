@@ -12,4 +12,4 @@ from .pool_element import MaxPool, AvgPool
 from .unpool_element import MaxUnPoolGraphElement
 from .batch_normalize_element import BatchNormalizeGraphElement
 from .bias_element import BiasGraphElement
-from .dropout_element import DropoutGraphElement
+from .dropout_element import Dropout

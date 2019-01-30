@@ -19,7 +19,7 @@ you can use to create the graph.
     Conv
     DeconvolutionalGraphElement
     Dense
-    DropoutGraphElement
+    Dropout
     EmbeddingGraphElement
     GruGraphElement
     L2NormGraphElement
