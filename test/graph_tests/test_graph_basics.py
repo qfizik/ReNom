@@ -53,7 +53,7 @@ def test_basic_lstm():
     layer = rm.graph.Lstm(3)
     t = np.random.rand(2, 3)
     loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.sgd_update(0.01, 0.4)
+    opt = rm.graph.Sgd(0.01, 0.4)
     p_l = 9999
     for i in range(3):
         layer.reset()
@@ -115,7 +115,7 @@ def test_training_executor(use_gpu):
     layer = rm.graph.Dense(4)
     t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.sgd_update()
+    opt = rm.graph.Sgd()
     data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
     exe = loss(layer(data), target).getTrainingExecutor(opt)
     losses = exe.execute(epochs=3)
@@ -132,7 +132,7 @@ def test_training_executor_validation(use_gpu):
     t1 = np.random.rand(20, 4).astype(rm.precision)
     t2 = np.random.rand(6, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.sgd_update()
+    opt = rm.graph.Sgd()
     data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
     graph = loss(layer(data), target)
     t_exe = graph.getTrainingExecutor(opt, with_validation=(v2, t2))
@@ -196,7 +196,7 @@ def test_finalizer(use_gpu):
     layer2 = rm.graph.Dense(3)
     t = np.random.rand(2, 3)
     loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.sgd_update()
+    opt = rm.graph.Sgd()
 
     z = v
     z = layer1(z)

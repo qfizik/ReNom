@@ -31,7 +31,7 @@ class update_operation(operation):
 
     def __init__(self, consumer, producer, key, operation=None):
         # if operation is None:
-        #  operation = sgd_update(0.01, 0.4) if rm.is_cuda_active() else sgd_update_cpu(0.01, 0.4)
+        #  operation = Sgd(0.01, 0.4) if rm.is_cuda_active() else sgd_update_cpu(0.01, 0.4)
         self._consumer = consumer
         self._producer = producer
         self._shared_key = key
@@ -45,7 +45,7 @@ class update_operation(operation):
 
     def setup(self, inputs):
         if self._factory is None:
-            self._factory = rm.graph.sgd_update()
+            self._factory = rm.graph.Sgd()
         assert self._factory is not None
         self._dy = self._producer.get_key(self._shared_key)
         self._outputs = self._consumer.get_key(self._shared_key)
