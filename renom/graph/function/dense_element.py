@@ -4,7 +4,7 @@ import renom as rm
 import numpy as np
 
 
-class DenseGraphElement(GraphFactory):
+class Dense(GraphFactory):
     '''Fully connected layer as described below.
 
         See also :py:class:`~renom.layers.function.dense.Dense`
@@ -25,7 +25,7 @@ class DenseGraphElement(GraphFactory):
           In [3]: x = np.random.rand(3, 2)
           In [4]: x.shape
           Out[4]: (3, 2)
-          In [5]: layer = rm.graph.DenseGraphElement(3)
+          In [5]: layer = rm.graph.Dense(3)
           In [6]: z = layer(x).as_ndarray()
           In [7]: z.shape
           Out[7]: (3, 3)
@@ -42,14 +42,14 @@ class DenseGraphElement(GraphFactory):
         self._init = initializer
 
     def connect(self, other):
-        ret = DenseGraph(output_size=self.output_size, initializer=self._init,
-                         previous_element=[other, self.params['w']])
+        ret = DenseElement(output_size=self.output_size, initializer=self._init,
+                           previous_element=[other, self.params['w']])
         if not self._ignore_bias:
             ret = self._bias(ret)
         return ret
 
 
-class DenseGraph(UserGraph):
+class DenseElement(UserGraph):
 
     def __init__(self, output_size, initializer, previous_element=None):
 

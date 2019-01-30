@@ -5,7 +5,7 @@ import renom.utility.initializer as init
 import numpy as np
 
 
-class ConvolutionalGraphElement(GraphFactory):
+class Conv(GraphFactory):
 
     """Convolutional Layer.
 
@@ -28,7 +28,7 @@ class ConvolutionalGraphElement(GraphFactory):
           In [4]: x = np.random.rand(n, c, h, w)
           In [5]: x.shape
           Out[5]: (10, 3, 32, 32)
-          In [6]: layer = rm.graph.ConvolutionalGraphElement(channels = 5)
+          In [6]: layer = rm.graph.Conv(channels = 5)
           In [7]: z = layer(x).as_ndarray()
           In [8]: z.shape
           Out[8]: (10, 5, 30, 30)
@@ -49,8 +49,8 @@ class ConvolutionalGraphElement(GraphFactory):
         self.params['b'] = graph_variable(allow_update=not ignore_bias)
 
     def connect(self, other):
-        ret = ConvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd,
-                                 self._init, previous_element=[other, self.params['w'], self.params['b']])
+        ret = ConvElement(self._chnls, self._krnl, self._pdng, self._strd,
+                          self._init, previous_element=[other, self.params['w'], self.params['b']])
         return ret
 
 
@@ -235,7 +235,7 @@ class convo_backward_cpu(convo_backward):
         self._bias_out['cpu'] = db
 
 
-class ConvolutionalGraph(UserGraph):
+class ConvElement(UserGraph):
 
     def __init__(self, channels=3, kernel=3, padding=0, stride=1, initializer=None, previous_element=None):
 

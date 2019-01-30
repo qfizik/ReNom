@@ -28,7 +28,7 @@ T = True
 F = False
 
 
-class sgd_update(optimizer_factory):
+class Sgd(optimizer_factory):
 
     class gpu_op:
 
