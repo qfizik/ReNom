@@ -18,7 +18,7 @@ you can use to create the graph.
     BiasGraphElement
     ConvolutionalGraphElement
     DeconvolutionalGraphElement
-    DenseGraphElement
+    Dense
     DropoutGraphElement
     EmbeddingGraphElement
     GruGraphElement

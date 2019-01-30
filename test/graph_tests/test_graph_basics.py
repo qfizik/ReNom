@@ -79,7 +79,7 @@ def test_optimizer(use_gpu):
     rm.set_cuda_active(use_gpu)
     np.random.seed(45)
     v = np.random.rand(2, 2)
-    layer = rm.graph.DenseGraphElement(3)
+    layer = rm.graph.Dense(3)
     t = np.random.rand(2, 3)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.adam_update()
@@ -98,7 +98,7 @@ def test_inference_executor(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(20, 3).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rm.graph.Dense(4)
     t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
@@ -112,7 +112,7 @@ def test_training_executor(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(20, 3).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rm.graph.Dense(4)
     t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.sgd_update()
@@ -128,7 +128,7 @@ def test_training_executor_validation(use_gpu):
     np.random.seed(45)
     v1 = np.random.rand(20, 3).astype(rm.precision)
     v2 = np.random.rand(6, 3).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rm.graph.Dense(4)
     t1 = np.random.rand(20, 4).astype(rm.precision)
     t2 = np.random.rand(6, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
@@ -155,7 +155,7 @@ def test_validation_executor(use_gpu):
 
     np.random.seed(45)
     v1 = np.random.rand(10, 2).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rm.graph.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
@@ -173,7 +173,7 @@ def test_step_executor(use_gpu):
 
     np.random.seed(45)
     v1 = np.random.rand(10, 2).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rm.graph.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
@@ -193,7 +193,7 @@ def test_finalizer(use_gpu):
     v = np.random.rand(2, 1, 3, 4)
     layer1 = rm.graph.ConvolutionalGraphElement(channels=2)
     res = rm.graph.ReshapeGraphElement([-1])
-    layer2 = rm.graph.DenseGraphElement(3)
+    layer2 = rm.graph.Dense(3)
     t = np.random.rand(2, 3)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.sgd_update()
@@ -212,9 +212,9 @@ def test_sequential(use_gpu):
     np.random.seed(45)
     v = np.random.rand(4, 4)
     model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(1),
-        rm.graph.DenseGraphElement(5),
+        rm.graph.Dense(3),
+        rm.graph.Dense(1),
+        rm.graph.Dense(5),
     ])
     z = model(v).as_ndarray()
     assert z.shape == (4, 5)
@@ -225,7 +225,7 @@ def test_weight_decay(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(4, 4)
-    dense = rm.graph.DenseGraphElement(3, weight_decay=0.05)
+    dense = rm.graph.Dense(3, weight_decay=0.05)
     import os
     tmp_filename = get_random_filename()
     try:
@@ -447,9 +447,9 @@ def test_save_load(devices_to_load):
         rm.set_cuda_active(False)
 
     model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(6),
-        rm.graph.DenseGraphElement(2),
+        rm.graph.Dense(3),
+        rm.graph.Dense(6),
+        rm.graph.Dense(2),
     ])
 
     x = np.random.rand(5, 4)
@@ -459,9 +459,9 @@ def test_save_load(devices_to_load):
     model.save(tmp_filename)
 
     model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(6),
-        rm.graph.DenseGraphElement(2),
+        rm.graph.Dense(3),
+        rm.graph.Dense(6),
+        rm.graph.Dense(2),
     ])
     model.load(tmp_filename, devices=devices_to_load)
     y2 = model(x).as_ndarray()
@@ -469,9 +469,9 @@ def test_save_load(devices_to_load):
 
     try:
         model = rm.graph.SequentialSubGraph([
-            rm.graph.DenseGraphElement(6),
-            rm.graph.DenseGraphElement(3),
-            rm.graph.DenseGraphElement(2),
+            rm.graph.Dense(6),
+            rm.graph.Dense(3),
+            rm.graph.Dense(2),
         ])
         model.load(tmp_filename)
         raise AssertionError('Model should not be able to load different shape')
@@ -497,9 +497,9 @@ def test_version_save_compability(use_gpu):
     tmp_filename = get_random_filename()
     v2_model.save(tmp_filename)
     v3_model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(5),
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(1),
+        rm.graph.Dense(5),
+        rm.graph.Dense(3),
+        rm.graph.Dense(1),
     ])
     v3_model.load(tmp_filename)
     y2 = v3_model(x).as_ndarray()
@@ -517,9 +517,9 @@ def test_dtype(ttype, use_gpu):
     rm.set_cuda_active(use_gpu)
 
     model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(6),
-        rm.graph.DenseGraphElement(2),
+        rm.graph.Dense(3),
+        rm.graph.Dense(6),
+        rm.graph.Dense(2),
     ])
 
     x = np.random.rand(5, 4).astype(ttype)

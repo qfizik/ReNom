@@ -4,7 +4,7 @@ import renom as rm
 import numpy as np
 
 
-class DenseGraphElement(GraphFactory):
+class Dense(GraphFactory):
     '''Fully connected layer as described below.
 
         See also :py:class:`~renom.layers.function.dense.Dense`
@@ -25,7 +25,7 @@ class DenseGraphElement(GraphFactory):
           In [3]: x = np.random.rand(3, 2)
           In [4]: x.shape
           Out[4]: (3, 2)
-          In [5]: layer = rm.graph.DenseGraphElement(3)
+          In [5]: layer = rm.graph.Dense(3)
           In [6]: z = layer(x).as_ndarray()
           In [7]: z.shape
           Out[7]: (3, 3)
