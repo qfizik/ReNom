@@ -20,7 +20,7 @@ class convnd(Node):
         return cls.calc_value(x, w, b, in_shape, filter, stride, padding)
 
     @classmethod
-    def _oper_cpu(cls, x, w, b, in_shape, kernel, stride, padding):
+    def _oper_cpu(cls, x, w, b, in_shape, filter, stride, padding):
         col = imncol(to_value(x), w, stride, padding)
         if b is not None:
             col += b
@@ -28,19 +28,19 @@ class convnd(Node):
         ret.attrs._x = x
         ret.attrs._w = w
         ret.attrs._b = b
-        ret.attrs._kernel = kernel
+        ret.attrs._filter = filter
         ret.attrs._stride = stride
         ret.attrs._padding = padding
         return ret
 
     @classmethod
-    def _oper_gpu(cls, x, w, b, in_shape, kernel, stride, padding):
+    def _oper_gpu(cls, x, w, b, in_shape, filter, stride, padding):
         conv_desc = cu.ConvolutionNDescriptor(padding, stride, precision)
         filter_desc = cu.NdFilterDescriptor(w.shape, precision)
 
         output_shape = [x.shape[0], w.shape[0]]
         for i in range(len(x.shape[2:])):
-            output_shape.append((x.shape[i + 2] + padding[i] * 2 - kernel[i]) // stride[i] + 1)
+            output_shape.append((x.shape[i + 2] + padding[i] * 2 - filter[i]) // stride[i] + 1)
         y = GPUValue(shape=tuple(output_shape))
 
         with cu.RenomHandler() as handle:
@@ -120,7 +120,7 @@ class ConvNd(Parametrized):
 
     Args:
         channel (int): The dimensionality of the output.
-        filter (int): Filter size of the convolution kernel.
+        filter (int): Filter size of the convolution filter.
         padding (int): Size of the zero - padding around the image.
         stride (int): Stride - size of the convolution.
         input_size (tuple): Input unit size. This must be a tuple like (Channel, Height, Width).
@@ -147,7 +147,7 @@ class ConvNd(Parametrized):
                  input_size=None, ignore_bias=False, initializer=Gaussian()):
         self._padding = padding
         self._stride = stride
-        self._kernel = filter
+        self._filter = filter
         self._channel = channel
         self._initializer = initializer
         self._ignore_bias = ignore_bias
@@ -161,21 +161,21 @@ class ConvNd(Parametrized):
             assert self._dims < 4, "GPU Version currently only supports 2 and 3 dimensions"
 
         if self._dims == 1 and is_cuda_active():
-            self._kernel = np.append(self._kernel, 1).astype(np.int32)
+            self._filter = np.append(self._filter, 1).astype(np.int32)
             self._padding = np.append(self._padding, 0).astype(np.int32)
             self._stride = np.append(self._stride, 1).astype(np.int32)
 
         def func(var):
             return check_input(var, self._dims)
-        self._kernel, self._padding, self._stride = map(
-            func, [self._kernel, self._padding, self._stride])
+        self._filter, self._padding, self._stride = map(
+            func, [self._filter, self._padding, self._stride])
 
         assert all([s > 0 for s in input_size[1:]]), \
             "The shape of input array {} is too small. Please give an array which size is lager than 0.".format(
                 input_size[1:])
 
         f_lst = [self._channel, input_size[0]]
-        f_lst.extend(self._kernel)
+        f_lst.extend(self._filter)
         size_f = tuple(f_lst)
         size_b = tuple([1, self._channel] + [1 for _ in range(self._dims)])
 
@@ -190,7 +190,7 @@ class ConvNd(Parametrized):
             "The shape of input array {} is too small. Please give an array which size is lager than 0.".format(
                 x.shape)
 
-        return convnd(x, self.params["w"], self.params.get("b", None), self._kernel,
+        return convnd(x, self.params["w"], self.params.get("b", None), self._filter,
                       self._stride, self._padding)
 
 
@@ -207,7 +207,7 @@ class Conv3d(Parametrized):
                  input_size=None, ignore_bias=False, initializer=Gaussian(), weight_decay=0):
         self._padding = padding
         self._stride = stride
-        self._kernel = filter
+        self._filter = filter
         self._channel = channel
         self._initializer = initializer
         self._ignore_bias = ignore_bias
@@ -222,15 +222,15 @@ class Conv3d(Parametrized):
 
         def func(var):
             return check_input(var, self._dims)
-        self._kernel, self._padding, self._stride = map(
-            func, [self._kernel, self._padding, self._stride])
+        self._filter, self._padding, self._stride = map(
+            func, [self._filter, self._padding, self._stride])
 
-        assert all([s >= min(self._kernel) for s in input_size[1:]]), \
+        assert all([s >= min(self._filter) for s in input_size[1:]]), \
             "The shape of input array {} is too small. Please give an array which size is lager than 0.".format(
                 input_size[1:])
 
         f_lst = [self._channel, input_size[0]]
-        f_lst.extend(self._kernel)
+        f_lst.extend(self._filter)
         size_f = tuple(f_lst)
         size_b = tuple([1, self._channel] + [1 for _ in range(self._dims)])
 
@@ -241,8 +241,8 @@ class Conv3d(Parametrized):
 
     def forward(self, x):
         assert len(x.shape) == 5, "The dimension of input array must be 5. Actual dim is {}".format(x.ndim)
-        assert all([s >= min(self._kernel) for s in x.shape[2:]]), \
+        assert all([s >= min(self._filter) for s in x.shape[2:]]), \
             "The shape of input array {} is too small. Please give an array which size is lager than 0.".format(
                 x.shape)
-        return convnd(x, self.params["w"], self.params.get("b", None), self._kernel,
+        return convnd(x, self.params["w"], self.params.get("b", None), self._filter,
                       self._stride, self._padding)

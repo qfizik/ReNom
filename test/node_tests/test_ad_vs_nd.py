@@ -804,7 +804,7 @@ def test_max_unpoolnd(node, use_gpu):
     assert_cuda_active(use_gpu)
     node = Variable(node)
 
-    l0 = MaxPoolNd(kernel=2, padding=1, stride=1)
+    l0 = MaxPoolNd(filter=2, padding=1, stride=1)
     l1 = MaxUnPoolNd()
     l2 = Dense(2)
     np.set_printoptions(suppress=True)
@@ -835,7 +835,7 @@ def test_max_unpoolnd(node, use_gpu):
 def test_average_unpoolnd(node, use_gpu):
     assert_cuda_active(use_gpu)
     node = Variable(node)
-    l0 = AveragePoolNd(kernel=2)
+    l0 = AveragePoolNd(filter=2)
     l1 = AverageUnPoolNd()
     l2 = Dense(2)
     np.set_printoptions(suppress=True)
@@ -867,7 +867,7 @@ def test_max_poolnd(node, use_gpu):
 
     node = Variable(node)
     assert_cuda_active(use_gpu)
-    layer = MaxPoolNd(kernel=3, padding=2, stride=2)
+    layer = MaxPoolNd(filter=3, padding=2, stride=2)
 
     def func(node):
         return sum(layer(node))

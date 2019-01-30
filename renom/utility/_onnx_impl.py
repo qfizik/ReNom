@@ -70,7 +70,7 @@ class Conv2dModel(_ModelNode):
                 'Conv',
                 [_to_param_name(v) for v in (self.attrs.input, w, b)],
                 [_to_param_name(self)],
-                kernel_shape=self.output.attrs._kernel,
+                kernel_shape=self.output.attrs._filter,
                 pads=self.output.attrs._padding,
                 strides=self.output.attrs._stride,
                 dilations=self.output.attrs._dilation))
@@ -145,7 +145,7 @@ def register_max_pool2d(onnx_nodes, inputs, outputs, values, node):
             'MaxPool',
             [_to_param_name(node.attrs._x)],
             [_to_param_name(node)],
-            kernel_shape=node.attrs._kernel,
+            kernel_shape=node.attrs._filter,
             pads=node.attrs._padding,
             strides=node.attrs._stride,
         ))

@@ -27,10 +27,10 @@ class conv2d(Node):
                                     dilation, descriptor, algorithms, activation)
 
     @classmethod
-    def _oper_cpu(cls, x, w, b, in_shape, out_shape, kernel, stride, padding, dilation,
+    def _oper_cpu(cls, x, w, b, in_shape, out_shape, filter, stride, padding, dilation,
                   descriptor=None, algorithms=None, activation=None):
         col = im2col(to_value(x),
-                     out_shape[1:], kernel,
+                     out_shape[1:], filter,
                      stride, padding, dilation)
         value = np.rollaxis(np.tensordot(col, to_value(w),
                                          ([1, 2, 3], [1, 2, 3])), 3, 1)
@@ -43,14 +43,14 @@ class conv2d(Node):
         ret.attrs._b = b
         ret.attrs._in_shape = in_shape
         ret.attrs._out_shape = out_shape
-        ret.attrs._kernel = kernel
+        ret.attrs._filter = filter
         ret.attrs._stride = stride
         ret.attrs._padding = padding
         ret.attrs._dilation = dilation
         return ret
 
     @classmethod
-    def _oper_gpu(cls, x, w, b, in_shape, out_shape, kernel, stride, padding, dilation,
+    def _oper_gpu(cls, x, w, b, in_shape, out_shape, filter, stride, padding, dilation,
                   descriptor=None, algorithms=None, activation=None):
         N = x.shape[0]
         if descriptor is not None:
@@ -90,7 +90,7 @@ class conv2d(Node):
         ret.attrs._b = b
         ret.attrs._in_shape = in_shape
         ret.attrs._out_shape = out_shape
-        ret.attrs._kernel = kernel
+        ret.attrs._filter = filter
         ret.attrs._stride = stride
         ret.attrs._padding = padding
         ret.attrs._dilation = dilation
@@ -151,7 +151,7 @@ class Conv2d(Parametrized):
 
     Args:
         channel (int): The dimensionality of the output.
-        filter (tuple,int): Filter size of the convolution kernel.
+        filter (tuple,int): Filter size of the convolution filter.
         padding (tuple,int): Size of the zero-padding around the image.
         stride (tuple,int): Stride-size of the convolution.
         dilation(tupe, int): Dilation of the convolution.
@@ -186,7 +186,7 @@ class Conv2d(Parametrized):
                  initializer=GlorotNormal(),
                  weight_decay=0,
                  activation=None):
-        self._padding, self._stride, self._kernel, self._dilation = (tuplize(x)
+        self._padding, self._stride, self._filter, self._dilation = (tuplize(x)
                                                                      for x in (padding, stride, filter, dilation))
         self._channel = channel
         self._ignore_bias = ignore_bias
@@ -199,7 +199,7 @@ class Conv2d(Parametrized):
 
     def weight_initiallize(self, input_size):
         size_f = (self._channel, input_size[0],
-                  self._kernel[0], self._kernel[1])
+                  self._filter[0], self._filter[1])
         assert all([s > 0 for s in input_size[1:]]), \
             "The shape of input array {} is too small. Please give an array which size is lager than 0.".format(
                 input_size[1:])
@@ -221,7 +221,7 @@ class Conv2d(Parametrized):
                 x.shape)
         if self._algo is None and self._descriptors is not None and cu.is_cuda_active():
             out_shape = [self.params.w.shape[0]]
-            out_shape.extend(out_size(x.shape[2:], self._kernel,
+            out_shape.extend(out_size(x.shape[2:], self._filter,
                                       self._stride, self._padding, self._dilation))
             with cu.RenomHandler() as handle:
                 self._algo = {
@@ -234,7 +234,7 @@ class Conv2d(Parametrized):
                                                            np.ndarray(tuple([x.shape[0], ] + out_shape),
                                                                       dtype=precision))
                 }
-        ret = conv2d(x, self.params.w, self.params.get("b", None), self._kernel,
+        ret = conv2d(x, self.params.w, self.params.get("b", None), self._filter,
                      self._stride, self._padding, self._dilation, self._descriptors,
                      self._algo, self._activation)
         if cu.is_cuda_active() and self._activation is not None and \
