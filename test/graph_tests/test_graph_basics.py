@@ -102,7 +102,7 @@ def test_inference_executor(use_gpu):
     t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
-    exe = loss(layer(data), target).getInferenceExecutor()
+    exe = loss(layer(data), target).get_executor()
     losses = exe.execute(epochs=3)
     assert all(losses[i] == losses[i + 1] for i in range(len(losses) - 1))
 
@@ -117,7 +117,7 @@ def test_training_executor(use_gpu):
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.Sgd()
     data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
-    exe = loss(layer(data), target).getTrainingExecutor(opt)
+    exe = loss(layer(data), target).get_executor(optimizer=opt, mode='training')
     losses = exe.execute(epochs=3)
     assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
 
@@ -159,7 +159,7 @@ def test_validation_executor(use_gpu):
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
-    exe = loss(layer(data), target).getInferenceExecutor()
+    exe = loss(layer(data), target).get_executor()
     losses1 = np.array(exe.execute(epochs=3))
     v2, t2 = v1 * 2, t1 * 2
     exe.set_input_data(v2, t2)
@@ -177,7 +177,7 @@ def test_step_executor(use_gpu):
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
-    exe = loss(layer(data), target).getInferenceExecutor()
+    exe = loss(layer(data), target).get_executor()
     loss1 = np.array(exe.execute(epochs=1))
     loss2 = 0
     for i in range(0, 10, 2):
