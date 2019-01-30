@@ -186,7 +186,7 @@ def test_step_executor(use_gpu):
 
 
 def test_inference_mode():
-    v1 = np.random.rand(10,2).astype(rm.precision)
+    v1 = np.random.rand(10, 2).astype(rm.precision)
     model = rm.graph.SequentialSubGraph([
         rm.graph.DenseGraphElement(3),
         rm.graph.DropoutGraphElement(),
@@ -206,8 +206,9 @@ def test_inference_mode():
     model.set_inference(False)
     assert model.l1._prev._fwd._op._inference is False
 
+
 def test_updatable_mode():
-    v1 = np.random.rand(10,2).astype(rm.precision)
+    v1 = np.random.rand(10, 2).astype(rm.precision)
     model = rm.graph.SequentialSubGraph([
         rm.graph.DenseGraphElement(3),
         rm.graph.DropoutGraphElement(),
@@ -216,7 +217,6 @@ def test_updatable_mode():
     assert model.l0.params['w']._fwd._op._val._should_update is True
     model.set_updatable(False)
     assert model.l0.params['w']._fwd._op._val._should_update is False
-
 
 
 def test_finalizer(use_gpu):

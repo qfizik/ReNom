@@ -126,7 +126,6 @@ class dropout_backward_cpu(dropout_backward):
 
 class DropoutElement(UserGraph):
 
-
     def __init__(self, dropout_rate=0.5, previous_elements=None):
         self.dropout_ratio = dropout_rate
         fwd_op = dropout_forward() if rm.is_cuda_active() else dropout_forward_cpu()

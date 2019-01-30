@@ -7,6 +7,7 @@ from .graph_storage import GraphMultiStorage
 import functools
 import h5py
 
+
 def recursive_setting(func):
     @functools.wraps(func)
     def ret_func(self, *args, **kwargs):
@@ -15,6 +16,7 @@ def recursive_setting(func):
             if isinstance(elem, GraphFactory):
                 ret_func(elem, *args, **kwargs)
     return ret_func
+
 
 class GraphFactory(abc.ABC):
 
@@ -72,7 +74,7 @@ class GraphFactory(abc.ABC):
             param.allow_update(should_update)
 
     @recursive_setting
-    def set_inference(self, infer = True):
+    def set_inference(self, infer=True):
         if self._prev is not None:
             self._prev.set_inference(infer)
         self._inference = infer

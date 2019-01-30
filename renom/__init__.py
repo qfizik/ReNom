@@ -82,19 +82,19 @@ def show_config(args):
     import platform
     os_name = platform.system()
     os_platform = platform.platform()
-    os_version = platform.version() # NOQA
+    os_version = platform.version()  # NOQA
     python_version = platform.python_version()
     installed_location = os.path.join('/', *list(__file__.split("/")[:-2]))
     if cuda.has_cuda():
-        cuda_driver_version = "None" # NOQA
-        cuda_toolkit_version = "None" # NOQA
-        cuda_cudnn_version = "None" # NOQA
-        connected_gpu_list = [] # NOQA
+        cuda_driver_version = "None"  # NOQA
+        cuda_toolkit_version = "None"  # NOQA
+        cuda_cudnn_version = "None"  # NOQA
+        connected_gpu_list = []  # NOQA
     else:
-        cuda_driver_version = "None" # NOQA
-        cuda_toolkit_version = "None" # NOQA
-        cuda_cudnn_version = "None" # NOQA
-        connected_gpu_list = [] # NOQA
+        cuda_driver_version = "None"  # NOQA
+        cuda_toolkit_version = "None"  # NOQA
+        cuda_cudnn_version = "None"  # NOQA
+        connected_gpu_list = []  # NOQA
 
     print()
     # 1. OS information.
