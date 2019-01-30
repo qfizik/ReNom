@@ -169,7 +169,6 @@ def test_validation_executor(use_gpu):
 
 def test_step_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
-    rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
     v1 = np.random.rand(10, 2).astype(rm.precision)
@@ -184,6 +183,40 @@ def test_step_executor(use_gpu):
         v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
         loss2 += exe.step(v2, t2)
     assert np.allclose(loss1 * 4, loss2, atol=1)
+
+
+def test_inference_mode():
+    v1 = np.random.rand(10, 2).astype(rm.precision)
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DropoutGraphElement(),
+    ])
+    x = model(v1)
+    assert model.l1._prev._fwd._op._inference is False
+    model.set_inference(True)
+    assert model.l1._prev._fwd._op._inference is True
+
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DropoutGraphElement(),
+    ])
+    model.set_inference(True)
+    x = model(v1)
+    assert model.l1._prev._fwd._op._inference is True
+    model.set_inference(False)
+    assert model.l1._prev._fwd._op._inference is False
+
+
+def test_updatable_mode():
+    v1 = np.random.rand(10, 2).astype(rm.precision)
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.DenseGraphElement(3),
+        rm.graph.DropoutGraphElement(),
+    ])
+    x = model(v1)
+    assert model.l0.params['w']._fwd._op._val._should_update is True
+    model.set_updatable(False)
+    assert model.l0.params['w']._fwd._op._val._should_update is False
 
 
 def test_finalizer(use_gpu):

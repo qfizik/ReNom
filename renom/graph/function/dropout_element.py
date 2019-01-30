@@ -126,19 +126,9 @@ class dropout_backward_cpu(dropout_backward):
 
 class DropoutElement(UserGraph):
 
-    _inference = False
-
     def __init__(self, dropout_rate=0.5, previous_elements=None):
         self.dropout_ratio = dropout_rate
         fwd_op = dropout_forward() if rm.is_cuda_active() else dropout_forward_cpu()
         bwd_ops = [dropout_backward(fwd_op) if rm.is_cuda_active()
                    else dropout_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
-
-    @property
-    def inference(self):
-        return self._inference
-
-    @inference.setter
-    def inference(self, val):
-        self._inference = val
