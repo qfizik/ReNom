@@ -4,8 +4,17 @@ import numpy as np
 from .user_graph import UserGraph
 from .operation import operation
 from .graph_storage import GraphMultiStorage
+import functools
 import h5py
 
+def recursive_setting(func):
+    @functools.wraps(func)
+    def ret_func(self, *args, **kwargs):
+        func(self, *args, **kwargs)
+        for elem in self.__dict__.values():
+            if isinstance(elem, GraphFactory):
+                ret_func(elem, *args, **kwargs)
+    return ret_func
 
 class GraphFactory(abc.ABC):
 
@@ -57,20 +66,16 @@ class GraphFactory(abc.ABC):
         self._prev = ret
         return ret
 
+    @recursive_setting
     def set_updatable(self, should_update=True):
         for param in self.params.values():
             param.allow_update(should_update)
-        for elem in self.__dict__.values():
-            if isinstance(elem, GraphFactory):
-                elem.set_updatable(should_update)
 
+    @recursive_setting
     def set_inference(self, infer = True):
         if self._prev is not None:
             self._prev.set_inference(infer)
         self._inference = infer
-        for elem in self.__dict__.values():
-            if isinstance(elem, GraphFactory):
-                elem.set_inference(infer)
 
     def _get_model_children(self):
         for k, v in self.__dict__.items():
