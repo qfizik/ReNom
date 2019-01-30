@@ -4,7 +4,7 @@ import collections
 import weakref
 import numpy as np
 from numbers import Number
-from renom import precision
+from renom import precision, __version__
 import renom.debug_graph
 import renom.cuda
 if renom.cuda.has_cuda():
@@ -40,15 +40,70 @@ class GraphAttrs(object):
 
 
 class Node(np.ndarray):
-    '''This is the base class of all of the auto-differentiation compatible operation function.
-    Node class inherits numpy ndarray class.
+    '''This is the base class of all of the auto-differentiation
+    compatible array. Using this array class for calculating,
+    the calculation history(computational graph) will be built and the gradient of 
+    any node class object on the computational gradient can be calculated. 
+
+    Node object can be initialized giving numpy array. If the data type of given array is
+    not float32 or float64, Node object automatically casts it to float32 or float64
+    according to the ``renom.precision`` setting. By default, renom.precision is set to
+    float32. You can use float64 precision by setting an environment variable 
+    RENOM_PRECISION to be 64. For example, following shell script set the environment variable.
+
+    .. code-block:: shell
+
+        export RENOM_PRECISION=64
+
+
+    As the Node class is a base class, user might not deal with object of Node class.
+    ReNom provides other auto-differentiation compatible array class called Variable.
+    The Variable class has more utility interfaces such as ``weight_decay``, ``auto_update``.
+    This helps users to manage the arrays and earned gradients.
+    For more information, please refer to the reference of :class:`Variable`.
+
+    Following example is basic case of getting a gradient of an array.
 
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>> vx = rm.Variable(np.random.rand(3, 2))
-        >>> isinstance(vx, rm.Node)
-        True
+        >>> 
+        >>> v1 = rm.Variable(np.array([1, 2]))
+        >>> v2 = rm.Variable(np.array([3, 4]))
+        >>> result = rm.sum(v1 * v2)
+        >>> print("Result", result)
+        Result 11.0
+        >>> 
+        >>> grads = result.grad()
+        >>> print("Gradient of v1 is", grads.get(v1))
+        Gradient of v1 is [3. 4.]
+        >>> 
+        >>> print("Gradient of v1 is", grads.get(v2))
+        Gradient of v1 is [1. 2.]
+
+
+    If cuda is activated, Node object automatically uses the gpu device for calculation.
+    Once array data transferred to gpu device, the array data will be kept on gpu memory.
+    For this reason, users need to call ``as_ndarray`` method for transferring the array data
+    from gpu memory to cpu memory. The method as_ndarray returns an array casted to ndarray object.
+    We recommend to call ``as_ndarray`` any time for checking the calculation result.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> from renom.cuda import set_cuda_active
+        >>> 
+        >>> set_cuda_active(True)
+        >>> x1 = np.random.rand(2, 2)
+        >>> x2 = np.random.rand(2, 2)
+        >>> node1 = rm.Node(x1)
+        >>> node2 = rm.Node(x2)
+        >>> 
+        >>> # This add operation performed in gpu device.
+        >>> result = node1 + node2
+        >>> print(result.as_ndarray()) # Transferring the array data. (gpu => cpu)
+        [[1.0171516  1.0086492 ]
+         [1.4602256  0.77632725]]
 
     '''
 
@@ -58,9 +113,7 @@ class Node(np.ndarray):
     _auto_update = False
     _no_backward = False
     _args = ()
-
     SHOWMARK = False
-
     _node_hook = None
 
     @classmethod
@@ -92,7 +145,7 @@ class Node(np.ndarray):
             raise ValueError('Invalid Node value: %r' % value)
 
         assert ret.dtype == precision, (
-            "Type miss matched. Required is {}, actual is {}".format(
+            'Type miss matched. Required is {}, actual is {}'.format(
                 precision().dtype, ret.dtype))
 
         ret.attrs = GraphAttrs()
@@ -167,8 +220,26 @@ class Node(np.ndarray):
         self._model = model
 
     def get_gpu(self):
-        '''This function transfers own matrix to gpu device and
+        '''This function transfers array data to gpu device and
         returns it as a GPUValue object.
+        For imformation of GPUValue class please refer :class:`GPUValue`.
+
+        Example:
+            >>> import numpy as np
+            >>> import renom as rm
+            >>> from renom.cuda import set_cuda_active
+            >>> 
+            >>> v = rm.Variable(np.array([1, 2]))
+            >>> print(v.get_gpu()) # This raises error without cuda.
+            ValueError: Cuda is not active.
+                Use renom.cuda.set_cuda_active() to activate.
+            >>>
+            >>> set_cuda_active()
+            >>> array = v.get_gpu()
+            >>> print(array)
+            array([1., 2.], dtype=float32)
+            >>> print(type(array))
+            <class 'renom.cuda.gpuvalue.gpuvalue.GPUValue'>
 
         Returns:
             (GPUValue): Matrix transferred to gpu device.
@@ -189,14 +260,6 @@ class Node(np.ndarray):
     def to_gpu(self):
         '''Transfer the data on CPU to GPU device.
         This method only available if cuda is activated otherwise this raises `ValueError`.
-
-        Example:
-            >>> import numpy as np
-            >>> import renom as rm
-            >>> from renom.cuda import set_cuda_active
-            >>> set_cuda_active(True)
-            >>> a = rm.Variable(np.arange(4).reshape(2, 2))
-            >>> a.to_gpu()  # Sending array to gpu device.
         '''
         if self._gpu:
             self._gpu.to_gpu(self)
@@ -204,13 +267,12 @@ class Node(np.ndarray):
             self._gpu = GPUValue(self)
 
     def copy(self):
-        """Returns a copy of itself.
-        If node object does not have data on gpu,
-        this returns ndarray.
+        '''Returns a copy of itself.
+        If cuda is not activated, this method returns ndarray.
 
         Returns:
             (Node, ndarray): Copy of node object.
-        """
+        '''
         if self._gpu:
             return self.__class__(self._gpu.copy())
         else:
@@ -224,21 +286,32 @@ class Node(np.ndarray):
                 self._gpu.copy_from(other._gpu)
                 return
 
-        if hasattr(self, "setflags"):
+        if hasattr(self, 'setflags'):
             writable = self.flags.writeable
             self.setflags(write=True)
 
         try:
             self[...] = other
         finally:
-            if hasattr(self, "setflags"):
+            if hasattr(self, 'setflags'):
                 self.setflags(write=writable)
 
     def as_ndarray(self):
-        '''This method returns itself as ndarray object.
+        '''This method returns array casted to numpy ndarray object.
 
         Returns:
             (ndarray): Returns an array as a ndarray object.
+
+        Example:
+            >>> import numpy as np
+            >>> import renom as rm
+            >>> v = rm.Variable(np.array([1, 2]))
+            >>> array = v.as_ndarray()
+            >>> print("Data:", array)
+            Data: [1. 2.]
+            >>> print("Object type:", type(array))
+            Object type: <class 'numpy.ndarray'>
+
         '''
         self.to_cpu()
         if self._gpu:
@@ -289,6 +362,24 @@ class Node(np.ndarray):
 
     def detach_graph(self):
         '''This method destroys computational graph.
+        As following example, once this method is called, 
+        gradients can't be calculated because computational is removed.
+        This example raises an error that mentions Node object was not found on
+        the computational graph.
+
+        Example:
+            >>> import numpy as np
+            >>> import renom as rm
+            >>> 
+            >>> v1 = rm.Variable(np.array([1, 2]))
+            >>> v2 = rm.Variable(np.array([3, 4]))
+            >>> result = rm.sum(v1 * v2)
+            >>> print("Result", result)
+            >>> result.detach_graph()
+            >>> grads = result.grad()
+            >>> print("Gradient of v1 is", grads.get(v1))
+            Exception: Node not found.
+                Ensure that _update_diff was properly called on the node first.
         '''
         for v in self._get_graph():
             if isinstance(v, Node):

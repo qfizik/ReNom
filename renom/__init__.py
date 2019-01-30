@@ -41,7 +41,11 @@ ReNom (Top Level)
 
 """
 from __future__ import absolute_import
+
+__version__ = "3.0.0"
+
 import argparse
+import numpy as np
 from renom.config import precision
 from renom import cuda
 from renom import core
@@ -57,7 +61,6 @@ from renom.layers.loss import *
 from renom.optimizer import *
 from renom.debug_graph import *
 from renom import graph
-import numpy as np
 
 logging_level = 0
 
@@ -72,9 +75,6 @@ def set_renom_seed(seed=30, all_devices=False):
     if is_cuda_active():
         curand_set_seed(seed, all_devices=all_devices)
     np.random.seed(seed)
-
-
-__version__ = "3.0.0"
 
 
 def show_config(args):

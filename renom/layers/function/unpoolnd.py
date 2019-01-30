@@ -127,7 +127,6 @@ class MaxUnPoolNd:
 
     '''
 
-
     def __call__(self, x, prev_pool):
         return self.forward(x, SimpleContainer(prev_pool))
 
@@ -152,7 +151,6 @@ class AverageUnPoolNd:
         ``ret.shape == previous_pool.input.shape``
 
     '''
-
 
     def __call__(self, x, prev_pool):
         return self.forward(x, SimpleContainer(prev_pool))

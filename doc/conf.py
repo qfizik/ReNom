@@ -496,7 +496,7 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                     if documenter.objtype == typ:
                         if imported or getattr(value, '__module__', None) == obj.__name__:
                             s = getattr(getattr(obj, name, None), '__module__', None)
-                            p = getattr(obj, 'mro', lambda : [None])()[1]
+                            p = getattr(obj, 'mro', lambda: [None])()[1]
                             if s is None or s.find('renom') < 0:
                                 continue
                             p_m = getattr(p, name, None)
