@@ -764,7 +764,7 @@ class mean(Node):
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>> 
+        >>>
         >>> x = rm.Variable(np.array([2, 3]))
         >>> z = rm.mean(x)
         >>> print("Result", z)

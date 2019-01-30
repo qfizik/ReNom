@@ -122,7 +122,7 @@ class Grads:
     def get(self, node, default=_omit):
         '''This function returns the gradient with respect to the given node.
         In the case of that there is no gradient of given node, this function
-        returns given object as ``default``. If nothing is set to default and 
+        returns given object as ``default``. If nothing is set to default and
         no gradient is found, this function raises an error.
 
         Args:
@@ -143,7 +143,7 @@ class Grads:
             return self.variables.get(id(node), default)
 
     def set(self, node, diff):
-        '''This function will set a gradient to the dictionary using id of 
+        '''This function will set a gradient to the dictionary using id of
         given node object as a key.
 
         Args:

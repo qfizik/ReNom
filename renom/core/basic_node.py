@@ -42,13 +42,13 @@ class GraphAttrs(object):
 class Node(np.ndarray):
     '''This is the base class of all of the auto-differentiation
     compatible array. Using this array class for calculating,
-    the calculation history(computational graph) will be built and the gradient of 
-    any node class object on the computational gradient can be calculated. 
+    the calculation history(computational graph) will be built and the gradient of
+    any node class object on the computational gradient can be calculated.
 
     Node object can be initialized giving numpy array. If the data type of given array is
     not float32 or float64, Node object automatically casts it to float32 or float64
     according to the ``renom.precision`` setting. By default, renom.precision is set to
-    float32. You can use float64 precision by setting an environment variable 
+    float32. You can use float64 precision by setting an environment variable
     RENOM_PRECISION to be 64. For example, following shell script set the environment variable.
 
     .. code-block:: shell
@@ -67,17 +67,17 @@ class Node(np.ndarray):
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>> 
+        >>>
         >>> v1 = rm.Variable(np.array([1, 2]))
         >>> v2 = rm.Variable(np.array([3, 4]))
         >>> result = rm.sum(v1 * v2)
         >>> print("Result", result)
         Result 11.0
-        >>> 
+        >>>
         >>> grads = result.grad()
         >>> print("Gradient of v1 is", grads.get(v1))
         Gradient of v1 is [3. 4.]
-        >>> 
+        >>>
         >>> print("Gradient of v1 is", grads.get(v2))
         Gradient of v1 is [1. 2.]
 
@@ -92,13 +92,13 @@ class Node(np.ndarray):
         >>> import numpy as np
         >>> import renom as rm
         >>> from renom.cuda import set_cuda_active
-        >>> 
+        >>>
         >>> set_cuda_active(True)
         >>> x1 = np.random.rand(2, 2)
         >>> x2 = np.random.rand(2, 2)
         >>> node1 = rm.Node(x1)
         >>> node2 = rm.Node(x2)
-        >>> 
+        >>>
         >>> # This add operation performed in gpu device.
         >>> result = node1 + node2
         >>> print(result.as_ndarray()) # Transferring the array data. (gpu => cpu)
@@ -228,7 +228,7 @@ class Node(np.ndarray):
             >>> import numpy as np
             >>> import renom as rm
             >>> from renom.cuda import set_cuda_active
-            >>> 
+            >>>
             >>> v = rm.Variable(np.array([1, 2]))
             >>> print(v.get_gpu()) # This raises error without cuda.
             ValueError: Cuda is not active.
@@ -362,7 +362,7 @@ class Node(np.ndarray):
 
     def detach_graph(self):
         '''This method destroys computational graph.
-        As following example, once this method is called, 
+        As following example, once this method is called,
         gradients can't be calculated because computational is removed.
         This example raises an error that mentions Node object was not found on
         the computational graph.
@@ -370,7 +370,7 @@ class Node(np.ndarray):
         Example:
             >>> import numpy as np
             >>> import renom as rm
-            >>> 
+            >>>
             >>> v1 = rm.Variable(np.array([1, 2]))
             >>> v2 = rm.Variable(np.array([3, 4]))
             >>> result = rm.sum(v1 * v2)

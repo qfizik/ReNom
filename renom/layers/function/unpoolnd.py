@@ -22,12 +22,12 @@ class max_unpoolnd(Node):
 
     @classmethod
     def _oper_cpu(cls, x, prev_pool):
-        result = poolnim(prev_pool.attrs._x, x, prev_pool.attrs._kernel,
+        result = poolnim(prev_pool.attrs._x, x, prev_pool.attrs._filter,
                          prev_pool.attrs._stride, prev_pool.attrs._padding, mode="max")
         ret = cls._create_node(result)
         ret.attrs._x = x
         ret.attrs._original_x = prev_pool.attrs._x
-        ret.attrs._kernel = prev_pool.attrs._kernel
+        ret.attrs._filter = prev_pool.attrs._filter
         ret.attrs._stride = prev_pool.attrs._stride
         ret.attrs._padding = prev_pool.attrs._padding
         return ret
@@ -41,20 +41,20 @@ class max_unpoolnd(Node):
         ret = cls._create_node(dx)
         ret.attrs._x = x
         ret.attrs._original_x = prev_pool.attrs._x
-        ret.attrs._kernel = prev_pool.attrs._kernel
+        ret.attrs._filter = prev_pool.attrs._filter
         ret.attrs._stride = prev_pool.attrs._stride
         ret.attrs._padding = prev_pool.attrs._padding
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):
-        dx = imnpool(self.attrs._original_x, self.attrs._kernel, self.attrs._stride,
+        dx = imnpool(self.attrs._original_x, self.attrs._filter, self.attrs._stride,
                      self.attrs._padding, mode="max", alternate_input=dy)
         self.attrs._x._update_diff(context, dx)
 
     def _backward_gpu(self, context, dy, **kwargs):
         dy.to_cpu()
         cu.set_cuda_active(False)
-        dx = imnpool(self.attrs._original_x, self.attrs._kernel, self.attrs._stride,
+        dx = imnpool(self.attrs._original_x, self.attrs._filter, self.attrs._stride,
                      self.attrs._padding, mode="max", alternate_input=dy)
         cu.set_cuda_active(True)
         dx = Node(dx)
@@ -71,12 +71,12 @@ class average_unpoolnd(Node):
 
     @classmethod
     def _oper_cpu(cls, x, prev_pool):
-        result = poolnim(prev_pool.attrs._x, x, prev_pool.attrs._kernel,
+        result = poolnim(prev_pool.attrs._x, x, prev_pool.attrs._filter,
                          prev_pool.attrs._stride, prev_pool.attrs._padding, mode="average")
         ret = cls._create_node(result)
         ret.attrs._x = x
         ret.attrs._original_x = prev_pool.attrs._x
-        ret.attrs._kernel = prev_pool.attrs._kernel
+        ret.attrs._filter = prev_pool.attrs._filter
         ret.attrs._stride = prev_pool.attrs._stride
         ret.attrs._padding = prev_pool.attrs._padding
         return ret
@@ -90,20 +90,20 @@ class average_unpoolnd(Node):
         ret = cls._create_node(dx)
         ret.attrs._x = x
         ret.attrs._original_x = prev_pool.attrs._x
-        ret.attrs._kernel = prev_pool.attrs._kernel
+        ret.attrs._filter = prev_pool.attrs._filter
         ret.attrs._stride = prev_pool.attrs._stride
         ret.attrs._padding = prev_pool.attrs._padding
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):
-        dx = imnpool(self.attrs._original_x, self.attrs._kernel, self.attrs._stride,
+        dx = imnpool(self.attrs._original_x, self.attrs._filter, self.attrs._stride,
                      self.attrs._padding, mode="average", alternate_input=dy)
         self.attrs._x._update_diff(context, dx)
 
     def _backward_gpu(self, context, dy, **kwargs):
         dy.to_cpu()
         cu.set_cuda_active(False)
-        dx = imnpool(self.attrs._original_x, self.attrs._kernel, self.attrs._stride,
+        dx = imnpool(self.attrs._original_x, self.attrs._filter, self.attrs._stride,
                      self.attrs._padding, mode="average", alternate_input=dy)
         cu.set_cuda_active(True)
         self.attrs._x._update_diff(context, dx)
@@ -143,6 +143,26 @@ class AverageUnPoolNd:
         prev_pool (average_poolnd, None):   The previous pool to be unpooled. In the case of none,
                                         the model searches through the history for the previous layer.
 
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = rm.Variable(np.random.rand(1, 3, 5, 5, 5))
+        >>> poolnd = rm.AveragePoolNd(filter=(3, 3, 3))
+        >>> unpoolnd = rm.AverageUnPoolNd()
+        >>> 
+        >>> print("Input", x.shape)
+        Input (1, 3, 5, 5, 5)
+        >>> 
+        >>> h = poolnd(x)
+        >>> print("Hidden layer", h.shape)
+        Hidden layer (1, 3, 3, 3, 3)
+        >>> 
+        >>> z = unpoolnd(h, h)
+        >>> print("Output", z.shape)
+        Output (1, 3, 5, 5, 5)
+
+
     Note:
         The input shape requirement:
         ``x.shape == previous_pool.shape``
@@ -156,4 +176,19 @@ class AverageUnPoolNd:
         return self.forward(x, SimpleContainer(prev_pool))
 
     def forward(self, x, prev_pool):
+        '''Forward operation of unpool nd.
+        The forward function of AverageUnPoolNd layer accepts poolnd object.
+        This layer unpools an input according to the given poolnd object.
+        If poolnd is not given, this object find the previous poolnd object
+        along the computational graph.
+
+        Args:
+            x (Node, ndarray): The input to the unpooling method
+            prev_pool (average_poolnd): The previous pool to be unpooled. In the case of none, the model searches through the history for the previous layer.
+
+
+        Returns:
+            (average_unpoolnd): Unpooled array.
+        '''
+
         return average_unpoolnd(x, prev_pool)

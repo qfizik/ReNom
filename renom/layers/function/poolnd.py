@@ -141,7 +141,7 @@ class NPoolBase:
         return self.forward(x)
 
     def forward(self, x):
-        raise NotImplemented
+        raise NotImplementedError
 
 
 class Pool3Base(NPoolBase):

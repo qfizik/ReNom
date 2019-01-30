@@ -81,10 +81,25 @@ class AverageUnPool2d:
     '''Average unpooling function.
     Unpools an input in a network where a previous pooling has occured.
 
-    Args:
-        x (Node, np.ndarray):           The input to the unpooling method
-        prev_pool (average_pool2d, None):   The previous pool to be unpooled. In the case of none,
-                                        the model searches through the history for the previous layer.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = rm.Variable(np.random.rand(1, 3, 5, 5))
+        >>> pool2d = rm.AveragePool2d(filter=3)
+        >>> unpool2d = rm.AverageUnPool2d()
+        >>>
+        >>> print("Input", x.shape)
+        Input (1, 3, 5, 5)
+        >>>
+        >>> h = pool2d(x)
+        >>> print("Hidden layer", h.shape)
+        Hidden layer (1, 3, 3, 3)
+        >>>
+        >>> z = unpool2d(h)
+        >>> print("Output", z.shape)
+        Last layer (1, 3, 5, 5)
+
 
     Note:
         The input shape requirement:
@@ -112,5 +127,19 @@ class AverageUnPool2d:
                     raise Exception("Could not find previous 2D average pool")
         return self.forward(x, SimpleContainer(prev_pool))
 
-    def forward(self, x, prev_pool):
+    def forward(self, x, prev_pool=None):
+        '''Forward operation of unpool 2d.
+        The forward function of AverageUnPool2d layer accepts pool2d object.
+        This layer unpools an input according to the given pool2d object.
+        If pool2d is not given, this object find the previous pool2d object
+        along the computational graph.
+
+        Args:
+            x (Node, ndarray): The input to the unpooling method
+            prev_pool (average_pool2d): The previous pool to be unpooled. In the case of none, the model searches through the history for the previous layer.
+
+
+        Returns:
+            (average_unpool2d): Unpooled array.
+        '''
         return average_unpool2d(x, prev_pool)

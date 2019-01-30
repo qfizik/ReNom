@@ -43,7 +43,7 @@ class max_pool2d(pool_base):
         ret.attrs._x = x
         ret.attrs._in_shape = in_shape
         ret.attrs._out_shape = out_shape
-        ret.attrs._kernel = karnel
+        ret.attrs._filter = karnel
         ret.attrs._stride = stride
         ret.attrs._padding = padding
         return ret
@@ -58,7 +58,7 @@ class max_pool2d(pool_base):
             cu.cuPoolingForward(handle, pool_desc, _x, y)
         ret = cls._create_node(y)
         ret.attrs._pool_desc = pool_desc
-        ret.attrs._kernel = karnel
+        ret.attrs._filter = karnel
         ret.attrs._stride = stride
         ret.attrs._padding = padding
         ret.attrs._x = x
@@ -68,8 +68,8 @@ class max_pool2d(pool_base):
         if isinstance(self.attrs._x, Node):
             N = len(dy)
             index = self.attrs._index
-            col = np.zeros((N, self.attrs._in_shape[0], self.attrs._kernel[0],
-                            self.attrs._kernel[1], self.attrs._out_shape[1], self.attrs._out_shape[2]))
+            col = np.zeros((N, self.attrs._in_shape[0], self.attrs._filter[0],
+                            self.attrs._filter[1], self.attrs._out_shape[1], self.attrs._out_shape[2]))
             col_k = np.rollaxis(col.reshape(
                 N, self.attrs._in_shape[0], -1, self.attrs._out_shape[1], self.attrs._out_shape[2]), 2)
             for i in np.ndindex(N, self.attrs._in_shape[0], self.attrs._out_shape[1], self.attrs._out_shape[2]):
@@ -91,7 +91,7 @@ class average_pool2d(pool_base):
         ret.attrs._x = x
         ret.attrs._in_shape = in_shape
         ret.attrs._out_shape = out_shape
-        ret.attrs._kernel = karnel
+        ret.attrs._filter = karnel
         ret.attrs._stride = stride
         ret.attrs._padding = padding
         return ret
@@ -105,7 +105,7 @@ class average_pool2d(pool_base):
             cu.cuPoolingForward(handle, pool_desc, get_gpu(x), y)
         ret = cls._create_node(y)
         ret.attrs._pool_desc = pool_desc
-        ret.attrs._kernel = karnel
+        ret.attrs._filter = karnel
         ret.attrs._stride = stride
         ret.attrs._padding = padding
         ret.attrs._x = x
@@ -114,8 +114,8 @@ class average_pool2d(pool_base):
     def _backward_cpu(self, context, dy, **kwargs):
         if isinstance(self.attrs._x, Node):
             N = len(dy)
-            col = np.zeros((N, self.attrs._in_shape[0], self.attrs._kernel[0],
-                            self.attrs._kernel[1], self.attrs._out_shape[1], self.attrs._out_shape[2]))
+            col = np.zeros((N, self.attrs._in_shape[0], self.attrs._filter[0],
+                            self.attrs._filter[1], self.attrs._out_shape[1], self.attrs._out_shape[2]))
             col_k = np.rollaxis(col.reshape(
                 N, self.attrs._in_shape[0], -1, self.attrs._out_shape[1], self.attrs._out_shape[2]), 2)
             col_k[:] = dy / float(len(col_k))
@@ -127,7 +127,7 @@ class PoolBase(object):
 
     def __init__(self, filter=3,
                  padding=0, stride=1):
-        self._padding, self._stride, self._kernel = (tuplize(x) for x in (padding, stride, filter))
+        self._padding, self._stride, self._filter = (tuplize(x) for x in (padding, stride, filter))
 
     def __call__(self, x):
         assert len(x.shape) == 4, "The dimension of input array must be 4. Actual dim is {}".format(x.ndim)
@@ -142,7 +142,7 @@ class MaxPool2d(PoolBase):
     In the case of int input, filter, padding, and stride, the shape will be symmetric.
 
     Args:
-        filter (tuple,int): Filter size of the convolution kernel.
+        filter (tuple,int): Filter size of the convolution filter.
         padding (tuple,int): Size of the zero-padding around the image.
         stride (tuple,int): Stride-size of the convolution.
 
@@ -162,7 +162,7 @@ class MaxPool2d(PoolBase):
     '''
 
     def forward(self, x):
-        return max_pool2d(x, self._kernel, self._stride, self._padding)
+        return max_pool2d(x, self._filter, self._stride, self._padding)
 
 
 class AveragePool2d(PoolBase):
@@ -170,7 +170,7 @@ class AveragePool2d(PoolBase):
     In the case of int input, filter, padding, and stride, the shape will be symmetric.
 
     Args:
-        filter (tuple,int): Filter size of the convolution kernel.
+        filter (tuple,int): Filter size of the convolution filter.
         padding (tuple,int): Size of the zero-padding around the image.
         stride (tuple,int): Stride-size of the convolution.
 
@@ -190,4 +190,4 @@ class AveragePool2d(PoolBase):
     '''
 
     def forward(self, x):
-        return average_pool2d(x, self._kernel, self._stride, self._padding)
+        return average_pool2d(x, self._filter, self._stride, self._padding)

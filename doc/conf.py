@@ -378,7 +378,7 @@ from sphinx.util import import_object, rst, logging
 from sphinx.util.osutil import ensuredir
 from sphinx.util.inspect import safe_getattr
 from sphinx.util.rst import escape as rst_escape
-from sphinx.ext.autosummary import import_by_name, get_documenter, setup, get_rst_suffix
+from sphinx.ext.autosummary import import_by_name, get_documenter, get_rst_suffix
 from sphinx.ext.autosummary.generate import find_autosummary_in_files, _simple_info, _simple_warn, _underline
 
 logger = logging.getLogger(__name__)

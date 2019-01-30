@@ -25,14 +25,14 @@ class maxout(Node):
 
 class Maxout:
     '''
-    Maxout Network Actionvation Function as described at:
-        http://proceedings.mlr.press/v28/goodfellow13.pdf
+    Maxout Network Actionvation Function as described at [maxout]_
 
-    :math:
-        y = Output
-        k = slice_size
-        x = input
-        y_i = max(x_((i*k)+ j), z=1..k)
+    .. math::
+
+        y &= output \\\\
+        k &= slice\_size \\\\
+        x &= input \\\\
+        y_i &= max(x_{(i*k)+ j}),& j=1..k
 
     Args:
         x (ndarray, Node): Input numpy array or Node instance
@@ -42,19 +42,21 @@ class Maxout:
         The output size will come out as x.shape[axis] // slice_size
 
     Example:
-    >>> import numpy as np
-    >>> import renom as rm
-    >>> x = np.array([[1, -1]])
-    >>> x
-    array([[ 1, -1]])
-    >>> rm.maxout(x)
-    concat([[ 1., -1.]])
-    >>> rm.maxout(x, slice_size=2)
-    concat([[1.]])
-    >>> activation = rm.Maxout(slice_size=2)
-    >>> activation(x)
-    concat([[1.]])
-    >>>
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = np.array([[1, -1]])
+        >>> x
+        array([[ 1, -1]])
+        >>> rm.maxout(x)
+        concat([[ 1., -1.]])
+        >>> rm.maxout(x, slice_size=2)
+        concat([[1.]])
+        >>> activation = rm.Maxout(slice_size=2)
+        >>> activation(x)
+        concat([[1.]])
+
+    .. [maxout] http://proceedings.mlr.press/v28/goodfellow13.pdf
+
     '''
 
     def __init__(self, slice_size=1, axis=1):
