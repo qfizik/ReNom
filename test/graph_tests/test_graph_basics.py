@@ -50,7 +50,7 @@ def test_basic_lstm():
 
     np.random.seed(45)
     v = np.random.rand(2, 2)
-    layer = rm.graph.LstmGraphElement(3)
+    layer = rm.graph.Lstm(3)
     t = np.random.rand(2, 3)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.sgd_update(0.01, 0.4)

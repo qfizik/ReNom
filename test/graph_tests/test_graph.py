@@ -367,7 +367,7 @@ def test_lstm(test_shape, use_gpu):
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v)
-    model = rm.graph.LstmGraphElement(output_size=4)
+    model = rm.graph.Lstm(output_size=4)
     l = rm.graph.ConstantLossGraphElement()
     m = model(val)
     loss = l(m)

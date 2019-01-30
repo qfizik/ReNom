@@ -274,7 +274,7 @@ class LstmElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class LstmGraphElement(GraphFactory):
+class Lstm(GraphFactory):
 
     def __init__(self, output_size=3, weight_decay=None):
         super().__init__()

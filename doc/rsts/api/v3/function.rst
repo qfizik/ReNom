@@ -25,7 +25,7 @@ you can use to create the graph.
     L2NormGraphElement
     LayerNormGraphElement
     LrnGraphElement
-    LstmGraphElement
+    Lstm
     MaxPoolGraphElement
     MaxUnPoolGraphElement
     SumGraphElement

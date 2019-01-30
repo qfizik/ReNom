@@ -1,5 +1,5 @@
 from .dense_element import Dense
-from .lstm_element import LstmGraphElement
+from .lstm_element import Lstm
 from .gru_element import GruGraphElement
 from .weight_normalize_element import WeightNormGraphElement
 from .layer_normalize_element import LayerNormGraphElement
