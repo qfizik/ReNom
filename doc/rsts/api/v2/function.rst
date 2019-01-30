@@ -9,7 +9,6 @@ renom.layers.function
     :nosignatures:
 
     AveragePool2d
-    AveragePool3d
     AveragePoolNd
     AverageUnPool2d
     AverageUnPoolNd
@@ -26,13 +25,12 @@ renom.layers.function
     GroupConv2d
     Gru
     L2Norm
-    LayerNotmalize
+    LayerNormalize
     Lrn
     Lstm
     MaxUnPool2d
     MaxUnPoolNd
     MaxPool2d
-    MaxPool3d
     MaxPoolNd
     PeepholeLstm
     RoiPool2d

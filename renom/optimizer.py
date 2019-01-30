@@ -107,6 +107,9 @@ class Sgd(Optimizer):
 
 
 class ClampedSgd(Sgd):
+    '''Clamped Sgd
+    '''
+
     def __init__(self, lr=0.1, momentum=0.4, minimum=-1e4, maximum=+1e4):
         super(ClampedSgd, self).__init__(lr=lr, momentum=momentum)
         self._minimum = minimum
@@ -230,6 +233,8 @@ class Adadelta(Optimizer):
 
 
 class Adamax(Optimizer):
+    '''Adamax optimizer.
+    '''
 
     def __init__(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):
         self._alpha = alpha

@@ -152,7 +152,7 @@ class layer_normalize(Node):
 
 
 class LayerNormalize(Parametrized):
-    ''' Layer Normalization Model [1]
+    '''Layer Normalization Model [layer_normalize]_
     Applies a shift to a standard bell curve formation for each input unit.
     The resultant bell curve can be transformed with the gain/bias parameters, displacing the mean with the bias
     or the variance with gain.
@@ -173,7 +173,8 @@ class LayerNormalize(Parametrized):
         layer_normalize([[ 0.12076415,  0.00333703, -0.12410118],
                    [ 0.11587134, -0.12813905,  0.01226771]])
 
-    .. [1] https://arxiv.org/pdf/1607.06450.pdf
+    .. [layer_normalize] https://arxiv.org/pdf/1607.06450.pdf
+
     '''
 
     def __init__(self, gain=0.1, bias=1.0):

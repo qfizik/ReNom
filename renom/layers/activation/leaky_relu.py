@@ -47,7 +47,7 @@ class leaky_relu(UnaryOp):
 
 class LeakyRelu:
 
-    '''The Leaky relu [leaky_relu]_ activation function is described by the following formula:
+    '''The Leaky relu [leaky_relu]_ activation function is described by the following formula.
 
         :math:`f(x)=max(x, 0)+min(slope*x, 0)`
 

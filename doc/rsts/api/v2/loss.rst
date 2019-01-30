@@ -12,6 +12,6 @@ renom.layers.loss
     CrossEntropy
     MeanSquaredError
     SigmoidCrossEntropy
-    SmoothedL1
     SoftmaxCrossEntropy
+    SmoothedL1
 

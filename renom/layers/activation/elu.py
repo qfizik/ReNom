@@ -49,7 +49,7 @@ class elu(UnaryOp):
 class Elu:
 
     '''The Exponential Linear Units [elu]_ activation function
-    is described by the following formula:
+    is described by the following formula.
 
         :math:`f(x)=max(x, 0) + alpha*min(exp(x)-1, 0)`
 
@@ -73,6 +73,7 @@ class Elu:
     .. [elu] Djork-Arné Clevert, Thomas Unterthiner, Sepp Hochreiter (2015).
         Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs).
         Published as a conference paper at ICLR 2016
+
     '''
 
     def __init__(self, alpha=0.01):

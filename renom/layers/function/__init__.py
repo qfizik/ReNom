@@ -13,7 +13,8 @@ from .deconv2d import Deconv2d
 from .deconvnd import DeconvNd
 from .flatten import Flatten, flatten
 from .lrn import Lrn
-from .unpool2d import MaxUnPool2d, max_unpool2d
+from .unpool2d import MaxUnPool2d, max_unpool2d, AverageUnPool2d, average_unpool2d
+from .unpoolnd import MaxUnPoolNd, max_unpoolnd, AverageUnPoolNd, average_unpoolnd
 from .lstm import Lstm as Lstm, ChainedLSTM
 from .gru import Gru as Gru
 from .embedding import embedding, Embedding

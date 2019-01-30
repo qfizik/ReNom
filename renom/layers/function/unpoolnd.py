@@ -110,6 +110,23 @@ class average_unpoolnd(Node):
 
 
 class MaxUnPoolNd:
+    '''Average unpooling function.
+    Unpools an input in a network where a previous pooling has occured.
+
+    Args:
+        x (Node, np.ndarray):           The input to the unpooling method
+        prev_pool (average_pool2d, None):   The previous pool to be unpooled. In the case of none,
+                                        the model searches through the history for the previous layer.
+
+    Note:
+        The input shape requirement:
+        ``x.shape == previous_pool.shape``
+
+        The output shape will be:
+        ``ret.shape == previous_pool.input.shape``
+
+    '''
+
 
     def __call__(self, x, prev_pool):
         return self.forward(x, SimpleContainer(prev_pool))
@@ -119,6 +136,23 @@ class MaxUnPoolNd:
 
 
 class AverageUnPoolNd:
+    '''Average N dimensional unpooling function.
+    Unpools an input in a network where a previous pooling has occured.
+
+    Args:
+        x (Node, np.ndarray):           The input to the unpooling method
+        prev_pool (average_poolnd, None):   The previous pool to be unpooled. In the case of none,
+                                        the model searches through the history for the previous layer.
+
+    Note:
+        The input shape requirement:
+        ``x.shape == previous_pool.shape``
+
+        The output shape will be:
+        ``ret.shape == previous_pool.input.shape``
+
+    '''
+
 
     def __call__(self, x, prev_pool):
         return self.forward(x, SimpleContainer(prev_pool))

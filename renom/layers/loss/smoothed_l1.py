@@ -71,6 +71,14 @@ class smoothed_l1(Node):
 
 
 class SmoothedL1(object):
+    '''Smoothed L1 loss.
+
+    Args:
+        delta (float): Filter size of the convolution filter.
+        reduce_sum (bool): Size of the zero-padding around the image.
+
+    '''
+
     def __init__(self, delta, reduce_sum=True):
         self._delta = delta
         self._reduce_sum = reduce_sum

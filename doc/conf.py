@@ -481,6 +481,11 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                     template = template_env.get_template('autosummary/base.rst')
 
             def get_members(obj, typ, include_public=[], imported=True):
+                """This function filters functions with following rules.
+                    - Is implemented in ReNom?
+                    - Is not overridden and is inherited function?
+                    - Does it have doc string?
+                """
                 items = []  # type: List[unicode]
                 for name in dir(obj):
                     try:
@@ -491,7 +496,12 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                     if documenter.objtype == typ:
                         if imported or getattr(value, '__module__', None) == obj.__name__:
                             s = getattr(getattr(obj, name, None), '__module__', None)
+                            p = getattr(obj, 'mro', lambda : [None])()[1]
                             if s is None or s.find('renom') < 0:
+                                continue
+                            p_m = getattr(p, name, None)
+                            s_m = getattr(obj, name, None)
+                            if p_m == s_m or s_m.__doc__ is None:
                                 continue
                             # skip imported members if expected
                             items.append(name)
@@ -511,7 +521,7 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
             elif doc.objtype == 'class':
                 ns['members'] = dir(obj)
                 ns['methods'], ns['all_methods'] = \
-                    get_members(obj, 'method', ['__init__'])
+                    get_members(obj, 'method', [])
                 ns['attributes'], ns['all_attributes'] = \
                     get_members(obj, 'attribute')
 
