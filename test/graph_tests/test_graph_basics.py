@@ -74,6 +74,26 @@ def test_slices(use_gpu):
     compare(b, B.as_ndarray())
 
 
+class BadSgd(rm.graph.utils.optimizer.optimizer_factory):
+
+    class gpu_op:
+
+        def setup(self, grad, val):
+            self._dy = grad
+            self._outputs = val
+            self.gpus = grad.gpus
+
+        def update(self):
+            for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+                self._outputs[gpu] += self._dy[gpu]
+
+    class cpu_op(gpu_op):
+
+        def update(self):
+            dy = self._dy['cpu']
+            self._outputs['cpu'] += dy
+
+
 def test_optimizer(use_gpu):
 
     rm.set_cuda_active(use_gpu)
@@ -82,14 +102,22 @@ def test_optimizer(use_gpu):
     layer = rm.graph.Dense(3)
     t = np.random.rand(2, 3)
     loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.adam_update()
+    opt1 = BadSgd()
+    opt2 = rm.graph.Sgd()
+    p_l = 0
+    for i in range(5):
+        l = loss(layer(v), t)
+        l_arr = l.as_ndarray()
+        assert l_arr > p_l
+        p_l = l_arr
+        l.backward().update(opt1)
     p_l = 9999
     for i in range(5):
         l = loss(layer(v), t)
         l_arr = l.as_ndarray()
         assert l_arr < p_l
         p_l = l_arr
-        l.backward().update(opt)
+        l.backward().update(opt2)
 
 
 @pytest.mark.skipif(rm.precision != np.float64, reason='Requires precise testing')
