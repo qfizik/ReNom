@@ -662,13 +662,11 @@ class Node(np.ndarray):
 
 
 class Variable(Node):
-    '''Variable class.
-
-    The gradient of this object will be calculated.
+    '''Variable class. The gradient of this object will be calculated.
     Variable object is created from ndarray object or Number object.
 
     Args:
-        value (Variable,ndarray): Input array.
+        value (Variable, ndarray, Number): Input array.
         auto_update (bool): Auto update flag.
         weight_decay (float): Weight decay rate
 
@@ -698,13 +696,6 @@ class Variable(Node):
     | 0         |   0.3     |   0.3        |
     +-----------+-----------+--------------+
 
-
-    Example:
-        >>> import numpy as np
-        >>> import renom as rm
-        >>> x = np.array([1. -1])
-        >>> rm.Variable(x)
-        Variable([ 1., -1.], dtype=float32)
     '''
 
     weight_decay = None

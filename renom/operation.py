@@ -111,7 +111,7 @@ class Amax(Abase):
         >>> rm.amax(a, axis=0, keepdims=True)
         [[ 2.  3.]]
         >>>
-        >>> # Calculation of differentiation
+        >>> # Calculation of the differentiation
         >>> va = rm.Variable(a)
         >>> out = rm.amax(va)
         >>> grad = out.grad()
@@ -160,7 +160,7 @@ class Amin(Abase):
         >>> rm.amin(a, axis=0, keepdims=True)
         [[ 0.  1.]]
         >>>
-        >>> # Calculation of differentiation
+        >>> # Calculation of the differentiation
         >>> va = rm.Variable(a)
         >>> out = rm.amin(va)
         >>> grad = out.grad()
@@ -195,14 +195,16 @@ def reshape(array, shape):
         (Node): Reshaped array.
 
     Example:
-        >>> import renom as rm
         >>> import numpy as np
-        >>> x = rm.Variable(np.arange(6))
-        >>> x.shape
-        (6,)
-        >>> y = rm.reshape(x, (2, 3))
-        >>> y.shape
-        (2, 3)
+        >>> import renom as rm
+        >>> x = rm.Variable(np.array([1, 2]))
+        >>> z = rm.reshape(x, (1, 2))
+        >>> r = rm.sum(z)
+        >>> print("Result", z)
+        Result [[1. 2.]]
+        >>> print("Gradient", r.grad().get(x))
+        Gradient [1. 1.]
+
     """
     return Reshape(array, shape)
 
@@ -224,11 +226,12 @@ class sum(Node):
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>>
-        >>> x = np.random.rand(2, 3)
+        >>> x = rm.Variable(np.array([2, 3]))
         >>> z = rm.sum(x)
-        >>> z
-        sum(3.21392822265625, dtype=float32)
+        >>> print("Result", z)
+        Result 5.0
+        >>> print("Gradient", z.grad().get(x))
+        Gradient [1. 1.]
     '''
 
     @classmethod
@@ -302,13 +305,14 @@ class dot(BinOp):
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>>
-        >>> x = np.random.rand(2, 3)
-        >>> y = np.random.rand(2, 2)
-        >>> z = rm.dot(y, x)
-        >>> z
-        dot([[ 0.10709135,  0.15022227,  0.12853521],
-             [ 0.30557284,  0.32320538,  0.26753256]], dtype=float32)
+        >>> x1 = rm.Variable(np.array([1, 2])).reshape(1, 2)
+        >>> x2 = rm.Variable(np.array([1, 2])).reshape(2, 1)
+        >>> z = rm.dot(x1, x2)
+        >>> print("Result", z)
+        Result [[5.]]
+        >>> print("Gradient", z.grad().get(x1))
+        Gradient [[1. 2.]]
+
     '''
 
     @classmethod
@@ -369,15 +373,16 @@ class concat(Node):
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>>
-        >>> x = np.random.rand(2, 3)
-        >>> y = np.random.rand(2, 2)
-        >>> z = rm.concat(x, y)
-        >>> z.shape
-        (2, 5)
-        >>> z
-        concat([[ 0.56989014,  0.50372809,  0.40573129,  0.17601326,  0.07233092],
-                [ 0.09377897,  0.8510806 ,  0.78971916,  0.52481949,  0.06913455]], dtype=float32)
+        >>> x1 = rm.Variable(np.array([1, 2])).reshape(2, 1)
+        >>> x2 = rm.Variable(np.array([1, 2])).reshape(2, 1)
+        >>> z = rm.concat(x1, x2)
+        >>> r = rm.sum(z)
+        >>> print("Result", z)
+        Result [[1. 1.]
+                [2. 2.]]
+        >>> print("Gradient", r.grad().get(x1))
+        Gradient [[1.]
+                  [1.]]
 
     """
 
@@ -449,15 +454,13 @@ class where(Node):
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>>
-        >>> x = np.random.rand(2, 3)
-        >>> x
-        array([[ 0.56989017,  0.50372811,  0.4057313 ],
-               [ 0.09377897,  0.85108059,  0.78971919]])
-        >>> z = rm.where(x > 0.5, x, 0)
-        >>> z
-        where([[ 0.56989014,  0.50372809,  0.        ],
-               [ 0.        ,  0.8510806 ,  0.78971916]], dtype=float32)
+        >>> x = rm.Variable(np.array([1, 2]))
+        >>> z = rm.where(np.array([False, True]), x, 0)
+        >>> r = rm.sum(z)
+        >>> print("Result", z)
+        Result [0. 2.]
+        >>> print("Gradient", r.grad().get(x))
+        Gradient [0. 1.]
 
     """
 
@@ -515,15 +518,13 @@ class sqrt(UnaryOp):
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>>
-        >>> x = np.random.rand(2, 3)
-        >>> x
-        array([[ 0.56989017,  0.50372811,  0.4057313 ],
-               [ 0.09377897,  0.85108059,  0.78971919]])
+        >>> x = rm.Variable(np.array([9]))
         >>> z = rm.sqrt(x)
-        >>> z
-        sqrt([[ 0.75491071,  0.70973808,  0.6369704 ],
-              [ 0.30623353,  0.92254031,  0.88866144]], dtype=float32)
+        >>> print("Result", z)
+        Result [3.]
+        >>> print("Gradient", z.grad().get(x))
+        Gradient [0.16666667]
+
     """
 
     @classmethod
@@ -555,6 +556,16 @@ class square(UnaryOp):
 
     Returns:
         (Node): Squared array.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = rm.Variable(np.array([9]))
+        >>> z = rm.square(x)
+        >>> print("Result", z)
+        Result [81.]
+        >>> print("Gradient", z.grad().get(x))
+        Gradient [18.]
 
     """
 
@@ -589,6 +600,17 @@ class log(UnaryOp):
 
     Returns:
         (Node): Logarithm of input array.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = rm.Variable(np.array([1, 2]))
+        >>> z = rm.log(x)
+        >>> r = rm.sum(z)
+        >>> print("Result", z)
+        Result [0.        0.6931472]
+        >>> print("Gradient", r.grad().get(x))
+        Gradient [1.  0.5]
     """
 
     @classmethod
@@ -619,6 +641,18 @@ class exp(UnaryOp):
 
     Returns:
         (Node): Exponential of input array.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = rm.Variable(np.array([1, 2]))
+        >>> z = rm.exp(x)
+        >>> r = rm.sum(z)
+        >>> print("Result", z)
+        Result [2.7182817 7.389056 ]
+        >>> print("Gradient", r.grad().get(x))
+        Gradient [2.7182817 7.389056 ]
+
     """
 
     @classmethod
@@ -730,10 +764,13 @@ class mean(Node):
     Example:
         >>> import numpy as np
         >>> import renom as rm
-        >>>
-        >>> x = np.random.rand(2, 3)
+        >>> 
+        >>> x = rm.Variable(np.array([2, 3]))
         >>> z = rm.mean(x)
-        >>> z
+        >>> print("Result", z)
+        Result 2.5
+        >>> print("Gradient", z.grad().get(x))
+        Gradient [0.5 0.5]
     '''
 
     @classmethod

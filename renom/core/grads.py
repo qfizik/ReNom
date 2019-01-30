@@ -9,13 +9,18 @@ import numpy as np
 
 
 class Grads:
-    '''Grads class. This class contains gradients of each Node object.
+    '''This class contains gradients of each Node object.
 
     When the function ``grad`` which is a method of Node class is called,
     an instance of Grads class will be returned.
 
     For getting the gradient with respect to any Variable object 'x' which is on a
     computational graph, call the 'get' function of Grads object.
+
+    Args:
+        root(Node): Root node of the computational graph.
+        weight_decay(float): Weight decay coefficient.
+
 
     Example:
         >>> import numpy as np
@@ -117,7 +122,8 @@ class Grads:
     def get(self, node, default=_omit):
         '''This function returns the gradient with respect to the given node.
         In the case of that there is no gradient of given node, this function
-        returns ``None`` .
+        returns given object as ``default``. If nothing is set to default and 
+        no gradient is found, this function raises an error.
 
         Args:
             node (Node): Returns a gradient with respect to this argument.
@@ -137,7 +143,8 @@ class Grads:
             return self.variables.get(id(node), default)
 
     def set(self, node, diff):
-        '''This function will set a gradient to the dictionary using id of given node object as a key.
+        '''This function will set a gradient to the dictionary using id of 
+        given node object as a key.
 
         Args:
             node (Node): Node object whose gradient should be given as dy.

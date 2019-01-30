@@ -42,6 +42,11 @@ def set_cuda_active(activate=True):
 
     Args:
         activate (bool): Activation flag.
+
+    Example:
+        >>> from renom.cuda import set_cuda_active
+        >>> set_cuda_active(True)
+
     '''
     global _cuda_is_active
     if not has_cuda() and activate:
@@ -122,6 +127,7 @@ def curand_set_seed(seed, all_devices=False):
 
     Args:
         seed(int): Seed.
+        all_devices(bool): If True is given, set the seed to all the gpu devices.
 
     Example:
         >>> import numpy as np
