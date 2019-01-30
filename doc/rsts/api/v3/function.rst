@@ -16,7 +16,7 @@ you can use to create the graph.
     AvgPool
     BatchNormalizeGraphElement
     BiasGraphElement
-    ConvolutionalGraphElement
+    Conv
     DeconvolutionalGraphElement
     Dense
     DropoutGraphElement

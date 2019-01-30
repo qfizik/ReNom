@@ -531,7 +531,7 @@ def test_conv(test_shape, use_gpu, num_gpu, ignore_bias):
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.ConvolutionalGraphElement(channels=2, ignore_bias=ignore_bias)
+    model = rm.graph.Conv(channels=2, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)

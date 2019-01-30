@@ -191,7 +191,7 @@ def test_finalizer(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(2, 1, 3, 4)
-    layer1 = rm.graph.ConvolutionalGraphElement(channels=2)
+    layer1 = rm.graph.Conv(channels=2)
     res = rm.graph.ReshapeGraphElement([-1])
     layer2 = rm.graph.Dense(3)
     t = np.random.rand(2, 3)
