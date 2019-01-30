@@ -47,14 +47,12 @@ class Softsign:
         >>> import renom as rm
         >>> x = np.array([1., -1.])
         >>> rm.softsign(x)
-        fill in actual values here!!!!
-        softsign([ 0.7310586 ,  0.26894143])
+        softsign([ 0.5, -0.5])
 
         >>> # instantiation
         >>> activation = rm.Softsign()
         >>> activation(x)
-        fill in actual values here!!!
-        softsign([ 0.7310586 ,  0.26894143])
+        softsign([ 0.5, -0.5])
 
     '''
 

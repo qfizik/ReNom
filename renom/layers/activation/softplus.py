@@ -1,5 +1,4 @@
 
-
 import numpy as np
 import renom as rm
 import renom.cuda as cu
@@ -31,6 +30,26 @@ class softplus(rm.core.UnaryOp):
 
 
 class Softplus:
+    '''Softplus activation function as described by the following formula.
+
+        :math:`f(x) = log(1 + exp(x))`
+
+    Args:
+        x (ndarray, Node): Input numpy array or Node instance.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = np.array([1., -1.])
+        >>> rm.softplus(x)
+        softplus([1.31326163, 0.31326169])
+
+        >>> # instantiation
+        >>> activation = rm.Softplus()
+        >>> activation(x)
+        softplus([1.31326163, 0.31326169])
+
+    '''
 
     def __call__(self, x):
         return softplus(x)

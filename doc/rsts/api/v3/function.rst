@@ -28,5 +28,4 @@ you can use to create the graph.
     LstmGraphElement
     MaxPoolGraphElement
     MaxUnPoolGraphElement
-    SumGraphElement
     WeightNormGraphElement
