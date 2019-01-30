@@ -42,14 +42,14 @@ class DenseGraphElement(GraphFactory):
         self._init = initializer
 
     def connect(self, other):
-        ret = DenseGraph(output_size=self.output_size, initializer=self._init,
+        ret = DenseElement(output_size=self.output_size, initializer=self._init,
                          previous_element=[other, self.params['w']])
         if not self._ignore_bias:
             ret = self._bias(ret)
         return ret
 
 
-class DenseGraph(UserGraph):
+class DenseElement(UserGraph):
 
     def __init__(self, output_size, initializer, previous_element=None):
 
