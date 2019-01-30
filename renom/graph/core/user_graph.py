@@ -20,8 +20,9 @@ class UserGraph(graph_element):
         Once these operations are passed to __init__, UserGraph automatically converts
         these operations to operational_elements and maintains the underlying graph.
 
-        When the graph is constructed, the user should call get_executor, which will gather only the relevant information from the
-        operational_element graph to support the execute method, which places on the devices.
+        When the graph is constructed, the user should call get_executor,
+        which will gather only the relevant information from the operational_element
+        graph to support the execute method, which places on the devices.
     '''
 
     _name = 'Undefined'
@@ -133,7 +134,7 @@ class UserGraph(graph_element):
         self.forward()
         return self._fwd.__repr__()
 
-    def get_executor(self, mode = 'inference', optimizer = None, with_validation=None):
+    def get_executor(self, mode='inference', optimizer=None, with_validation=None):
         if mode != 'inference' and optimizer is not None:
             ups = self._bwd_graphs[0].gather_operations_with_role('update', flatten=True)
             for i in range(len(ups)):
@@ -142,17 +143,17 @@ class UserGraph(graph_element):
         bwds = self._fwd.get_call_dict(tag='Backward')
         grds = self._fwd.get_call_dict(tag='Gradient')
         call_list = {
-            'Forward' : fwds,
-            'Backward' : bwds,
-            'Gradient' : grds,
+            'Forward': fwds,
+            'Backward': bwds,
+            'Gradient': grds,
         }
         ins = self._bwd_graphs[0].gather_operations_with_role('input', flatten=True)
         ins.extend(self._fwd.gather_operations_with_role('static', flatten=True))
         # Find loss function (UserLossGraph)
         lss = self._bwd_graphs[0].gather_operations_with_role('loss', flatten=True)
         ops = {
-            'graph_inputs' : ins,
-            'losses' : lss,
+            'graph_inputs': ins,
+            'losses': lss,
         }
         if mode == 'training':
             self._fwd.continue_setup()
@@ -171,8 +172,6 @@ class UserGraph(graph_element):
         infs = self._fwd.gather_operations_with_role('inference', flatten=True)
         for inf in infs:
             inf._inference = inference
-
-
 
     def simple_forward(self):
         self._fwd.forward()

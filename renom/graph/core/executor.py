@@ -85,7 +85,7 @@ class Executor:
           losses (GraphElement):
     '''
 
-    def __init__(self, call_list, special_ops, mode = 'inference'):
+    def __init__(self, call_list, special_ops, mode='inference'):
         self.call_list = call_list
         self.dispatchers = special_ops['graph_inputs']
         self.loss = special_ops['losses']
@@ -144,7 +144,6 @@ class Executor:
         for ev in self._events['Epoch-Finish']:
             ev(exe_info)
         return
-
 
     def perform_event_step(self, exe_info):
         for ev in self._events['Step-Start']:
