@@ -135,8 +135,8 @@ def test_training_executor_validation(use_gpu):
     opt = rm.graph.Sgd()
     data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
     graph = loss(layer(data), target)
-    t_exe = graph.getTrainingExecutor(opt, with_validation=(v2, t2))
-    v_exe = graph.getInferenceExecutor()
+    t_exe = graph.get_executor(optimizer=opt, mode='training', with_validation=(v2, t2))
+    v_exe = graph.get_executor()
 
     def check_validation(info):
         global validation_loss

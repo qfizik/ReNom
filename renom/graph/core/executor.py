@@ -85,10 +85,11 @@ class Executor:
           losses (GraphElement):
     '''
 
-    def __init__(self, call_list, special_ops):
+    def __init__(self, call_list, special_ops, mode = 'inference'):
         self.call_list = call_list
         self.dispatchers = special_ops['graph_inputs']
         self.loss = special_ops['losses']
+        self.mode = mode
 
         self._events = {'Initialize': [],
                         'Epoch-Start': [],
@@ -144,32 +145,27 @@ class Executor:
             ev(exe_info)
         return
 
-    def perform_epoch(self):
-        try:
-            while(True):
-                self.perform_step()
-        except StopIteration:
-            pass
 
     def perform_event_step(self, exe_info):
         for ev in self._events['Step-Start']:
             ev(exe_info)
-        for depth in self.call_list.keys():
-            for call in self.call_list[depth]:
-                if rm.logging_level >= 10:
-                    call.logged_perform()
-                else:
-                    call.perform()
+        self.perform_step()
         for ev in self._events['Step-Finish']:
             ev(exe_info)
 
     def perform_step(self):
-        for depth in self.call_list.keys():
-            for call in self.call_list[depth]:
-                if rm.logging_level >= 10:
-                    call.logged_perform()
-                else:
-                    call.perform()
+        assert isinstance(self.call_list, dict)
+        if self.mode == 'inference':
+            parts = ['Forward']
+        else:
+            parts = ['Forward', 'Backward', 'Gradient']
+        for part in parts:
+            for depth in sorted(self.call_list[part].keys()):
+                for call in self.call_list[part][depth]:
+                    if rm.logging_level >= 10:
+                        call.logged_perform()
+                    else:
+                        call.perform()
 
     def register_event(self, event_name, event_function):
         assert isinstance(event_name, str) and event_name in self._events
