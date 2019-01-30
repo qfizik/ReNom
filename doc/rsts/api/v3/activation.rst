@@ -19,4 +19,4 @@ This documentation is a list of the different activations in graph.
     SigmoidGraphElement
     SoftmaxGraphElement
     SoftplusGraphElement
-    TanhGraphElement
+    Tanh

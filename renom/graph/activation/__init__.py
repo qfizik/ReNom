@@ -4,6 +4,6 @@ from .relu_element import Relu
 from .elu_element import EluGraphElement
 from .selu_element import SeluGraphElement
 from .leaky_relu_element import LeakyReluGraphElement
-from .tanh_element import TanhGraphElement
+from .tanh_element import Tanh
 from .maxout_element import MaxoutGraphElement
 from .sigmoid_element import SigmoidGraphElement
