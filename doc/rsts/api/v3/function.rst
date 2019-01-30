@@ -13,7 +13,7 @@ you can use to create the graph.
     :toctree: autosum/
     :nosignatures:
 
-    AvgPoolGraphElement
+    AvgPool
     BatchNormalizeGraphElement
     BiasGraphElement
     ConvolutionalGraphElement
@@ -26,7 +26,7 @@ you can use to create the graph.
     LayerNormGraphElement
     LrnGraphElement
     Lstm
-    MaxPoolGraphElement
+    MaxPool
     MaxUnPoolGraphElement
     SumGraphElement
     WeightNormGraphElement

@@ -8,7 +8,7 @@ from .l2_norm_element import L2NormGraphElement
 from .lrn_element import LrnGraphElement
 from .convolutional_element import ConvolutionalGraphElement
 from .deconvolutional_element import DeconvolutionalGraphElement
-from .pool_element import MaxPoolGraphElement, AvgPoolGraphElement
+from .pool_element import MaxPool, AvgPool
 from .unpool_element import MaxUnPoolGraphElement
 from .batch_normalize_element import BatchNormalizeGraphElement
 from .bias_element import BiasGraphElement

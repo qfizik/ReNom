@@ -146,7 +146,7 @@ class PoolGraphElement(GraphFactory):
         self._strd = stride
 
 
-class MaxPoolGraphElement(PoolGraphElement):
+class MaxPool(PoolGraphElement):
     '''Max pooling function.
 
       For use-reference, see :class:`.MaxPool2d`
@@ -158,7 +158,7 @@ class MaxPoolGraphElement(PoolGraphElement):
         return ret
 
 
-class AvgPoolGraphElement(PoolGraphElement):
+class AvgPool(PoolGraphElement):
     '''Average pooling function.
 
       For use-reference, see :class:`.AveragePool2d`
