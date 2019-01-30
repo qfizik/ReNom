@@ -576,7 +576,7 @@ def process_generate_options(app):
                               app=app)
 
 
-def setup(app): # NOQA
+def setup(app):  # NOQA
     app.add_stylesheet('css/custom.css')
     app.connect('builder-inited', process_generate_options)
     app.add_config_value('extended_autosummary_generate', [], True, [bool])

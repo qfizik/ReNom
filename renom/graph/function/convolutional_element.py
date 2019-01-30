@@ -50,7 +50,7 @@ class Conv(GraphFactory):
 
     def connect(self, other):
         ret = ConvElement(self._chnls, self._krnl, self._pdng, self._strd,
-                                 self._init, previous_element=[other, self.params['w'], self.params['b']])
+                          self._init, previous_element=[other, self.params['w'], self.params['b']])
         return ret
 
 

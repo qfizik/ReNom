@@ -43,7 +43,7 @@ class Dense(GraphFactory):
 
     def connect(self, other):
         ret = DenseElement(output_size=self.output_size, initializer=self._init,
-                         previous_element=[other, self.params['w']])
+                           previous_element=[other, self.params['w']])
         if not self._ignore_bias:
             ret = self._bias(ret)
         return ret
