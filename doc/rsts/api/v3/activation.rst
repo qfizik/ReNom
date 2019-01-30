@@ -14,7 +14,7 @@ This documentation is a list of the different activations in graph.
     EluGraphElement
     LeakyReluGraphElement
     MaxoutGraphElement
-    ReluGraphElement
+    Relu
     SeluGraphElement
     SigmoidGraphElement
     SoftmaxGraphElement

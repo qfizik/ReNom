@@ -71,7 +71,7 @@ class ReluElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class ReluGraphElement(GraphFactory):
+class Relu(GraphFactory):
 
     def connect(self, other):
         ret = ReluElement(previous_elements=other)
