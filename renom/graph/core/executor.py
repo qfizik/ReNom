@@ -12,15 +12,15 @@ def _norm_finish(info):
         info['bar'].close()
 
 def _norm_epoch_start(info):
-    if info['mode'] == 'training':
+    if info['mode'] == 'inference' and 'training_loss' in info:
+        bar = info['bar']
+        bar.total+=len(info['inputs'][0])
+        info['epoch_name'] = 'Validating'
+    else:
         if 'bar' in info:
             info['bar'].close()
         info['bar'] = tqdm(total=len(info['inputs'][0]))
         info['epoch_name'] = 'Training'
-    else:
-        bar = info['bar']
-        bar.total+=len(info['inputs'][0])
-        info['epoch_name'] = 'Validating'
     info['epoch_loss_list'] = []
     for disp in info['inputs']:
         disp.reset()
