@@ -55,7 +55,6 @@ def _validation_func(data, target):
         if info['mode'] == 'training':
             norm_d, norm_t = ins[0].value, ins[1].value
             ins[0].value, ins[1].value = data, target
-            ins[1]._perm = ins[0]._perm
             info['epoch_loss_list'] = []
             info['mode'] = 'inference'
             info['norm_data'] = (norm_d, norm_t)
@@ -64,7 +63,6 @@ def _validation_func(data, target):
             norms = info['norm_data']
             info['mode'] = 'training'
             ins[0].value, ins[1].value = norms[0], norms[1]
-            ins[1]._perm = ins[0]._perm
             info['validation_loss'] = np.sum(info['epoch_loss_list'])
         # _perform_validation END
     return _perform_validation
@@ -186,11 +184,9 @@ class Executor:
         inb = self.dispatchers[1]
         p_d, p_t = ina.value, inb.value
         ina.value, inb.value = d, t
-        inb._perm = ina._perm
         self.perform_event_step(exe_info)
         loss = self.loss[0].as_ndarray()
         ina.value, inb.value = p_d, p_t
-        inb._perm = ina._perm
         return loss
 
     def set_input_data(self, data, target):

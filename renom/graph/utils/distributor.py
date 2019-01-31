@@ -32,6 +32,7 @@ class dispatch(operation):
         self._perm = np.random.permutation(
             len(self._value)) if self._shuffle else np.arange(len(self._value))
         self._attached = None
+        self._master = None
 
     def setup(self, inputs):
         self._batch_vars = [v.shape[0] for v in self._outputs]
@@ -43,7 +44,6 @@ class dispatch(operation):
     @value.setter
     def value(self, new_val):
         self._value = new_val
-        self._finished = True
         self.reset()
 
     def perform(self):
@@ -67,20 +67,22 @@ class dispatch(operation):
         assert isinstance(other, dispatch)
         assert self._value.shape[0] == other._value.shape[0]
         self._attached = other
+        other._master = self
         self._perm = other._perm
 
-    def reset(self, perm=None):
-        if self._finished is False:
+    def reset(self):
+        if self._master is not None:
             return
+        else:
+            assert self._attached is not None
+        other = self._attached
         self._batch_num = 0
         self._finished = False
-        if perm is not None:
-            self._perm = perm
-        else:
-            self._perm = np.random.permutation(
-                len(self._value)) if self._shuffle else np.arange(len(self._value))
-        if self._attached is not None:
-            self._attached.reset(perm=self._perm)
+        other._batch_num = 0
+        other._finished = False
+        self._perm = np.random.permutation(
+            len(self._value)) if self._shuffle else np.arange(len(self._value))
+        other._perm = self._perm
 
     def set_batch_size(self, batch_size):
         self._batch_size = batch_size
@@ -115,7 +117,7 @@ class data_entry_element(UserGraph):
 
 class Distro:
 
-    def __init__(self, data, labels, batch_size=64, num_gpus=1, shuffle=True):
+    def __init__(self, data, labels, batch_size=64, num_gpus=1, shuffle=True, test_split = None):
         super().__init__()
         self._data = data
         self._labels = labels

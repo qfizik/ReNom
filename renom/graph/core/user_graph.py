@@ -204,12 +204,12 @@ class UserGraph(graph_element):
 
     def update(self, optimizer=None):
         if optimizer is not None:
-            ups = self._bwd_graphs[0].gather_operations_with_role('update')
+            ups = self._fwd.get_call_dict(tag='Gradient')
             for d in ups:
                 for i in range(len(ups[d])):
                     ups[d][i].set_update_op(optimizer)
                     ups[d][i] = None  # Avoiding destruction errors
-        self._fwd.continue_forward(tag='Update')
+        self._fwd.continue_forward(tag='Gradient')
 
     def print_tree(self):
         self._fwd.print_tree()
