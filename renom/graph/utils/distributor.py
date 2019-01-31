@@ -113,7 +113,7 @@ class data_entry_element(UserGraph):
         super().__init__(forward_operation=fwd_op, previous_elements=previous_element)
 
 
-class DistributorElement:
+class Distro:
 
     def __init__(self, data, labels, batch_size=64, num_gpus=1, shuffle=True):
         super().__init__()
