@@ -140,8 +140,9 @@ def test_training_executor_validation(use_gpu):
 
     def check_validation(info):
         global validation_loss
-        validation_loss = info['validation_loss']
-        assert validation_loss != np.nan
+        if info['mode'] == 'training':
+            validation_loss = info['validation_loss']
+            assert validation_loss != np.nan
     t_exe.register_event('Epoch-Finish', check_validation)
 
     t_exe.execute(epochs=3)
@@ -164,7 +165,7 @@ def test_validation_executor(use_gpu):
     v2, t2 = v1 * 2, t1 * 2
     exe.set_input_data(v2, t2)
     losses2 = np.array(exe.execute(epochs=3))
-    assert np.allclose(losses1 * 4, losses2, atol=1)
+    assert np.allclose(losses1 * 4, losses2)
 
 
 def test_step_executor(use_gpu):

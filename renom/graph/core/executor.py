@@ -9,8 +9,11 @@ def _norm_init(info):
 
 
 def _norm_epoch_start(info):
-    info['loss'] = 0
     info['bar'] = tqdm(total=len(info['inputs'][0]))
+    if info['mode'] == 'training':
+        info['epoch_name'] = 'Epoch={:03d}'.format(info['nth_epoch'])
+    else:
+        info['epoch_name'] = 'Validation'
     info['epoch_loss_list'] = []
     for disp in info['inputs']:
         disp.reset()
@@ -23,11 +26,11 @@ def _norm_step_finish(info):
         return
     epoch_loss_list = info['epoch_loss_list']
     bar = info['bar']
-    nth_epoch = info['nth_epoch']
+    epoch_name = info['epoch_name']
 
     loss = float(loss[0].as_ndarray())
     epoch_loss_list.append(loss)
-    bar.set_description("epoch={:03d} cur-loss={:5.3f}".format(nth_epoch, loss))
+    bar.set_description("{0!s: >10} cur-loss={1:5.3f}".format(epoch_name, loss))
     bar.update(1)
 
 
@@ -35,45 +38,35 @@ def _norm_epoch_finish(info):
     epoch_loss_list = info['epoch_loss_list']
     bar = info['bar']
     all_losses = info['all_losses']
-    nth_epoch = info['nth_epoch']
+    epoch_name = info['epoch_name']
 
     epoch_loss_list.pop(-1)
     all_losses.append(np.sum(epoch_loss_list))
-    bar.n = bar.n - 1
     bar.set_description(
-        "epoch={:03d} avg-loss={:5.3f}".format(nth_epoch, np.mean(epoch_loss_list)))
+        "{0!s: >10} avg-loss={1:5.3f}".format(epoch_name, np.mean(epoch_loss_list)))
     bar.close()
     info['nth_epoch'] += 1
 
 
-def _validation_func(data, target, val_dict):
+def _validation_func(data, target):
     def _perform_validation(info):
+        #TODO: Move this to event
         ins = info['inputs']
-        losses = info['losses']
-
-        norm_d, norm_t = ins[0].value, ins[1].value
-        ins[0].value, ins[1].value = data, target
-        ins[1]._perm = ins[0]._perm
-        bar = tqdm(total=len(ins[0]))
-        for i in ins:
-            i.reset()
-        lst = []
-        try:
-            while(True):
-                for depth in val_dict.keys():
-                    for call in val_dict[depth]:
-                        call.perform()
-                loss = float(losses[0].as_ndarray())
-                bar.set_description('validation cur-loss={:5.3f}'.format(loss))
-                bar.update(1)
-                lst.append(loss)
-        except StopIteration:
-            lst.pop(-1)
-            bar.set_description('validation avg-loss={:5.3f}'.format(np.mean(lst)))
-            bar.close()
-            ins[0].value, ins[1].value = norm_d, norm_t
+        if info['mode'] == 'training':
+            losses = info['losses']
+            norm_d, norm_t = ins[0].value, ins[1].value
+            ins[0].value, ins[1].value = data, target
             ins[1]._perm = ins[0]._perm
-            info['validation_loss'] = np.sum(lst)
+            info['epoch_loss_list'] = []
+            info['mode'] = 'inference'
+            info['norm_data'] = (norm_d, norm_t)
+            info['nth_epoch'] -= 1 # Redo the epoch as validation
+        else:
+            norms = info['norm_data']
+            info['mode'] = 'training'
+            ins[0].value, ins[1].value = norms[0], norms[1]
+            ins[1]._perm = ins[0]._perm
+            info['validation_loss'] = np.sum(info['epoch_loss_list'])
         # _perform_validation END
     return _perform_validation
 
@@ -123,7 +116,7 @@ class Executor:
         for ev in self._events['Initialize']:
             ev(exe_info)
 
-        for e in range(epochs):
+        while exe_info['nth_epoch'] < epochs:
             self.perform_event_epoch(exe_info)
 
         for ev in self._events['Teardown']:
@@ -181,8 +174,8 @@ class Executor:
         assert isinstance(event_name, str) and event_name in self._events
         self._events[event_name] = []
 
-    def _set_validation(self, val_data, val_target, val_dct):
-        self.register_event('Epoch-Finish', _validation_func(val_data, val_target, val_dct))
+    def _set_validation(self, val_data, val_target):
+        self.register_event('Epoch-Finish', _validation_func(val_data, val_target))
 
     def step(self, d, t):
         #TODO: Clean up this mess boy.

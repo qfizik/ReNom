@@ -79,7 +79,7 @@ class UserGraph(graph_element):
                     if consumed in op.produces:
                         upd = update_operation(consumer=forward_operation,
                                                producer=op, key=consumed)
-                        upd_g = operational_element(upd, tags=['Update'])
+                        upd_g = operational_element(upd, tags=['Gradient'])
                         upd_g.add_input(self._bwd_graphs[op_num])
                         updates.append((op_num, upd_g))
         self._update_graphs = updates
@@ -161,8 +161,7 @@ class UserGraph(graph_element):
         if with_validation is not None:
             assert isinstance(with_validation, tuple) and len(with_validation) == 2
             val_d, val_t = with_validation[0], with_validation[1]
-            val_dct = self._fwd.get_call_dict(tag='Forward')
-            ret._set_validation(val_d, val_t, val_dct)
+            ret._set_validation(val_d, val_t)
         return ret
 
     def set_inference(self, inference=True):
