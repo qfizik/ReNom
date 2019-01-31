@@ -18,6 +18,9 @@ def _norm_epoch_start(info):
 
 def _norm_step_finish(info):
     loss = info['losses']
+    if info['mode'] == 'step':
+        info['step_loss'] = float(loss[0].as_ndarray())
+        return
     epoch_loss_list = info['epoch_loss_list']
     bar = info['bar']
     nth_epoch = info['nth_epoch']
@@ -114,7 +117,8 @@ class Executor:
         '''
         exe_info = {'inputs': self.dispatchers,
                     'losses': self.loss,
-                    'progress': progress
+                    'progress': progress,
+                    'mode': self.mode,
                     }
         for ev in self._events['Initialize']:
             ev(exe_info)
@@ -148,16 +152,15 @@ class Executor:
     def perform_event_step(self, exe_info):
         for ev in self._events['Step-Start']:
             ev(exe_info)
-        self.perform_step()
-        for ev in self._events['Step-Finish']:
-            ev(exe_info)
 
-    def perform_step(self):
+        mode = exe_info['mode']
         assert isinstance(self.call_list, dict)
-        if self.mode == 'inference':
+        if mode == 'inference' or mode == 'step':
             parts = ['Forward']
-        else:
+        elif mode == 'training':
             parts = ['Forward', 'Backward', 'Gradient']
+        else:
+            raise NotImplementedError()
         for part in parts:
             for depth in sorted(self.call_list[part].keys()):
                 for call in self.call_list[part][depth]:
@@ -166,19 +169,36 @@ class Executor:
                     else:
                         call.perform()
 
+        for ev in self._events['Step-Finish']:
+            ev(exe_info)
+
     def register_event(self, event_name, event_function):
         assert isinstance(event_name, str) and event_name in self._events
         assert callable(event_function)
         self._events[event_name].append(event_function)
 
+    def unregister_events(self, event_name):
+        assert isinstance(event_name, str) and event_name in self._events
+        self._events[event_name] = []
+
     def _set_validation(self, val_data, val_target, val_dct):
         self.register_event('Epoch-Finish', _validation_func(val_data, val_target, val_dct))
 
     def step(self, d, t):
-        self.dispatchers[0].value = d
-        self.dispatchers[1].value = t
-        self.perform_step()
+        #TODO: Clean up this mess boy.
+        exe_info = {
+            'mode': 'step',
+            'losses': self.loss,
+        }
+        ina = self.dispatchers[0]
+        inb = self.dispatchers[1]
+        p_d, p_t = ina.value, inb.value
+        ina.value, inb.value = d, t
+        inb._perm = ina._perm
+        self.perform_event_step(exe_info)
         loss = self.loss[0].as_ndarray()
+        ina.value, inb.value = p_d, p_t
+        inb._perm = ina._perm
         return loss
 
     def set_input_data(self, data, target):
