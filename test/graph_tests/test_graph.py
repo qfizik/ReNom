@@ -14,12 +14,14 @@ def compare(nd_value, ad_value, abs_tol=1e-5, rel_tol=1e-3):
     ret = nd_value.shape == ad_value.shape
     ret = ret and np.allclose(nd_value, ad_value, atol=abs_tol, rtol=rel_tol)
     if ret is False:
+        diff = nd_value - ad_value
         print('ad=')
         print(ad_value)
         print('nd=')
         print(nd_value)
         print('difference=')
-        print(nd_value - ad_value)
+        print(diff)
+        print(np.abs(diff)[np.abs(diff) > abs_tol])
     assert ret
 
 
@@ -361,12 +363,12 @@ def test_dense(test_shape, use_gpu, num_gpu, ignore_bias):
     (1, 2),
     (4, 5),
 ])
-def test_lstm(test_shape, use_gpu):
+def test_lstm(test_shape, use_gpu, num_gpu):
     np.random.seed(45)
     rm.set_cuda_active(use_gpu)
 
     v = rand(*test_shape)
-    val = rm.graph.StaticVariable(v)
+    val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.Lstm(output_size=4)
     l = rm.graph.ConstantLossGraphElement()
     m = model(val)
@@ -379,11 +381,12 @@ def test_lstm(test_shape, use_gpu):
         ret = loss.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), loss.backward(
+    ).get_gradient(val.value).as_ndarray(), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output).as_ndarray(), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wr'].output), loss.backward(
-    ).get_gradient(model.params['wr'].output).as_ndarray())
+    ).get_gradient(model.params['wr'].output).as_ndarray(), abs_tol=1e-3)
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -392,12 +395,12 @@ def test_lstm(test_shape, use_gpu):
     (1, 2),
     (4, 5),
 ])
-def test_gru(test_shape, use_gpu, ignore_bias):
+def test_gru(test_shape, use_gpu, ignore_bias, num_gpu):
     np.random.seed(44)
     rm.set_cuda_active(use_gpu)
 
     v = rand(*test_shape)
-    val = rm.graph.StaticVariable(v)
+    val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.GruGraphElement(output_size=4, ignore_bias=ignore_bias)
     l = rm.graph.ConstantLossGraphElement()
     m = model(val)
@@ -410,7 +413,8 @@ def test_gru(test_shape, use_gpu, ignore_bias):
         ret = loss.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), loss.backward(
+    ).get_gradient(val.value).as_ndarray(), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
     ).get_gradient(model.params['w'].output).as_ndarray(), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wr'].output), loss.backward(

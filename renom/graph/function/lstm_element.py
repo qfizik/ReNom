@@ -42,14 +42,16 @@ class lstm_forward(operation):
 
             if self._state is None:
                 shp = (x.shape[0], w.shape[1] // 4)
-                self._state = StateHolder()
-                for gpu, _ in rm.cuda.RenomHandlers(self.gpus):
-                    self._state.set_prev('s' + str(gpu), rm.GPUValue(np.zeros(shp)))
-                    self._state.set_prev('z' + str(gpu), rm.GPUValue(np.zeros(shp)))
-                    self._state.set_prev('pfgate' + str(gpu), rm.GPUValue(np.zeros(shp)))
+                self._state = {}
+                for gpu_tmp, _ in rm.cuda.RenomHandlers(self.gpus):
+                    self._state[gpu_tmp] = StateHolder()
+                    tmp_state = self._state[gpu_tmp]
+                    tmp_state.set_prev('s' + str(gpu_tmp), rm.GPUValue(np.zeros(shp)))
+                    tmp_state.set_prev('z' + str(gpu_tmp), rm.GPUValue(np.zeros(shp)))
+                    tmp_state.set_prev('pfgate' + str(gpu_tmp), rm.GPUValue(np.zeros(shp)))
 
-            s_p = self._state.get_prev('s' + str(gpu))
-            z_p = self._state.get_prev('z' + str(gpu))
+            s_p = self._state[gpu].get_prev('s' + str(gpu))
+            z_p = self._state[gpu].get_prev('z' + str(gpu))
             tmp1 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
             tmp2 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
 
@@ -66,15 +68,15 @@ class lstm_forward(operation):
 
             ret = z
             self._outputs[gpu] = ret
-            if self._state._cur_time > 0:
-                self._state.set_prev('pfgate' + str(gpu), u)
-            self._state.push({'x' + str(gpu): x,
-                              'ps' + str(gpu): s_p,
-                              's' + str(gpu): state,
-                              'z' + str(gpu): ret,
-                              'u' + str(gpu): u,
-                              'y' + str(gpu): ret,
-                              })
+            if self._state[gpu]._cur_time > 0:
+                self._state[gpu].set_prev('pfgate' + str(gpu), u)
+            self._state[gpu].push({'x' + str(gpu): x,
+                                   'ps' + str(gpu): s_p,
+                                   's' + str(gpu): state,
+                                   'z' + str(gpu): ret,
+                                   'u' + str(gpu): u,
+                                   'y' + str(gpu): ret,
+                                   })
 
     def reset(self):
         self._state = None
@@ -149,8 +151,8 @@ class lstm_backward(operation):
 
     def perform(self):
         self._state = self._fwd_op._state
-        _t = self._state._cur_time
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            _t = self._state[gpu]._cur_time
             dy = self._inputs[gpu]
             w = self._fwd_op._weights[gpu]
             wr = self._fwd_op._weights_r[gpu]
@@ -162,9 +164,9 @@ class lstm_backward(operation):
             drt = None
             dou = None
             pfg = None
-            self._state._cur_time = _t
-            while(self._state._cur_time > 0):
-                cur_state = self._state.peek()
+            self._state[gpu]._cur_time = _t
+            while(self._state[gpu]._cur_time > 0):
+                cur_state = self._state[gpu].peek()
                 x = cur_state['x' + str(gpu)]
                 y = cur_state['y' + str(gpu)]
 
@@ -199,7 +201,7 @@ class lstm_backward(operation):
 
                 drt = dr
                 dou = dou_n
-                self._state._cur_time -= 1
+                self._state[gpu]._cur_time -= 1
                 tmp = dy.empty_like_me()
                 rm.cuda.cublas_gemm(dr, 0, wr, 1, tmp, handle)
                 dy = tmp

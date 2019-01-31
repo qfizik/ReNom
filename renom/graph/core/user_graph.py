@@ -209,7 +209,7 @@ class UserGraph(graph_element):
 
     def update(self, optimizer=None):
         if optimizer is not None:
-            ups = self._bwd_graphs[0].get_call_dict(tag='Gradient')
+            ups = self._fwd.get_call_dict(tag='Gradient')
             for d in ups:
                 for i in range(len(ups[d])):
                     ups[d][i].set_update_op(optimizer)

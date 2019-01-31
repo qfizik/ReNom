@@ -91,7 +91,7 @@ class BadSgd(rm.graph.utils.optimizer.optimizer_factory):
 
         def update(self):
             dy = self._dy['cpu']
-            self._outputs['cpu'] += dy
+            self._outputs['cpu'] += 0.001 * dy
 
 
 def test_optimizer(use_gpu):
@@ -111,8 +111,9 @@ def test_optimizer(use_gpu):
         assert l_arr > p_l
         p_l = l_arr
         l.backward().update(opt1)
-    p_l = 9999
+    p_l = 9999999
     for i in range(5):
+        print(i)
         l = loss(layer(v), t)
         l_arr = l.as_ndarray()
         assert l_arr < p_l
@@ -216,8 +217,8 @@ def test_step_executor(use_gpu):
 def test_inference_mode():
     v1 = np.random.rand(10, 2).astype(rm.precision)
     model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DropoutGraphElement(),
+        rm.graph.Dense(3),
+        rm.graph.Dropout(),
     ])
     x = model(v1)
     assert model.l1._prev._fwd._op._inference is False
@@ -225,8 +226,8 @@ def test_inference_mode():
     assert model.l1._prev._fwd._op._inference is True
 
     model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DropoutGraphElement(),
+        rm.graph.Dense(3),
+        rm.graph.Dropout(),
     ])
     model.set_inference(True)
     x = model(v1)
@@ -238,8 +239,8 @@ def test_inference_mode():
 def test_updatable_mode():
     v1 = np.random.rand(10, 2).astype(rm.precision)
     model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DropoutGraphElement(),
+        rm.graph.Dense(3),
+        rm.graph.Dropout(),
     ])
     x = model(v1)
     assert model.l0.params['w']._fwd._op._val._should_update is True
