@@ -48,21 +48,18 @@ def _norm_epoch_finish(info):
     info['nth_epoch'] += 1
 
 
-def _validation_func(data, target):
+def _validation_func():
     def _perform_validation(info):
         # TODO: Move this to event
         ins = info['inputs']
         if info['mode'] == 'training':
-            norm_d, norm_t = ins[0].value, ins[1].value
-            ins[0].value, ins[1].value = data, target
+            ins[0].switch_source(1)
             info['epoch_loss_list'] = []
             info['mode'] = 'inference'
-            info['norm_data'] = (norm_d, norm_t)
             info['nth_epoch'] -= 1  # Redo the epoch as validation
         else:
-            norms = info['norm_data']
             info['mode'] = 'training'
-            ins[0].value, ins[1].value = norms[0], norms[1]
+            ins[0].switch_source(0)
             info['validation_loss'] = np.sum(info['epoch_loss_list'])
         # _perform_validation END
     return _perform_validation
@@ -171,8 +168,8 @@ class Executor:
         assert isinstance(event_name, str) and event_name in self._events
         self._events[event_name] = []
 
-    def _set_validation(self, val_data, val_target):
-        self.register_event('Epoch-Finish', _validation_func(val_data, val_target))
+    def _set_validation(self):
+        self.register_event('Epoch-Finish', _validation_func())
 
     def step(self, d, t):
         # TODO: Clean up this mess boy.
@@ -182,11 +179,10 @@ class Executor:
         }
         ina = self.dispatchers[0]
         inb = self.dispatchers[1]
-        p_d, p_t = ina.value, inb.value
         ina.value, inb.value = d, t
         self.perform_event_step(exe_info)
         loss = self.loss[0].as_ndarray()
-        ina.value, inb.value = p_d, p_t
+        ina.switch_source(0)
         return loss
 
     def set_input_data(self, data, target):

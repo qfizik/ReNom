@@ -78,20 +78,29 @@ def test_distributor_test_split(use_gpu):
 
     a = np.random.rand(10,2)
     b = np.random.rand(10,4)
-    data, target = rm.graph.Distro(a, b, 2, test_split = 0.9).get_output_graphs()
-    data.reset()
-    asum, bsum = 0, 0
+    data, target = rm.graph.Distro(a, b, 2, test_split = 0.8).get_output_graphs()
+    model = rm.graph.Dense(3)
+    count = 0
     try:
         while(True):
             data.forward()
-            asum += float(data.as_ndarray())
             target.forward()
-            bsum += float(target.as_ndarray())
+            count += 1
+            x = model(data)
     except StopIteration:
         pass
-    assert np.sum(a) > asum and asum > 0
-    assert np.sum(b) > bsum and bsum > 0
-
+    assert count == 5
+    data._fwd._op.switch_source(1)
+    count = 0
+    try:
+        while(True):
+            data.forward()
+            target.forward()
+            count += 1
+            x = model(data)
+    except StopIteration:
+        pass
+    assert count == 2
 
 
 def test_optimizer(use_gpu):
@@ -112,7 +121,6 @@ def test_optimizer(use_gpu):
         l.backward().update(opt)
 
 
-@pytest.mark.skipif(rm.precision != np.float64, reason='Requires precise testing')
 def test_inference_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
@@ -153,9 +161,9 @@ def test_training_executor_validation(use_gpu):
     t2 = np.random.rand(6, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.Sgd()
-    data, target = rm.graph.Distro(v1, t1, batch_size=2).get_output_graphs()
+    data, target = rm.graph.Distro([v1, v2], [t1, t2], batch_size=2).get_output_graphs()
     graph = loss(layer(data), target)
-    t_exe = graph.get_executor(optimizer=opt, mode='training', with_validation=(v2, t2))
+    t_exe = graph.get_executor(optimizer=opt, mode='training', with_validation=True)
     v_exe = graph.get_executor()
 
     def check_validation(info):

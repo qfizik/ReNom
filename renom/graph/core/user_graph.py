@@ -134,7 +134,7 @@ class UserGraph(graph_element):
         self.forward()
         return self._fwd.__repr__()
 
-    def get_executor(self, mode='inference', optimizer=None, with_validation=None):
+    def get_executor(self, mode='inference', optimizer=None, with_validation=False):
         if mode != 'inference' and optimizer is not None:
             ups = self._bwd_graphs[0].gather_operations_with_role('update', flatten=True)
             for i in range(len(ups)):
@@ -158,10 +158,8 @@ class UserGraph(graph_element):
         if mode == 'training':
             self._fwd.continue_setup()
         ret = Executor(call_list, ops, mode)
-        if with_validation is not None:
-            assert isinstance(with_validation, tuple) and len(with_validation) == 2
-            val_d, val_t = with_validation[0], with_validation[1]
-            ret._set_validation(val_d, val_t)
+        if with_validation is True:
+            ret._set_validation()
         return ret
 
     def set_inference(self, inference=True):
