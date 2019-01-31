@@ -119,10 +119,16 @@ class Distro:
 
     def __init__(self, data, labels, batch_size=64, num_gpus=1, shuffle=True, test_split = None):
         super().__init__()
+        assert len(data) == len(labels)
         self._data = data
         self._labels = labels
         self._batch_size = batch_size
         self._num_gpus = num_gpus
+        if test_split is not None:
+            assert isinstance(test_split, float) and test_split > 0. and test_split <= 1.
+            print(np.floor(len(data) * test_split))
+            split = np.random.permutation(int(np.floor(len(data) * test_split)))
+
 
         if rm.is_cuda_active():
             data_op = dispatch(data, num_gpus=num_gpus, batch_size=batch_size, shuffle=shuffle)
@@ -141,7 +147,7 @@ class Distro:
     def forward(self):
         pass
 
-    def getOutputGraphs(self):
+    def get_output_graphs(self):
         self._data_graph.detach()
         self._label_graph.detach()
         return self._data_graph, self._label_graph

@@ -73,6 +73,26 @@ def test_slices(use_gpu):
     B = A[:, 1, 0:2]
     compare(b, B.as_ndarray())
 
+def test_distributor_test_split(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    a = np.random.rand(10,2)
+    b = np.random.rand(10,4)
+    data, target = rm.graph.Distro(a, b, 2, test_split = 0.9).get_output_graphs()
+    data.reset()
+    asum, bsum = 0, 0
+    try:
+        while(True):
+            data.forward()
+            asum += float(data.as_ndarray())
+            target.forward()
+            bsum += float(target.as_ndarray())
+    except StopIteration:
+        pass
+    assert np.sum(a) > asum and asum > 0
+    assert np.sum(b) > bsum and bsum > 0
+
+
 
 def test_optimizer(use_gpu):
 
@@ -101,7 +121,7 @@ def test_inference_executor(use_gpu):
     layer = rm.graph.Dense(4)
     t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
-    data, target = rm.graph.Distro(v, t, batch_size=2).getOutputGraphs()
+    data, target = rm.graph.Distro(v, t, batch_size=2).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     losses = exe.execute(epochs=3)
     assert all(losses[i] == losses[i + 1] for i in range(len(losses) - 1))
@@ -116,7 +136,7 @@ def test_training_executor(use_gpu):
     t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.Sgd()
-    data, target = rm.graph.Distro(v, t, batch_size=2).getOutputGraphs()
+    data, target = rm.graph.Distro(v, t, batch_size=2).get_output_graphs()
     exe = loss(layer(data), target).get_executor(optimizer=opt, mode='training')
     losses = exe.execute(epochs=3)
     assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
@@ -133,7 +153,7 @@ def test_training_executor_validation(use_gpu):
     t2 = np.random.rand(6, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
     opt = rm.graph.Sgd()
-    data, target = rm.graph.Distro(v1, t1, batch_size=2).getOutputGraphs()
+    data, target = rm.graph.Distro(v1, t1, batch_size=2).get_output_graphs()
     graph = loss(layer(data), target)
     t_exe = graph.get_executor(optimizer=opt, mode='training', with_validation=(v2, t2))
     v_exe = graph.get_executor()
@@ -159,7 +179,7 @@ def test_validation_executor(use_gpu):
     layer = rm.graph.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
-    data, target = rm.graph.Distro(v1, t1, batch_size=2).getOutputGraphs()
+    data, target = rm.graph.Distro(v1, t1, batch_size=2).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     losses1 = np.array(exe.execute(epochs=3))
     v2, t2 = v1 * 2, t1 * 2
@@ -177,7 +197,7 @@ def test_step_executor(use_gpu):
     layer = rm.graph.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
-    data, target = rm.graph.Distro(v1, t1, batch_size=2).getOutputGraphs()
+    data, target = rm.graph.Distro(v1, t1, batch_size=2).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     loss1 = np.array(exe.execute(epochs=1))
     loss2 = 0
