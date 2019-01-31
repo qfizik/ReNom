@@ -50,17 +50,16 @@ def _norm_epoch_finish(info):
 
 def _validation_func(data, target):
     def _perform_validation(info):
-        #TODO: Move this to event
+        # TODO: Move this to event
         ins = info['inputs']
         if info['mode'] == 'training':
-            losses = info['losses']
             norm_d, norm_t = ins[0].value, ins[1].value
             ins[0].value, ins[1].value = data, target
             ins[1]._perm = ins[0]._perm
             info['epoch_loss_list'] = []
             info['mode'] = 'inference'
             info['norm_data'] = (norm_d, norm_t)
-            info['nth_epoch'] -= 1 # Redo the epoch as validation
+            info['nth_epoch'] -= 1  # Redo the epoch as validation
         else:
             norms = info['norm_data']
             info['mode'] = 'training'
@@ -178,7 +177,7 @@ class Executor:
         self.register_event('Epoch-Finish', _validation_func(val_data, val_target))
 
     def step(self, d, t):
-        #TODO: Clean up this mess boy.
+        # TODO: Clean up this mess boy.
         exe_info = {
             'mode': 'step',
             'losses': self.loss,
