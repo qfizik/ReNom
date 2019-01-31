@@ -7,13 +7,20 @@ def _norm_init(info):
     info['nth_epoch'] = 0
     info['all_losses'] = []
 
+def _norm_finish(info):
+    if 'bar' in info:
+        info['bar'].close()
 
 def _norm_epoch_start(info):
-    info['bar'] = tqdm(total=len(info['inputs'][0]))
     if info['mode'] == 'training':
-        info['epoch_name'] = 'Epoch={:03d}'.format(info['nth_epoch'])
+        if 'bar' in info:
+            info['bar'].close()
+        info['bar'] = tqdm(total=len(info['inputs'][0]))
+        info['epoch_name'] = 'Training'
     else:
-        info['epoch_name'] = 'Validation'
+        bar = info['bar']
+        bar.total+=len(info['inputs'][0])
+        info['epoch_name'] = 'Validating'
     info['epoch_loss_list'] = []
     for disp in info['inputs']:
         disp.reset()
@@ -42,9 +49,15 @@ def _norm_epoch_finish(info):
 
     epoch_loss_list.pop(-1)
     all_losses.append(np.sum(epoch_loss_list))
-    bar.set_description(
-        "{0!s: >10} avg-loss={1:5.3f}".format(epoch_name, np.mean(epoch_loss_list)))
-    bar.close()
+    cur_loss = np.mean(epoch_loss_list)
+    if info['mode'] == 'training':
+        bar.set_description(
+            "{0!s: >10} avg-loss={1:5.3f}".format(epoch_name, cur_loss))
+        info['training_loss'] = cur_loss
+    elif info['mode'] == 'inference' and 'training_loss' in info:
+        epoch_name = 'Finished #{:03d}'.format(info['nth_epoch'])
+        bar.set_description('{0!s: >10} [train={1:5.3f}, valid={2:5.3f}]'.format(epoch_name, info['training_loss'], cur_loss))
+    #bar.close()
     info['nth_epoch'] += 1
 
 
@@ -93,6 +106,7 @@ class Executor:
         self.register_event('Epoch-Start', _norm_epoch_start)
         self.register_event('Step-Finish', _norm_step_finish)
         self.register_event('Epoch-Finish', _norm_epoch_finish)
+        self.register_event('Teardown', _norm_finish)
 
     def execute(self, epochs, progress=True):
         '''

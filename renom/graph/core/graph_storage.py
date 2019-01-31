@@ -1,6 +1,10 @@
 import numpy as np
 import renom as rm
 
+_mem_info = {
+    'initial' : None,
+    'sum' : None,
+}
 
 class shared_val:
     '''
