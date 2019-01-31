@@ -122,14 +122,20 @@ class Executor:
                     'mode': self.mode,
                     }
         dis = self.dispatchers[0]
-        t_d_num = len(dis._value_list[0])
-        v_d_num = len(dis._value_list[1])
-        tot_num = t_d_num + v_d_num
-        m_depth = max(self.call_list['Gradient'].keys())
-        print('Train Data num:{0:d}({1:3%})'.format(t_d_num, t_d_num/tot_num))
-        print('Validation Data num:{0:d}({1:3%})'.format(v_d_num, v_d_num/tot_num))
-        print('Graph max depth is:', m_depth)
-        print('Mode:', self.mode)
+        
+        if len(dis._value_list) > 1:
+            t_d_num = len(dis._value_list[0])
+            v_d_num = len(dis._value_list[1])
+            tot_num = t_d_num + v_d_num
+            if self.mode == 'inference':
+                m_depth = max(self.call_list['Forward'].keys())
+            else:
+                m_depth = max(self.call_list['Gradient'].keys())
+            print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num/tot_num))
+            print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num/tot_num))
+            print('Graph max depth is:', m_depth)
+            print('Mode:', self.mode)
+
         for ev in self._events['Initialize']:
             ev(exe_info)
 
