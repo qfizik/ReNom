@@ -131,9 +131,10 @@ class data_entry_element(UserGraph):
     def reset(self):
         self._data_op.reset()
 
+
 class Distro:
 
-    def __init__(self, data, labels, batch_size=64, num_gpus=1, shuffle=True, test_split = None):
+    def __init__(self, data, labels, batch_size=64, num_gpus=1, shuffle=True, test_split=None):
         super().__init__()
         assert len(data) == len(labels)
         self._data = data
@@ -152,7 +153,6 @@ class Distro:
         elif not isinstance(data, list):
             data = [data]
             labels = [labels]
-
 
         if rm.is_cuda_active():
             data_op = dispatch(data, num_gpus=num_gpus, batch_size=batch_size, shuffle=shuffle)

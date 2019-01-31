@@ -1,17 +1,6 @@
 import numpy as np
 import renom as rm
 
-_mem_info = {
-    'initial' : None,
-    'sum' : None,
-}
-
-def get_cur_req():
-    assert _mem_info['initial'] is not None
-    mem = rm.cuda.cuGetMemInfo()
-    used = _mem_info['initial'] - mem[0]
-    return int(used)
-
 class shared_val:
     '''
           This object is responsible for allowing each GraphMultiStorage to
@@ -144,17 +133,8 @@ class GraphMultiStorage:
             with rm.cuda.RenomHandler(gpu):
                 if not self._should_share:
                     arr = get_arr()
-                meminfo = rm.cuda.cuGetMemInfo() # (free, used, total)
-                req = np.prod([v for v in self.shape]) * np.dtype(rm.precision).itemsize
-                if _mem_info['initial'] is None:
-                    _mem_info['initial'] = meminfo[0]
-                assert req <= meminfo[0]
                 self[gpu] = rm.GPUValue(array=arr, shape=self.shape,
                                         ptr=self._ptrs[gpu]._ptr if self._ptrs is not None else None)
-                meminfo_after = rm.cuda.cuGetMemInfo()
-                rm.cuda.cuDeviceSynchronize()
-                #print((meminfo[0] - meminfo_after[0])/4, req)
-                #assert meminfo[0] - meminfo_after[0] == req
 
     @property
     def shape(self):

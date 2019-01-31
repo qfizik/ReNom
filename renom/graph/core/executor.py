@@ -7,14 +7,16 @@ def _norm_init(info):
     info['nth_epoch'] = 0
     info['all_losses'] = []
 
+
 def _norm_finish(info):
     if 'bar' in info:
         info['bar'].close()
 
+
 def _norm_epoch_start(info):
     if info['mode'] == 'inference' and 'training_loss' in info:
         bar = info['bar']
-        bar.total+=len(info['inputs'][0])
+        bar.total += len(info['inputs'][0])
         info['epoch_name'] = 'Validating'
     else:
         if 'bar' in info:
@@ -56,8 +58,9 @@ def _norm_epoch_finish(info):
         info['training_loss'] = cur_loss
     elif info['mode'] == 'inference' and 'training_loss' in info:
         epoch_name = 'Finished #{:03d}'.format(info['nth_epoch'])
-        bar.set_description('{0!s: >10} [train={1:5.3f}, valid={2:5.3f}]'.format(epoch_name, info['training_loss'], cur_loss))
-    #bar.close()
+        bar.set_description('{0!s: >10} [train={1:5.3f}, valid={2:5.3f}]'.format(
+            epoch_name, info['training_loss'], cur_loss))
+    # bar.close()
     info['nth_epoch'] += 1
 
 
@@ -122,7 +125,7 @@ class Executor:
                     'mode': self.mode,
                     }
         dis = self.dispatchers[0]
-        
+
         if len(dis._value_list) > 1:
             t_d_num = len(dis._value_list[0])
             v_d_num = len(dis._value_list[1])
@@ -131,8 +134,8 @@ class Executor:
                 m_depth = max(self.call_list['Forward'].keys())
             else:
                 m_depth = max(self.call_list['Gradient'].keys())
-            print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num/tot_num))
-            print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num/tot_num))
+            print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num / tot_num))
+            print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num / tot_num))
             print('Graph max depth is:', m_depth)
             print('Mode:', self.mode)
 
