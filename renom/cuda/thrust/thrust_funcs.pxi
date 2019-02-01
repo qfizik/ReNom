@@ -552,6 +552,9 @@ def cuembedding_backward(gpu_index, gpu_dy, gpu_dx):
 
 
 def cuconcat(gpu_values, gpu_value2, axis):
+    def cast(arg):
+        return tuple([a if isinstance(a, int) else a.value for a in arg])
+
     for i in range(len(gpu_values[:-1])):
         cuda_base.check_heap_device(gpu_values[i], gpu_values[i + 1], gpu_value2)
 
@@ -563,7 +566,7 @@ def cuconcat(gpu_values, gpu_value2, axis):
     for gpu_value in gpu_values:
         if (not gpu_value.shape):
             raise ValueError("zero-dimensional arrays cannot be concatenated")
-        rec_size += functools.reduce(operator.__mul__, gpu_value.shape[axis:], 1)
+        rec_size += functools.reduce(operator.__mul__, cast(gpu_value.shape)[axis:], 1)
 
     cdef size_t size = 0
     cdef concated_size
@@ -571,7 +574,7 @@ def cuconcat(gpu_values, gpu_value2, axis):
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
     for gpu_value in gpu_values:
         s1 = gpu_value.shape[:axis] + gpu_value.shape[axis + 1:]
-        concated_size = <int > functools.reduce(operator.__mul__, gpu_value.shape[axis:], 1)
+        concated_size = <int > functools.reduce(operator.__mul__, cast(gpu_value.shape)[axis:], 1)
         ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value._ptr
         thrust_copy_memory_stride(ptr2 + size, ptr1, gpu_value.size, rec_size, concated_size)
         size += <int > concated_size

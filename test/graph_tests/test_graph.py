@@ -329,6 +329,34 @@ def test_reduce_unary_operations2(params, oper, use_gpu, num_gpu):
             loss.backward().get_gradient(val1.value).as_ndarray())
 
 
+@pytest.mark.parametrize("test_shapes, axis", [
+    [[(1, 1), (1, 1)], 0],
+    [[(1, 1), (1, 1)], 1],
+    [[(1, 1), (1, 1), (1, 1)], 0],
+    [[(1, 1), (1, 1), (1, 1)], 1],
+
+    [[(2, 1), (2, 1)], 0],
+    [[(2, 1), (2, 1)], 1],
+
+    [[(2, 3, 2), (2, 1, 2)], 1],
+    [[(2, 3, 2), (2, 1, 2), (2, 2, 2)], 1],
+])
+def test_concat(test_shapes, axis, use_gpu, num_gpu):
+    rm.set_cuda_active(use_gpu)
+    vals = [rm.graph.StaticVariable(fixed(*s), num_gpus=num_gpu) for s in test_shapes]
+    lf = rm.graph.ConstantLossGraphElement()
+    loss = lf(rm.graph.basics.concatenate(vals, axis=axis))
+
+    def func():
+        loss.forward()
+        ret = loss.as_ndarray()
+        return ret
+
+    for v in vals:
+        compare(getNumericalDiff(func, v.value),
+                loss.backward().get_gradient(v.value).as_ndarray())
+
+
 @pytest.mark.parametrize("test_shape", [
     (2, 2),
     (2, 1),
@@ -966,17 +994,20 @@ def test_sigmoid(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
 
 
-@pytest.mark.parametrize("test_shape", [
-    (1, 8),
-    (2, 5),
-    (6,),
-    (2, 20),
+@pytest.mark.parametrize("test_shape, axis", [
+    [(1, 8), None],
+    [(1, 8), 0],
+    [(1, 8), 1],
+    [(1, 4, 8), None],
+    [(1, 4, 8), 0],
+    [(1, 4, 8), 1],
+    [(1, 4, 8), 2],
 ])
-def test_dropout(test_shape, use_gpu, num_gpu):
+def test_dropout(test_shape, axis, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.Dropout()
+    model = rm.graph.Dropout(axis=axis)
     loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
