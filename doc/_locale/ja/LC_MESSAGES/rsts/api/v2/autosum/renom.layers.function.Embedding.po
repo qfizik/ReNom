@@ -1,0 +1,81 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.Embedding.rst:2
+msgid "renom.layers.function.Embedding"
+msgstr ""
+
+#: of renom.layers.function.Embedding:1
+msgid ""
+"Embedding layer. This layer is the special case of dense layer. The case "
+"is that the input value is onehot encoded. Since the onehot encoded input"
+" is very sparse, the matrix product performed in the dense layer is "
+"redundant."
+msgstr ""
+
+#: of renom.layers.function.Embedding:5
+msgid "The difference between dense layer and embedding layer is bellow."
+msgstr ""
+
+#: of renom.layers.function.Embedding:7
+msgid "**[Dense layer]**"
+msgstr ""
+
+#: of renom.layers.function.Embedding:8
+msgid "data -> onehot encoding -> onehot data -> dense layer -> embedded data"
+msgstr ""
+
+#: of renom.layers.function.Embedding:10
+msgid "**[Embedding layer]**"
+msgstr ""
+
+#: of renom.layers.function.Embedding:11
+msgid "data -> embedding layer -> embedded data"
+msgstr ""
+
+#: of renom.layers.function.Embedding
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.function.Embedding:13
+msgid "Output unit size."
+msgstr ""
+
+#: of renom.layers.function.Embedding:15
+msgid "Input unit size. This is same as number of embedding characters."
+msgstr ""
+
+#: of renom.layers.function.Embedding:17
+msgid "Initializer object for weight initialization."
+msgstr ""
+
+#: of renom.layers.function.Embedding:21
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.function.Embedding:31
+msgid ""
+"This layer only accepts matrix which shape is (N, 1) and has integer "
+"value. *N is batch size."
+msgstr ""
+
+#: of renom.layers.function.Embedding:32
+msgid "Both ``output_size`` and ``input_size`` must be specified."
+msgstr ""
+

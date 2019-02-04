@@ -1,0 +1,47 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.L2Norm.rst:2
+msgid "renom.layers.function.L2Norm"
+msgstr ""
+
+#: of renom.layers.function.L2Norm:1
+msgid ""
+"L2 Normalziation function [1] This layer is used to change the scale of "
+"feature maps by using L2 Normalization."
+msgstr ""
+
+#: of renom.layers.function.L2Norm
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.function.L2Norm:4
+msgid "Feature map is scaled to this value. Defaults to 20."
+msgstr ""
+
+#: of renom.layers.function.L2Norm:7
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.function.L2Norm:19
+msgid ""
+"Wei Liu, Andrew Rabinovich, Alexander C. Berg. ParseNet: Looking Wider to"
+" See Better"
+msgstr ""
+

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNom 2.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-13 13:29+0900\n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,7 +17,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.6.0\n"
 
-#: ../../index.rst:7
-msgid "ReNom version 2.6.0"
+#: ../../index.rst:2
+msgid "ReNom version 3.0"
 msgstr ""
+
+#: ../../index.rst:6
+msgid "Welcome to document of ReNom."
+msgstr ""
+
+#~ msgid "ReNom version 2.6.0"
+#~ msgstr ""
 

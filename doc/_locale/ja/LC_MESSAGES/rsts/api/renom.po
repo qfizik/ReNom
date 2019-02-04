@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNom 2.6\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-12-20 17:29+0900\n"
+"POT-Creation-Date: 2019-01-21 10:23+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -119,6 +119,40 @@ msgid ""
 "List of models to update variables. When specified, variables which does "
 "not belong to one of the models are not updated."
 msgstr "勾配による更新対象の変数のリストを与えることができる.もしひとつ以上の変数が与えられた場合, リストに存在する変数のみが更新される."
+
+#: of renom.core.Grads.clip_gradient:1
+msgid ""
+"This function clips the gradient if gradient is above threshold. The "
+"calculation is dones as shown below:"
+msgstr ""
+
+#: of renom.core.Grads.clip_gradient:8
+msgid "rac{\\partial \\epsilon}{\\partial         heta} \\"
+msgstr ""
+
+#: of renom.core.Grads.clip_gradient:8
+msgid ""
+"if ||\\hat{g}|| \\geq {\\it threshold} \\hspace{5pt} {f then}\\ \\hat{g}"
+" \\leftarrow"
+msgstr ""
+
+#: of renom.core.Grads.clip_gradient:10
+msgid "rac{threshold}{||\\hat{g}||}\\hat{g} \\"
+msgstr ""
+
+#: of renom.core.Grads.clip_gradient:15
+msgid "Args:"
+msgstr ""
+
+#: of renom.core.Grads.clip_gradient:13
+msgid ""
+"gradient: gradient object threshold(float): theshold norm(int): norm of "
+"gradient"
+msgstr ""
+
+#: of renom.core.Grads.clip_gradient:22
+msgid "Examples::"
+msgstr ""
 
 #: of renom.core.Node:1
 msgid "Bases: :class:`numpy.ndarray`"
@@ -339,8 +373,7 @@ msgstr "変形後の行列の形"
 msgid ""
 "This function sums up matrix elements. If the argument 'axis' is passed, "
 "this function performs sum along specified axis."
-msgstr "行列の要素を足し合わせる."
-"引数axisが与えられた場合, その軸に沿って要素を足し合わせる."
+msgstr "行列の要素を足し合わせる.引数axisが与えられた場合, その軸に沿って要素を足し合わせる."
 
 #: of renom.operation.sum:7
 msgid "Summing up along this axis."
@@ -380,8 +413,7 @@ msgstr "行列が結合された結果"
 
 #: of renom.operation.where:1
 msgid "Return elements, either from a or b, depending on condition."
-msgstr "引数conditionに与えられた条件に従い, 引数に与えられた行列aもしくはbの"
-"要素を返す."
+msgstr "引数conditionに与えられた条件に従い, 引数に与えられた行列aもしくはbの要素を返す."
 
 #: of renom.operation.where:3
 msgid "Condition array."
@@ -438,7 +470,6 @@ msgid ""
 "Returns max value or array of given array. You can specify the axis which"
 " the operation will be performed for."
 msgstr "行列の指定された軸方向に対し, 最大値を取得する."
-
 
 #: of renom.operation.mean:1
 msgid ""

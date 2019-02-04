@@ -1,0 +1,101 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-21 10:23+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:2
+msgid "renom.graph.function.AvgPoolGraphElement"
+msgstr ""
+
+#: of renom.graph.function.AvgPoolGraphElement:1
+msgid ""
+"Average pooling function. In the case of int input, filter, padding, and "
+"stride, the shape will be symmetric."
+msgstr ""
+
+#: of renom.graph.function.AvgPoolGraphElement
+msgid "Parameters"
+msgstr ""
+
+#: of renom.graph.function.AvgPoolGraphElement:4
+msgid "Filter size of the convolution kernel."
+msgstr ""
+
+#: of renom.graph.function.AvgPoolGraphElement:6
+msgid "Size of the zero-padding around the image."
+msgstr ""
+
+#: of renom.graph.function.AvgPoolGraphElement:8
+msgid "Stride-size of the convolution."
+msgstr ""
+
+#: of renom.graph.function.AvgPoolGraphElement:12
+msgid "Example"
+msgstr ""
+
+#: of renom.graph.function.AvgPoolGraphElement:13
+msgid ""
+"In [1] import numpy as np In [2] import renom as rm In [3] In [4] x = "
+"np.random.rand(3, 3, 32, 32) In [5] layer = "
+"rm.graph.AvgPoolGraphElement(kernel = 3) In [6] z = layer(x).as_ndarray()"
+" In [7] z.shape Out[7] (3, 3, 30, 30)"
+msgstr ""
+
+#: of renom.graph.function.AvgPoolGraphElement.__init__:1
+msgid "Initialize self.  See help(type(self)) for accurate signature."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:13
+msgid "Methods"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`__init__ <renom.graph.function.AvgPoolGraphElement.__init__>`\\ "
+"\\(\\[kernel\\, padding\\, stride\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:19:<autosummary>:1
+msgid "Initialize self."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`connect <renom.graph.function.AvgPoolGraphElement.connect>`\\ "
+"\\(other\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`load <renom.graph.function.AvgPoolGraphElement.load>`\\ "
+"\\(filename\\[\\, devices\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:19:<autosummary>:1
+msgid "Load saved weights to model."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`save <renom.graph.function.AvgPoolGraphElement.save>`\\ "
+"\\(filename\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.AvgPoolGraphElement.rst:19:<autosummary>:1
+msgid "Save model attributes."
+msgstr ""
+

@@ -1,0 +1,75 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:2
+msgid "renom.graph.function.DeconvolutionalGraphElement"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:19:<autosummary>:1
+#: of renom.graph.function.DeconvolutionalGraphElement.__init__:1
+msgid "Generic UserGraph initializer."
+msgstr ""
+
+#: of renom.graph.function.DeconvolutionalGraphElement.__init__:3
+msgid ""
+"Initializes the parameter field as an empty dictionary and sets the "
+"previous output to None."
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:13
+msgid "Methods"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`__init__ "
+"<renom.graph.function.DeconvolutionalGraphElement.__init__>`\\ "
+"\\(\\[channels\\, kernel\\, padding\\, stride\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`connect "
+"<renom.graph.function.DeconvolutionalGraphElement.connect>`\\ \\(other\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:19:<autosummary>:1
+msgid "This method connects the UserGraph to another graph."
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`load <renom.graph.function.DeconvolutionalGraphElement.load>`\\ "
+"\\(filename\\[\\, devices\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:19:<autosummary>:1
+msgid "Load saved weights to model."
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`save <renom.graph.function.DeconvolutionalGraphElement.save>`\\ "
+"\\(filename\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DeconvolutionalGraphElement.rst:19:<autosummary>:1
+msgid "Save model attributes."
+msgstr ""
+

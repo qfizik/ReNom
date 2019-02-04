@@ -1,0 +1,86 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.Deconv2d.rst:2
+msgid "renom.layers.function.Deconv2d"
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:1
+msgid "2d convolution layer."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:3
+msgid ""
+"This class creates a convolution filter to be convolved with the input "
+"tensor. The instance of this class only accepts and outputs 4d tensors."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:7
+msgid ""
+"At instantiation, in the case of int input, filter, padding, and stride, "
+"the shape will be symmetric."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:9
+msgid ""
+"If the argument `input_size` is passed, this layers' weight is "
+"initialized in the __init__ function. Otherwise, the weight is "
+"initialized in its first forward calculation."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:13
+msgid "The dimensionality of the output."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:15
+msgid "Filter size to witch used as convolution kernel."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:17
+msgid "Pad around image by 0 according to this size."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:19
+msgid "Specifying the strides of the convolution."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:21
+msgid "Dilation of the convolution."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:23
+msgid "Input unit size. This must be a tuple like (Channel, Height, Width)."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:25
+msgid "If True is given, bias will not be added."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:27
+msgid "Initializer object for weight initialization."
+msgstr ""
+
+#: of renom.layers.function.Deconv2d:31
+msgid "Example"
+msgstr ""
+

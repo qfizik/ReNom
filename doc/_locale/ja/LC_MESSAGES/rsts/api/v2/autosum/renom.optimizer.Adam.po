@@ -1,0 +1,49 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.optimizer.Adam.rst:2
+msgid "renom.optimizer.Adam"
+msgstr ""
+
+#: of renom.optimizer.Adam:1
+msgid "Adaptive moment estimation described by following formula. [Adam]_"
+msgstr ""
+
+#: of renom.optimizer.Adam
+msgid "Parameters"
+msgstr ""
+
+#: of renom.optimizer.Adam:11
+msgid "Learning rate."
+msgstr ""
+
+#: of renom.optimizer.Adam:13 renom.optimizer.Adam:15
+msgid "Coefficient"
+msgstr ""
+
+#: of renom.optimizer.Adam:17
+msgid "Small number in the equation for avoiding zero division."
+msgstr ""
+
+#: of renom.optimizer.Adam:20
+msgid ""
+"Diederik P. Kingma, Jimmy Ba. ADAM: A METHOD FOR STOCHASTIC "
+"OPTIMIZATION(2014) https://arxiv.org/pdf/1412.6980.pdf"
+msgstr ""
+

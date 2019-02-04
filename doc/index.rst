@@ -1,15 +1,12 @@
-.. ReNomAd documentation master file, created by
-   sphinx-quickstart on Wed Jun  7 19:58:54 2017.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+ReNom version 3.0
+==================
 
-ReNom version 2.7
-=================
+.. Logo image will be here.
 
-Welcome to renom. This documentation is not finished yet.
+Welcome to document of ReNom.
 
 .. toctree::
-    :hidden:
+    :maxdepth: 1
 
     rsts/introduction/main
     rsts/installation/main

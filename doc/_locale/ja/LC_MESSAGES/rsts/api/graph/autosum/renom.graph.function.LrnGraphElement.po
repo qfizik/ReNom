@@ -1,0 +1,115 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-21 10:23+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:2
+msgid "renom.graph.function.LrnGraphElement"
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:1
+msgid "Local response normalization function [lrn]_ ."
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:6
+msgid ""
+":math:`x_{c,i,j}` represents the c th conv filter’s output at the "
+"position of (i, j) in the feature map. :math:`y_{c_{out},j,i}` represents"
+" the output of local response normalization. :math:`N` is the number of "
+"the feature maps. :math:`n` is the adjacent feature map number. The "
+"default argument values are recommended."
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement
+msgid "Parameters"
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:12
+msgid "Number of images used to be normalized."
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:14
+msgid "Constant."
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:16
+msgid "Scale factor."
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:18
+msgid "Exponential factor."
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:22
+msgid "Example"
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:23
+msgid ""
+"In [1]: import numpy as np In [2]: import renom as rm In [3]: x = "
+"np.random.rand(3, 3, 32, 32) In [4]: layer = rm.graph.LrnGraphElement() "
+"In [5]: z=layer(x).as_ndarray() In [6]: z.shape Out[6]: (3, 3, 32, 32)"
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement:32
+msgid ""
+"Alex Krizhevsky Krizhevsky, , Ilya IlyaSutskever Sutskever, Geoff. "
+"ImageNet Classification with Deep Convolutional Neural Networks"
+msgstr ""
+
+#: of renom.graph.function.LrnGraphElement.__init__:1
+msgid "Initialize self.  See help(type(self)) for accurate signature."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:13
+msgid "Methods"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`__init__ <renom.graph.function.LrnGraphElement.__init__>`\\ "
+"\\(\\[n\\, k\\, a\\, b\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:19:<autosummary>:1
+msgid "Initialize self."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`connect <renom.graph.function.LrnGraphElement.connect>`\\ "
+"\\(other\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`load <renom.graph.function.LrnGraphElement.load>`\\ "
+"\\(filename\\[\\, devices\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:19:<autosummary>:1
+msgid "Load saved weights to model."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:19:<autosummary>:1
+msgid ":obj:`save <renom.graph.function.LrnGraphElement.save>`\\ \\(filename\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.LrnGraphElement.rst:19:<autosummary>:1
+msgid "Save model attributes."
+msgstr ""
+

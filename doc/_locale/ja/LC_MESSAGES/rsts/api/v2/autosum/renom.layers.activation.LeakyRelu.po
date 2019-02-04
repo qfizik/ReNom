@@ -1,0 +1,55 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.activation.LeakyRelu.rst:2
+msgid "renom.layers.activation.LeakyRelu"
+msgstr ""
+
+#: of renom.layers.activation.LeakyRelu:1
+msgid ""
+"The Leaky relu [leaky_relu]_ activation function is described by the "
+"following formula."
+msgstr ""
+
+#: of renom.layers.activation.LeakyRelu:3
+msgid ":math:`f(x)=max(x, 0)+min(slope*x, 0)`"
+msgstr ""
+
+#: of renom.layers.activation.LeakyRelu
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.activation.LeakyRelu:5
+msgid "Input numpy array or instance of Variable."
+msgstr ""
+
+#: of renom.layers.activation.LeakyRelu:7
+msgid "Coefficient multiplied by negative values."
+msgstr ""
+
+#: of renom.layers.activation.LeakyRelu:11
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.activation.LeakyRelu:24
+msgid ""
+"Andrew L. Maas, Awni Y. Hannun, Andrew Y. Ng (2014). Rectifier "
+"Nonlinearities Improve Neural Network Acoustic Models"
+msgstr ""
+

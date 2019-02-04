@@ -1,0 +1,79 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/loss.rst:2
+msgid "renom.layers.loss"
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ":obj:`ClippedMeanSquaredError <renom.layers.loss.ClippedMeanSquaredError>`"
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid "Cliped mean squared error function."
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ":obj:`CrossEntropy <renom.layers.loss.CrossEntropy>`"
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ""
+"This function evaluates the cross entropy loss between the target ``y`` "
+"and the input ``x``."
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ":obj:`MeanSquaredError <renom.layers.loss.MeanSquaredError>`"
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ""
+"This function evaluates the loss between the target ``y`` and the input "
+"``x`` using mean squared error."
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ":obj:`SigmoidCrossEntropy <renom.layers.loss.SigmoidCrossEntropy>`"
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ""
+"This function evaluates the loss between target ``y`` and output of "
+"sigmoid activation ``z`` using cross entropy."
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ":obj:`SoftmaxCrossEntropy <renom.layers.loss.SoftmaxCrossEntropy>`"
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ""
+"This function evaluates the loss between target ``y`` and output of "
+"softmax activation ``z`` using cross entropy."
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid ":obj:`SmoothedL1 <renom.layers.loss.SmoothedL1>`"
+msgstr ""
+
+#: ../../rsts/api/v2/loss.rst:17:<autosummary>:1
+msgid "Smoothed L1 loss."
+msgstr ""
+

@@ -1,0 +1,63 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-21 10:23+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:2
+msgid "renom.graph.function.BiasGraphElement"
+msgstr ""
+
+#: of renom.graph.function.BiasGraphElement.__init__:1
+msgid "Initialize self.  See help(type(self)) for accurate signature."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:13
+msgid "Methods"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:19:<autosummary>:1
+msgid ":obj:`__init__ <renom.graph.function.BiasGraphElement.__init__>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:19:<autosummary>:1
+msgid "Initialize self."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`connect <renom.graph.function.BiasGraphElement.connect>`\\ "
+"\\(other\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`load <renom.graph.function.BiasGraphElement.load>`\\ "
+"\\(filename\\[\\, devices\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:19:<autosummary>:1
+msgid "Load saved weights to model."
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:19:<autosummary>:1
+msgid ":obj:`save <renom.graph.function.BiasGraphElement.save>`\\ \\(filename\\)"
+msgstr ""
+
+#: ../../rsts/api/graph/autosum/renom.graph.function.BiasGraphElement.rst:19:<autosummary>:1
+msgid "Save model attributes."
+msgstr ""
+

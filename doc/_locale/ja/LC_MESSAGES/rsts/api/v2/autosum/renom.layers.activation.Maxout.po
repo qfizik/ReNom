@@ -1,0 +1,51 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.activation.Maxout.rst:2
+msgid "renom.layers.activation.Maxout"
+msgstr ""
+
+#: of renom.layers.activation.Maxout:1
+msgid "Maxout Network Actionvation Function as described at [maxout]_"
+msgstr ""
+
+#: of renom.layers.activation.Maxout
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.activation.Maxout:10
+msgid "Input numpy array or Node instance"
+msgstr ""
+
+#: of renom.layers.activation.Maxout:12
+msgid "Axis over which the input array should be sliced"
+msgstr ""
+
+#: of renom.layers.activation.Maxout:14
+msgid "Amount of units to compare for each output"
+msgstr ""
+
+#: of renom.layers.activation.Maxout:19
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.activation.Maxout:33
+msgid "http://proceedings.mlr.press/v28/goodfellow13.pdf"
+msgstr ""
+

@@ -29,13 +29,16 @@ build_as_lang() {
 }
 
 build_transcript_of() {
-  if [ ! -d _build/gettext ]; then
-    mkdir _build/gettext
+  # According to the sphinx reference, `make gettext` generates pot files
+  # to the _build/gettext directory. But actuary it will be placed to _build/locale.
+
+  if [ ! -d _build/locale ]; then
+    mkdir _build/locale
   fi
 
   if [ "$1" = "ja" ]; then
     make gettext
-    sphinx-intl update -p _build/gettext -l $1
+    sphinx-intl update -p _build/locale -l $1
   else
     echo "Usage: $CMDNAME [-t (ja)]" 1>&2
     exit 1

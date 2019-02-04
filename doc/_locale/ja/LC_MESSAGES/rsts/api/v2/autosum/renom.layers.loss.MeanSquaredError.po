@@ -1,0 +1,83 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.loss.MeanSquaredError.rst:2
+msgid "renom.layers.loss.MeanSquaredError"
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:1
+msgid ""
+"This function evaluates the loss between the target ``y`` and the input "
+"``x`` using mean squared error."
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:8
+msgid ""
+"In the case of the argument `reduce_sum` is False, this class will not "
+"perform summation."
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:13
+msgid ":math:`N` is batch size."
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:15
+msgid "Input array."
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:17
+msgid "Target array."
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:19
+msgid ""
+"If True is given, the result array will be summed up and returns scalar "
+"value."
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError
+msgid "Returns"
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:22
+msgid "Mean squared error."
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError
+msgid "Return type"
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError
+msgid "raises"
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:25
+msgid ""
+":exc:`AssertionError` -- An assertion error will be raised if the given "
+"tensor dimension is less than 2."
+msgstr ""
+
+#: of renom.layers.loss.MeanSquaredError:28
+msgid "Example"
+msgstr ""
+

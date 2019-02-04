@@ -1,0 +1,66 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.Lrn.rst:2
+msgid "renom.layers.function.Lrn"
+msgstr ""
+
+#: of renom.layers.function.Lrn:1
+msgid "Local response normalization function [lrn]_ ."
+msgstr ""
+
+#: of renom.layers.function.Lrn:6
+msgid ""
+":math:`x_{c,i,j}` represents the c th conv filter’s output at the "
+"position of (i, j) in the feature map. :math:`y_{c_{out},j,i}` represents"
+" the output of local response normalization. :math:`N` is the number of "
+"the feature maps. :math:`n` is the adjacent feature map number. The "
+"default argument values are recommended."
+msgstr ""
+
+#: of renom.layers.function.Lrn
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.function.Lrn:12
+msgid "Number of images used to be normalized."
+msgstr ""
+
+#: of renom.layers.function.Lrn:14
+msgid "Constant."
+msgstr ""
+
+#: of renom.layers.function.Lrn:16
+msgid "Scale factor."
+msgstr ""
+
+#: of renom.layers.function.Lrn:18
+msgid "Exponential factor."
+msgstr ""
+
+#: of renom.layers.function.Lrn:22
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.function.Lrn:31
+msgid ""
+"Alex Krizhevsky Krizhevsky, , Ilya IlyaSutskever Sutskever, Geoff. "
+"ImageNet Classification with Deep Convolutional Neural Networks"
+msgstr ""
+

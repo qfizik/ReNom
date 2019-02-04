@@ -1,0 +1,62 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.Dense.rst:2
+msgid "renom.layers.function.Dense"
+msgstr ""
+
+#: of renom.layers.function.Dense:1
+msgid "Fully connected layer as described bellow."
+msgstr ""
+
+#: of renom.layers.function.Dense:3
+msgid ":math:`f(x)= w \\cdot x + b`"
+msgstr ""
+
+#: of renom.layers.function.Dense:6
+msgid ""
+"If the argument `input_size` is passed, this layers' weight is "
+"initialized in the __init__ function. Otherwise, the weight is "
+"initialized in its first forward calculation."
+msgstr ""
+
+#: of renom.layers.function.Dense
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.function.Dense:10
+msgid "Output unit size."
+msgstr ""
+
+#: of renom.layers.function.Dense:12
+msgid "Input unit size."
+msgstr ""
+
+#: of renom.layers.function.Dense:14
+msgid "If True is given, bias will not be added."
+msgstr ""
+
+#: of renom.layers.function.Dense:16
+msgid "Initializer object for weight initialization."
+msgstr ""
+
+#: of renom.layers.function.Dense:20
+msgid "Example"
+msgstr ""
+

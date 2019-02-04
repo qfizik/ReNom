@@ -1,0 +1,251 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:2
+msgid "renom.core.Node"
+msgstr ""
+
+#: of renom.core.Node:1
+msgid ""
+"This is the base class of all of the auto-differentiation compatible "
+"array. Using this array class for calculating, the calculation "
+"history(computational graph) will be built and the gradient of any node "
+"class object on the computational gradient can be calculated."
+msgstr ""
+
+#: of renom.core.Node:6
+msgid ""
+"Node object can be initialized giving numpy array. If the data type of "
+"given array is not float32 or float64, Node object automatically casts it"
+" to float32 or float64 according to the ``renom.precision`` setting. By "
+"default, renom.precision is set to float32. You can use float64 precision"
+" by setting an environment variable RENOM_PRECISION to be 64. For "
+"example, following shell script set the environment variable."
+msgstr ""
+
+#: of renom.core.Node:17
+msgid ""
+"As the Node class is a base class, user might not deal with object of "
+"Node class. ReNom provides other auto-differentiation compatible array "
+"class called Variable. The Variable class has more utility interfaces "
+"such as ``weight_decay``, ``auto_update``. This helps users to manage the"
+" arrays and earned gradients. For more information, please refer to the "
+"reference of :class:`Variable`."
+msgstr ""
+
+#: of renom.core.Node:23
+msgid "Following example is basic case of getting a gradient of an array."
+msgstr ""
+
+#: of renom.core.Node:26 renom.core.Node:50 renom.core.Node.as_ndarray:7
+#: renom.core.Node.detach_graph:8 renom.core.Node.get_gpu:6
+#: renom.core.Node.reshape:10 renom.core.Node.transpose:10
+msgid "Example"
+msgstr ""
+
+#: of renom.core.Node:43
+msgid ""
+"If cuda is activated, Node object automatically uses the gpu device for "
+"calculation. Once array data transferred to gpu device, the array data "
+"will be kept on gpu memory. For this reason, users need to call "
+"``as_ndarray`` method for transferring the array data from gpu memory to "
+"cpu memory. The method as_ndarray returns an array casted to ndarray "
+"object. We recommend to call ``as_ndarray`` any time for checking the "
+"calculation result."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:12
+msgid "Method Summary"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`as_ndarray <renom.core.Node.as_ndarray>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1 of
+#: renom.core.Node.as_ndarray:1
+msgid "This method returns array casted to numpy ndarray object."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`copy <renom.core.Node.copy>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid "Returns a copy of itself."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`detach_graph <renom.core.Node.detach_graph>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid "This method destroys computational graph."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`get_gpu <renom.core.Node.get_gpu>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ""
+"This function transfers array data to gpu device and returns it as a "
+"GPUValue object."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ""
+":obj:`grad <renom.core.Node.grad>`\\ \\(\\[initial\\, detach\\_graph\\, "
+"weight\\_decay\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1 of
+#: renom.core.Node.grad:1
+msgid ""
+"This method follows computational graph and returns the gradients of "
+"Variable object."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`release_gpu <renom.core.Node.release_gpu>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1 of
+#: renom.core.Node.release_gpu:1
+msgid "This method releases array data on GPU pointed by this object."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`reshape <renom.core.Node.reshape>`\\ \\(\\*shape\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1 of
+#: renom.core.Node.reshape:1
+msgid "Returns reshaped array."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`to_cpu <renom.core.Node.to_cpu>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1 of
+#: renom.core.Node.to_cpu:1
+msgid "Transfer the data from GPU device to CPU."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`to_gpu <renom.core.Node.to_gpu>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid "Transfer the data on CPU to GPU device."
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1
+msgid ":obj:`transpose <renom.core.Node.transpose>`\\ \\(\\*axis\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.core.Node.rst:32:<autosummary>:1 of
+#: renom.core.Node.transpose:1
+msgid "Returns an array with axes transposed."
+msgstr ""
+
+#: of renom.core.Node.as_ndarray renom.core.Node.copy renom.core.Node.get_gpu
+#: renom.core.Node.reshape renom.core.Node.transpose
+msgid "Returns"
+msgstr ""
+
+#: of renom.core.Node.as_ndarray:3
+msgid "Returns an array as a ndarray object."
+msgstr ""
+
+#: of renom.core.Node.as_ndarray renom.core.Node.copy renom.core.Node.get_gpu
+#: renom.core.Node.reshape renom.core.Node.transpose
+msgid "Return type"
+msgstr ""
+
+#: of renom.core.Node.copy:1
+msgid ""
+"Returns a copy of itself. If cuda is not activated, this method returns "
+"ndarray."
+msgstr ""
+
+#: of renom.core.Node.copy:4
+msgid "Copy of node object."
+msgstr ""
+
+#: of renom.core.Node.detach_graph:1
+msgid ""
+"This method destroys computational graph. As following example, once this"
+" method is called, gradients can't be calculated because computational is"
+" removed. This example raises an error that mentions Node object was not "
+"found on the computational graph."
+msgstr ""
+
+#: of renom.core.Node.get_gpu:1
+msgid ""
+"This function transfers array data to gpu device and returns it as a "
+"GPUValue object. For imformation of GPUValue class please refer "
+":class:`GPUValue`."
+msgstr ""
+
+#: of renom.core.Node.get_gpu:23
+msgid "Matrix transferred to gpu device."
+msgstr ""
+
+#: of renom.core.Node.grad renom.core.Node.reshape renom.core.Node.transpose
+msgid "Parameters"
+msgstr ""
+
+#: of renom.core.Node.grad:4
+msgid "Initial value of following the graph."
+msgstr ""
+
+#: of renom.core.Node.grad:6
+msgid "If it's True, the computational graph will be destroyed."
+msgstr ""
+
+#: of renom.core.Node.grad:8
+msgid ""
+"Sets the default weight decay of the model. See the Variable class for "
+"more info."
+msgstr ""
+
+#: of renom.core.Node.reshape:3
+msgid "Array will be reshaped according to given shape."
+msgstr ""
+
+#: of renom.core.Node.reshape:6
+msgid "Reshaped array."
+msgstr ""
+
+#: of renom.core.Node.to_gpu:1
+msgid ""
+"Transfer the data on CPU to GPU device. This method only available if "
+"cuda is activated otherwise this raises `ValueError`."
+msgstr ""
+
+#: of renom.core.Node.transpose:3
+msgid "Permute the axes according to the values given."
+msgstr ""
+
+#: of renom.core.Node.transpose:6
+msgid "Transposed array."
+msgstr ""
+

@@ -1,0 +1,94 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.BatchNormalize.rst:2
+msgid "renom.layers.function.BatchNormalize"
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:1
+msgid ""
+"Batch normalization function [bn]_. This layer accelerates learning speed"
+" with reducing internal covariate shift and allow us to set high learning"
+" rate."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:5
+msgid ""
+"When the forward propagation, if the argument ``inference`` is set to "
+"False this layer calculates moving average of mean and variance. Other "
+"wise the ``inference`` is set to True, this layer uses the moving average"
+" which calculated in the above mode."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:10
+msgid ""
+"If the argument mode is set to 'activation', this layer normalizes prior-"
+"layer features per unit. Otherwise the argument mode is set to 'feature',"
+" this layer normalizes prior-layer features per channel."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:13
+msgid "The 'feature' mode is only effective for 4D tensor input."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:15
+msgid ""
+"If the argument `input_size` is passed, this layers' weight is "
+"initialized in the __init__ function. Otherwise, the weight is "
+"initialized in its first forward calculation."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:19
+msgid "Input unit size."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:21
+msgid "Momentum coefficient for the moving average."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:23
+msgid "'activation'  or 'feature'."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:25
+msgid "Small number added to avoid division by zero."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:27
+msgid "If `True` is given, bias will not be added."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:29
+msgid "Initializer object for weight initialization."
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:33
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.function.BatchNormalize:45
+msgid ""
+"Sergey Ioffe, Christian Szegedy. Batch Normalization: Accelerating Deep "
+"Network Training by Reducing Internal Covariate Shift(2015)"
+msgstr ""
+

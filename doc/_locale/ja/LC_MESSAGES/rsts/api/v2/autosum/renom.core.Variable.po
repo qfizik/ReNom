@@ -1,0 +1,105 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.core.Variable.rst:2
+msgid "renom.core.Variable"
+msgstr ""
+
+#: of renom.core.Variable:1
+msgid ""
+"Variable class. The gradient of this object will be calculated. Variable "
+"object is created from ndarray object or Number object."
+msgstr ""
+
+#: of renom.core.Variable
+msgid "Parameters"
+msgstr ""
+
+#: of renom.core.Variable:4
+msgid "Input array."
+msgstr ""
+
+#: of renom.core.Variable:6
+msgid "Auto update flag."
+msgstr ""
+
+#: of renom.core.Variable:8
+msgid "Weight decay rate"
+msgstr ""
+
+#: of renom.core.Variable:11
+msgid ""
+"Weight decay allows the user to choose if weight decay is to be used in "
+"any of their variables. If weight decay is not defined in the Variable "
+"(I.e. defaults to None), then no weight decay is performed."
+msgstr ""
+
+#: of renom.core.Variable:16
+msgid ""
+"For convenience, one can define a variable with a weight decay of 0 and "
+"provide the weight decay argument when building the gradients to default "
+"all weights to the same λ for weight decay."
+msgstr ""
+
+#: of renom.core.Variable:20
+msgid ""
+"Individually assigned weight decay takes precedence over this default "
+"value, allowing users to customize the weight decay in the network."
+msgstr ""
+
+#: of renom.core.Variable:23
+msgid "In summary, weight decay updates according to the following table."
+msgstr ""
+
+#: of renom.core.Variable:26
+msgid "Variable"
+msgstr ""
+
+#: of renom.core.Variable:26
+msgid "Grad"
+msgstr ""
+
+#: of renom.core.Variable:26
+msgid "Result"
+msgstr ""
+
+#: of renom.core.Variable:28
+msgid "None"
+msgstr ""
+
+#: of renom.core.Variable:28 renom.core.Variable:30
+msgid "<Any>"
+msgstr ""
+
+#: of renom.core.Variable:28 renom.core.Variable:32
+msgid "No Update"
+msgstr ""
+
+#: of renom.core.Variable:30 renom.core.Variable:34
+msgid "0.3"
+msgstr ""
+
+#: of renom.core.Variable:32 renom.core.Variable:34
+msgid "0"
+msgstr ""
+
+#: of renom.core.Variable:32
+msgid "None/0"
+msgstr ""
+

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ReNom 2.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-07-13 13:29+0900\n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,120 +18,24 @@ msgstr ""
 "Generated-By: Babel 2.6.0\n"
 
 #: ../../rsts/introduction/main.rst:2
-msgid "Introduction of version 2"
+msgid "Introduction"
 msgstr ""
 
 #: ../../rsts/introduction/main.rst:4
-msgid ""
-"In ReNom version 2, automatic differentiation feature have been added to "
-"version 1.0. Users are able to build neural network model with a lot of "
-"flexibility."
+msgid "ReNom is a Deep Learning frame work."
 msgstr ""
-"ReNom version "
-"2では、version1.0に自動微分機能が追加され、より自由度の高いニューラルネットワークを構築することが可能となりました。"
 
 #: ../../rsts/introduction/main.rst:7
-msgid "**Concept of version 2**"
+msgid "Concept of ReNom version 3"
 msgstr ""
-
-#: ../../rsts/introduction/main.rst:9
-msgid ""
-"ReNom 2 is focusing on its usability first, as the same as previous "
-"version."
-msgstr "2においても過去バージョンと同様に「使いやすさ」を追求しています。 "
 
 #: ../../rsts/introduction/main.rst:11
-msgid ""
-"The syntax of ReNom version 2 is aligned to NumPy, so that users can "
-"compute differential value adding a tiny script change to the formula "
-"written in NumPy style."
-msgstr "ReNom version 2はNumpyとの相性の良さを特徴とし"
-
-#: ../../rsts/introduction/main.rst:14
-msgid ""
-"By reducing user interfaces, ReNom became a NumPy user friendly library "
-"package while enables users to build a neural network model more "
-"flexibly."
-msgstr "これにより、構築可能なニューラルネットワークの自由度を広げつつ、新たに定義されるユーザインタフェースを減らし、Numpyを使用したことのあるユーザにとって非常に使い易いライブラリになりました。"
-
-#: ../../rsts/introduction/main.rst:17
-msgid "Following is a comparison of NumPy and ReNom coding style."
-msgstr "具体的にNumpyのコードとReNomのコードを比較します。"
-
-#: ../../rsts/introduction/main.rst:27
-msgid "● Numpy"
+msgid "High Performance"
 msgstr ""
 
-#: ../../rsts/introduction/main.rst:42
-msgid "● ReNom"
+#: ../../rsts/introduction/main.rst:15
+msgid "Multi GPU Scalability"
 msgstr ""
-
-#: ../../rsts/introduction/main.rst:44
-msgid ""
-"Like this, ReNom users can compute gradient by changing only a few NumPy "
-"code."
-msgstr "上記のようにNumpyで書かれたコードを僅かに変更することで、勾配の計算を実行することができます。"
-
-#: ../../rsts/introduction/main.rst:46
-#, fuzzy
-msgid "**Auto Differentiation**"
-msgstr "自動微分"
-
-#: ../../rsts/introduction/main.rst:48
-msgid ""
-"In ReNom, users can create calculation graph with a simple step. First, "
-"defining differentiation target variable as Variable, then scripting "
-"formula as the same syntax as NumPy."
-msgstr "ReNomでは微分対象となる変数をVariableで定義し、Numpyと同様の書き方で計算式を記述することで計算グラフが作成されます。"
-
-#: ../../rsts/introduction/main.rst:62
-msgid ""
-"Variable class is inherited ndarray class of NumPy[ref], users can "
-"create/build/establish calculation graph similar way to NumPy."
-msgstr "Variableクラスは Numpyのndarrayクラスを継承しているので、Numpyを使用する感覚で計算グラフを立てることができます。"
-
-#: ../../rsts/introduction/main.rst:65
-msgid "**Sequential Model**"
-msgstr ""
-
-#: ../../rsts/introduction/main.rst:67
-msgid ""
-"As the same as previous ReNom versions, users can define the model, "
-"simply piling the layers up."
-msgstr "1.0までのバージョンと同様に、レイヤを積み重ねるようなインターフェースでモデルを定義することができます。"
-
-#: ../../rsts/introduction/main.rst:79
-msgid ""
-"In ReNom, defined class names are capitalized. As mentioned, Sequential "
-"model can be instantiated by providing a layer object list."
-msgstr "ReNomに定義されたクラスは、すべて先頭が大文字で始まります。上記のコードの様に、Sequentialモデルはレイヤはオブジェクトのリストを与えることでインスタンス化することができます。"
-
-#: ../../rsts/introduction/main.rst:83
-msgid "**Functional Model**"
-msgstr ""
-
-#: ../../rsts/introduction/main.rst:85
-msgid ""
-"In ReNom 2, some layers previously regarded as objects such as Activation"
-" function layer, fully connected layer are able to be handled "
-"functionally."
-msgstr "2では、これまでレイヤとしてオブジェクトとして扱っていた活性化関数レイヤや、全結合レイヤを関数的に扱えるようになりました。"
-
-#: ../../rsts/introduction/main.rst:105
-msgid ""
-"In ReNom, defined function names are small lettered. As above, defined "
-"functions are able to handle layer objects."
-msgstr "ReNomに定義された関数はすべて先頭が小文字で始まります。上記のコードの様に、関数としてレイヤオブジェクトを扱うことができます。"
-
-#: ../../rsts/introduction/main.rst:109
-msgid "**Computation with GPU**"
-msgstr ""
-
-#: ../../rsts/introduction/main.rst:111
-msgid ""
-"In order to use GPU, users need to install Cuda-Toolkit and cuDNN. To "
-"switch GPU on/off, simply call following function."
-msgstr "GPUを使用するには、Cuda-ToolkitとcuDNNが必要となります。以下の関数を呼ぶことで、GPUのオンオフを切り替えることが可能です。"
 
 #~ msgid "Concept of version 2"
 #~ msgstr ""
@@ -144,4 +48,119 @@ msgstr "GPUを使用するには、Cuda-ToolkitとcuDNNが必要となります�
 
 #~ msgid "Computation with GPU"
 #~ msgstr ""
+
+#~ msgid "Introduction of version 2"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "In ReNom version 2, automatic "
+#~ "differentiation feature have been added "
+#~ "to version 1.0. Users are able to"
+#~ " build neural network model with a"
+#~ " lot of flexibility."
+#~ msgstr ""
+#~ "ReNom version "
+#~ "2では、version1.0に自動微分機能が追加され、より自由度の高いニューラルネットワークを構築することが可能となりました。"
+
+#~ msgid "**Concept of version 2**"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "ReNom 2 is focusing on its "
+#~ "usability first, as the same as "
+#~ "previous version."
+#~ msgstr "2においても過去バージョンと同様に「使いやすさ」を追求しています。 "
+
+#~ msgid ""
+#~ "The syntax of ReNom version 2 is"
+#~ " aligned to NumPy, so that users "
+#~ "can compute differential value adding a"
+#~ " tiny script change to the formula"
+#~ " written in NumPy style."
+#~ msgstr "ReNom version 2はNumpyとの相性の良さを特徴とし"
+
+#~ msgid ""
+#~ "By reducing user interfaces, ReNom "
+#~ "became a NumPy user friendly library "
+#~ "package while enables users to build "
+#~ "a neural network model more flexibly."
+#~ msgstr "これにより、構築可能なニューラルネットワークの自由度を広げつつ、新たに定義されるユーザインタフェースを減らし、Numpyを使用したことのあるユーザにとって非常に使い易いライブラリになりました。"
+
+#~ msgid "Following is a comparison of NumPy and ReNom coding style."
+#~ msgstr "具体的にNumpyのコードとReNomのコードを比較します。"
+
+#~ msgid "● Numpy"
+#~ msgstr ""
+
+#~ msgid "● ReNom"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "Like this, ReNom users can compute "
+#~ "gradient by changing only a few "
+#~ "NumPy code."
+#~ msgstr "上記のようにNumpyで書かれたコードを僅かに変更することで、勾配の計算を実行することができます。"
+
+#~ msgid "**Auto Differentiation**"
+#~ msgstr "自動微分"
+
+#~ msgid ""
+#~ "In ReNom, users can create calculation"
+#~ " graph with a simple step. First, "
+#~ "defining differentiation target variable as"
+#~ " Variable, then scripting formula as "
+#~ "the same syntax as NumPy."
+#~ msgstr "ReNomでは微分対象となる変数をVariableで定義し、Numpyと同様の書き方で計算式を記述することで計算グラフが作成されます。"
+
+#~ msgid ""
+#~ "Variable class is inherited ndarray "
+#~ "class of NumPy[ref], users can "
+#~ "create/build/establish calculation graph similar "
+#~ "way to NumPy."
+#~ msgstr "Variableクラスは Numpyのndarrayクラスを継承しているので、Numpyを使用する感覚で計算グラフを立てることができます。"
+
+#~ msgid "**Sequential Model**"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "As the same as previous ReNom "
+#~ "versions, users can define the model,"
+#~ " simply piling the layers up."
+#~ msgstr "1.0までのバージョンと同様に、レイヤを積み重ねるようなインターフェースでモデルを定義することができます。"
+
+#~ msgid ""
+#~ "In ReNom, defined class names are "
+#~ "capitalized. As mentioned, Sequential model"
+#~ " can be instantiated by providing a"
+#~ " layer object list."
+#~ msgstr "ReNomに定義されたクラスは、すべて先頭が大文字で始まります。上記のコードの様に、Sequentialモデルはレイヤはオブジェクトのリストを与えることでインスタンス化することができます。"
+
+#~ msgid "**Functional Model**"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "In ReNom 2, some layers previously "
+#~ "regarded as objects such as Activation"
+#~ " function layer, fully connected layer "
+#~ "are able to be handled functionally."
+#~ msgstr "2では、これまでレイヤとしてオブジェクトとして扱っていた活性化関数レイヤや、全結合レイヤを関数的に扱えるようになりました。"
+
+#~ msgid ""
+#~ "In ReNom, defined function names are "
+#~ "small lettered. As above, defined "
+#~ "functions are able to handle layer "
+#~ "objects."
+#~ msgstr "ReNomに定義された関数はすべて先頭が小文字で始まります。上記のコードの様に、関数としてレイヤオブジェクトを扱うことができます。"
+
+#~ msgid "**Computation with GPU**"
+#~ msgstr ""
+
+#~ msgid ""
+#~ "In order to use GPU, users need"
+#~ " to install Cuda-Toolkit and cuDNN."
+#~ " To switch GPU on/off, simply call"
+#~ " following function."
+#~ msgstr ""
+#~ "GPUを使用するには、Cuda-"
+#~ "ToolkitとcuDNNが必要となります。以下の関数を呼ぶことで、GPUのオンオフを切り替えることが可能です。"
 

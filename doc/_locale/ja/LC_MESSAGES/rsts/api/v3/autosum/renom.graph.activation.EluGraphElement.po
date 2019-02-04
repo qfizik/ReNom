@@ -1,0 +1,78 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:2
+msgid "renom.graph.activation.EluGraphElement"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:19:<autosummary>:1
+#: of renom.graph.activation.EluGraphElement.__init__:1
+msgid "Initializer for Elu graph producing GraphFactory."
+msgstr ""
+
+#: of renom.graph.activation.EluGraphElement.__init__
+msgid "Parameters"
+msgstr ""
+
+#: of renom.graph.activation.EluGraphElement.__init__:3
+msgid "Alpha coefficient for Elu."
+msgstr ""
+
+#: of renom.graph.activation.EluGraphElement.__init__:6
+msgid "For more details, see :class:`.Elu`"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:13
+msgid "Methods"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`__init__ <renom.graph.activation.EluGraphElement.__init__>`\\ "
+"\\(\\[alpha\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`connect <renom.graph.activation.EluGraphElement.connect>`\\ "
+"\\(other\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:19:<autosummary>:1
+msgid "This method connects the UserGraph to another graph."
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`load <renom.graph.activation.EluGraphElement.load>`\\ "
+"\\(filename\\[\\, devices\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:19:<autosummary>:1
+msgid "Load saved weights to model."
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:19:<autosummary>:1
+msgid ":obj:`save <renom.graph.activation.EluGraphElement.save>`\\ \\(filename\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.activation.EluGraphElement.rst:19:<autosummary>:1
+msgid "Save model attributes."
+msgstr ""
+

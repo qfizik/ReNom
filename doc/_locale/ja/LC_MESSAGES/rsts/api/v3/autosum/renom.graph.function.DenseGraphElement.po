@@ -1,0 +1,102 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:2
+msgid "renom.graph.function.DenseGraphElement"
+msgstr ""
+
+#: of renom.graph.function.DenseGraphElement:1
+msgid "Fully connected layer as described below."
+msgstr ""
+
+#: of renom.graph.function.DenseGraphElement:3
+msgid ""
+"See also :py:class:`~renom.layers.function.dense.Dense` See also "
+":class:`~renom.graph.function.BiasGraphElement`"
+msgstr ""
+
+#: of renom.graph.function.DenseGraphElement:6
+msgid ":math:`f(x)= w \\cdot x + b`"
+msgstr ""
+
+#: of renom.graph.function.DenseGraphElement
+msgid "Parameters"
+msgstr ""
+
+#: of renom.graph.function.DenseGraphElement:8
+msgid "Output unit size."
+msgstr ""
+
+#: of renom.graph.function.DenseGraphElement:10
+msgid "Initializer object for weight initialization."
+msgstr ""
+
+#: of renom.graph.function.DenseGraphElement:13
+msgid "Example:"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:19:<autosummary>:1
+#: of renom.graph.function.DenseGraphElement.__init__:1
+msgid "Generic UserGraph initializer."
+msgstr ""
+
+#: of renom.graph.function.DenseGraphElement.__init__:3
+msgid ""
+"Initializes the parameter field as an empty dictionary and sets the "
+"previous output to None."
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:13
+msgid "Methods"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`__init__ <renom.graph.function.DenseGraphElement.__init__>`\\ "
+"\\(\\[output\\_size\\, initializer\\, ...\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`connect <renom.graph.function.DenseGraphElement.connect>`\\ "
+"\\(other\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:19:<autosummary>:1
+msgid "This method connects the UserGraph to another graph."
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:19:<autosummary>:1
+msgid ""
+":obj:`load <renom.graph.function.DenseGraphElement.load>`\\ "
+"\\(filename\\[\\, devices\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:19:<autosummary>:1
+msgid "Load saved weights to model."
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:19:<autosummary>:1
+msgid ":obj:`save <renom.graph.function.DenseGraphElement.save>`\\ \\(filename\\)"
+msgstr ""
+
+#: ../../rsts/api/v3/autosum/renom.graph.function.DenseGraphElement.rst:19:<autosummary>:1
+msgid "Save model attributes."
+msgstr ""
+

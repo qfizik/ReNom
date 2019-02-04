@@ -1,0 +1,76 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.Gru.rst:2
+msgid "renom.layers.function.Gru"
+msgstr ""
+
+#: of renom.layers.function.Gru:1
+msgid "Gated Recurrent Unit"
+msgstr ""
+
+#: of renom.layers.function.Gru:3
+msgid ""
+"An LSTM-like RNN unit, which simplifies the LSTM unit by not including a "
+"memory core. This simplifies learning of the unit and reduces "
+"computational complexity, as the GRU only performs requires 3 input "
+"gates, compared to the 4 required by the LSTM."
+msgstr ""
+
+#: of renom.layers.function.Gru
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.function.Gru:7
+msgid "Output unit size."
+msgstr ""
+
+#: of renom.layers.function.Gru:9
+msgid "Input unit size."
+msgstr ""
+
+#: of renom.layers.function.Gru:11
+msgid "If True is given, bias will not be added."
+msgstr ""
+
+#: of renom.layers.function.Gru:13
+msgid "Initializer object for weight initialization."
+msgstr ""
+
+#: of renom.layers.function.Gru:17
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.function.Gru:33
+msgid "https://arxiv.org/pdf/1409.1259.pdf"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.Gru.rst:12
+msgid "Method Summary"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.Gru.rst:23:<autosummary>:1
+msgid ":obj:`truncate <renom.layers.function.Gru.truncate>`\\ \\(\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.Gru.rst:23:<autosummary>:1
+#: of renom.layers.function.Gru.truncate:1
+msgid "Truncates temporal connection."
+msgstr ""
+

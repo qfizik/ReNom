@@ -1,0 +1,215 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/function.rst:2
+msgid "renom.layers.function"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`AveragePool2d <renom.layers.function.AveragePool2d>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Average pooling function."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`AveragePoolNd <renom.layers.function.AveragePoolNd>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Average N dimensional pooling function."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`AverageUnPool2d <renom.layers.function.AverageUnPool2d>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Average unpooling function."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`AverageUnPoolNd <renom.layers.function.AverageUnPoolNd>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Average N dimensional unpooling function."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`BatchNormalize <renom.layers.function.BatchNormalize>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Batch normalization function [bn]_."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Conv2d <renom.layers.function.Conv2d>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "2d convolution layer."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`ConvNd <renom.layers.function.ConvNd>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Nd convolution layer."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Deconv2d <renom.layers.function.Deconv2d>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`DeconvNd <renom.layers.function.DeconvNd>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Dense <renom.layers.function.Dense>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Fully connected layer as described bellow."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Dropout <renom.layers.function.Dropout>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Applies Dropout [dropout]_ to the input."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Embedding <renom.layers.function.Embedding>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Embedding layer."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Flatten <renom.layers.function.Flatten>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "This function flattens an input tensor."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`GroupConv2d <renom.layers.function.GroupConv2d>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "2d grouped convolution layer."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Gru <renom.layers.function.Gru>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Gated Recurrent Unit"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`L2Norm <renom.layers.function.L2Norm>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ""
+"L2 Normalziation function [1] This layer is used to change the scale of "
+"feature maps by using L2 Normalization."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`LayerNormalize <renom.layers.function.LayerNormalize>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ""
+"Layer Normalization Model [layer_normalize]_ Applies a shift to a "
+"standard bell curve formation for each input unit."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Lrn <renom.layers.function.Lrn>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Local response normalization function [lrn]_ ."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`Lstm <renom.layers.function.Lstm>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Long short time memory [lstm]_ ."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`MaxUnPool2d <renom.layers.function.MaxUnPool2d>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Max unpooling function."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`MaxUnPoolNd <renom.layers.function.MaxUnPoolNd>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`MaxPool2d <renom.layers.function.MaxPool2d>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Max pooling function."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`MaxPoolNd <renom.layers.function.MaxPoolNd>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Max N dimensional pooling function."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`PeepholeLstm <renom.layers.function.PeepholeLstm>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "Long short time memory with peephole [plstm]_ ."
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid ":obj:`RoiPool2d <renom.layers.function.RoiPool2d>`"
+msgstr ""
+
+#: ../../rsts/api/v2/function.rst:36:<autosummary>:1
+msgid "ROI pooling function."
+msgstr ""
+

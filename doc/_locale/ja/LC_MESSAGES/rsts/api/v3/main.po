@@ -1,0 +1,106 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v3/main.rst:2
+msgid "renom.graph"
+msgstr ""
+
+#: of renom.graph:1
+msgid "Trying to keep imports clean in the graph module."
+msgstr ""
+
+#: of renom.graph:3
+msgid ""
+"By using star imports only at the graph module level, we can more easily "
+"control what names are defined and where."
+msgstr ""
+
+#: of renom.graph:6
+msgid "All modules under the graph package should avoid star imports (for now)."
+msgstr ""
+
+#: of renom.graph:8
+msgid "Some basic descriptions of the packages:"
+msgstr ""
+
+#: of renom.graph:13
+msgid "basics:"
+msgstr ""
+
+#: of renom.graph:11
+msgid ""
+"This package contains the basic classes, such as add, multiply or getitem"
+" classes. The main purpose of this package is to enable a NumPy like "
+"interface for the UserGraph class."
+msgstr ""
+
+#: of renom.graph:17
+msgid "function:"
+msgstr ""
+
+#: of renom.graph:16
+msgid ""
+"The function package contains the more complicated layers used in general"
+" neural networks, such as the Dense or Convolutional layer."
+msgstr ""
+
+#: of renom.graph:23
+msgid "loss:"
+msgstr ""
+
+#: of renom.graph:20
+msgid ""
+"Loss methods are stored in the loss package. Loss methods include loss "
+"functions such as Mean Squared Error or Softmax Cross Entropy, generally "
+"of the form L = f(x, y) where f is the loss function, x is the input data"
+" and y is the target value and L is the loss."
+msgstr ""
+
+#: of renom.graph:29
+msgid "utils:"
+msgstr ""
+
+#: of renom.graph:26
+msgid ""
+"The utils package contains auxiliary classes and methods that provide "
+"support for using or speeding up the graphs. Entities that cannot be "
+"classified as fitting in another package belongs here. Examples are the "
+"distributor and sequential classes."
+msgstr ""
+
+#: of renom.graph:36
+msgid "activation:"
+msgstr ""
+
+#: of renom.graph:32
+msgid ""
+"Activation classes are like functions, but generally much simpler than "
+"functions, taking the form y = a(x), where y is the output, a is the "
+"activation function and x is the input data. The difference between "
+"functions and activations is generally that activations have no trainable"
+" parameters."
+msgstr ""
+
+#: of renom.graph:38
+msgid ""
+"Please not that the core package is NOT imported into the graph module. "
+"The idea is to attempt to keep the internals of the graph module "
+"unexposed to the user."
+msgstr ""
+

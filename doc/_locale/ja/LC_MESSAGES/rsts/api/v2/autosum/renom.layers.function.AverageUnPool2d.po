@@ -1,0 +1,89 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.AverageUnPool2d.rst:2
+msgid "renom.layers.function.AverageUnPool2d"
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d:1
+msgid ""
+"Average unpooling function. Unpools an input in a network where a "
+"previous pooling has occured."
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d:6
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d:26
+msgid "The input shape requirement: ``x.shape == previous_pool.shape``"
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d:29
+msgid "The output shape will be: ``ret.shape == previous_pool.input.shape``"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.AverageUnPool2d.rst:12
+msgid "Method Summary"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.AverageUnPool2d.rst:23:<autosummary>:1
+msgid ""
+":obj:`forward <renom.layers.function.AverageUnPool2d.forward>`\\ "
+"\\(x\\[\\, prev\\_pool\\]\\)"
+msgstr ""
+
+#: ../../rsts/api/v2/autosum/renom.layers.function.AverageUnPool2d.rst:23:<autosummary>:1
+msgid "Forward operation of unpool 2d."
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d.forward:1
+msgid ""
+"Forward operation of unpool 2d. The forward function of AverageUnPool2d "
+"layer accepts pool2d object. This layer unpools an input according to the"
+" given pool2d object. If pool2d is not given, this object find the "
+"previous pool2d object along the computational graph."
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d.forward
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d.forward:7
+msgid "The input to the unpooling method"
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d.forward:9
+msgid ""
+"The previous pool to be unpooled. In the case of none, the model searches"
+" through the history for the previous layer."
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d.forward
+msgid "Returns"
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d.forward:12
+msgid "Unpooled array."
+msgstr ""
+
+#: of renom.layers.function.AverageUnPool2d.forward
+msgid "Return type"
+msgstr ""
+

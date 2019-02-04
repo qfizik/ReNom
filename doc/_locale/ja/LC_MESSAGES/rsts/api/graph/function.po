@@ -1,0 +1,133 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-01-21 10:23+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/graph/function.rst:2
+msgid "renom.graph.function"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:4
+msgid ""
+"This documentation contains a list of the different GraphFactory objects "
+"you can use to create the graph."
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`AvgPoolGraphElement <renom.graph.function.AvgPoolGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid "Average pooling function."
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ""
+":obj:`BatchNormalizeGraphElement "
+"<renom.graph.function.BatchNormalizeGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid "See :class:`.BatchNormalize` for more."
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`BiasGraphElement <renom.graph.function.BiasGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ""
+":obj:`ConvolutionalGraphElement "
+"<renom.graph.function.ConvolutionalGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid "Convolutional Layer."
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ""
+":obj:`DeconvolutionalGraphElement "
+"<renom.graph.function.DeconvolutionalGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`DenseGraphElement <renom.graph.function.DenseGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid "Fully connected layer as described below."
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`DropoutGraphElement <renom.graph.function.DropoutGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid "Applies Dropout [dropout]_ to the input."
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`EmbeddingGraphElement <renom.graph.function.EmbeddingGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`GruGraphElement <renom.graph.function.GruGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`L2NormGraphElement <renom.graph.function.L2NormGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`LayerNormGraphElement <renom.graph.function.LayerNormGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`LrnGraphElement <renom.graph.function.LrnGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid "Local response normalization function [lrn]_ ."
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`LstmGraphElement <renom.graph.function.LstmGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`MaxPoolGraphElement <renom.graph.function.MaxPoolGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid "Max pooling function."
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`MaxUnPoolGraphElement <renom.graph.function.MaxUnPoolGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ":obj:`SumGraphElement <renom.graph.function.SumGraphElement>`"
+msgstr ""
+
+#: ../../rsts/api/graph/function.rst:32:<autosummary>:1
+msgid ""
+":obj:`WeightNormGraphElement "
+"<renom.graph.function.WeightNormGraphElement>`"
+msgstr ""
+

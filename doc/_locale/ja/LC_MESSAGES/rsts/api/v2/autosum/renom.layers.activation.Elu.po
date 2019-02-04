@@ -1,0 +1,56 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) 2019, grid
+# This file is distributed under the same license as the ReNom package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2019.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: ReNom 2.7\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2019-02-01 09:24+0900\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.6.0\n"
+
+#: ../../rsts/api/v2/autosum/renom.layers.activation.Elu.rst:2
+msgid "renom.layers.activation.Elu"
+msgstr ""
+
+#: of renom.layers.activation.Elu:1
+msgid ""
+"The Exponential Linear Units [elu]_ activation function is described by "
+"the following formula."
+msgstr ""
+
+#: of renom.layers.activation.Elu:4
+msgid ":math:`f(x)=max(x, 0) + alpha*min(exp(x)-1, 0)`"
+msgstr ""
+
+#: of renom.layers.activation.Elu
+msgid "Parameters"
+msgstr ""
+
+#: of renom.layers.activation.Elu:6
+msgid "Input numpy array or instance of Variable."
+msgstr ""
+
+#: of renom.layers.activation.Elu:8
+msgid "Coefficient multiplied by exponentiated values."
+msgstr ""
+
+#: of renom.layers.activation.Elu:12
+msgid "Example"
+msgstr ""
+
+#: of renom.layers.activation.Elu:25
+msgid ""
+"Djork-Arné Clevert, Thomas Unterthiner, Sepp Hochreiter (2015). Fast and "
+"Accurate Deep Network Learning by Exponential Linear Units (ELUs). "
+"Published as a conference paper at ICLR 2016"
+msgstr ""
+
