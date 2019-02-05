@@ -53,7 +53,7 @@ class ReshapeElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
-class ReshapeGraphElement(GraphFactory):
+class Reshape(GraphFactory):
 
     def __init__(self, shape):
         super().__init__()

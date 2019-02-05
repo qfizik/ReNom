@@ -3,6 +3,7 @@ import abc
 import numpy as np
 from .user_graph import UserGraph
 from .operation import operation
+from .operational_element import unidirectional_element
 from .graph_storage import GraphMultiStorage
 import functools
 import h5py
@@ -46,6 +47,7 @@ class GraphFactory(abc.ABC):
         self.params = dict()
         self._prev = None
         self._inference = None
+        self._make_update_graphs = True
 
     @abc.abstractmethod
     def connect(self, other):
@@ -58,11 +60,10 @@ class GraphFactory(abc.ABC):
         pass
 
     def __call__(self, *other):
-        for param in self.params:
-            self.params[param].detach()
-        if self._prev is not None:
-            self._prev.detach()
         ret = self.connect(*other)
+        if not self._make_update_graphs:
+            for op_num, upd_g in ret._update_graphs:
+                upd_g.detach()
         if self._inference is not None:
             ret._fwd._op._inference = True
         self._prev = ret
@@ -74,6 +75,7 @@ class GraphFactory(abc.ABC):
 
     @recursive_setting
     def set_updatable(self, should_update=True):
+        self._make_update_graphs = should_update
         for param in self.params.values():
             param.allow_update(should_update)
 
@@ -261,8 +263,9 @@ class graph_variable(UserGraph):
     def __init__(self, weight_decay=None, allow_update=True):
         fwd_op = variable_input(weight_decay, allow_update)
         self._fwd_op = fwd_op
+        fwd_graph = unidirectional_element(fwd_op, tags=['Forward'])
         bwd_ops = []
-        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops)
+        super().__init__(forward_operation=fwd_graph, backward_operations=bwd_ops)
 
     def set_value(self, arr, gpus=None):
         assert isinstance(arr, np.ndarray)

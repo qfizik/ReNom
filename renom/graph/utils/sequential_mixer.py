@@ -3,7 +3,7 @@ import renom as rm
 import numpy as np
 
 
-class SequentialSubGraph(GraphFactory):
+class Sequential(GraphFactory):
 
     def __init__(self, graphs):
         super().__init__()

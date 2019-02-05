@@ -69,7 +69,8 @@ class UserGraph(graph_element):
         if isinstance(forward_operation, operation):
             self._fwd = operational_element(operation=forward_operation, tags=['Forward'])
         elif isinstance(forward_operation, operational_element):
-            raise NotImplementedError()
+            assert forward_operation._tags == ['Forward']
+            self._fwd = forward_operation
         else:
             raise AttributeError('Uknown forward operation type')
 
@@ -193,12 +194,9 @@ class UserGraph(graph_element):
     def get_gradient(self, some_variable):
         assert isinstance(some_variable, rm.graph.core.GraphMultiStorage)
         search_id = id(some_variable)
-        for grph in self._bwd_graphs:
-            r = grph._op.get_key(search_id)
-            if r is not None:
-                return r
-        for elem in self._previous_elements:
-            r = elem.get_gradient(some_variable)
+        backs = self._fwd.get_call_dict(tag='Backward', flatten=True)
+        for b in backs:
+            r = b.get_key(search_id)
             if r is not None:
                 return r
         raise AttributeError('Could not find {}'.format(search_id))

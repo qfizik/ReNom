@@ -16,7 +16,7 @@ This documentation is a list of the different activations in graph.
     MaxoutGraphElement
     Relu
     SeluGraphElement
-    SigmoidGraphElement
+    Sigmoid
     SoftmaxGraphElement
     SoftplusGraphElement
     Tanh

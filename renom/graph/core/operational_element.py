@@ -41,6 +41,7 @@ class operational_element(graph_element):
                 return func(self, *args, **kwargs)
         return ret_func
 
+    # TODO: Rename gather_operations_with_tags
     @graph_element.walk_tree
     @check_tags
     def get_call_dict(self):
@@ -159,3 +160,20 @@ class operational_element(graph_element):
 
     def __repr__(self):
         return self._op.__repr__()
+
+
+'''
+    TODO: This is not good code!
+    A sub-class should not attempt to nullify additions made by parent class.
+    Unfortunately, this looks the best as of right now, since the inheritance
+    schema would become ugly otherwise.
+'''
+class unidirectional_element(operational_element):
+
+    @property
+    def _next_elements(self):
+        return []
+
+    @_next_elements.setter
+    def _next_elements(self, val):
+        pass
