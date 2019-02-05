@@ -4,3 +4,4 @@ from .softmax_cross_entropy_element import SoftmaxCrossEntropyGraphElement, soft
 from .sigmoid_cross_entropy_element import SigmoidCrossEntropyGraphElement
 from .mean_squared_element import MeanSquaredGraphElement
 from .smoothed_l1_element import SmoothedL1GraphElement
+from .mean_squared_element import MeanSquaredGraphElement as mse

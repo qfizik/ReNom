@@ -6,4 +6,4 @@ from .selu_element import SeluGraphElement
 from .leaky_relu_element import LeakyReluGraphElement
 from .tanh_element import Tanh
 from .maxout_element import MaxoutGraphElement
-from .sigmoid_element import SigmoidGraphElement
+from .sigmoid_element import Sigmoid

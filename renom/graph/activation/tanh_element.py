@@ -6,7 +6,7 @@ import numpy as np
 
 class tanh_forward(operation):
 
-    name = "Tanh (F)"
+    name = 'Tanh (F)'
 
     def setup(self, inputs):
         inputs = inputs[0]['y']
@@ -32,7 +32,7 @@ class tanh_forward_cpu(tanh_forward):
 
 class tanh_backward(operation):
 
-    name = "Tanh (B)"
+    name = 'Tanh (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

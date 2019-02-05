@@ -17,7 +17,7 @@ you can use to create the graph.
     BatchNormalizeGraphElement
     BiasGraphElement
     Conv
-    DeconvolutionalGraphElement
+    Deconv
     Dense
     Dropout
     EmbeddingGraphElement

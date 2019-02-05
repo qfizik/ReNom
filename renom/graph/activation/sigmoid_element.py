@@ -6,6 +6,8 @@ import numpy as np
 
 class sigmoid_forward(operation):
 
+    name = 'Sigmoid (F)'
+
     def setup(self, inputs):
         inputs = inputs[0]['y']
         gpus = inputs.gpus
@@ -29,6 +31,8 @@ class sigmoid_forward_cpu(sigmoid_forward):
 
 
 class sigmoid_backward(operation):
+
+    name = 'Sigmoid (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
@@ -69,7 +73,7 @@ class SigmoidElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class SigmoidGraphElement(GraphFactory):
+class Sigmoid(GraphFactory):
 
     def connect(self, other):
         ret = SigmoidElement(previous_elements=other)

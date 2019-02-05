@@ -1,5 +1,5 @@
 from .static_variable import StaticVariable
-from .reshape_element import ReshapeGraphElement
+from .reshape_element import Reshape
 from .add_element import AddElement, AddGraphElement
 from .mul_element import MulElement, MulGraphElement
 from .sub_element import SubElement, SubGraphElement
