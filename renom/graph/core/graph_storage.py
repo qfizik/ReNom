@@ -1,7 +1,6 @@
 import numpy as np
 import renom as rm
 
-
 class shared_val:
     '''
           This object is responsible for allowing each GraphMultiStorage to
@@ -134,8 +133,6 @@ class GraphMultiStorage:
             with rm.cuda.RenomHandler(gpu):
                 if not self._should_share:
                     arr = get_arr()
-                meminfo = rm.cuda.cuGetMemInfo()
-                assert np.prod(self.shape) * np.dtype(rm.precision).itemsize <= meminfo[0]
                 self[gpu] = rm.GPUValue(array=arr, shape=self.shape,
                                         ptr=self._ptrs[gpu]._ptr if self._ptrs is not None else None)
 
