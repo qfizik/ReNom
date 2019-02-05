@@ -103,6 +103,25 @@ def test_distributor_test_split(use_gpu):
         pass
     assert count == 2
 
+class BadSgd(rm.graph.utils.optimizer.optimizer_factory):
+
+    class gpu_op:
+
+        def setup(self, grad, val):
+            self._dy = grad
+            self._outputs = val
+            self.gpus = grad.gpus
+
+        def update(self):
+            for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+                self._outputs[gpu] += self._dy[gpu]
+
+    class cpu_op(gpu_op):
+
+        def update(self):
+            dy = self._dy['cpu']
+            self._outputs['cpu'] += 0.001 * dy
+
 
 def test_optimizer(use_gpu):
 
@@ -112,14 +131,23 @@ def test_optimizer(use_gpu):
     layer = rm.graph.Dense(3)
     t = np.random.rand(2, 3)
     loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.adam_update()
-    p_l = 9999
+    opt1 = BadSgd()
+    opt2 = rm.graph.Sgd()
+    p_l = 0
     for i in range(5):
+        l = loss(layer(v), t)
+        l_arr = l.as_ndarray()
+        assert l_arr > p_l
+        p_l = l_arr
+        l.backward().update(opt1)
+    p_l = 9999999
+    for i in range(5):
+        print(i)
         l = loss(layer(v), t)
         l_arr = l.as_ndarray()
         assert l_arr < p_l
         p_l = l_arr
-        l.backward().update(opt)
+        l.backward().update(opt2)
 
 
 def test_inference_executor(use_gpu):
@@ -130,10 +158,12 @@ def test_inference_executor(use_gpu):
     layer = rm.graph.Dense(4)
     t = np.random.rand(20, 4).astype(rm.precision)
     loss = rm.graph.MeanSquaredGraphElement()
-    data, target = rm.graph.Distro(v, t, batch_size=2).get_output_graphs()
+    data, target = rm.graph.Distro(v, t, batch_size=2, shuffle=False).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     losses = exe.execute(epochs=3)
-    assert all(losses[i] == losses[i + 1] for i in range(len(losses) - 1))
+    for i in range(len(losses) - 1):
+        assert losses[i] == losses[i + 1]
+    assert all(losses[i] == losses[i + 1] for i in range(len(losses) - 2))
 
 
 def test_training_executor(use_gpu):
@@ -199,7 +229,6 @@ def test_validation_executor(use_gpu):
 
 def test_step_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
-    rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
     v1 = np.random.rand(10, 2).astype(rm.precision)
@@ -214,6 +243,40 @@ def test_step_executor(use_gpu):
         v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
         loss2 += exe.step(v2, t2)
     assert np.allclose(loss1 * 4, loss2)
+
+
+def test_inference_mode():
+    v1 = np.random.rand(10, 2).astype(rm.precision)
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.Dense(3),
+        rm.graph.Dropout(),
+    ])
+    x = model(v1)
+    assert model.l1._prev._fwd._op._inference is False
+    model.set_inference(True)
+    assert model.l1._prev._fwd._op._inference is True
+
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.Dense(3),
+        rm.graph.Dropout(),
+    ])
+    model.set_inference(True)
+    x = model(v1)
+    assert model.l1._prev._fwd._op._inference is True
+    model.set_inference(False)
+    assert model.l1._prev._fwd._op._inference is False
+
+
+def test_updatable_mode():
+    v1 = np.random.rand(10, 2).astype(rm.precision)
+    model = rm.graph.SequentialSubGraph([
+        rm.graph.Dense(3),
+        rm.graph.Dropout(),
+    ])
+    x = model(v1)
+    assert model.l0.params['w']._fwd._op._val._should_update is True
+    model.set_updatable(False)
+    assert model.l0.params['w']._fwd._op._val._should_update is False
 
 
 def test_finalizer(use_gpu):

@@ -1,3 +1,4 @@
+from numbers import Number
 import numpy as np
 import renom as rm
 from .graph_element import graph_element
@@ -55,8 +56,10 @@ class UserGraph(graph_element):
         if not isinstance(previous_elements, list):
             previous_elements = [previous_elements]
         for i, prev in enumerate(previous_elements):
-            assert isinstance(prev, np.ndarray) or isinstance(prev, UserGraph)
-            if isinstance(prev, np.ndarray):
+            assert isinstance(prev, (np.ndarray, UserGraph, Number))
+            if isinstance(prev, Number):
+                previous_elements[i] = rm.graph.StaticVariable(np.array([prev]))
+            elif isinstance(prev, np.ndarray):
                 previous_elements[i] = rm.graph.StaticVariable(prev)
         return previous_elements
 

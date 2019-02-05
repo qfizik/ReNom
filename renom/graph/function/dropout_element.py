@@ -37,12 +37,13 @@ class Dropout(GraphFactory):
 
     """
 
-    def __init__(self, dropout_rate=0.5):
+    def __init__(self, dropout_rate=0.5, axis=None):
         super().__init__()
         self._dr = dropout_rate
+        self._axis = axis
 
     def connect(self, other):
-        ret = DropoutElement(self._dr, previous_elements=other)
+        ret = DropoutElement(self._dr, axis=self._axis, previous_elements=other)
         return ret
 
 
@@ -51,7 +52,8 @@ class dropout_forward(operation):
     name = 'Dropout (F)'
     roles = ['inference']
 
-    def __init__(self, dropout_rate=0.5):
+    def __init__(self, dropout_rate=0.5, axis=0):
+        self._axis = axis
         self._dropout_rate = dropout_rate
         self._inference = False
 
@@ -59,7 +61,12 @@ class dropout_forward(operation):
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
-        mask = GraphMultiStorage(shape=inputs.shape, gpus=gpus)
+        axis = self._axis
+        assert axis is None or axis < len(inputs.shape), \
+            "Argument 'axis' must be less than dimension size."
+        mask_shape = inputs.shape if axis is None \
+            else tuple([s if i == axis else 1 for i, s in enumerate(inputs.shape)])
+        mask = GraphMultiStorage(shape=mask_shape, gpus=gpus)
         outs = GraphMultiStorage(shape=inputs.shape, gpus=gpus)
         self._vars = {'y': outs}
         self._inputs = inputs
@@ -117,7 +124,6 @@ class dropout_backward(operation):
 class dropout_backward_cpu(dropout_backward):
 
     def perform(self):
-
         dy = self._inputs['cpu']
         mask = self._fwd_mask['cpu']
         ret = dy * mask
@@ -126,19 +132,11 @@ class dropout_backward_cpu(dropout_backward):
 
 class DropoutElement(UserGraph):
 
-    _inference = False
-
-    def __init__(self, dropout_rate=0.5, previous_elements=None):
+    def __init__(self, dropout_rate=0.5, axis=None, previous_elements=None):
         self.dropout_ratio = dropout_rate
-        fwd_op = dropout_forward() if rm.is_cuda_active() else dropout_forward_cpu()
+        fwd_op = dropout_forward(dropout_rate=dropout_rate, axis=axis) if rm.is_cuda_active() \
+            else dropout_forward_cpu(dropout_rate=dropout_rate, axis=axis)
         bwd_ops = [dropout_backward(fwd_op) if rm.is_cuda_active()
                    else dropout_backward_cpu(fwd_op)]
-        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
-
-    @property
-    def inference(self):
-        return self._inference
-
-    @inference.setter
-    def inference(self, val):
-        self._inference = val
+        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops,
+                         previous_elements=previous_elements)

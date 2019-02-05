@@ -26,7 +26,7 @@ class mean_forward(operation):
                 out_shape = (1, )
         outs = GraphMultiStorage(shape=out_shape, gpus=gpus)
         self._outputs = outs
-        self._vars = {'y': outs}
+        self._vars = {'y': outs, id(inputs): outs}
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):

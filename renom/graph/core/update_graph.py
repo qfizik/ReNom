@@ -26,7 +26,6 @@ class update_operation(operation):
         allow it to change during training.
     '''
     name = 'Update Operation'
-    roles = ['update']
     _communicator = None
 
     def __init__(self, consumer, producer, key, operation=None):
