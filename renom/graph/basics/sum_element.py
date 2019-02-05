@@ -66,7 +66,7 @@ class sum_backward(operation):
                                    else s for i, s in enumerate(fwd_inputs.shape)])
         self._ones = GraphMultiStorage(
             shape=fwd_inputs.shape, gpus=gpus, initializer=init.Constant(1))
-        self._vars = {'y': outs, id(fwd_inputs): outs}
+        self._vars = {'y': outs, 'dy': outs, id(fwd_inputs): outs}
 
     def perform(self):
         axis = self.axis

@@ -60,4 +60,5 @@ class ReshapeGraphElement(GraphFactory):
         self.shp = shape
 
     def connect(self, other):
-        return ReshapeElement(self.shp, other)
+        ret = ReshapeElement(self.shp, other)
+        return ret

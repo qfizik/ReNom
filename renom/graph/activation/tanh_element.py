@@ -6,6 +6,8 @@ import numpy as np
 
 class tanh_forward(operation):
 
+    name = "Tanh (F)"
+
     def setup(self, inputs):
         inputs = inputs[0]['y']
         gpus = inputs.gpus
@@ -29,6 +31,8 @@ class tanh_forward_cpu(tanh_forward):
 
 
 class tanh_backward(operation):
+
+    name = "Tanh (B)"
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
@@ -62,6 +66,7 @@ class tanh_backward_cpu(tanh_backward):
 
 
 class TanhElement(UserGraph):
+
 
     def __init__(self, previous_elements=None):
         fwd_op = tanh_forward() if rm.is_cuda_active() else tanh_forward_cpu()

@@ -68,6 +68,10 @@ class GraphFactory(abc.ABC):
         self._prev = ret
         return ret
 
+    @property
+    def inference(self):
+        return self._inference
+
     @recursive_setting
     def set_updatable(self, should_update=True):
         for param in self.params.values():
