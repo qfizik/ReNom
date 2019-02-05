@@ -591,7 +591,7 @@ def test_deconv(test_shape, use_gpu, num_gpu):
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.DeconvolutionalGraphElement()
+    model = rm.graph.Deconv()
     loss = rm.graph.ConstantLossGraphElement()
     m = model(val)
     l = loss(m)
@@ -1054,7 +1054,7 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
 def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
     rm.set_cuda_active(use_gpu)
     rm.set_renom_seed(45)
-    v = rand(test_shape)
+    v = fixed(test_shape)
     if len(test_shape) > 2:
         mode = rm.graph.batch_normalize_element.BATCH_NORMALIZE_FEATUREMAP
     else:
