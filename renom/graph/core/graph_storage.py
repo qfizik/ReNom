@@ -88,7 +88,7 @@ class GraphMultiStorage:
     def __init__(self, shape=None, gpus=None, initializer=None,
                  share_init=None, ptrs=None):
         if self.ready is True:
-            assert self.shape == shape
+            assert self.shape == shape, "Required:{}, Actual:{}".format(self.shape, shape)
             return
         if shape is None:
             return

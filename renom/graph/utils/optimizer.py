@@ -71,7 +71,7 @@ class Sgd(optimizer_factory):
         self.args = (learning_rate, momentum)
 
 
-class adagrad_update(optimizer_factory):
+class Adagrad(optimizer_factory):
 
     class gpu_op:
 
@@ -114,7 +114,7 @@ class adagrad_update(optimizer_factory):
         self.args = (learning_rate, epsilon)
 
 
-class adadelta_update(optimizer_factory):
+class Adadelta(optimizer_factory):
 
     class gpu_op:
 
@@ -165,7 +165,7 @@ class adadelta_update(optimizer_factory):
         self.args = (dr, epsilon)
 
 
-class adamax_update(optimizer_factory):
+class Adamax(optimizer_factory):
 
     class gpu_op:
 
@@ -229,7 +229,7 @@ class adamax_update(optimizer_factory):
         self.args = (alpha, beta1, beta2, epsilon)
 
 
-class rmsprop_update(optimizer_factory):
+class Rmsprop(optimizer_factory):
 
     class gpu_op:
 
@@ -280,7 +280,7 @@ class rmsprop_update(optimizer_factory):
         self.args = (lr, g, epsilon, running_average)
 
 
-class adam_update(optimizer_factory):
+class Adam(optimizer_factory):
 
     class gpu_op:
 

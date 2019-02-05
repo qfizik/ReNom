@@ -68,10 +68,12 @@ class graph_element(abc.ABC):
 
     def update_depth(self):
         if len(self._previous_elements) == 0:
+            max_depth = 0
             self.depth = 0
         else:
             max_depth = max(p.depth for p in self._previous_elements)
             self.depth = max_depth + 1
+
         for next_element in self._next_elements:
             next_element.update_depth()
 

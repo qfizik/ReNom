@@ -5,6 +5,8 @@ import numpy as np
 
 class leaky_reluforward(operation):
 
+    name = 'LeakyRelu (F)'
+
     def __init__(self, slope):
         self._slope = slope
 
@@ -33,6 +35,8 @@ class leaky_reluforward_cpu(leaky_reluforward):
 
 
 class leaky_relubackward(operation):
+
+    name = 'LeakyRelu (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

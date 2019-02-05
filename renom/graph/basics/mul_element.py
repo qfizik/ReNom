@@ -65,7 +65,6 @@ class mul_backward(operation):
             a = self._a[gpu]
             b = self._b[gpu]
             dy = self._inputs[gpu]
-            print(type(a), type(b), type(dy), self._inputs)
             if a.shape != dy.shape:
                 dy = cu_broad_cast(a, dy * b)
             else:

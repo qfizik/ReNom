@@ -553,7 +553,7 @@ def cuembedding_backward(gpu_index, gpu_dy, gpu_dx):
 
 def cuconcat(gpu_values, gpu_value2, axis):
     def cast(arg):
-        return tuple([a if isinstance(a, int) else a.value for a in arg])
+        return tuple([a if isinstance(a, (int, np.int64)) else a.value for a in arg])
 
     for i in range(len(gpu_values[:-1])):
         cuda_base.check_heap_device(gpu_values[i], gpu_values[i + 1], gpu_value2)
@@ -865,7 +865,7 @@ cdef _cu_reduce_argmin(size_t max_grids, size_t num_threads,
 
 def cu_reduce_argmin(gpu_value1, handle, axis=None, max_grids=65536, num_threads=512):
     def cast(arg):
-        return tuple([a if isinstance(a, int) else a.value for a in arg])
+        return tuple([a if isinstance(a, (np.int64, int)) else a.value for a in arg])
 
     if axis is not None:
         if not isinstance(axis, int) or axis >= len(gpu_value1.shape):
@@ -913,7 +913,7 @@ cdef _cu_reduce_argmax(size_t max_grids, size_t num_threads,
 
 def cu_reduce_argmax(gpu_value1, handle, axis=None, max_grids=65536, num_threads=512):
     def cast(arg):
-        return tuple([a if isinstance(a, int) else a.value for a in arg])
+        return tuple([a if isinstance(a, (np.int64, int)) else a.value for a in arg])
 
     if axis is not None:
         if not isinstance(axis, int) or axis >= len(gpu_value1.shape):

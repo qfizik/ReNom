@@ -7,7 +7,7 @@ import numpy as np
 
 class deconvo_forward(operation):
 
-    name = 'Convolution (F)'
+    name = 'Deconvolution (F)'
     consumes = ['w', 'b']
 
     def __init__(self, channels, kernel=3, padding=0, stride=1):
@@ -90,7 +90,7 @@ class deconvo_forward_cpu(deconvo_forward):
 
 class deconvo_backward(operation):
 
-    name = 'Convolution (B)'
+    name = 'Deconvolution (B)'
     produces = ['w', 'b']
 
     def __init__(self, associated_forward):
@@ -174,7 +174,7 @@ class DeconvolutionalGraph(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
-class DeconvolutionalGraphElement(GraphFactory):
+class Deconv(GraphFactory):
 
     def __init__(self, channels=3, kernel=3, padding=0, stride=1):
         super().__init__()

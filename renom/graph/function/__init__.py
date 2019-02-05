@@ -7,7 +7,7 @@ from .embedding_element import EmbeddingGraphElement
 from .l2_norm_element import L2NormGraphElement
 from .lrn_element import LrnGraphElement
 from .convolutional_element import Conv
-from .deconvolutional_element import DeconvolutionalGraphElement
+from .deconvolutional_element import Deconv
 from .pool_element import MaxPool, AvgPool
 from .unpool_element import MaxUnPoolGraphElement
 from .batch_normalize_element import BatchNormalizeGraphElement
