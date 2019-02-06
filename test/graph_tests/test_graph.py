@@ -717,7 +717,7 @@ def test_cross_entropy(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.CrossEntropyGraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
 
     def func():
         m.forward()
@@ -739,7 +739,7 @@ def test_softmax_cross_entropy(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.SoftmaxCrossEntropyGraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
 
     def func():
         m.forward()
@@ -761,7 +761,7 @@ def test_sigmoid_cross_entropy(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.SigmoidCrossEntropyGraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
 
     def func():
         m.forward()
@@ -783,7 +783,7 @@ def test_smoothed_l1(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.SmoothedL1GraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
 
     def func():
         m.forward()
@@ -1035,7 +1035,8 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.MeanSquaredGraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
+
 
     def func():
         m.forward()

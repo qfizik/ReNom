@@ -60,6 +60,10 @@ class sigmoid_backward(operation):
 
     def setup(self, inputs):
 
+        if len(inputs) > 3:
+            self._dy = inputs[3]['y']
+        else:
+            self._dy = None
         predictions = inputs[0]['y']
         labels = inputs[1]['y']
         self._N = predictions.shape[0]
@@ -88,7 +92,11 @@ class sigmoid_backward_cpu(sigmoid_backward):
         z = self._fwd_op._z
         y = self._label_input['cpu']
         N = len(z)
-        ret = (z - y) / N
+        if self._dy is not None:
+            dy = self._dy['cpu']
+        else:
+            dy = 1
+        ret = (z - y) * dy / N
         self._outputs['cpu'] = ret
 
 

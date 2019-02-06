@@ -54,6 +54,10 @@ class cross_entropy_backward(operation):
 
     def setup(self, inputs):
 
+        if len(inputs) > 3:
+            self._dy = inputs[3]['y']
+        else:
+            self._dy = None
         predictions = inputs[0]['y']
         labels = inputs[1]['y']
         for a, b in zip(predictions.shape, labels.shape):
@@ -82,8 +86,11 @@ class cross_entropy_backward_cpu(cross_entropy_backward):
     def perform(self):
         pred = self._graph_input['cpu']
         real = self._label_input['cpu']
-
-        ret = -real / pred
+        if self._dy is not None:
+            dy = self._dy['cpu']
+        else:
+            dy = 1
+        ret = -real * dy / pred
         self._outputs['cpu'] = ret
 
 

@@ -70,6 +70,10 @@ class softmax_cross_entropy_backward(operation):
 
     def setup(self, inputs):
 
+        if len(inputs) > 3:
+            self._dy = inputs[3]['y']
+        else:
+            self._dy = None
         predictions = inputs[0]['y']
         labels = inputs[1]['y']
         for a, b in zip(predictions.shape, labels.shape):
@@ -95,10 +99,14 @@ class softmax_cross_entropy_backward(operation):
 class softmax_cross_entropy_backward_cpu(softmax_cross_entropy_backward):
 
     def perform(self):
+        if self._dy is not None:
+            dy = self._dy['cpu']
+        else:
+            dy = 1
         y = self._label_input['cpu']
         z = self._fwd_op._z
         N = len(z)
-        ret = (z - y) / N
+        ret = (z - y) * dy / N
         self._outputs['cpu'] = ret
 
 
