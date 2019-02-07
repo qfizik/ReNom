@@ -3,7 +3,7 @@ import renom as rm
 import numpy as np
 
 
-class reshape_op(operation):
+class reshape_forward(operation):
 
     name = 'Reshape (F)'
 
@@ -23,7 +23,7 @@ class reshape_op(operation):
         pass
 
 
-class reshape_op_back(operation):
+class reshape_backward(operation):
 
     name = 'Reshape (B)'
 
@@ -48,8 +48,8 @@ class ReshapeElement(UserGraph):
 
     def __init__(self, shape, previous_element=None):
         self._shape = shape
-        fwd_op = reshape_op(shape)
-        bwd_ops = [reshape_op_back(fwd_op)]
+        fwd_op = reshape_forward(shape)
+        bwd_ops = [reshape_backward(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 

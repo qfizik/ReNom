@@ -37,6 +37,8 @@ def get_sigma_diff(x):
 
 class layer_norm_forward(operation):
 
+    name = 'Layer Normalize (F)'
+
     def __init__(self, gain):
         self._g = gain
 
@@ -103,6 +105,8 @@ class layer_norm_forward_cpu(layer_norm_forward):
 
 
 class layer_norm_backward(operation):
+
+    name = 'Layer Normalize (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

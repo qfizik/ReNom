@@ -116,6 +116,8 @@ class gru_forward_cpu(gru_forward):
 
 class gru_backward(operation):
 
+    name = 'Gru (B)'
+
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 

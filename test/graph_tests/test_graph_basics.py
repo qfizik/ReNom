@@ -104,6 +104,7 @@ def test_distributor_test_split(use_gpu):
         pass
     assert count == 2
 
+
 class BadSgd(rm.graph.utils.optimizer.optimizer_factory):
 
     class gpu_op:
@@ -128,8 +129,8 @@ def test_split_backwards(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
-    v1 = rmg.StaticVariable(np.random.rand(2,2))
-    v2 = rmg.StaticVariable(np.random.rand(2,2))
+    v1 = rmg.StaticVariable(np.random.rand(2, 2))
+    v2 = rmg.StaticVariable(np.random.rand(2, 2))
     layer = rmg.Dense(3)
     act1 = rmg.Tanh()
     act2 = rmg.Sigmoid()
@@ -141,10 +142,11 @@ def test_split_backwards(use_gpu):
     gv2 = ll.get_gradient(v2.value).as_ndarray()
     assert not np.allclose(gv1, gv2)
 
+
 def test_no_graph_artifacts():
 
-    v1 = rmg.StaticVariable(np.random.rand(2,2))
-    v2 = rmg.StaticVariable(np.random.rand(2,2))
+    v1 = rmg.StaticVariable(np.random.rand(2, 2))
+    v2 = rmg.StaticVariable(np.random.rand(2, 2))
     layer = rmg.Dense(3)
     l1 = layer(v1)
     l1.backward()
@@ -163,9 +165,10 @@ def test_no_graph_artifacts():
     except AttributeError:
         pass
 
+
 def test_diamond_shared():
-    v1 = rm.graph.StaticVariable(np.random.rand(2,3))
-    t1 = rm.graph.StaticVariable(np.random.rand(2,1))
+    v1 = rm.graph.StaticVariable(np.random.rand(2, 3))
+    t1 = rm.graph.StaticVariable(np.random.rand(2, 1))
     l1 = rmg.Dense(2)
     l21 = rmg.Dense(3)
     l22 = rmg.Dense(1)

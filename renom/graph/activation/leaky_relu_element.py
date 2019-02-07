@@ -3,7 +3,7 @@ from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable,
 import numpy as np
 
 
-class leaky_reluforward(operation):
+class leaky_relu_forward(operation):
 
     name = 'LeakyRelu (F)'
 
@@ -25,7 +25,7 @@ class leaky_reluforward(operation):
             rm.cuda.culeaky_leru_forward(self._slope, self._inputs[gpu], self._outputs[gpu])
 
 
-class leaky_reluforward_cpu(leaky_reluforward):
+class leaky_relu_forward_cpu(leaky_relu_forward):
 
     def perform(self):
         x = self._inputs['cpu']
@@ -34,7 +34,7 @@ class leaky_reluforward_cpu(leaky_reluforward):
         self._outputs['cpu'] = ret
 
 
-class leaky_relubackward(operation):
+class leaky_relu_backward(operation):
 
     name = 'LeakyRelu (B)'
 
@@ -59,7 +59,7 @@ class leaky_relubackward(operation):
             rm.cu.cumul(self._outputs[gpu], self._inputs[gpu], self._outputs[gpu], handle)
 
 
-class leaky_relubackward_cpu(leaky_relubackward):
+class leaky_relu_backward_cpu(leaky_relu_backward):
 
     def perform(self):
         dy = self._inputs['cpu']
@@ -72,9 +72,9 @@ class leaky_relubackward_cpu(leaky_relubackward):
 class LeakyReluElement(UserGraph):
 
     def __init__(self, slope=0.01, previous_elements=None):
-        fwd_op = leaky_reluforward(slope) if rm.is_cuda_active() else leaky_reluforward_cpu(slope)
-        bwd_ops = [leaky_relubackward(fwd_op) if rm.is_cuda_active()
-                   else leaky_relubackward_cpu(fwd_op)]
+        fwd_op = leaky_relu_forward(slope) if rm.is_cuda_active() else leaky_relu_forward_cpu(slope)
+        bwd_ops = [leaky_relu_backward(fwd_op) if rm.is_cuda_active()
+                   else leaky_relu_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 

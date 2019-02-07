@@ -25,7 +25,7 @@ class MaxUnPoolGraphElement(GraphFactory):
 
 class unpool_forward(operation):
 
-    name = 'Pool (F)'
+    name = 'UnPool (F)'
 
     def __init__(self, prev_pool):
         self._prev_pool = prev_pool
@@ -68,7 +68,7 @@ class unpool_forward_cpu(unpool_forward):
 
 class unpool_backward(operation):
 
-    name = 'Pool (B)'
+    name = 'UnPool (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
