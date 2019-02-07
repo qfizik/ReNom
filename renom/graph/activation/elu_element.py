@@ -5,6 +5,8 @@ import numpy as np
 
 class elu_forward(operation):
 
+    name = 'Elu (F)'
+
     def __init__(self, alpha):
         self._alpha = alpha
 
@@ -32,6 +34,8 @@ class elu_forward_cpu(elu_forward):
 
 
 class elu_backward(operation):
+
+    name = 'Elu (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

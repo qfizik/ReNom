@@ -168,6 +168,8 @@ class operational_element(graph_element):
     Unfortunately, this looks the best as of right now, since the inheritance
     schema would become ugly otherwise.
 '''
+
+
 class unidirectional_element(operational_element):
 
     @property

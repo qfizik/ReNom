@@ -1,6 +1,7 @@
 import numpy as np
 import renom as rm
 
+
 class shared_val:
     '''
           This object is responsible for allowing each GraphMultiStorage to

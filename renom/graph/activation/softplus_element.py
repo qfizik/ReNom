@@ -5,6 +5,8 @@ import numpy as np
 
 class softplus_forward(operation):
 
+    name = 'SoftPlus (F)'
+
     def setup(self, inputs):
         inputs = inputs[0]['y']
         gpus = inputs.gpus
@@ -29,6 +31,8 @@ class softplus_forward_cpu(softplus_forward):
 
 
 class softplus_backward(operation):
+
+    name = 'SoftPlus (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

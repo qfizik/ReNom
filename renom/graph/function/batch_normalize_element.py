@@ -104,6 +104,8 @@ class batch_norm_forward_cpu(batch_norm_forward):
 
 class batch_norm_backward(operation):
 
+    name = 'Batch Normalize (B)'
+
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 

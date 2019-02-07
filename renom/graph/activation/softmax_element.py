@@ -5,6 +5,8 @@ import numpy as np
 
 class softmax_forward(operation):
 
+    name = 'SoftMax (F)'
+
     def setup(self, inputs):
         inputs = inputs[0]['y']
         gpus = inputs.gpus
@@ -32,6 +34,8 @@ class softmax_forward_cpu(softmax_forward):
 
 
 class softmax_backward(operation):
+
+    name = 'SoftMax (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

@@ -5,7 +5,7 @@ import numpy as np
 
 class cross_entropy_forward(operation):
 
-    name = ' (F)'
+    name = 'Cross Entropy (F)'
     roles = ['Loss']
 
     def setup(self, inputs):
@@ -47,7 +47,7 @@ class cross_entropy_forward_cpu(cross_entropy_forward):
 
 class cross_entropy_backward(operation):
 
-    name = ' (B)'
+    name = 'Cross Entropy (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

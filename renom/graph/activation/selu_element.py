@@ -5,6 +5,8 @@ import numpy as np
 
 class selu_forward(operation):
 
+    name = 'Selu (F)'
+
     def __init__(self):
         alpha = 1.6732632423543772848170429916717
         lamda = 1.0507009873554804934193349852946
@@ -38,6 +40,8 @@ class selu_forward_cpu(selu_forward):
 
 
 class selu_backward(operation):
+
+    name = 'Selu (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
