@@ -78,8 +78,8 @@ def test_slices(use_gpu):
 def test_distributor_test_split(use_gpu):
     rm.set_cuda_active(use_gpu)
 
-    a = np.random.rand(10, 2)
-    b = np.random.rand(10, 4)
+    a = np.random.rand(10, 2).astype(rm.precision)
+    b = np.random.rand(10, 4).astype(rm.precision)
     data, target = rm.graph.Distro(a, b, 2, test_split=0.8).get_output_graphs()
     model = rm.graph.Dense(3)
     count = 0
