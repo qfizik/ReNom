@@ -128,8 +128,8 @@ def test_split_backwards(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
-    v1 = rmg.StaticVariable(np.random.rand(2,2))
-    v2 = rmg.StaticVariable(np.random.rand(2,2))
+    v1 = rmg.StaticVariable(np.random.rand(2, 2))
+    v2 = rmg.StaticVariable(np.random.rand(2, 2))
     layer = rmg.Dense(3)
     act1 = rmg.Tanh()
     act2 = rmg.Sigmoid()
@@ -143,8 +143,8 @@ def test_split_backwards(use_gpu):
 
 def test_no_graph_artifacts():
 
-    v1 = rmg.StaticVariable(np.random.rand(2,2))
-    v2 = rmg.StaticVariable(np.random.rand(2,2))
+    v1 = rmg.StaticVariable(np.random.rand(2, 2))
+    v2 = rmg.StaticVariable(np.random.rand(2, 2))
     layer = rmg.Dense(3)
     l1 = layer(v1)
     l1.backward()
@@ -164,8 +164,8 @@ def test_no_graph_artifacts():
         pass
 
 def test_diamond_shared():
-    v1 = rm.graph.StaticVariable(np.random.rand(2,3))
-    t1 = rm.graph.StaticVariable(np.random.rand(2,1))
+    v1 = rm.graph.StaticVariable(np.random.rand(2, 3))
+    t1 = rm.graph.StaticVariable(np.random.rand(2, 1))
     l1 = rmg.Dense(2)
     l21 = rmg.Dense(3)
     l22 = rmg.Dense(1)
@@ -620,7 +620,7 @@ def test_save_load(devices_to_load):
     model.load(tmp_filename, devices=device_list)
     y2 = model(x).as_ndarray()
     div = devices_to_load if devices_to_load != 'cpu' else 1
-    assert np.allclose(y1, y2/div)
+    assert np.allclose(y1, y2 / div)
 
     try:
         model = rmg.Sequential([
