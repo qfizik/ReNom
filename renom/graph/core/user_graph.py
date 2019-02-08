@@ -85,7 +85,7 @@ class UserGraph(graph_element):
                                                producer=op, key=consumed)
                         upd_g = operational_element(upd, tags=['Gradient'])
                         upd_g.add_input(self._bwd_graphs[op_num])
-                        updates.append((op_num, upd_g))
+                        updates.append(((op_num, consumed), upd_g))
         self._update_graphs = updates
 
     def connect(self, previous_elements):
@@ -110,7 +110,7 @@ class UserGraph(graph_element):
         for graph in self._bwd_graphs:
             graph.detach()
         super().detach()
-        for back_num, update in self._update_graphs:
+        for (back_num, back_key), update in self._update_graphs:
             update.add_input(self._bwd_graphs[back_num])
 
     def connect_back(self, previous_element, pos=0):

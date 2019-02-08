@@ -663,6 +663,12 @@ def test_version_save_compability(use_gpu):
     os.remove(tmp_filename)
 
 
+def test_gradient_clipping():
+    
+    v1 = np.random.rand(4,3)
+    
+
+
 @pytest.mark.parametrize('ttype', [
     np.int, np.int32, np.int64,
     np.float, np.float32, np.float64
