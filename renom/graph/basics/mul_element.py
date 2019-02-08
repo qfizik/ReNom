@@ -91,8 +91,8 @@ class MulElement(UserGraph):
     def __init__(self, previous_elements=None):
 
         fwd_op = mul_forward() if rm.is_cuda_active() else mul_forward_cpu()
-        bwd_ops = [mul_backward(fwd_op, 'b') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'b'),
-                   mul_backward(fwd_op, 'a') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'a')]
+        bwd_ops = [mul_backward(fwd_op, 'a') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'a'),
+                   mul_backward(fwd_op, 'b') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'b')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
