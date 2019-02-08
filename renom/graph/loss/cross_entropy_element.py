@@ -76,9 +76,14 @@ class cross_entropy_backward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            if self._dy is not None:
+                dy = self._dy[gpu]
+            else:
+                dy = 1
             rm.cuda.cudiv(self._label_input[gpu],
                           self._graph_input[gpu], self._outputs[gpu], handle)
             rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
+            rm.cuda.cumul(self._outputs[gpu], dy, self._outputs[gpu], handle)
 
 
 class cross_entropy_backward_cpu(cross_entropy_backward):

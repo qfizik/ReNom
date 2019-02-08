@@ -9,7 +9,9 @@ def use_gpu(request):
     """
     if request.param is True and not renom.has_cuda():
         pytest.skip()
-    return request.param
+    yield request.param
+    renom.graph.core.GraphMultiStorage._gpus = None
+    renom.set_cuda_active(False)
 
 
 @pytest.fixture(params=[1, 2])

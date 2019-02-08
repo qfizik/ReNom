@@ -464,6 +464,7 @@ def test_graph_depth(graph_nodes):
 @pytest.mark.parametrize('C_has_back', [True, False])
 def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
     rm.set_cuda_active(False)
+    rm.graph.core.GraphMultiStorage._gpus = None
 
     A = rmg.core.UserGraph(forward_operation=noop(), backward_operations=[
         noop()] if A_has_back else None)
@@ -589,12 +590,14 @@ def test_share_arr():
     'cpu', 1, 2, 3, 4
 ])
 def test_save_load(devices_to_load):
+    rmg.core.GraphMultiStorage._gpus = None
     if devices_to_load != 'cpu':
         if not rm.cuda.has_cuda() or (rm.cuda.cuGetDeviceCount() < devices_to_load):
             pytest.skip()
         rm.set_cuda_active(True)
-        devices_to_load = [d for d in range(devices_to_load)]
+        device_list = [d for d in range(devices_to_load)]
     else:
+        device_list = devices_to_load
         rm.set_cuda_active(False)
 
     model = rmg.Sequential([
@@ -614,9 +617,10 @@ def test_save_load(devices_to_load):
         rmg.Dense(6),
         rmg.Dense(2),
     ])
-    model.load(tmp_filename, devices=devices_to_load)
+    model.load(tmp_filename, devices=device_list)
     y2 = model(x).as_ndarray()
-    assert np.allclose(y1, y2)
+    div = devices_to_load if devices_to_load != 'cpu' else 1
+    assert np.allclose(y1, y2/div)
 
     try:
         model = rmg.Sequential([
