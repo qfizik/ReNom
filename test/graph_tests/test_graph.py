@@ -165,6 +165,7 @@ def getNumericalDiff(lossMethod, testValue):
     ),
 ])
 def test_basic_binary_operations(test_shape1, test_shape2, oper, use_gpu, num_gpu):
+    np.random.seed(45)
     rm.set_cuda_active(use_gpu)
     v1 = rand(*test_shape1)
     val1 = rm.graph.StaticVariable(v1, num_gpus=num_gpu)
@@ -717,7 +718,7 @@ def test_cross_entropy(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.CrossEntropyGraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
 
     def func():
         m.forward()
@@ -739,7 +740,7 @@ def test_softmax_cross_entropy(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.SoftmaxCrossEntropyGraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
 
     def func():
         m.forward()
@@ -761,7 +762,7 @@ def test_sigmoid_cross_entropy(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.SigmoidCrossEntropyGraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
 
     def func():
         m.forward()
@@ -783,7 +784,7 @@ def test_smoothed_l1(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.SmoothedL1GraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
 
     def func():
         m.forward()
@@ -1035,7 +1036,8 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
     model = rm.graph.MeanSquaredGraphElement()
-    m = model(val, val2)
+    m = model(val, val2) * 2
+
 
     def func():
         m.forward()

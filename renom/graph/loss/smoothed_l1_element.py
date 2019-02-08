@@ -70,6 +70,10 @@ class smoothed_l1_backward(operation):
 
     def setup(self, inputs):
 
+        if len(inputs) > 3:
+            self._dy = inputs[3]['y']
+        else:
+            self._dy = None
         predictions = inputs[0]['y']
         real_values = inputs[1]['y']
         self._graph_input = predictions
@@ -83,6 +87,10 @@ class smoothed_l1_backward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            if self._dy is not None:
+                dy = self._dy[gpu]
+            else:
+                dy = 1
             d = self._fwd_op._d[gpu]
             N = len(d)
             delta = self._delta
@@ -91,18 +99,23 @@ class smoothed_l1_backward(operation):
             dx = mask * d + (1 - mask) * sign * delta
             ret = dx / N
             self._outputs[gpu].to_gpu(ret)
+            rm.cuda.cumul(self._outputs[gpu], dy, self._outputs[gpu], handle)
 
 
 class smoothed_l1_backward_cpu(smoothed_l1_backward):
 
     def perform(self):
+        if self._dy is not None:
+            dy = self._dy['cpu']
+        else:
+            dy = 1
         d = self._fwd_op._d
         N = len(d)
         delta = self._delta
         mask = abs(d) <= delta
         sign = (d > 0) * 2 - 1
         dx = mask * d + (1 - mask) * sign * delta
-        ret = dx / N
+        ret = dx * dy / N
         self._outputs['cpu'] = ret
 
 
