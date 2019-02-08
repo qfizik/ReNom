@@ -7,12 +7,16 @@ class clip_forward(operation):
 
     name = 'Clip (F)'
 
-    def __init__(self, floor, ceil):
+    def __init__(self, floor, ceil, use_key = None):
         self.floor = floor
         self.ceil = ceil
+        self.key = use_key
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
+        key = self.key
+        if key is None:
+            key = 'y'
+        inputs = inputs[0][key]
         output_shape = inputs.shape
         gpus = inputs.gpus
 
