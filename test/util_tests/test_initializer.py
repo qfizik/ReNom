@@ -12,16 +12,20 @@ from renom.config import precision
 
 class MyModel(rm.Model):
     def __init__(self):
-        super(MyModel, self).__init__()
-        self.w1 = rm.Dense(32)
-        self.w2 = rm.Dense(1)
+        self.c1=rm.Conv2d(32, filter=3, padding = 1, stride=1)
+        self.c2=rm.Conv2d(32, filter=3, padding = 1, stride=1)
+        self.l1=rm.Dense(128)
+        self.l2=rm.Dense(4)
 
-    def forward(self, x):
-        h = self.w1(x)
+    def forward(self,x):
+        h = self.c1(x)
         h = rm.relu(h)
-        h = self.w2(h)
-        return h
-
+        h = self.c2(h)
+        h = rm.relu(h)
+        h = rm.flatten(h)
+        h = self.l1(h)
+        h = rm.relu(h)
+        return self.l2(h)
 
 ##############################################################
 # 2. decorator
@@ -67,7 +71,7 @@ class Test_Initializer:
         # create model and get weight
         model = self.model1
         model.set_initializer(initial_object)
-        x = np.random.random((3, 4))
+        x = np.random.random((1 ,128, 128, 1))
         _ = model(x)
 
         weights=[]
