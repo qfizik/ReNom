@@ -27,6 +27,9 @@ class static_value(operation):
         self._outputs = val
         self._vars = {'y': self._outputs}
 
+    def reset(self):
+        pass
+
 
 class StaticVariable(UserGraph):
 

@@ -110,6 +110,7 @@ class deconv_backward(operation):
         self._weights_out = GraphMultiStorage(shape=self._fwd_w.shape, gpus=self.gpus)
 
         self._vars = {'w': self._weights_out, 'b': self._bias_out, 'y': self._outputs,
+                      'dy': self._outputs,
                       id(self._fwd_in): self._outputs,
                       id(self._fwd_w): self._weights_out,
                       id(self._fwd_b): self._bias_out,
