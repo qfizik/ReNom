@@ -36,6 +36,7 @@ from .operation import operation, StateHolder
 from .graph_factory import GraphFactory, graph_variable
 import contextlib as cl
 
+
 @cl.contextmanager
 def with_gradient_clipping(floor=None, ceil=None):
     if floor is None and ceil is None:

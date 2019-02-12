@@ -685,7 +685,6 @@ def test_gradient_clipping(use_gpu):
     assert np.allclose(diff, delta)
 
 
-
 @pytest.mark.parametrize('ttype', [
     np.int, np.int32, np.int64,
     np.float, np.float32, np.float64

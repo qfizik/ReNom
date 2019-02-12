@@ -32,12 +32,14 @@ class constant_loss_backward(operation):
     def perform(self):
         pass
 
+
 class constant_loss_backward_cpu(constant_loss_backward):
 
     def perform(self):
         if self._dy is not None:
             dy = self._dy['cpu']
             self._outputs['cpu'] = np.ones(self._outputs.shape) * dy
+
 
 class ConstantLoss(UserLossGraph):
 

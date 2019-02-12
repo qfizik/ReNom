@@ -136,7 +136,6 @@ class UserGraph(graph_element):
         else:
             UserGraph._add_clipping = None
 
-
     def connect_back(self, previous_element, pos=0):
         if len(self._bwd_graphs) == 0:
             return

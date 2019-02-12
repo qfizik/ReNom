@@ -1038,7 +1038,6 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
     model = rm.graph.MeanSquaredGraphElement()
     m = model(val, val2) * 2
 
-
     def func():
         m.forward()
         ret = m.as_ndarray()
@@ -1061,13 +1060,13 @@ def test_clip(test_shape, use_gpu, num_gpu):
     l = rm.graph.ConstantLossGraphElement()
     m = l(rm.graph.ClipElement(0.1, 0.9, val)) * 2
 
-
     def func():
         m.forward()
         ret = m.as_ndarray()
         return ret
 
     compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value).as_ndarray())
+
 
 @pytest.mark.parametrize("test_shape", [
     (4, 4),
