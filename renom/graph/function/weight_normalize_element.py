@@ -64,6 +64,8 @@ class weight_norm_forward_cpu(weight_norm_forward):
 
 class weight_norm_backward(operation):
 
+    name = 'Weight Normalization (B)'
+
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 

@@ -5,7 +5,7 @@ from renom.graph.core import GraphMultiStorage, operational_element, UserGraph, 
 
 class random_uniform(operation):
 
-    name = 'Random Uniform'
+    name = 'Random Uniform (F)'
     # roles = ['static']
 
     def __init__(self, shape, min, max, num_gpus=1):
@@ -51,7 +51,7 @@ def rand_uniform(shape, min=0, max=1, num_gpus=1):
 
 class random_normal(operation):
 
-    name = 'Random Normal'
+    name = 'Random Normal (F)'
     # roles = ['static']
 
     def __init__(self, shape, mean, std, num_gpus=1):

@@ -85,6 +85,7 @@ class GraphMultiStorage:
     _shape = None
     _weight_decay = None
     _should_share = False
+    _gpus = None
 
     def __init__(self, shape=None, gpus=None, initializer=None,
                  share_init=None, ptrs=None):
@@ -165,6 +166,7 @@ class GraphMultiStorage:
         if isinstance(val, str):
             assert val == 'cpu'
         self._gpus = val
+        GraphMultiStorage._gpus = val
 
     def __iter__(self):
         for key in self._gpuvalues.keys():

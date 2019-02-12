@@ -165,6 +165,7 @@ def getNumericalDiff(lossMethod, testValue):
     ),
 ])
 def test_basic_binary_operations(test_shape1, test_shape2, oper, use_gpu, num_gpu):
+    np.random.seed(45)
     rm.set_cuda_active(use_gpu)
     v1 = rand(*test_shape1)
     val1 = rm.graph.StaticVariable(v1, num_gpus=num_gpu)

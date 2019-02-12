@@ -8,6 +8,8 @@ import numpy as np
 
 class maxout_forward(operation):
 
+    name = 'Maxout (F)'
+
     def __init__(self, slice_size=1):
         self._sz = slice_size
 
@@ -65,6 +67,8 @@ class maxout_forward_cpu(maxout_forward):
 
 
 class maxout_backward(operation):
+
+    name = 'Maxout (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward

@@ -54,7 +54,7 @@ class Conv(GraphFactory):
         return ret
 
 
-class convo_forward(operation):
+class conv_forward(operation):
 
     name = 'Convolution (F)'
     consumes = ['w', 'b']
@@ -126,26 +126,26 @@ class convo_forward(operation):
                 handle, self._conv_desc, self._filter_desc, self._inputs[0], self._outputs[0])
             req_sz = max(self._info[1], self._bwd_info['data'][1], self._bwd_info['filter'][1])
 
-        if req_sz > convo_forward.workspace_size:
-            convo_forward.workspace_size = req_sz
+        if req_sz > conv_forward.workspace_size:
+            conv_forward.workspace_size = req_sz
         return True
 
     def finalize(self):
-        if convo_forward.workspace is None:
+        if conv_forward.workspace is None:
             workspace_shape = (
-                int(np.ceil(convo_forward.workspace_size / np.dtype(rm.precision).itemsize)),)
-            convo_forward.workspace = GraphMultiStorage(shape=workspace_shape, gpus=self.gpus)
+                int(np.ceil(conv_forward.workspace_size / np.dtype(rm.precision).itemsize)),)
+            conv_forward.workspace = GraphMultiStorage(shape=workspace_shape, gpus=self.gpus)
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            workspace = (convo_forward.workspace_size,
-                         convo_forward.workspace[gpu]) if convo_forward.workspace_size > 0 else None
+            workspace = (conv_forward.workspace_size,
+                         conv_forward.workspace[gpu]) if conv_forward.workspace_size > 0 else None
             rm.cuda.cuConvolutionForwardBiasActivation(
                 handle, self._conv_desc, self._filter_desc, self._inputs[gpu],
                 self._weights[gpu], self._outputs[gpu], self._bias[gpu], self._info[0], workspace)
 
 
-class convo_forward_cpu(convo_forward):
+class conv_forward_cpu(conv_forward):
 
     def perform(self):
         x = self._inputs['cpu']
@@ -163,7 +163,7 @@ class convo_forward_cpu(convo_forward):
         self._outputs['cpu'] = ret
 
 
-class convo_backward(operation):
+class conv_backward(operation):
 
     name = 'Convolution (B)'
     produces = ['w', 'b']
@@ -186,6 +186,7 @@ class convo_backward(operation):
         self._weights_out = GraphMultiStorage(shape=self._fwd_w.shape, gpus=self.gpus)
 
         self._vars = {'w': self._weights_out, 'b': self._bias_out, 'y': self._outputs,
+                      'dy': self._outputs,
                       id(self._fwd_in): self._outputs,
                       id(self._fwd_w): self._weights_out,
                       id(self._fwd_b): self._bias_out,
@@ -202,8 +203,8 @@ class convo_backward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            workspace = (convo_forward.workspace_size,
-                         convo_forward.workspace[gpu]) if convo_forward.workspace_size > 0 else None
+            workspace = (conv_forward.workspace_size,
+                         conv_forward.workspace[gpu]) if conv_forward.workspace_size > 0 else None
             rm.cuda.cuActivationBackward(handle, self._fwd_op._outputs[gpu], self._inputs[gpu])
             rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc,
                                           self._fwd_in[gpu], self._fwd_w[gpu], self._inputs[gpu],
@@ -211,7 +212,7 @@ class convo_backward(operation):
                                           self._algo, workspace)
 
 
-class convo_backward_cpu(convo_backward):
+class conv_backward_cpu(conv_backward):
 
     def perform(self):
         x = self._fwd_in['cpu']
@@ -243,15 +244,15 @@ class ConvElement(UserGraph):
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
-        fwd_op = convo_forward(channels, kernel, padding, stride, initializer) if rm.is_cuda_active(
-        ) else convo_forward_cpu(channels, kernel, padding, stride, initializer)
-        bwd_ops = [convo_backward(fwd_op) if rm.is_cuda_active() else convo_backward_cpu(fwd_op)]
+        fwd_op = conv_forward(channels, kernel, padding, stride, initializer) if rm.is_cuda_active(
+        ) else conv_forward_cpu(channels, kernel, padding, stride, initializer)
+        bwd_ops = [conv_backward(fwd_op) if rm.is_cuda_active() else conv_backward_cpu(fwd_op)]
 
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
 def del_workspace():
-    convo_forward.workspace = None
+    conv_forward.workspace = None
 
 
 import atexit

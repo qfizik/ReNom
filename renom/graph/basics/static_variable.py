@@ -27,16 +27,27 @@ class static_value(operation):
         self._outputs = val
         self._vars = {'y': self._outputs}
 
+    def reset(self):
+        pass
+
 
 class StaticVariable(UserGraph):
 
     _name = 'Static Element'
 
-    def __init__(self, value, num_gpus=1):
+    def __init__(self, value, num_gpus=None):
         if value.dtype is not rm.precision:
             value = value.astype(rm.precision)
+        if num_gpus is None:
+            if GraphMultiStorage._gpus is None:
+                num_gpus = 1
+            else:
+                num_gpus = GraphMultiStorage._gpus
         if rm.is_cuda_active():
-            gpu_list = [gpu for gpu in range(num_gpus)]
+            if isinstance(num_gpus, list):
+                gpu_list = num_gpus
+            else:
+                gpu_list = [gpu for gpu in range(num_gpus)]
         else:
             gpu_list = 'cpu'
         val = GraphMultiStorage(shape=value.shape, gpus=gpu_list)

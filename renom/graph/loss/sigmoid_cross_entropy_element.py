@@ -81,9 +81,14 @@ class sigmoid_backward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            if self._dy is not None:
+                dy = self._dy[gpu]
+            else:
+                dy = 1
             rm.cuda.cusigmoid(self._graph_input[gpu], self._act_out1[gpu])
             rm.cuda.cusub(self._act_out1[gpu], self._label_input[gpu], self._outputs[gpu], handle)
             rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
+            rm.cuda.cumul(self._outputs[gpu], dy, self._outputs[gpu], handle)
 
 
 class sigmoid_backward_cpu(sigmoid_backward):

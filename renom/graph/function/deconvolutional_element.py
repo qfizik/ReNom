@@ -5,7 +5,7 @@ import renom.utility.initializer as init
 import numpy as np
 
 
-class deconvo_forward(operation):
+class deconv_forward(operation):
 
     name = 'Deconvolution (F)'
     consumes = ['w', 'b']
@@ -73,7 +73,7 @@ class deconvo_forward(operation):
             rm.cuda.cu_add_bias(self._bias[gpu], self._outputs[gpu])
 
 
-class deconvo_forward_cpu(deconvo_forward):
+class deconv_forward_cpu(deconv_forward):
 
     def perform(self):
         x = self._inputs['cpu']
@@ -88,7 +88,7 @@ class deconvo_forward_cpu(deconvo_forward):
         self._outputs['cpu'] = z
 
 
-class deconvo_backward(operation):
+class deconv_backward(operation):
 
     name = 'Deconvolution (B)'
     produces = ['w', 'b']
@@ -110,6 +110,7 @@ class deconvo_backward(operation):
         self._weights_out = GraphMultiStorage(shape=self._fwd_w.shape, gpus=self.gpus)
 
         self._vars = {'w': self._weights_out, 'b': self._bias_out, 'y': self._outputs,
+                      'dy': self._outputs,
                       id(self._fwd_in): self._outputs,
                       id(self._fwd_w): self._weights_out,
                       id(self._fwd_b): self._bias_out,
@@ -127,7 +128,7 @@ class deconvo_backward(operation):
             rm.cuda.cuConvolutionBackwardBias(handle, self._inputs[gpu], self._bias_out[gpu])
 
 
-class deconvo_backward_cpu(deconvo_backward):
+class deconv_backward_cpu(deconv_backward):
 
     def perform(self):
         dy = self._inputs['cpu']
@@ -166,10 +167,10 @@ class DeconvolutionalGraph(UserGraph):
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
-        fwd_op = deconvo_forward(channels, kernel, padding, stride) if rm.is_cuda_active(
-        ) else deconvo_forward_cpu(channels, kernel, padding, stride)
-        bwd_ops = [deconvo_backward(fwd_op) if rm.is_cuda_active()
-                   else deconvo_backward_cpu(fwd_op)]
+        fwd_op = deconv_forward(channels, kernel, padding, stride) if rm.is_cuda_active(
+        ) else deconv_forward_cpu(channels, kernel, padding, stride)
+        bwd_ops = [deconv_backward(fwd_op) if rm.is_cuda_active()
+                   else deconv_backward_cpu(fwd_op)]
 
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
