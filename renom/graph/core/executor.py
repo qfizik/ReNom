@@ -209,7 +209,7 @@ class Executor:
     def _set_validation(self):
         self.register_event('Epoch-Finish', _validation_func())
 
-    def step(self, step_data = None):
+    def step(self, step_data=None):
         exe_info = {
             'mode': 'step',
             'losses': self.loss,

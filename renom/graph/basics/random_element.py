@@ -16,10 +16,8 @@ class random_uniform(operation):
         self._outputs = GraphMultiStorage(shape=self._shape, gpus=self._gpus)
         self._vars = {'y': self._outputs}
 
-
     def setup(self, inputs):
         pass
-
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self._gpus):
@@ -49,7 +47,6 @@ class RandomUniformElement(UserGraph):
 
 def rand_uniform(shape, min=0, max=1, num_gpus=1):
     return RandomUniformElement(shape, min=min, max=max, num_gpus=num_gpus)
-
 
 
 class random_normal(operation):

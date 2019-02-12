@@ -1037,7 +1037,6 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
     model = rm.graph.MeanSquaredGraphElement()
     m = model(val, val2) * 2
 
-
     def func():
         m.forward()
         ret = m.as_ndarray()
