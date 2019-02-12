@@ -95,6 +95,7 @@ class Executor:
         self.call_list = call_list
         self.dispatchers = special_ops['graph_inputs']
         self.loss = special_ops['losses']
+        self.root = special_ops['root']
         self.mode = mode
 
         self._events = {'Initialize': [],
@@ -183,10 +184,15 @@ class Executor:
         for part in parts:
             for depth in sorted(self.call_list[part].keys()):
                 for call in self.call_list[part][depth]:
+                    if mode == 'step':
+                        orig_inf = call._inference
+                        call._inference = True
                     if rm.logging_level >= 10:
                         call.logged_perform()
                     else:
                         call.perform()
+                    if mode == 'step':
+                        call._inference = orig_inf
 
         for ev in self._events['Step-Finish']:
             ev(exe_info)
@@ -203,18 +209,21 @@ class Executor:
     def _set_validation(self):
         self.register_event('Epoch-Finish', _validation_func())
 
-    def step(self, d, t):
-        # TODO: Clean up this mess boy.
+    def step(self, step_data=None):
         exe_info = {
             'mode': 'step',
             'losses': self.loss,
         }
-        ina = self.dispatchers[0]
-        inb = self.dispatchers[1]
-        ina.value, inb.value = d, t
+        if step_data is not None:
+            d, t = step_data[0], step_data[1]
+            ina = self.dispatchers[0]
+            inb = self.dispatchers[1]
+            ina.value, inb.value = d, t
         self.perform_event_step(exe_info)
-        loss = self.loss[0].as_ndarray()
-        ina.switch_source(0)
+        #loss = self.loss[0].as_ndarray()
+        loss = self.root.as_ndarray()
+        if step_data is not None:
+            ina.switch_source(0)
         return loss
 
     def set_input_data(self, data, target):

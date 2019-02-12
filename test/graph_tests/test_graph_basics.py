@@ -302,7 +302,7 @@ def test_step_executor(use_gpu):
     loss2 = 0
     for i in range(0, 10, 2):
         v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
-        loss2 += exe.step(v2, t2)
+        loss2 += exe.step((v2, t2))
     assert np.allclose(loss1 * 4, loss2)
 
 
