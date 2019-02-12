@@ -158,6 +158,7 @@ class UserGraph(graph_element):
         ops = {
             'graph_inputs': ins,
             'losses': lss,
+            'root': self._fwd._op,
         }
         if mode == 'training':
             self._fwd.continue_setup()
