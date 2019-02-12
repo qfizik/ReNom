@@ -21,7 +21,7 @@ cdef class GPUValue:
     cdef public tuple shape
     cdef public object dtype
     cdef public size_t itemsize
-    cdef public size_t size
+    #cdef public size_t size
     cdef public size_t nbytes
     cdef public int device_id
 

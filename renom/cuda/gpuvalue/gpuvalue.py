@@ -387,7 +387,7 @@ class GPUValue(object):
             self.dtype = np.dtype(dtype)
 
         self.itemsize = self.dtype.itemsize
-        self.size = (calc_int_prod(self.shape) if self.shape else 1)
+        #self.size = (calc_int_prod(self.shape) if self.shape else 1)
         self.nbytes = self.size * self.itemsize
 
         self._ptr = ptr
@@ -516,6 +516,10 @@ class GPUValue(object):
 
     def transpose(self, axis):
         return cu_transpose(self, axis)
+
+    @property
+    def size(self):
+        return calc_int_prod(self.shape) if self.shape else 1
 
     def split(self, indices_or_sections, axis=0):
         N = self.shape[axis]  # Raises IndexError if axis is invalid

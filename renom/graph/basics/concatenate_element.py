@@ -29,6 +29,9 @@ class concatenate_forward(operation):
         self._vars = {'y': outs}
 
     def perform(self):
+        if self.axis == 0:
+            val = np.sum(a.shape[0].value for a in self._inputs)
+            self._outputs.shape[0].value = val
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             rm.cuda.cuconcat([a[gpu] for a in self._inputs], self._outputs[gpu], axis=self.axis)
 
