@@ -10,7 +10,7 @@ class constant_loss_backward(operation):
     name = 'Constant (B)'
 
     def setup(self, inputs):
-    
+
         if len(inputs) > 2:
             self._dy = inputs[2]['y']
         else:

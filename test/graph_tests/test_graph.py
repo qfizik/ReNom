@@ -1060,7 +1060,7 @@ def test_clip(test_shape, use_gpu, num_gpu):
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     l = rm.graph.ConstantLossGraphElement()
     m = l(rm.graph.ClipElement(0.1, 0.9, val)) * 2
-    
+
 
     def func():
         m.forward()

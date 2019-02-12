@@ -92,8 +92,8 @@ class UserGraph(graph_element):
                             else:
                                 clip_op = rm.graph.basics.clip_element.clip_forward_cpu
                             clip = operational_element(
-                                  clip_op(clipping[0], clipping[1]),
-                                  tags=['Gradient'])
+                                clip_op(clipping[0], clipping[1]),
+                                tags=['Gradient'])
                             clip.add_input(self._bwd_graphs[op_num])
                             prv = clip
                             upd_g.add_input(prv)
@@ -130,7 +130,7 @@ class UserGraph(graph_element):
             update.add_input(self._bwd_graphs[back_num])
 
     @staticmethod
-    def set_gradient_clipping(use_clipping = True, floor = -1, ceil = 1):
+    def set_gradient_clipping(use_clipping=True, floor=-1, ceil=1):
         if use_clipping is True:
             UserGraph._add_clipping = (floor, ceil)
         else:

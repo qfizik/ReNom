@@ -37,16 +37,14 @@ from .graph_factory import GraphFactory, graph_variable
 import contextlib as cl
 
 @cl.contextmanager
-def with_gradient_clipping(floor = None, ceil = None):
+def with_gradient_clipping(floor=None, ceil=None):
     if floor is None and ceil is None:
         UserGraph.set_gradient_clipping(False)
     else:
         if floor is None:
             floor = -2**31
         if ceil is None:
-            ceil = 2**31-1
+            ceil = 2**31 - 1
         UserGraph.set_gradient_clipping(True, floor, ceil)
         yield
     UserGraph.set_gradient_clipping(False)
-
-

@@ -7,7 +7,7 @@ class clip_forward(operation):
 
     name = 'Clip (F)'
 
-    def __init__(self, floor, ceil, use_key = None):
+    def __init__(self, floor, ceil, use_key=None):
         self.floor = floor
         self.ceil = ceil
         self.key = use_key
@@ -67,7 +67,6 @@ class clip_backward_cpu(clip_backward):
 
     def perform(self):
         x = self._fwd_ins['cpu']
-        dy = self._inputs['cpu']
         y = np.ones_like(x)
         y[x < self.floor] = 0
         y[x > self.ceil] = 0
@@ -92,4 +91,3 @@ def clip(self):
 
 
 UserGraph.clip = clip
-
