@@ -63,7 +63,6 @@ class dispatch(operation):
             assert self._outputs[gpu].shape == arr.shape
             if len(arr) < self._batch_size:
                 self._finished = True
-                raise StopIteration()
             pin = handle.getPinnedMemory(arr)
             assert pin.shape == self._outputs[gpu].shape
             self._outputs[gpu].to_gpu(pin)
