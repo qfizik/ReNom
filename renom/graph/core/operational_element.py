@@ -42,7 +42,9 @@ class operational_element(graph_element):
     def check_tags(func):
         @functools.wraps(func)
         def ret_func(self, *args, tag=None, **kwargs):
-            if tag in self._tags or tag is None:
+            if not isinstance(tag, list):
+                tag = [tag]
+            if all(t in self._tags or t is None for t in tag):
                 return func(self, *args, **kwargs)
         return ret_func
 

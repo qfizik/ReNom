@@ -174,14 +174,11 @@ def test_diamond_shared():
     l22 = rmg.Dense(1)
     ls = rmg.mse()
     g1 = l1(v1)
-    l21.set_updatable(False)
-    l22.set_updatable(True)
-    g21 = l22(l21(g1))
-    l21.set_updatable(True)
-    l22.set_updatable(False)
-    g22 = l22(l21(g1))
+    with l21.no_updates():
+        g21 = l22(l21(g1))
+    with l22.no_updates():
+        g22 = l22(l21(g1))
     l = ls(g21 + g22, t1)
-    l.print_tree()
 
 
 def test_optimizer(use_gpu):
@@ -314,7 +311,7 @@ def test_inference_mode():
     ])
     x = model(v1)
     assert model.l1._prev._fwd._op._inference is False
-    model.set_inference(True)
+    x.set_inference(True)
     assert model.l1._prev._fwd._op._inference is True
 
     model = rmg.Sequential([
@@ -324,7 +321,7 @@ def test_inference_mode():
     model.set_inference(True)
     x = model(v1)
     assert model.l1._prev._fwd._op._inference is True
-    model.set_inference(False)
+    x.set_inference(False)
     assert model.l1._prev._fwd._op._inference is False
 
 
@@ -335,9 +332,12 @@ def test_updatable_mode():
         rmg.Dropout(),
     ])
     x = model(v1)
-    assert model.l0.params['w']._fwd._op._val._should_update is True
-    model.set_updatable(False)
-    assert model.l0.params['w']._fwd._op._val._should_update is False
+    prev = model.l0.params['w'].as_ndarray()
+    x.backward()
+    x.set_updatable(False)
+    x.update()
+    after = model.l0.params['w'].as_ndarray()
+    assert np.allclose(prev, after)
 
 
 def test_finalizer(use_gpu):
