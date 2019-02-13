@@ -146,6 +146,12 @@ class operational_element(graph_element):
         print('I am a {:s} at depth {:d} with tags: {}'.format(
             self._op.name, self.depth, self._tags))
 
+    @graph_element.walk_tree
+    @check_tags
+    def set_attr(self, name, val):
+        setattr(self._op, name, val)
+
+
     @property
     def name(self):
         return self._op.name

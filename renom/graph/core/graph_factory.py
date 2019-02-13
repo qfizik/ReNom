@@ -60,17 +60,14 @@ class GraphFactory(abc.ABC):
         '''
         pass
 
-    name = None
 
     def __call__(self, *other):
-        self_tag = str(id(self))
+        self_tag = id(self)
         with rm.graph.core._with_operational_tag(self_tag):
-            if self.name is not None:
-                with rm.graph.core._with_operational_tag(self.name):
-                    ret = self.connect(*other)
-            else:
-                ret = self.connect(*other)
-        ret._fwd.replace_tags(self_tag, str(id(ret)))
+            ret = self.connect(*other)
+        ret._fwd.replace_tags(self_tag, id(ret))
+        for bwd in ret._bwd_graphs:
+            bwd.replace_tags(self_tag, id(ret))
         if not self._make_update_graphs:
             for op_num, upd_g in ret._update_graphs:
                 upd_g.detach()

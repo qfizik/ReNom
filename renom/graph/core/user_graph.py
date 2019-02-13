@@ -28,7 +28,6 @@ class UserGraph(graph_element):
 
     _name = 'Undefined'
     _add_clipping = None
-    _tags_to_add = []
 
     def __init__(self, forward_operation, backward_operations=None, previous_elements=None):
         if backward_operations is None:
@@ -42,7 +41,6 @@ class UserGraph(graph_element):
         self._create_fwd_graph(forward_operation)
         self._create_bwd_graphs(backward_operations)
         self._create_update_graphs(forward_operation, backward_operations)
-        self._tags = UserGraph._tags_to_add.copy()
 
         if previous_elements is not None:
             self.connect(previous_elements=previous_elements.copy())
@@ -72,7 +70,6 @@ class UserGraph(graph_element):
         if isinstance(forward_operation, operation):
             self._fwd = operational_element(operation=forward_operation, tags=['Forward'])
         elif isinstance(forward_operation, operational_element):
-            raise NotImplementedError()
             assert forward_operation._tags == ['Forward']
             self._fwd = forward_operation
         else:
@@ -194,7 +191,11 @@ class UserGraph(graph_element):
         return ret
 
     def set_inference(self, inference=True):
-        self._fwd._op._inference = inference
+        if id(self) in self._fwd._tags:
+            self._fwd.set_attr('_inference', inference, tag=id(self))
+        else:
+            assert False
+            self._fwd._op._inference = inference
 
     def set_all_inference(self, inference=True):
         infs = self._fwd.gather_operations_with_role('inference', flatten=True)

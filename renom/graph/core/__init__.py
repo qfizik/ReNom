@@ -52,9 +52,6 @@ def with_gradient_clipping(floor=None, ceil=None):
 
 @cl.contextmanager
 def _with_operational_tag(tag):
-    assert isinstance(tag, str)
     operational_element._tags_to_add.append(tag)
-    UserGraph._tags_to_add.append(tag)
     yield
-    UserGraph._tags_to_add.remove(tag)
     operational_element._tags_to_add.remove(tag)
