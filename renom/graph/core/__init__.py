@@ -49,3 +49,9 @@ def with_gradient_clipping(floor=None, ceil=None):
         UserGraph.set_gradient_clipping(True, floor, ceil)
         yield
     UserGraph.set_gradient_clipping(False)
+
+@cl.contextmanager
+def _with_operational_tag(tag):
+    operational_element._tags_to_add.append(tag)
+    yield
+    operational_element._tags_to_add.remove(tag)
