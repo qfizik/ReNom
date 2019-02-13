@@ -5,6 +5,7 @@ from .user_graph import UserGraph
 from .operation import operation
 from .operational_element import unidirectional_element
 from .graph_storage import GraphMultiStorage
+import contextlib as cl
 import functools
 import h5py
 
@@ -59,8 +60,17 @@ class GraphFactory(abc.ABC):
         '''
         pass
 
+    name = None
+
     def __call__(self, *other):
-        ret = self.connect(*other)
+        self_tag = str(id(self))
+        with rm.graph.core._with_operational_tag(self_tag):
+            if self.name is not None:
+                with rm.graph.core._with_operational_tag(self.name):
+                    ret = self.connect(*other)
+            else:
+                ret = self.connect(*other)
+        ret._fwd.replace_tags(self_tag, str(id(ret)))
         if not self._make_update_graphs:
             for op_num, upd_g in ret._update_graphs:
                 upd_g.detach()
@@ -74,15 +84,18 @@ class GraphFactory(abc.ABC):
         return self._inference
 
     @recursive_setting
-    def set_updatable(self, should_update=True):
-        self._make_update_graphs = should_update
-        for param in self.params.values():
-            param.allow_update(should_update)
+    def _set_make_updates(self, make_updates=True):
+        self._make_update_graphs = make_updates
+
+    @cl.contextmanager
+    def no_updates(self):
+        self._set_make_updates(False)
+        yield
+        self._set_make_updates(True)
+
 
     @recursive_setting
     def set_inference(self, infer=True):
-        if self._prev is not None:
-            self._prev.set_inference(infer)
         self._inference = infer
 
     def _get_model_children(self):

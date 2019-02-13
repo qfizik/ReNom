@@ -14,6 +14,8 @@ class operational_element(graph_element):
           UserGraph and should not be be constructed directly.
     '''
 
+    _tags_to_add = []
+
     def __init__(self, operation, previous_elements=None, tags=None):
         super(operational_element, self).__init__(previous_elements=previous_elements)
 
@@ -33,6 +35,9 @@ class operational_element(graph_element):
         for tag in new_tags:
             if tag not in self._tags:
                 self._tags.append(tag)
+        for tag in operational_element._tags_to_add:
+            if tag not in self._tags:
+                self._tags.append(tag)
 
     def check_tags(func):
         @functools.wraps(func)
@@ -40,6 +45,11 @@ class operational_element(graph_element):
             if tag in self._tags or tag is None:
                 return func(self, *args, **kwargs)
         return ret_func
+
+    @graph_element.walk_tree
+    def replace_tags(self, old_tag, new_tag):
+        if old_tag in self._tags:
+            self._tags[self._tags.index(old_tag)] = new_tag
 
     # TODO: Rename gather_operations_with_tags
     @graph_element.walk_tree

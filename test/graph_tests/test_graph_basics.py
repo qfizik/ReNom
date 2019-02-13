@@ -668,9 +668,12 @@ def test_version_save_compability(use_gpu):
 
 
 def test_gradient_clipping(use_gpu):
+    if rm.precision != np.float64:
+        pytest.skip()
     rm.set_cuda_active(use_gpu)
 
-    v1 = np.random.rand(4, 3)
+    np.random.seed(30)
+    v1 = np.random.rand(20, 5)
     m = rmg.Dense(2, ignore_bias=True)
     with rmg.core.with_gradient_clipping(-1e-5, 1e-5):
         y = m(v1)
