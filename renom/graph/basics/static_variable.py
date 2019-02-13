@@ -20,10 +20,16 @@ class static_value(operation):
     def perform(self):
         pass
 
+    def _transfer_val(self, val):
+        if rm.is_cuda_active():
+            for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+                self._outputs[gpu].to_gpu(val)
+        else:
+            self._outputs['cpu'] = val
+
     def switch_source(self, id):
         new_val = self._value_list[id]
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            self._outputs[gpu].to_gpu(new_val)
+        self._transfer_val(new_val)
 
     @property
     def value(self):
@@ -34,8 +40,7 @@ class static_value(operation):
         assert val.shape[1:] == self._outputs.shape[1:]
         assert val.shape[0] <= self._outputs.shape[0]
         self._outputs.shape[0].value = val.shape[0]
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            self._outputs[gpu].to_gpu(val)
+        self._transfer_val(val)
 
     def reset(self):
         pass

@@ -154,10 +154,15 @@ class Executor:
                 m_depth = max(self.call_list['Forward'].keys())
             else:
                 m_depth = max(self.call_list['Gradient'].keys())
+            total = 0
+            for part in self.call_list:
+                for depth in self.call_list[part]:
+                    total += len(self.call_list[part][depth])
             print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num / tot_num))
             if have_validation is True:
                 print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num / tot_num))
             print('Graph max depth is:', m_depth)
+            print('Total number of nodes executed is:', total)
             print('Mode:', self.mode)
 
         for ev in self._events['Initialize']:
@@ -237,15 +242,16 @@ class Executor:
             'losses': self.loss,
         }
         if step_data is not None:
-            d, t = step_data[0], step_data[1]
-            ina = self.dispatchers[0]
-            inb = self.dispatchers[1]
-            ina.value, inb.value = d, t
+            assert isinstance(step_data, tuple)
+            assert len(self.dispatchers) == len(step_data)
+            for i, disp in enumerate(self.dispatchers):
+                disp.value = step_data[i]
         self.perform_event_step(exe_info)
         #loss = self.loss[0].as_ndarray()
         loss = self.root.as_ndarray()
         if step_data is not None:
-            ina.switch_source(0)
+            for dis in self.dispatchers:
+                dis.switch_source(0)
         return loss
 
     def set_input_data(self, data, target):
