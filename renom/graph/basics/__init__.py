@@ -16,3 +16,4 @@ from .square_element import SquareElement, square
 from .exp_element import ExpElement, exp
 from .random_element import RandomUniformElement, RandomNormalElement, rand_uniform, rand_normal
 from .get_item_element import GetItemElement
+from .clip_element import ClipElement

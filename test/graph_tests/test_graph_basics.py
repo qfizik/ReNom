@@ -302,7 +302,7 @@ def test_step_executor(use_gpu):
     loss2 = 0
     for i in range(0, 10, 2):
         v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
-        loss2 += exe.step(v2, t2)
+        loss2 += exe.step((v2, t2))
     assert np.allclose(loss1 * 4, loss2)
 
 
@@ -665,6 +665,24 @@ def test_version_save_compability(use_gpu):
 
     import os
     os.remove(tmp_filename)
+
+
+def test_gradient_clipping(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    v1 = np.random.rand(4, 3)
+    m = rmg.Dense(2, ignore_bias=True)
+    with rmg.core.with_gradient_clipping(-1e-5, 1e-5):
+        y = m(v1)
+    y.backward()
+    before = m.params['w'].as_ndarray()
+    grad = y.get_gradient(m.params['w'].output)
+    y.update(optimizer=rmg.Sgd(1, 0))
+    after = m.params['w'].as_ndarray()
+    diff = after - before
+
+    delta = np.ones_like(diff) * -1e-5
+    assert np.allclose(diff, delta)
 
 
 @pytest.mark.parametrize('ttype', [

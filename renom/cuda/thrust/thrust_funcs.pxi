@@ -1193,14 +1193,34 @@ def cu_optimizer_adam(learning_rate, epsilon, gamma, gamma_orig, beta, beta_orig
                           bo, min, flug, ptr_u, ptr_r, ptr_ndy)
 
 
-def cu_clip(array, minimum, maximum):
+def cu_clip(array, minimum, maximum, output=None):
     cdef int Elem = 1
     for v in array.shape:
         Elem *= <int > v
     cdef VALUE_TYPE max = <VALUE_TYPE > maximum
     cdef VALUE_TYPE min = <VALUE_TYPE > minimum
     cdef VALUE_TYPE * ptr_arr = <VALUE_TYPE * > < uintptr_t > array._ptr
-    thrust_clip(Elem, ptr_arr, maximum, minimum)
+    cdef VALUE_TYPE * out_ptr
+    if output is None:
+        out_ptr = ptr_arr
+    else:
+        out_ptr = <VALUE_TYPE * > < uintptr_t > output._ptr
+    thrust_clip(Elem, ptr_arr, maximum, minimum, out_ptr)
+
+
+def cu_clip_back(array, minimum, maximum, output):
+    cdef int Elem = 1
+    for v in array.shape:
+        Elem *= <int > v
+    cdef VALUE_TYPE max = <VALUE_TYPE > maximum
+    cdef VALUE_TYPE min = <VALUE_TYPE > minimum
+    cdef VALUE_TYPE * ptr_arr = <VALUE_TYPE * > < uintptr_t > array._ptr
+    cdef VALUE_TYPE * out_ptr
+    if output is None:
+        out_ptr = ptr_arr
+    else:
+        out_ptr = <VALUE_TYPE * > < uintptr_t > output._ptr
+    thrust_clip_back(Elem, ptr_arr, maximum, minimum, out_ptr)
 
 
 def cu_optimizer_adadelta(decay_rate, epsilon, previous_squared_gradient, previous_squared_delta, dy, new_dy):

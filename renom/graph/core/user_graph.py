@@ -27,6 +27,7 @@ class UserGraph(graph_element):
     '''
 
     _name = 'Undefined'
+    _add_clipping = None
 
     def __init__(self, forward_operation, backward_operations=None, previous_elements=None):
         if backward_operations is None:
@@ -84,8 +85,23 @@ class UserGraph(graph_element):
                         upd = update_operation(consumer=forward_operation,
                                                producer=op, key=consumed)
                         upd_g = operational_element(upd, tags=['Gradient'])
-                        upd_g.add_input(self._bwd_graphs[op_num])
-                        updates.append((op_num, upd_g))
+                        clipping = UserGraph._add_clipping
+                        if clipping is not None:
+                            if rm.is_cuda_active():
+                                clip_op = rm.graph.basics.clip_element.clip_forward
+                            else:
+                                clip_op = rm.graph.basics.clip_element.clip_forward_cpu
+                            clip = operational_element(
+                                clip_op(clipping[0], clipping[1]),
+                                tags=['Gradient'])
+                            clip.add_input(self._bwd_graphs[op_num])
+                            prv = clip
+                            upd_g.add_input(prv)
+                            upd_g = clip
+                        else:
+                            prv = self._bwd_graphs[op_num]
+                            upd_g.add_input(prv)
+                        updates.append(((op_num, consumed), upd_g))
         self._update_graphs = updates
 
     def connect(self, previous_elements):
@@ -110,8 +126,15 @@ class UserGraph(graph_element):
         for graph in self._bwd_graphs:
             graph.detach()
         super().detach()
-        for back_num, update in self._update_graphs:
+        for (back_num, back_key), update in self._update_graphs:
             update.add_input(self._bwd_graphs[back_num])
+
+    @staticmethod
+    def set_gradient_clipping(use_clipping=True, floor=-1, ceil=1):
+        if use_clipping is True:
+            UserGraph._add_clipping = (floor, ceil)
+        else:
+            UserGraph._add_clipping = None
 
     def connect_back(self, previous_element, pos=0):
         if len(self._bwd_graphs) == 0:
@@ -158,6 +181,7 @@ class UserGraph(graph_element):
         ops = {
             'graph_inputs': ins,
             'losses': lss,
+            'root': self._fwd._op,
         }
         if mode == 'training':
             self._fwd.continue_setup()
@@ -206,8 +230,8 @@ class UserGraph(graph_element):
             ups = self._fwd.get_call_dict(tag='Gradient')
             for d in ups:
                 for i in range(len(ups[d])):
-                    ups[d][i].set_update_op(optimizer)
-                    ups[d][i] = None  # Avoiding destruction errors
+                    if hasattr(ups[d][i], 'set_update_op'):
+                        ups[d][i].set_update_op(optimizer)
         self._fwd.continue_forward(tag='Gradient')
 
     def print_tree(self):

@@ -46,7 +46,11 @@ class update_operation(operation):
         if self._factory is None:
             self._factory = rm.graph.Sgd()
         assert self._factory is not None
-        self._dy = self._producer.get_key(self._shared_key)
+        #self._dy = self._producer.get_key(self._shared_key)
+        if self._shared_key in inputs[0]:
+            self._dy = inputs[0][self._shared_key]
+        else:
+            self._dy = inputs[0]['y']
         self._outputs = self._consumer.get_key(self._shared_key)
         self._wd = None  # For weight decay
         self._vars = {'y': self._dy}

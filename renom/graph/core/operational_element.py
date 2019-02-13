@@ -105,10 +105,9 @@ class operational_element(graph_element):
             elem.calculate_forward(tag)
         self.forward(tag=tag)
 
+    @graph_element.walk_tree
     def continue_forward(self, tag=None):
         self.forward(tag=tag)
-        for elem in self._next_elements:
-            elem.continue_forward(tag)
 
     def continue_setup(self, tag=None):
         self.setup(tag=tag)

@@ -15,14 +15,23 @@ class constant_loss_backward(operation):
             self._dy = inputs[2]['y']
         else:
             self._dy = None
+
+        if len(inputs) > 2:
+            self._dy = inputs[2]['y']
+        else:
+            self._dy = None
         inputs = inputs[0]['y']
         gpus = inputs.gpus
-        outputs = GraphMultiStorage(shape=inputs.shape, gpus=gpus, initializer=init.Constant(1))
+        if self._dy is None:
+            outputs = GraphMultiStorage(shape=inputs.shape, gpus=gpus, initializer=init.Constant(1))
+        else:
+            outputs = self._dy
         self._outputs = outputs
         self._vars = {'y': outputs, 'dy': outputs}
 
     def perform(self):
         pass
+
 
 class constant_loss_backward_cpu(constant_loss_backward):
 
@@ -30,6 +39,7 @@ class constant_loss_backward_cpu(constant_loss_backward):
         if self._dy is not None:
             dy = self._dy['cpu']
             self._outputs['cpu'] = np.ones(self._outputs.shape) * dy
+
 
 class ConstantLoss(UserLossGraph):
 
