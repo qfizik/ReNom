@@ -8,9 +8,11 @@ class static_value(operation):
     name = 'Static Variable'
     roles = ['static']
 
-    def __init__(self, value):
-        self._outputs = value
-        self._vars = {'y': self._outputs}
+    def __init__(self, value, gpu_value=None):
+        self._outputs = gpu_value
+        self.gpus = gpu_value.gpus
+        self._value_list = [value]
+        self._vars = {'y': gpu_value}
 
     def setup(self, inputs):
         pass
@@ -18,14 +20,22 @@ class static_value(operation):
     def perform(self):
         pass
 
+    def switch_source(self, id):
+        new_val = self._value_list[id]
+        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            self._outputs[gpu].to_gpu(new_val)
+
     @property
     def value(self):
         return self._outputs
 
     @value.setter
     def value(self, val):
-        self._outputs = val
-        self._vars = {'y': self._outputs}
+        assert val.shape[1:] == self._outputs.shape[1:]
+        assert val.shape[0] <= self._outputs.shape[0]
+        self._outputs.shape[0].value = val.shape[0]
+        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            self._outputs[gpu].to_gpu(val)
 
     def reset(self):
         pass
@@ -57,7 +67,7 @@ class StaticVariable(UserGraph):
         else:
             val['cpu'] = value
         self._value = val
-        fwd_op = static_value(val)
+        fwd_op = static_value(value, val)
         super().__init__(forward_operation=fwd_op)
 
     @property

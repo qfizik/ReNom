@@ -163,7 +163,7 @@ class UserGraph(graph_element):
 
     def get_executor(self, mode='inference', optimizer=None, with_validation=False):
         if mode != 'inference' and optimizer is not None:
-            ups = self._bwd_graphs[0].gather_operations_with_role('update', flatten=True)
+            ups = self._bwd_graphs[0].gather_operations_with_role('Gradient', flatten=True)
             for i in range(len(ups)):
                 ups[i].set_update_op(optimizer)
         fwds = self._fwd.get_call_dict(tag='Forward')

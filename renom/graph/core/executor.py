@@ -1,6 +1,7 @@
 import numpy as np
 from tqdm import tqdm
 import renom as rm
+import warnings
 
 
 def _norm_init(info):
@@ -31,15 +32,19 @@ def _norm_epoch_start(info):
 def _norm_step_finish(info):
     loss = info['losses']
     if info['mode'] == 'step':
-        info['step_loss'] = float(loss[0].as_ndarray())
+        if len(loss) > 0:
+            info['step_loss'] = float(loss[0].as_ndarray())
         return
     epoch_loss_list = info['epoch_loss_list']
     bar = info['bar']
     epoch_name = info['epoch_name']
 
-    loss = float(loss[0].as_ndarray())
-    epoch_loss_list.append(loss)
-    bar.set_description("{0!s: >10} cur-loss={1:5.3f}".format(epoch_name, loss))
+    if len(loss) > 0:
+        loss = float(loss[0].as_ndarray())
+        bar.set_description("{0!s: >10} cur-loss={1:5.3f}".format(epoch_name, loss))
+        epoch_loss_list.append(loss)
+    else:
+        bar.set_description("{0!s: >10}".format(epoch_name))
     bar.update(1)
 
 
@@ -48,11 +53,14 @@ def _norm_epoch_finish(info):
     bar = info['bar']
     all_losses = info['all_losses']
     epoch_name = info['epoch_name']
+    loss = info['losses']
 
     epoch_loss_list.pop(-1)
     all_losses.append(np.sum(epoch_loss_list))
     cur_loss = np.mean(epoch_loss_list)
-    if info['mode'] == 'training':
+    if len(loss) == 0:
+        bar.set_description("{0!s: >10}".format(epoch_name))
+    elif info['mode'] == 'training':
         bar.set_description(
             "{0!s: >10} avg-loss={1:5.3f}".format(epoch_name, cur_loss))
         info['training_loss'] = cur_loss
@@ -125,18 +133,30 @@ class Executor:
                     'progress': progress,
                     'mode': self.mode,
                     }
-        dis = self.dispatchers[0]
 
-        if len(dis._value_list) > 1:
+        if len(self.dispatchers) == 0 or \
+            not any('input' in d.roles for d in self.dispatchers):
+            warnings.warn('Trying to run executor without any dispatchers!\n' +
+                'Make sure that there is a valid dispatcher before executing.')
+
+        if len(self.dispatchers) >= 1 and \
+           isinstance(self.dispatchers[0], rm.graph.utils.distributor.dispatch):
+            dis = self.dispatchers[0]
+            if len(dis._value_list) == 2:
+                have_validation=True
+                v_d_num = len(dis._value_list[1])
+            else:
+                have_validation=False
+                v_d_num = 0
             t_d_num = len(dis._value_list[0])
-            v_d_num = len(dis._value_list[1])
             tot_num = t_d_num + v_d_num
             if self.mode == 'inference':
                 m_depth = max(self.call_list['Forward'].keys())
             else:
                 m_depth = max(self.call_list['Gradient'].keys())
             print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num / tot_num))
-            print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num / tot_num))
+            if have_validation is True:
+                print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num / tot_num))
             print('Graph max depth is:', m_depth)
             print('Mode:', self.mode)
 
@@ -207,6 +227,8 @@ class Executor:
         self._events[event_name] = []
 
     def _set_validation(self):
+        assert len(self.dispatchers) > 0 and \
+            len(self.dispatchers[0]._value_list) > 1
         self.register_event('Epoch-Finish', _validation_func())
 
     def step(self, step_data=None):
