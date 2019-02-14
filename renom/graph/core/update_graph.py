@@ -27,6 +27,7 @@ class update_operation(operation):
     '''
     name = 'Update Operation'
     _communicator = None
+    _should_update = True
 
     def __init__(self, consumer, producer, key, operation=None):
         # if operation is None:
@@ -77,6 +78,6 @@ class update_operation(operation):
     def perform(self):
         if update_operation._communicator is not None:
             update_operation._communicator.allReduce(self._dy)
-        if self._outputs._should_update:
+        if self._outputs._should_update and self._should_update:
             self.check_weight_decay()
             self._update_op.update()

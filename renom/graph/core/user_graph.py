@@ -191,7 +191,18 @@ class UserGraph(graph_element):
         return ret
 
     def set_inference(self, inference=True):
-        self._fwd._op._inference = inference
+        if id(self) in self._fwd._tags:
+            self._fwd.set_attr('_inference', inference, tag=id(self))
+        else:
+            assert False
+            self._fwd._op._inference = inference
+
+    def set_updatable(self, inference=True):
+        if id(self) in self._fwd._tags:
+            self._fwd.set_attr('_should_update', inference, tag=[id(self), 'Gradient'])
+        else:
+            assert False
+            self._fwd._op._inference = inference
 
     def set_all_inference(self, inference=True):
         infs = self._fwd.gather_operations_with_role('inference', flatten=True)

@@ -22,15 +22,17 @@ class constant_loss_backward(operation):
             self._dy = None
         inputs = inputs[0]['y']
         gpus = inputs.gpus
-        if self._dy is None:
-            outputs = GraphMultiStorage(shape=inputs.shape, gpus=gpus, initializer=init.Constant(1))
-        else:
-            outputs = self._dy
+        self.gpus = gpus
+        outputs = GraphMultiStorage(shape=inputs.shape, gpus=gpus, initializer=init.Constant(1))
         self._outputs = outputs
         self._vars = {'y': outputs, 'dy': outputs}
 
     def perform(self):
-        pass
+        if self._dy is None:
+            return
+        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            rm.cuda.cufill(1., self._outputs[gpu], handle)
+            rm.cuda.cumul(self._outputs[gpu], self._dy[gpu], self._outputs[gpu], handle)
 
 
 class constant_loss_backward_cpu(constant_loss_backward):
