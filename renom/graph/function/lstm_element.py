@@ -9,8 +9,9 @@ class lstm_forward(operation):
     name = 'LSTM (F)'
     consumes = ['w', 'wr']
 
-    def __init__(self, output_size):
+    def __init__(self, output_size, initializer=None):
         self._output_size = output_size
+        self._init = init.GlorotNormal() if initializer is None else initializer
 
     def setup(self, inputs):
         weights_r = inputs[2]['y']
@@ -24,9 +25,8 @@ class lstm_forward(operation):
         weight_shape = (input_shape[1], self._output_size * 4)
         weight_r_shape = (self._output_size, self._output_size * 4)
         out_shape = (input_shape[0], self._output_size)
-        it = init.GlorotNormal()
-        weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=it)
-        weights_r.__init__(shape=weight_r_shape, gpus=self.gpus, initializer=it)
+        weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=self._init)
+        weights_r.__init__(shape=weight_r_shape, gpus=self.gpus, initializer=self._init)
         outs = GraphMultiStorage(shape=out_shape, gpus=self.gpus)
         self._vars = {'y': outs, 'w': weights, 'wr': weights_r}
         self._weights = weights
@@ -270,17 +270,19 @@ class lstm_backward_cpu(lstm_backward):
 
 class LstmElement(UserGraph):
 
-    def __init__(self, output_size, previous_elements=None):
-        fwd_op = lstm_forward(output_size) if rm.is_cuda_active() else lstm_forward_cpu(output_size)
+    def __init__(self, output_size, initializer=None, previous_elements=None):
+        args = (output_size, initializer)
+        fwd_op = lstm_forward(*args) if rm.is_cuda_active() else lstm_forward_cpu(*args)
         bwd_ops = [lstm_backward(fwd_op) if rm.is_cuda_active() else lstm_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
 class Lstm(GraphFactory):
 
-    def __init__(self, output_size=3, weight_decay=None):
+    def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self._output_size = output_size
+        self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['wr'] = graph_variable(weight_decay=weight_decay)
         self._l = None
@@ -292,7 +294,7 @@ class Lstm(GraphFactory):
 
     def connect(self, other):
         if self._l is None:
-            ret = LstmElement(self._output_size, previous_elements=[
+            ret = LstmElement(self._output_size, self._init, previous_elements=[
                               other, self.params['w'], self.params['wr']])
         else:
             ret = self._l

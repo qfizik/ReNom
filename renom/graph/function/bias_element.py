@@ -81,7 +81,7 @@ class BiasElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_graphs, previous_elements=previous_element)
 
 
-class BiasGraphElement(GraphFactory):
+class Bias(GraphFactory):
 
     def __init__(self):
         super().__init__()

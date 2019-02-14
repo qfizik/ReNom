@@ -1079,11 +1079,11 @@ def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
     rm.set_renom_seed(45)
     v = fixed(test_shape)
     if len(test_shape) > 2:
-        mode = rm.graph.batch_normalize_element.BATCH_NORMALIZE_FEATUREMAP
+        axis = 1
     else:
-        mode = rm.graph.batch_normalize_element.BATCH_NORMALIZE_ELEMENTWISE
+        axis = None
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.BatchNormalizeGraphElement(mode=mode, ignore_bias=ignore_bias)
+    model = rm.graph.BatchNormalize(axis=axis, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLossGraphElement()
     m2 = model(val)
     m = model(m2)

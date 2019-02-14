@@ -30,6 +30,8 @@ def _norm_epoch_start(info):
 
 def _norm_step_finish(info):
     loss = info['losses']
+    if len(loss) == 0:
+        return
     if info['mode'] == 'step':
         info['step_loss'] = float(loss[0].as_ndarray())
         return

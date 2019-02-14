@@ -3,23 +3,19 @@ from renom.graph.core import UserGraph, operation, GraphFactory, GraphMultiStora
 import renom.utility.initializer as init
 import numpy as np
 
-BATCH_NORMALIZE_FEATUREMAP = 1
-BATCH_NORMALIZE_ELEMENTWISE = 2
-mode_dict = {
-    "activation": BATCH_NORMALIZE_ELEMENTWISE,
-    "feature": BATCH_NORMALIZE_FEATUREMAP}
-
 
 class batch_norm_forward(operation):
 
     name = 'Batch Normalize (F)'
     roles = ['inference']
 
-    def __init__(self, momentum=0.99, epsilon=1e-5, mode=BATCH_NORMALIZE_ELEMENTWISE):
+    def __init__(self, momentum=0.99, epsilon=1e-5, axis=None, initializer=None):
         self._momentum = momentum
-        self._mode = mode
+        self._axis = axis
         self._epsilon = epsilon
         self._inference = False
+        self._init = init.GlorotNormal() if initializer is None else initializer
+
 
     def setup(self, inputs):
         bias = inputs[2]['y']
@@ -29,13 +25,14 @@ class batch_norm_forward(operation):
         self.gpus = gpus
 
         in_shape = inputs.shape
-        weight_shape = tuple([1, ] + list(in_shape[1:]))
-        if self._mode == BATCH_NORMALIZE_FEATUREMAP and len(in_shape[1:]) > 2:
+        weight_shape = [1, ] + list(in_shape[1:])
+        if self._axis == 1 and len(in_shape) > 2:
             weight_shape[2] = 1
             weight_shape[3] = 1
+        weight_shape = tuple(weight_shape)
         bias_shape = weight_shape
 
-        weights.__init__(shape=weight_shape, gpus=gpus, initializer=init.GlorotNormal())
+        weights.__init__(shape=weight_shape, gpus=gpus, initializer=self._init)
         bias.__init__(shape=bias_shape, gpus=gpus, initializer=init.Constant(0))
         outs = GraphMultiStorage(shape=in_shape, gpus=gpus)
         mean = GraphMultiStorage(shape=weight_shape, gpus=gpus)
@@ -54,7 +51,7 @@ class batch_norm_forward(operation):
         self._vars = {'y': outs, 'w': weights, 'b': bias}
 
     def perform(self):
-        if self._mode == BATCH_NORMALIZE_ELEMENTWISE:
+        if self._axis is None:
             axs = 0
         else:
             axs = 1
@@ -69,7 +66,7 @@ class batch_norm_forward(operation):
 class batch_norm_forward_cpu(batch_norm_forward):
 
     def perform(self):
-        if self._mode == BATCH_NORMALIZE_ELEMENTWISE:
+        if self._axis is None:
             axs = (0,)
         else:
             axs = (0, 2, 3)
@@ -163,29 +160,31 @@ class batch_norm_backward_cpu(batch_norm_backward):
         self._bias_back['cpu'] = db
 
 
-class BatchNormalizer(UserGraph):
+class BatchNormalizeElement(UserGraph):
 
-    def __init__(self, momentum=0.99, epsilon=1e-5, mode='activation', previous_elements=None):
-        fwd_op = batch_norm_forward() if rm.is_cuda_active() else batch_norm_forward_cpu()
+    def __init__(self, momentum=0.99, epsilon=1e-5, axis=None, initializer=None, previous_elements=None):
+        assert axis in [None, 1], "BatchNormalizeElement accepts 1 or None as axis."
+        args = (momentum, epsilon, axis, initializer)
+        fwd_op = batch_norm_forward(*args) if rm.is_cuda_active() else batch_norm_forward_cpu(*args)
         bwd_ops = [batch_norm_backward(fwd_op) if rm.is_cuda_active()
                    else batch_norm_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class BatchNormalizeGraphElement(GraphFactory):
+class BatchNormalize(GraphFactory):
     '''See :class:`.BatchNormalize` for more.
     '''
 
-    def __init__(self, momentum=0.99, epsilon=1e-5, mode=BATCH_NORMALIZE_ELEMENTWISE,
-                 weight_decay=None, ignore_bias=False):
+    def __init__(self, momentum=0.99, epsilon=1e-5, axis=None, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self._mom = momentum
         self._eps = epsilon
-        self._mod = mode
+        self._axis = axis
+        self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['b'] = graph_variable(allow_update=not ignore_bias)
 
     def connect(self, other):
-        ret = BatchNormalizer(self._mom, self._eps, self._mod, previous_elements=[
-                              other, self.params['w'], self.params['b']])
+        ret = BatchNormalizeElement(self._mom, self._eps, self._axis, self._init, previous_elements=[
+            other, self.params['w'], self.params['b']])
         return ret

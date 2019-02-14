@@ -1,5 +1,6 @@
 import numpy as np
 import renom as rm
+import renom.graph as rmg
 import renom.graph.basics as basic
 import renom.graph.activation as activation
 import renom.graph.function as function
@@ -110,3 +111,22 @@ def test_operation_name(oper):
     name = getattr(oper, 'name', False)
     print(name)
     assert name
+
+
+@pytest.mark.parametrize("layer,params,shape", [
+    [function.convolutional_element.Conv, ['w'], (1, 3, 3, 3)],
+    [function.deconvolutional_element.Deconv, ['w'], (1, 3, 3, 3)],
+    [function.dense_element.Dense, ['w'], (1, 3)],
+    [function.lstm_element.Lstm, ['w', 'wr'], (1, 3)],
+    [function.gru_element.Gru, ['w', 'wr'], (1, 3)],
+    [function.weight_normalize_element.WeightNormalize, ['w'], (1, 3)],
+
+])
+def test_initializer(layer, params, shape):
+    init = rm.utility.initializer.Constant(-9999)
+    val = rmg.StaticVariable(np.random.rand(*shape))
+    graph = layer(initializer=init, ignore_bias=True)
+    out = graph(val)
+    operation = out._fwd._op
+    for p in params:
+        assert np.all(operation.get_key(p).as_ndarray() == -9999)

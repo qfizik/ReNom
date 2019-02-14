@@ -70,7 +70,7 @@ class UserGraph(graph_element):
         if isinstance(forward_operation, operation):
             self._fwd = operational_element(operation=forward_operation, tags=['Forward'])
         elif isinstance(forward_operation, operational_element):
-            assert forward_operation._tags == ['Forward']
+            assert 'Forward' in forward_operation._tags
             self._fwd = forward_operation
         else:
             raise AttributeError('Uknown forward operation type')
