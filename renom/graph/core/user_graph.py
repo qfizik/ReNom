@@ -166,6 +166,7 @@ class UserGraph(graph_element):
             ups = self._bwd_graphs[0].gather_operations_with_role('update', flatten=True)
             for i in range(len(ups)):
                 ups[i].set_update_op(optimizer)
+
         fwds = self._fwd.get_call_dict(tag='Forward')
         bwds = self._fwd.get_call_dict(tag='Backward')
         grds = self._fwd.get_call_dict(tag='Gradient')
@@ -222,7 +223,7 @@ class UserGraph(graph_element):
 
     def backward(self):
         if len(self._bwd_graphs[0]._previous_elements) == 0:
-            rm.graph.ConstantLoss(previous_element=self)
+            rm.graph.ConstantLossElement(previous_element=self)
         self._fwd.continue_forward(tag='Backward')
         return self
 

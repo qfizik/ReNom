@@ -107,7 +107,7 @@ class MeanSquaredElement(UserLossGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class MeanSquaredGraphElement(GraphFactory):
+class MeanSquared(GraphFactory):
 
     def connect(self, predictions, true_values):
         ret = MeanSquaredElement(previous_elements=[predictions, true_values])

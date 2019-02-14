@@ -174,8 +174,8 @@ class Deconv(GraphFactory):
         self._strd = stride
         self._init = initializer
 
-        self.params['w'] = graph_variable()
-        self.params['b'] = graph_variable()
+        self.params['w'] = graph_variable(weight_decay=weight_decay)
+        self.params['b'] = graph_variable(allow_update=not ignore_bias)
 
     def connect(self, other):
         ret = DeconvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, self._init, previous_element=[

@@ -120,7 +120,6 @@ def test_operation_name(oper):
     [function.lstm_element.Lstm, ['w', 'wr'], (1, 3)],
     [function.gru_element.Gru, ['w', 'wr'], (1, 3)],
     [function.weight_normalize_element.WeightNormalize, ['w'], (1, 3)],
-
 ])
 def test_initializer(layer, params, shape):
     init = rm.utility.initializer.Constant(-9999)
@@ -130,3 +129,33 @@ def test_initializer(layer, params, shape):
     operation = out._fwd._op
     for p in params:
         assert np.all(operation.get_key(p).as_ndarray() == -9999)
+
+
+@pytest.mark.parametrize("layer,params,shape", [
+    [function.convolutional_element.Conv, ['w'], (1, 3, 3, 3)],
+    [function.deconvolutional_element.Deconv, ['w'], (1, 3, 3, 3)],
+    [function.dense_element.Dense, ['w'], (1, 3)],
+    [function.lstm_element.Lstm, ['w', 'wr'], (1, 3)],
+    [function.gru_element.Gru, ['w', 'wr'], (1, 3)],
+    [function.weight_normalize_element.WeightNormalize, ['w'], (1, 3)],
+])
+def test_weight_dacay(layer, params, shape):
+    decay_rate = 0.1
+    val = rmg.StaticVariable(np.random.rand(*shape))
+    graph = layer(weight_decay=decay_rate, ignore_bias=True)
+    l = rmg.ConstantLoss()
+    out = graph(val)
+    loss = l(out)
+    operation = out._fwd._op
+
+    for p in params:
+        bkw = loss.backward()
+        w = operation.get_key(p)
+        grad = bkw.get_gradient(w).as_ndarray()
+        prev_w = w.as_ndarray()
+        loss.update()
+        next_w = w.as_ndarray()
+        diff1 = -(next_w - prev_w)
+        diff2 = grad + decay_rate * prev_w
+        loss.print_tree()
+        assert np.allclose(diff1, diff2)

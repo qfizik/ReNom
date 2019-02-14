@@ -38,7 +38,7 @@ class relu_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         gpus = inputs.gpus
         self.gpus = gpus
         in_shape = inputs.shape
@@ -46,7 +46,7 @@ class relu_backward(operation):
         self._inputs = inputs
         self._outputs = outs
         self._fwd_in = self._fwd_op._inputs
-        self._vars = {'y': outs, id(self._fwd_op._inputs): outs}
+        self._vars = {'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs}
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -76,3 +76,6 @@ class Relu(GraphFactory):
     def connect(self, other):
         ret = ReluElement(previous_elements=other)
         return ret
+
+def relu(x):
+    return ReluElement(previous_elements=[x])

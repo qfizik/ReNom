@@ -77,8 +77,12 @@ class SoftmaxElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class SoftmaxGraphElement(GraphFactory):
+class Softmax(GraphFactory):
 
     def connect(self, other):
         ret = SoftmaxElement(previous_elements=other)
         return ret
+
+
+def softmax(x):
+    return SoftmaxElement(previous_elements=[x])

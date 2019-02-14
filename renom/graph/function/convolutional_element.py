@@ -171,7 +171,7 @@ class conv_backward(operation):
 
     def setup(self, inputs):
 
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         self._inputs = inputs
         self._dims = self._fwd_op._dims
         self._fwd_w = self._fwd_op._weights

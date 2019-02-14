@@ -7,6 +7,7 @@ import renom.utility.initializer as init
 class gru_forward(operation):
 
     name = 'Gru (F)'
+    consumes = ['w', 'wr']
 
     def __init__(self, output_size, initializer=None):
         self._output_size = output_size
@@ -116,12 +117,13 @@ class gru_forward_cpu(gru_forward):
 class gru_backward(operation):
 
     name = 'Gru (B)'
+    produces = ['w', 'wr']
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         gpus = inputs.gpus
         self.gpus = gpus
         self._inputs = inputs
@@ -132,10 +134,11 @@ class gru_backward(operation):
         self._outputs = outs
         self._w_out = w_out
         self._w_r_out = w_r_out
-        self._vars = {'y': outs, id(self._fwd_op._inputs): outs,
-                      'w': w_out, id(self._fwd_op._weights): w_out,
-                      'wr': w_r_out, id(self._fwd_op._weights_r): w_r_out,
-                      }
+        self._vars = {
+            'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs,
+            'w': w_out, id(self._fwd_op._weights): w_out,
+            'wr': w_r_out, id(self._fwd_op._weights_r): w_r_out,
+        }
 
     def perform(self):
         self._state = self._fwd_op._state

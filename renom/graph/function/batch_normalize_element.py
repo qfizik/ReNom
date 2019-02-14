@@ -7,6 +7,7 @@ import numpy as np
 class batch_norm_forward(operation):
 
     name = 'Batch Normalize (F)'
+    consumes = ['w', 'b']
     roles = ['inference']
 
     def __init__(self, momentum=0.99, epsilon=1e-5, axis=None, initializer=None):
@@ -102,12 +103,13 @@ class batch_norm_forward_cpu(batch_norm_forward):
 class batch_norm_backward(operation):
 
     name = 'Batch Normalize (B)'
+    produces = ['w', 'b']
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         gpus = inputs.gpus
         self.gpus = gpus
 

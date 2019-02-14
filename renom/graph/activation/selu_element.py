@@ -85,11 +85,14 @@ class SeluElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class SeluGraphElement(GraphFactory):
+class Selu(GraphFactory):
 
-    def __init__(self, ):
+    def __init__(self):
         super().__init__()
 
     def connect(self, other):
         ret = SeluElement(previous_elements=other)
         return ret
+
+def selu(x):
+    return SeluElement(previous_elements=[x])

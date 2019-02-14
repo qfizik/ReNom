@@ -38,12 +38,12 @@ class tanh_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         gpus = inputs.gpus
         self.gpus = gpus
         outs = GraphMultiStorage(shape=inputs.shape, gpus=gpus)
         one = GraphMultiStorage(shape=(1, ), gpus=gpus, initializer=init.Constant(1))
-        self._vars = {'y': outs, id(self._fwd_op._inputs): outs}
+        self._vars = {'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs}
         self._fwd_out = self._fwd_op._outputs
         self._inputs = inputs
         self._outputs = outs
@@ -81,3 +81,7 @@ class Tanh(GraphFactory):
     def connect(self, other):
         ret = TanhElement(previous_elements=other)
         return ret
+
+
+def tanh(x):
+    return TanhElement(previous_elements=[x])

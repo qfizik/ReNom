@@ -102,13 +102,13 @@ class EmbeddingGraph(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
-class EmbeddingGraphElement(GraphFactory):
+class Embedding(GraphFactory):
 
     def __init__(self, output_size, weight_decay=None):
         super().__init__()
         self.output_size = output_size
         self.params['w'] = graph_variable(weight_decay=weight_decay)
-        self._bias = rm.graph.BiasGraphElement()
+        self._bias = rm.graph.Bias()
         self.params['b'] = self._bias.params['b']
 
     def connect(self, other):

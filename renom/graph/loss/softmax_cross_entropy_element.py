@@ -124,7 +124,7 @@ class SoftmaxCrossEntropyElement(UserLossGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class SoftmaxCrossEntropyGraphElement(GraphFactory):
+class SoftmaxCrossEntropy(GraphFactory):
 
     def connect(self, predictions, true_values):
         ret = SoftmaxCrossEntropyElement(previous_elements=[predictions, true_values])

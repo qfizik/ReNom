@@ -108,7 +108,7 @@ class CrossEntropyElement(UserLossGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class CrossEntropyGraphElement(GraphFactory):
+class CrossEntropy(GraphFactory):
 
     def connect(self, predictions, true_values):
         ret = CrossEntropyElement(previous_elements=[predictions, true_values])
