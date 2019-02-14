@@ -78,3 +78,6 @@ class Sigmoid(GraphFactory):
     def connect(self, other):
         ret = SigmoidElement(previous_elements=other)
         return ret
+
+def sigmoid(x):
+    return SigmoidElement(previous_elements=[x])

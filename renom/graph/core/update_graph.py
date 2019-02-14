@@ -25,6 +25,7 @@ class update_operation(operation):
         delivering the operation functionality, we can keep the same update_operation in the graph but
         allow it to change during training.
     '''
+    roles = ['update']
     name = 'Update Operation'
     _communicator = None
     _should_update = True
@@ -45,7 +46,7 @@ class update_operation(operation):
 
     def setup(self, inputs):
         if self._factory is None:
-            self._factory = rm.graph.Sgd()
+            self._factory = rm.graph.Sgd(1.0, 0.0)
         assert self._factory is not None
         #self._dy = self._producer.get_key(self._shared_key)
         if self._shared_key in inputs[0]:
@@ -73,7 +74,8 @@ class update_operation(operation):
                     rm.cuda.cumul(self._outputs[gpu], wd, self._wd[gpu], handle)
                     rm.cuda.cuadd(self._dy[gpu], self._wd[gpu], self._dy[gpu], handle)
             else:
-                self._dy['cpu'] += self._outputs['cpu'] * wd
+                self._dy['cpu'] = self._dy['cpu'] + self._outputs['cpu'] * wd
+
 
     def perform(self):
         if update_operation._communicator is not None:

@@ -76,9 +76,6 @@ class GraphFactory(abc.ABC):
         self._prev = ret
         return ret
 
-    @property
-    def inference(self):
-        return self._inference
 
     @recursive_setting
     def _set_make_updates(self, make_updates=True):
@@ -90,6 +87,11 @@ class GraphFactory(abc.ABC):
         yield
         self._set_make_updates(True)
 
+    @cl.contextmanager
+    def inference(self):
+        self.set_inference(False)
+        yield
+        self.set_inference(True)
 
     @recursive_setting
     def set_inference(self, infer=True):

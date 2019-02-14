@@ -51,7 +51,7 @@ class leaky_relu_backward(operation):
         self._inputs = inputs
         self._outputs = outs
         self._fwd_in = self._fwd_op._inputs
-        self._vars = {'y': outs, id(self._fwd_op._inputs): outs}
+        self._vars = {'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs}
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -78,7 +78,7 @@ class LeakyReluElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class LeakyReluGraphElement(GraphFactory):
+class LeakyRelu(GraphFactory):
 
     def __init__(self, slope=0.01):
         '''Initializer for Leaky Relu graph producing GraphFactory.
@@ -94,3 +94,6 @@ class LeakyReluGraphElement(GraphFactory):
     def connect(self, other):
         ret = LeakyReluElement(slope=self._slope, previous_elements=other)
         return ret
+
+def leaky_relu(x, slope=0.01):
+    return LeakyReluElement(slope=slope, previous_elements=[x])

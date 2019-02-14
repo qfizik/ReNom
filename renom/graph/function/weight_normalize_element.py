@@ -7,10 +7,12 @@ import renom.utility.initializer as init
 class weight_norm_forward(operation):
 
     name = 'Weight Normalization (F)'
+    consumes = ['w', 'g']
 
-    def __init__(self, output_size, gain):
+    def __init__(self, output_size, gain, initializer=None):
         self._output_size = output_size
         self._g = gain
+        self._init = init.GlorotNormal() if initializer is None else initializer
 
     def setup(self, inputs):
         gain = inputs[2]['y']
@@ -25,7 +27,7 @@ class weight_norm_forward(operation):
         out_shape = (inputs.shape[0], self._output_size)
 
         gain.__init__(shape=gain_shape, gpus=self.gpus, initializer=init.Constant(self._g))
-        weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=init.GlorotNormal())
+        weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=self._init)
         outs = GraphMultiStorage(shape=out_shape, gpus=self.gpus)
 
         self._vars = {'y': outs, 'w': weights, 'g': gain}
@@ -65,6 +67,7 @@ class weight_norm_forward_cpu(weight_norm_forward):
 class weight_norm_backward(operation):
 
     name = 'Weight Normalization (B)'
+    produces = ['w', 'g']
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
@@ -96,15 +99,13 @@ class weight_norm_backward(operation):
             dy = self._inputs[gpu]
             g_w = gained_ws[gpu]
             dx = self._outputs[gpu]
-            #dw = self._weights_out[gpu]
-            #dgain = self._gain_out[gpu]
 
             rm.cuda.cublas_gemm(dy, 0, g_w, 1, dx, handle)
 
             normal_dw = w.empty_like_me()
             rm.cuda.cublas_gemm(x, 1, dy, 0, normal_dw, handle)
-            dw = g_w / w * (normal_dw - rm.cuda.cusum(g_w * normal_dw /
-                                                      gain, handle, keepdims=True) * g_w / gain)
+            dw = g_w / w * (normal_dw - rm.cuda.cusum(g_w * normal_dw
+                                                      / gain, handle, keepdims=True) * g_w / gain)
             dgain = rm.cuda.cusum(normal_dw * g_w / gain, handle, axis=0, keepdims=True)
 
             self._outputs[gpu] = dx
@@ -133,24 +134,27 @@ class weight_norm_backward_cpu(weight_norm_backward):
 
 class WeightNormElement(UserGraph):
 
-    def __init__(self, output_size, gain, previous_elements=None):
-        fwd_op = weight_norm_forward(output_size, gain) if rm.is_cuda_active(
-        ) else weight_norm_forward_cpu(output_size, gain)
+    def __init__(self, output_size, gain, initializer=None, previous_elements=None):
+        args = (output_size, gain, initializer)
+        fwd_op = weight_norm_forward(
+            *args) if rm.is_cuda_active() else weight_norm_forward_cpu(*args)
         bwd_ops = [weight_norm_backward(fwd_op) if rm.is_cuda_active()
                    else weight_norm_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class WeightNormGraphElement(GraphFactory):
+class WeightNormalize(GraphFactory):
 
-    def __init__(self, output_size, gain=0.1, weight_decay=None):
+    def __init__(self, output_size=1, gain=0.1, initializer=None, weight_decay=None, ignore_bias=None):
+        # TODO: Add bias.
         super().__init__()
         self._gain = gain
         self._output_size = output_size
+        self._init = initializer
         self.params['g'] = graph_variable()
         self.params['w'] = graph_variable(weight_decay=weight_decay)
 
     def connect(self, other):
-        ret = WeightNormElement(self._output_size, self._gain, previous_elements=[
+        ret = WeightNormElement(self._output_size, self._gain, self._init, previous_elements=[
                                 other, self.params['w'], self.params['g']])
         return ret

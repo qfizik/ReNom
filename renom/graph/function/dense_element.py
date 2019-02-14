@@ -8,7 +8,7 @@ class Dense(GraphFactory):
     '''Fully connected layer as described below.
 
         See also :py:class:`~renom.layers.function.dense.Dense`
-        See also :class:`~renom.graph.function.BiasGraphElement`
+        See also :class:`~renom.graph.function.Bias`
 
           :math:`f(x)= w \cdot x + b`
 
@@ -31,13 +31,13 @@ class Dense(GraphFactory):
           Out[7]: (3, 3)
     '''
 
-    def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
+    def __init__(self, output_size=1, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self.output_size = output_size
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self._ignore_bias = ignore_bias
         if not ignore_bias:
-            self._bias = rm.graph.BiasGraphElement()
+            self._bias = rm.graph.Bias()
             self.params['b'] = self._bias.params['b']
         self._init = initializer
 

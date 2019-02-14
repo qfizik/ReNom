@@ -1,7 +1,6 @@
-from .constant_loss_element import ConstantLossGraphElement, ConstantLoss
-from .cross_entropy_element import CrossEntropyGraphElement
-from .softmax_cross_entropy_element import SoftmaxCrossEntropyGraphElement, softmax_cross_entropy_forward
-from .sigmoid_cross_entropy_element import SigmoidCrossEntropyGraphElement
-from .mean_squared_element import MeanSquaredGraphElement
-from .smoothed_l1_element import SmoothedL1GraphElement
-from .mean_squared_element import MeanSquaredGraphElement as mse
+from .constant_loss_element import ConstantLossElement, ConstantLoss
+from .cross_entropy_element import CrossEntropyElement, CrossEntropy
+from .softmax_cross_entropy_element import SoftmaxCrossEntropyElement, SoftmaxCrossEntropy
+from .sigmoid_cross_entropy_element import SigmoidCrossEntropyElement, SigmoidCrossEntropy
+from .mean_squared_element import MeanSquaredElement, MeanSquared
+from .smoothed_l1_element import SmoothedL1Element, SmoothedL1

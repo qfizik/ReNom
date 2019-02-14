@@ -67,7 +67,7 @@ class conv_forward(operation):
         self._p = padding
         self._s = stride
         self._d = 1
-        self._init = initializer
+        self._init = init.GlorotNormal() if initializer is None else initializer
 
     def setup(self, inputs):
 
@@ -83,8 +83,6 @@ class conv_forward(operation):
         self._dilation = np.array(list(self._d for i in range(dims))).astype(np.int32)
 
         self._inputs = inputs
-        if self._init is None:
-            self._init = init.GlorotNormal() if dims == 2 else init.Gaussian()
         gpus = inputs.gpus
         self.gpus = gpus
 
@@ -173,7 +171,7 @@ class conv_backward(operation):
 
     def setup(self, inputs):
 
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         self._inputs = inputs
         self._dims = self._fwd_op._dims
         self._fwd_w = self._fwd_op._weights
@@ -244,8 +242,8 @@ class ConvElement(UserGraph):
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
-        fwd_op = conv_forward(channels, kernel, padding, stride, initializer) if rm.is_cuda_active(
-        ) else conv_forward_cpu(channels, kernel, padding, stride, initializer)
+        args = (channels, kernel, padding, stride, initializer)
+        fwd_op = conv_forward(*args) if rm.is_cuda_active() else conv_forward_cpu(*args)
         bwd_ops = [conv_backward(fwd_op) if rm.is_cuda_active() else conv_backward_cpu(fwd_op)]
 
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)

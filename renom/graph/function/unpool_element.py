@@ -12,7 +12,7 @@ class MaxUnPoolElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
-class MaxUnPoolGraphElement(GraphFactory):
+class MaxUnPool(GraphFactory):
 
     def __init__(self, prev_pool):
         super().__init__()

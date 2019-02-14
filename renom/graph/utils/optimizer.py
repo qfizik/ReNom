@@ -64,6 +64,7 @@ class Sgd(optimizer_factory):
             self._run_avg['cpu'] = ret
             self._outputs['cpu'] = cur - ret
 
+
     def __init__(self, learning_rate=0.01, momentum=0.4):
         super().__init__()
         self.learning_rate = learning_rate

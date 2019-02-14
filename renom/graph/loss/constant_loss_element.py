@@ -43,7 +43,7 @@ class constant_loss_backward_cpu(constant_loss_backward):
             self._outputs['cpu'] = np.ones(self._outputs.shape) * dy
 
 
-class ConstantLoss(UserLossGraph):
+class ConstantLossElement(UserLossGraph):
 
     is_connector_element = True
 
@@ -57,7 +57,7 @@ class ConstantLoss(UserLossGraph):
         self._bwd_graphs[0].add_input(self._fwd)
 
 
-class ConstantLossGraphElement(GraphFactory):
+class ConstantLoss(GraphFactory):
 
     def connect(self, other):
-        return ConstantLoss(previous_element=other)
+        return ConstantLossElement(previous_element=other)

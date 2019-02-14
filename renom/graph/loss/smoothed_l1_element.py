@@ -130,7 +130,7 @@ class SmoothedL1Element(UserLossGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class SmoothedL1GraphElement(GraphFactory):
+class SmoothedL1(GraphFactory):
 
     def __init__(self, delta=1.0):
         super().__init__()

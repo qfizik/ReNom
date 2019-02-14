@@ -86,7 +86,7 @@ class GlorotNormal(Initializer):
         if len(shape) == 2:
             fan_in = shape[0]
             fan_out = shape[1]
-        elif len(shape) == 4:
+        elif len(shape) > 2:
             size = np.prod(shape[2:])
             fan_in = shape[0] * size
             fan_out = shape[1] * size

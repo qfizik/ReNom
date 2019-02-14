@@ -7,9 +7,11 @@ import renom.utility.initializer as init
 class gru_forward(operation):
 
     name = 'Gru (F)'
+    consumes = ['w', 'wr']
 
-    def __init__(self, output_size):
+    def __init__(self, output_size, initializer=None):
         self._output_size = output_size
+        self._init = init.GlorotNormal() if initializer is None else initializer
 
     def setup(self, inputs):
         bias = inputs[3]['y']
@@ -24,10 +26,8 @@ class gru_forward(operation):
         weight_shape = (input_shape[1], self._output_size * 3)
         weight_r_shape = (1, self._output_size * 3)
         out_shape = (input_shape[0], self._output_size)
-        it = init.GlorotNormal()
-        #it = init.Constant(1)
-        weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=it)
-        weights_r.__init__(shape=weight_r_shape, gpus=self.gpus, initializer=it)
+        weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=self._init)
+        weights_r.__init__(shape=weight_r_shape, gpus=self.gpus, initializer=self._init)
         bias.__init__(shape=(1, self._output_size * 3),
                       gpus=self.gpus, initializer=init.Constant(1))
         outs = GraphMultiStorage(shape=out_shape, gpus=self.gpus)
@@ -117,12 +117,13 @@ class gru_forward_cpu(gru_forward):
 class gru_backward(operation):
 
     name = 'Gru (B)'
+    produces = ['w', 'wr']
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         gpus = inputs.gpus
         self.gpus = gpus
         self._inputs = inputs
@@ -133,10 +134,11 @@ class gru_backward(operation):
         self._outputs = outs
         self._w_out = w_out
         self._w_r_out = w_r_out
-        self._vars = {'y': outs, id(self._fwd_op._inputs): outs,
-                      'w': w_out, id(self._fwd_op._weights): w_out,
-                      'wr': w_r_out, id(self._fwd_op._weights_r): w_r_out,
-                      }
+        self._vars = {
+            'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs,
+            'w': w_out, id(self._fwd_op._weights): w_out,
+            'wr': w_r_out, id(self._fwd_op._weights_r): w_r_out,
+        }
 
     def perform(self):
         self._state = self._fwd_op._state
@@ -247,22 +249,24 @@ class gru_backward_cpu(gru_backward):
 
 class GruElement(UserGraph):
 
-    def __init__(self, output_size, previous_elements=None):
-        fwd_op = gru_forward(output_size) if rm.is_cuda_active() else gru_forward_cpu(output_size)
+    def __init__(self, output_size, initializer=None, previous_elements=None):
+        args = (output_size, initializer)
+        fwd_op = gru_forward(*args) if rm.is_cuda_active() else gru_forward_cpu(*args)
         bwd_ops = [gru_backward(fwd_op) if rm.is_cuda_active() else gru_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class GruGraphElement(GraphFactory):
+class Gru(GraphFactory):
 
-    def __init__(self, output_size=3, weight_decay=None, ignore_bias=False):
+    def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self._output_size = output_size
+        self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['wr'] = graph_variable(weight_decay=weight_decay)
         self.params['b'] = graph_variable(allow_update=not ignore_bias)
 
     def connect(self, other):
-        ret = GruElement(self._output_size, previous_elements=[
+        ret = GruElement(self._output_size, self._init, previous_elements=[
                          other, self.params['w'], self.params['wr'], self.params['b']])
         return ret
