@@ -7,6 +7,7 @@ class static_value(operation):
 
     name = 'Static Variable'
     roles = ['static']
+    keyword = None
 
     def __init__(self, value, gpu_value=None):
         self._outputs = gpu_value
@@ -50,7 +51,7 @@ class StaticVariable(UserGraph):
 
     _name = 'Static Element'
 
-    def __init__(self, value, num_gpus=None):
+    def __init__(self, value, keyword = None, num_gpus=None):
         if value.dtype is not rm.precision:
             value = value.astype(rm.precision)
         if num_gpus is None:
@@ -73,6 +74,9 @@ class StaticVariable(UserGraph):
             val['cpu'] = value
         self._value = val
         fwd_op = static_value(value, val)
+        if keyword is not None:
+            assert isinstance(keyword, str)
+            fwd_op.keyword = keyword
         super().__init__(forward_operation=fwd_op)
 
     @property

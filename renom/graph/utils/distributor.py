@@ -16,6 +16,7 @@ class dispatch(operation):
     '''
     name = 'Data Dispatcher'
     roles = ['input']
+    keyword = None
 
     def __init__(self, value, batch_size=128, num_gpus=1, shuffle=True):
         self._value_list = value
@@ -139,7 +140,7 @@ class data_entry_element(UserGraph):
 
 class Distro:
 
-    def __init__(self, data, labels, batch_size=64, num_gpus=1, shuffle=True, test_split=None):
+    def __init__(self, data, labels, keyword=None, batch_size=64, num_gpus=1, shuffle=True, test_split=None):
         super().__init__()
         assert len(data) == len(labels)
         self._data = data
@@ -167,6 +168,12 @@ class Distro:
             lbls_op = dispatch_cpu(labels, num_gpus=num_gpus,
                                    batch_size=batch_size, shuffle=shuffle)
         data_op.attach(lbls_op)
+        if keyword is not None:
+            assert isinstance(keyword, tuple) and len(keyword) == 2
+            for key in keyword:
+                assert isinstance(key, str)
+            data_op.keyword = keyword[0]
+            lbls_op.keyword = keyword[1]
 
         self._dt_op = data_op
         self._lb_op = lbls_op

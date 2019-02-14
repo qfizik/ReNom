@@ -102,6 +102,10 @@ class Executor:
     def __init__(self, call_list, special_ops, mode='inference'):
         self.call_list = call_list
         self.dispatchers = special_ops['graph_inputs']
+        self.input_sources = {}
+        for disp in self.dispatchers:
+            if hasattr(disp, 'keyword') and disp.keyword is not None:
+                self.input_sources[disp.keyword] = disp
         self.loss = special_ops['losses']
         self.root = special_ops['root']
         self.mode = mode
@@ -159,9 +163,15 @@ class Executor:
             for part in self.call_list:
                 for depth in self.call_list[part]:
                     total += len(self.call_list[part][depth])
+            recognized = []
+            for disp in self.dispatchers:
+                if disp.keyword is not None:
+                    recognized.append(disp.keyword)
             print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num / tot_num))
             if have_validation is True:
                 print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num / tot_num))
+            if len(recognized) > 0:
+                print('Recognized input sources are:', *recognized)
             print('Graph max depth is:', m_depth)
             print('Total number of nodes executed is:', total)
             print('Mode:', self.mode)
@@ -243,10 +253,11 @@ class Executor:
             'losses': self.loss,
         }
         if step_data is not None:
-            assert isinstance(step_data, tuple)
-            assert len(self.dispatchers) == len(step_data)
-            for i, disp in enumerate(self.dispatchers):
-                disp.value = step_data[i]
+            assert isinstance(step_data, dict)
+            for key in step_data.keys():
+                assert isinstance(step_data[key], np.ndarray)
+                if key in self.input_sources:
+                    self.input_sources[key].value = step_data[key]
         self.perform_event_step(exe_info)
         #loss = self.loss[0].as_ndarray()
         loss = self.root.as_ndarray()
@@ -256,11 +267,11 @@ class Executor:
         return loss
 
     def set_input_data(self, new_data):
-        assert isinstance(new_data, tuple)
-        assert len(new_data) == len(self.dispatchers)
-        if not all(isinstance(disp, rm.graph.utils.distributor.dispatch) for disp in self.dispatchers):
-            raise NotImplementedError('Currently can only set input sources for dispatchers.')
+        assert isinstance(new_data, dict)
         self.unregister_events('Epoch-Finish')
         self.register_event('Epoch-Finish', _norm_epoch_finish)
-        for i, disp in enumerate(self.dispatchers):
-            disp.change_input(new_data[i])
+        for key in new_data:
+            if key in self.input_sources:
+                if not isinstance(self.input_sources[key], rm.graph.utils.distributor.dispatch):
+                    raise NotImplementedError('Currently can only set input sources for dispatchers.')
+                self.input_sources[key].change_input(new_data[key])
