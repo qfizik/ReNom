@@ -253,7 +253,8 @@ def test_training_executor_validation(use_gpu):
     t2 = np.random.rand(6, 4).astype(rm.precision)
     loss = rmg.MeanSquaredGraphElement()
     opt = rmg.Sgd()
-    data, target = rmg.Distro([v1, v2], [t1, t2], keyword=('v','t'), batch_size=2).get_output_graphs()
+    data, target = rmg.Distro([v1, v2], [t1, t2], keyword=('v', 't'),
+                              batch_size=2).get_output_graphs()
     graph = loss(layer(data), target)
     t_exe = graph.get_executor(optimizer=opt, mode='training', with_validation=True)
     v_exe = graph.get_executor()
@@ -266,7 +267,7 @@ def test_training_executor_validation(use_gpu):
     t_exe.register_event('Epoch-Finish', check_validation)
 
     t_exe.execute(epochs=3)
-    v_exe.set_input_data({'v':v2,'t':t2})
+    v_exe.set_input_data({'v': v2, 't': t2})
     v_loss = v_exe.execute(epochs=1)
     assert np.allclose(validation_loss, v_loss)
 
@@ -279,11 +280,11 @@ def test_validation_executor(use_gpu):
     layer = rmg.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rmg.MeanSquaredGraphElement()
-    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('v','t')).get_output_graphs()
+    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('v', 't')).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     losses1 = np.array(exe.execute(epochs=3))
     v2, t2 = v1 * 2, t1 * 2
-    exe.set_input_data({'v':v2, 't':t2})
+    exe.set_input_data({'v': v2, 't': t2})
     losses2 = np.array(exe.execute(epochs=3))
     assert np.allclose(losses1 * 4, losses2)
 
@@ -296,13 +297,13 @@ def test_step_executor(use_gpu):
     layer = rmg.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rmg.MeanSquaredGraphElement()
-    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('a','b')).get_output_graphs()
+    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('a', 'b')).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     loss1 = np.array(exe.execute(epochs=1))
     loss2 = 0
     for i in range(0, 10, 2):
         v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
-        loss2 += exe.step({'a':v2, 'b':t2})
+        loss2 += exe.step({'a': v2, 'b': t2})
     assert np.allclose(loss1 * 4, loss2)
 
 

@@ -139,19 +139,19 @@ class Executor:
                     }
 
         if len(self.dispatchers) == 0 or \
-            not any('input' in d.roles for d in self.dispatchers):
+                not any('input' in d.roles for d in self.dispatchers):
             warnings.warn('Trying to run executor without any dispatchers!\n' +
-                'Make sure that there is a valid dispatcher before executing.')
+                          'Make sure that there is a valid dispatcher before executing.')
             raise NotImplementedError('Currently static input is not supported')
 
         if len(self.dispatchers) >= 1 and \
            isinstance(self.dispatchers[0], rm.graph.utils.distributor.dispatch):
             dis = self.dispatchers[0]
             if len(dis._value_list) == 2:
-                have_validation=True
+                have_validation = True
                 v_d_num = len(dis._value_list[1])
             else:
-                have_validation=False
+                have_validation = False
                 v_d_num = 0
             t_d_num = len(dis._value_list[0])
             tot_num = t_d_num + v_d_num
@@ -273,5 +273,6 @@ class Executor:
         for key in new_data:
             if key in self.input_sources:
                 if not isinstance(self.input_sources[key], rm.graph.utils.distributor.dispatch):
-                    raise NotImplementedError('Currently can only set input sources for dispatchers.')
+                    raise NotImplementedError(
+                        'Currently can only set input sources for dispatchers.')
                 self.input_sources[key].change_input(new_data[key])

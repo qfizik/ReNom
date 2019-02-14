@@ -51,7 +51,7 @@ class StaticVariable(UserGraph):
 
     _name = 'Static Element'
 
-    def __init__(self, value, keyword = None, num_gpus=None):
+    def __init__(self, value, keyword=None, num_gpus=None):
         if value.dtype is not rm.precision:
             value = value.astype(rm.precision)
         if num_gpus is None:
