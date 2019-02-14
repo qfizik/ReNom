@@ -138,6 +138,7 @@ class Executor:
             not any('input' in d.roles for d in self.dispatchers):
             warnings.warn('Trying to run executor without any dispatchers!\n' +
                 'Make sure that there is a valid dispatcher before executing.')
+            raise NotImplementedError('Currently static input is not supported')
 
         if len(self.dispatchers) >= 1 and \
            isinstance(self.dispatchers[0], rm.graph.utils.distributor.dispatch):
@@ -209,14 +210,14 @@ class Executor:
         for part in parts:
             for depth in sorted(self.call_list[part].keys()):
                 for call in self.call_list[part][depth]:
-                    if mode == 'step':
+                    if mode == 'step' or mode == 'inference':
                         orig_inf = call._inference
                         call._inference = True
                     if rm.logging_level >= 10:
                         call.logged_perform()
                     else:
                         call.perform()
-                    if mode == 'step':
+                    if mode == 'step' or mode == 'inference':
                         call._inference = orig_inf
 
         for ev in self._events['Step-Finish']:
@@ -254,13 +255,12 @@ class Executor:
                 dis.switch_source(0)
         return loss
 
-    def set_input_data(self, data, target):
-        assert len(self.dispatchers) == 2, 'This method assumes standard input methods'
-        assert isinstance(data, np.ndarray) and isinstance(
-            target, np.ndarray), 'The data should be given as NumPy arrays.'
-        assert len(data) == len(target), 'Data and Target should have the same number of points'
-        # TODO: These are magic numbers. There should be a convention for which
-        # is which instead!
-        self.dispatchers[0].value = data
-        self.dispatchers[1].value = target
-        self.dispatchers[1]._perm = self.dispatchers[0]._perm
+    def set_input_data(self, new_data):
+        assert isinstance(new_data, tuple)
+        assert len(new_data) == len(self.dispatchers)
+        if not all(isinstance(disp, rm.graph.utils.distributor.dispatch) for disp in self.dispatchers):
+            raise NotImplementedError('Currently can only set input sources for dispatchers.')
+        self.unregister_events('Epoch-Finish')
+        self.register_event('Epoch-Finish', _norm_epoch_finish)
+        for i, disp in enumerate(self.dispatchers):
+            disp.change_input(new_data[i])

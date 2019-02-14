@@ -77,6 +77,11 @@ class dispatch(operation):
         other._value = other._value_list[id]
         self.reset()
 
+    def change_input(self, new_values):
+        self._value_list = [new_values]
+        self._value = new_values
+        self.reset()
+
     def attach(self, other):
         assert isinstance(other, dispatch)
         assert self._value.shape[0] == other._value.shape[0]
