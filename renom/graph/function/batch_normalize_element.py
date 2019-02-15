@@ -19,6 +19,8 @@ class batch_norm_forward(operation):
 
 
     def setup(self, inputs):
+        mv_v = inputs[4]['y']
+        mv_m = inputs[3]['y']
         bias = inputs[2]['y']
         weights = inputs[1]['y']
         inputs = inputs[0]['y']
@@ -38,8 +40,8 @@ class batch_norm_forward(operation):
         outs = GraphMultiStorage(shape=in_shape, gpus=gpus)
         mean = GraphMultiStorage(shape=weight_shape, gpus=gpus)
         sq_var = GraphMultiStorage(shape=weight_shape, gpus=gpus)
-        mv_m = GraphMultiStorage(shape=weight_shape, gpus=gpus, initializer=init.Constant(0))
-        mv_v = GraphMultiStorage(shape=weight_shape, gpus=gpus, initializer=init.Constant(0))
+        mv_m.__init__(shape=weight_shape, gpus=gpus, initializer=init.Constant(0))
+        mv_v.__init__(shape=weight_shape, gpus=gpus, initializer=init.Constant(0))
 
         self._inputs = inputs
         self._weights = weights
@@ -185,8 +187,10 @@ class BatchNormalize(GraphFactory):
         self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['b'] = graph_variable(allow_update=not ignore_bias)
+        self.params['mv_m'] = graph_variable()
+        self.params['mv_v'] = graph_variable()
 
     def connect(self, other):
         ret = BatchNormalizeElement(self._mom, self._eps, self._axis, self._init, previous_elements=[
-            other, self.params['w'], self.params['b']])
+            other, self.params['w'], self.params['b'], self.params['mv_m'], self.params['mv_v']])
         return ret
