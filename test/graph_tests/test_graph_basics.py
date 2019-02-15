@@ -277,7 +277,7 @@ def test_validation_executor(use_gpu):
     layer = rmg.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rmg.MeanSquared()
-    data, target = rmg.Distro(v1, t1, batch_size=2).get_output_graphs()
+    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('v', 't')).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     losses1 = np.array(exe.execute(epochs=3))
     v2, t2 = v1 * 2, t1 * 2
@@ -294,7 +294,7 @@ def test_step_executor(use_gpu):
     layer = rmg.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rmg.MeanSquared()
-    data, target = rmg.Distro(v1, t1, batch_size=2).get_output_graphs()
+    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('a','b')).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     loss1 = np.array(exe.execute(epochs=1))
     loss2 = 0
