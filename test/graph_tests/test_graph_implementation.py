@@ -107,9 +107,9 @@ import pytest
     loss.softmax_cross_entropy_element.softmax_cross_entropy_forward,
     loss.softmax_cross_entropy_element.softmax_cross_entropy_backward,
 ])
-def test_operation_name(oper):
+def test_operation_attrs(oper):
+    # 1. Checking name.
     name = getattr(oper, 'name', False)
-    print(name)
     assert name
 
 

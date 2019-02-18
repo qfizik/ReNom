@@ -34,8 +34,9 @@ class reshape_backward(operation):
         self._inputs = inputs[0]['dy']
         shape = self._fwd_op._inputs.shape
         gpus = self._inputs.gpus
+        fwd_op_inputs = self._fwd_op._inputs
         self._outputs = GraphMultiStorage(shape=shape, gpus=gpus, ptrs=self._inputs)
-        self._vars = {'y': self._outputs, 'dy': self._outputs}
+        self._vars = {'y': self._outputs, 'dy': self._outputs, id(fwd_op_inputs): fwd_op_inputs}
 
     def perform(self):
         pass

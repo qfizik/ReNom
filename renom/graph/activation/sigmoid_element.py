@@ -38,11 +38,11 @@ class sigmoid_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         gpus = inputs.gpus
         self.gpus = gpus
         outs = GraphMultiStorage(shape=inputs.shape, gpus=gpus)
-        self._vars = {'y': outs, id(self._fwd_op._inputs): outs}
+        self._vars = {'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs}
         self._fwd_out = self._fwd_op._outputs
         self._inputs = inputs
         self._outputs = outs
