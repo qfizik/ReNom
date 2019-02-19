@@ -179,7 +179,7 @@ def test_basic_binary_operations(test_shape1, test_shape2, oper, use_gpu, num_gp
     lf = rm.graph.ConstantLoss()
 
     h = oper(val1, val2)
-    loss = lf(oper(0 * model(3 * h * 3), model(val1 - val2 + h)))
+    loss = lf(oper(0*model(3 * h * 3), model(val1 - val2 + h)))
 
     def func():
         loss.forward()
