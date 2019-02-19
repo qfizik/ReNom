@@ -48,6 +48,7 @@ class operation(abc.ABC):
     consumes = tuple()
     roles = tuple()
     _inference = False
+    _should_update = True
     # Remove vars
 
     # Ideally we make the connection between inputs and variables more explicit

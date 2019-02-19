@@ -157,7 +157,7 @@ class MinElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-class MinGraphElement(GraphFactory):
+class Min(GraphFactory):
 
     def connect(self, other):
         ret = MinElement(other)

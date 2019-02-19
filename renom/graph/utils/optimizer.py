@@ -11,10 +11,11 @@ class optimizer_factory:
         self.args = ()
         self.kwargs = {}
 
-    def get_op(self, out):
-        if id(out) not in self._ops:
-            self._ops[id(out)] = self.create_op()
-        return self._ops[id(out)]
+    def get_op(self, grad, out):
+        key = "{}{}".format(id(grad), id(out))
+        if key not in self._ops:
+            self._ops[key] = self.create_op()
+        return self._ops[key]
 
     def create_op(self):
         if rm.is_cuda_active():

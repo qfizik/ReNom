@@ -51,35 +51,43 @@ class sub_backward(operation):
         gpus = key_value.gpus
         output_shape = key_value.shape
         outputs = GraphMultiStorage(shape=output_shape, gpus=gpus, initializer=None)
-
-        a = self._fwd_op.get_key("a")
-        b = self._fwd_op.get_key("b")
-        self._a = a if key == "a" else b
-        self._b = b if key == "a" else a
         self.gpus = gpus
+        self._fwd_in = key_value
         self._vars = {'y': outputs, 'dy': outputs, id(key_value): outputs}
         self._outputs = outputs
 
     def perform(self):
         for i, (gpu, handle) in enumerate(rm.cuda.RenomHandlers(self.gpus)):
-            a = self._a[gpu]
-            dy = (self._inputs[gpu] if self._key == "a" else -self._inputs[gpu])
-            if a.shape != dy.shape:
-                dy = cu_broad_cast(a, dy)
+            if self._key == "a":
+                dy = self._inputs[gpu]
+            elif self._key == "b":
+                dy = -1 * self._inputs[gpu]
             else:
+                # TODO: Set exception
+                raise Exception()
+
+            if self._fwd_in[gpu].shape == dy.shape:
                 dy = dy
+            else:
+                dy = cu_broad_cast(self._fwd_in[gpu], dy)
             self._outputs[gpu] = dy
 
 
 class sub_backward_cpu(sub_backward):
 
     def perform(self):
-        a = self._a['cpu']
-        dy = (self._inputs['cpu'] if self._key == "a" else -self._inputs['cpu'])
-        if a.shape == dy.shape:
+        fwd_in = self._fwd_in['cpu']
+        if self._key == "a":
+            dy = self._inputs['cpu']
+        elif self._key == "b":
+            dy = -self._inputs['cpu']
+        else:
+            raise Exception()
+
+        if fwd_in.shape == dy.shape:
             self._outputs['cpu'] = dy
         else:
-            self._outputs['cpu'] = broad_cast(a, dy)
+            self._outputs['cpu'] = broad_cast(fwd_in, dy)
 
 
 class SubElement(UserGraph):
@@ -89,12 +97,12 @@ class SubElement(UserGraph):
     def __init__(self, previous_elements=None):
 
         fwd_op = sub_forward() if rm.is_cuda_active() else sub_forward_cpu()
-        bwd_ops = [sub_backward(fwd_op, 'b') if rm.is_cuda_active() else sub_backward_cpu(fwd_op, 'b'),
-                   sub_backward(fwd_op, 'a') if rm.is_cuda_active() else sub_backward_cpu(fwd_op, 'a')]
+        bwd_ops = [sub_backward(fwd_op, 'a') if rm.is_cuda_active() else sub_backward_cpu(fwd_op, 'a'),
+                   sub_backward(fwd_op, 'b') if rm.is_cuda_active() else sub_backward_cpu(fwd_op, 'b')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-class SubGraphElement(GraphFactory):
+class Sub(GraphFactory):
 
     def connect(self, lhs, rhs):
         return SubElement([lhs, rhs])

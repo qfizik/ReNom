@@ -35,14 +35,14 @@ def _norm_step_finish(info):
         return
     if info['mode'] == 'step':
         if len(loss) > 0:
-            info['step_loss'] = float(loss[0].as_ndarray())
+            info['step_loss'] = float(loss[-1].as_ndarray())
         return
     epoch_loss_list = info['epoch_loss_list']
     bar = info['bar']
     epoch_name = info['epoch_name']
 
     if len(loss) > 0:
-        loss = float(loss[0].as_ndarray())
+        loss = float(loss[-1].as_ndarray())
         bar.set_description("{0!s: >10} cur-loss={1:5.3f}".format(epoch_name, loss))
         epoch_loss_list.append(loss)
     else:
@@ -160,7 +160,9 @@ class Executor:
             if self.mode == 'inference':
                 m_depth = max(self.call_list['Forward'].keys())
             else:
-                m_depth = max(self.call_list['Gradient'].keys())
+                update_calls = list(self.call_list['Gradient'].keys())
+                backward_calls = list(self.call_list['Backward'].keys())
+                m_depth = max(update_calls + backward_calls)
             total = 0
             for part in self.call_list:
                 for depth in self.call_list[part]:
@@ -219,6 +221,7 @@ class Executor:
             parts = ['Forward', 'Backward', 'Gradient']
         else:
             raise NotImplementedError()
+
         for part in parts:
             for depth in sorted(self.call_list[part].keys()):
                 for call in self.call_list[part][depth]:

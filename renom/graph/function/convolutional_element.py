@@ -95,8 +95,8 @@ class conv_forward(operation):
         self._weights = weights
         self._bias = bias
 
-        imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 -
-                      self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
+        imgs = tuple((input_shape[i + 2] + self._padding[i] * 2
+                      - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
         output_shape = [input_shape[0], self._channels, *imgs]
         self._outputs = GraphMultiStorage(shape=output_shape, gpus=gpus)
         self._vars = {'w': self._weights, 'b': self._bias, 'y': self._outputs}
@@ -138,9 +138,16 @@ class conv_forward(operation):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             workspace = (conv_forward.workspace_size,
                          conv_forward.workspace[gpu]) if conv_forward.workspace_size > 0 else None
-            rm.cuda.cuConvolutionForwardBiasActivation(
-                handle, self._conv_desc, self._filter_desc, self._inputs[gpu],
-                self._weights[gpu], self._outputs[gpu], self._bias[gpu], self._info[0], workspace)
+            if False:
+                rm.cuda.cuConvolutionForwardBiasActivation(
+                    handle, self._conv_desc, self._filter_desc, self._inputs[gpu],
+                    self._weights[gpu], self._outputs[gpu], self._bias[gpu],
+                    self._info[0], workspace, with_activation=True)
+            else:
+                rm.cuda.cuConvolutionForward(handle, self._conv_desc, self._filter_desc,
+                                             self._inputs[gpu], self._weights[gpu], self._outputs[gpu], 0)
+                rm.cuda.cu_add_bias(self._bias[gpu], self._outputs[gpu])
+
 
 
 class conv_forward_cpu(conv_forward):
@@ -203,11 +210,17 @@ class conv_backward(operation):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             workspace = (conv_forward.workspace_size,
                          conv_forward.workspace[gpu]) if conv_forward.workspace_size > 0 else None
-            rm.cuda.cuActivationBackward(handle, self._fwd_op._outputs[gpu], self._inputs[gpu])
-            rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc,
-                                          self._fwd_in[gpu], self._fwd_w[gpu], self._inputs[gpu],
-                                          self._weights_out[gpu], self._bias_out[gpu], self._outputs[gpu],
-                                          self._algo, workspace)
+
+            if False:
+                rm.cuda.cuActivationBackward(handle, self._fwd_op._outputs[gpu],
+                                             self._inputs[gpu], with_activation=True)
+
+            else:
+                rm.cuda.cuConvolutionBackward(handle, self._fwd_op._conv_desc, self._fwd_op._filter_desc,
+                                              self._fwd_in[gpu], self._fwd_w[gpu], self._inputs[gpu],
+                                              self._weights_out[gpu], self._bias_out[gpu], self._outputs[gpu],
+                                              self._algo, workspace)
+
 
 
 class conv_backward_cpu(conv_backward):

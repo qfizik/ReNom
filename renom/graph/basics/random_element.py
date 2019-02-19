@@ -6,7 +6,8 @@ from renom.graph.core import GraphMultiStorage, operational_element, UserGraph, 
 class random_uniform(operation):
 
     name = 'Random Uniform (F)'
-    # roles = ['static']
+    roles = ['static']
+    keyword = None
 
     def __init__(self, shape, min, max, num_gpus=1):
         self._shape = [int(s) for s in shape]
@@ -15,6 +16,7 @@ class random_uniform(operation):
         self._gpus = list(range(num_gpus))
         self._outputs = GraphMultiStorage(shape=self._shape, gpus=self._gpus)
         self._vars = {'y': self._outputs}
+        self.perform()  # This is for initialization
 
     def setup(self, inputs):
         pass
@@ -24,6 +26,9 @@ class random_uniform(operation):
             rm.cuda.curand_generator().rand_uniform(self._outputs[gpu])
             rm.cuda.cumul(self._outputs[gpu], self._diff, self._outputs[gpu], handle)
             rm.cuda.cuadd(self._outputs[gpu], self._lower_bound, self._outputs[gpu], handle)
+
+    def reset(self):
+        pass
 
 
 class random_uniform_cpu(random_uniform):
@@ -52,7 +57,8 @@ def rand_uniform(shape, min=0, max=1, num_gpus=1):
 class random_normal(operation):
 
     name = 'Random Normal (F)'
-    # roles = ['static']
+    roles = ['static']
+    keyword = None
 
     def __init__(self, shape, mean, std, num_gpus=1):
         self._shape = [int(s) for s in shape]
@@ -61,6 +67,7 @@ class random_normal(operation):
         self._gpus = list(range(num_gpus))
         self._outputs = GraphMultiStorage(shape=self._shape, gpus=self._gpus)
         self._vars = {'y': self._outputs}
+        self.perform()  # This is for initialization
 
     def setup(self, inputs):
         pass
@@ -68,6 +75,9 @@ class random_normal(operation):
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self._gpus):
             rm.cuda.curand_generator().rand_normal(self._outputs[gpu], self._mean, self._std)
+
+    def reset(self):
+        pass
 
 
 class random_normal_cpu(random_normal):

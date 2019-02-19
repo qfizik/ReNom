@@ -6,7 +6,7 @@ import numpy as np
 class smoothed_l1_forward(operation):
 
     name = 'Mean Squared (F)'
-    roles = ['Loss']
+    roles = ['loss']
 
     def __init__(self, delta=1.0):
         self._delta = delta

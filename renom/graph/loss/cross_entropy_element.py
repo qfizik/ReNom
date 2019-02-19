@@ -6,7 +6,7 @@ import numpy as np
 class cross_entropy_forward(operation):
 
     name = 'Cross Entropy (F)'
-    roles = ['Loss']
+    roles = ['loss']
 
     def setup(self, inputs):
         assert isinstance(inputs[1], dict)

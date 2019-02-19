@@ -1,4 +1,5 @@
 import renom as rm
+import numpy as np
 from .operation import operation
 from .operational_element import operational_element
 from .graph_storage import GraphMultiStorage
@@ -26,7 +27,7 @@ class update_operation(operation):
         allow it to change during training.
     '''
     roles = ['update']
-    name = 'Update Operation'
+    name = 'Update'
     _communicator = None
     _should_update = True
 
@@ -38,6 +39,7 @@ class update_operation(operation):
         self._shared_key = key
         self._update_op = operation
         self._factory = None
+        self.name += " ({} of {})".format(key, consumer.name[:-4])
 
     def set_update_op(self, fac):
         if self._factory is fac:
@@ -59,7 +61,7 @@ class update_operation(operation):
         gpus = self._outputs.gpus
         self.gpus = gpus
         if self._update_op is None:
-            self._update_op = self._factory.get_op(self._outputs)
+            self._update_op = self._factory.get_op(self._dy, self._outputs)
             self._update_op.setup(self._dy, self._outputs)
         if update_operation._communicator is None and not isinstance(self.gpus, str) and len(self.gpus) > 1:
             update_operation._communicator = rm.cuda.DeviceCommunicator(len(self.gpus))

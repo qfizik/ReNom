@@ -200,12 +200,12 @@ class UserGraph(graph_element):
             assert False
             self._fwd._op._inference = inference
 
-    def set_updatable(self, inference=True):
+    def set_updatable(self, should_update=True):
         if id(self) in self._fwd._tags:
-            self._fwd.set_attr('_should_update', inference, tag=[id(self), 'Gradient'])
+            self._fwd.set_attr('_should_update', should_update, tag=[id(self), 'Gradient'])
         else:
             assert False
-            self._fwd._op._inference = inference
+            self._fwd._op._should_update = should_update
 
     def set_all_inference(self, inference=True):
         infs = self._fwd.gather_operations_with_role('inference', flatten=True)
@@ -233,10 +233,19 @@ class UserGraph(graph_element):
         assert isinstance(some_variable, rm.graph.core.GraphMultiStorage)
         search_id = id(some_variable)
         backs = self._fwd.get_call_dict(tag='Backward', flatten=True)
+        found_grad = False
+        cum_grad = 0
         for b in backs:
             r = b.get_key(search_id)
             if r is not None:
-                return r
+                if isinstance(r, rm.graph.core.GraphMultiStorage):
+                    cum_grad += r.as_ndarray()
+                elif isinstance(r, np.ndarray):
+                    cum_grad += r
+                found_grad = True
+        if found_grad:
+            return cum_grad
+
         raise AttributeError('Could not find {}'.format(search_id))
 
     def update(self, optimizer=None):

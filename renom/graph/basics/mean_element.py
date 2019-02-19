@@ -115,7 +115,7 @@ class MeanElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-class MeanGraphElement(GraphFactory):
+class Mean(GraphFactory):
 
     def __init__(self, axis=None, keepdims=False):
         super().__init__()

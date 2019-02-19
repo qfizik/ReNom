@@ -89,7 +89,7 @@ class AddElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-class AddGraphElement(GraphFactory):
+class Add(GraphFactory):
 
     def connect(self, lhs, rhs):
         return AddElement([lhs, rhs])
