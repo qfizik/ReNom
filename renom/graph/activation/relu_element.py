@@ -46,7 +46,8 @@ class relu_backward(operation):
         self._inputs = inputs
         self._outputs = outs
         self._fwd_in = self._fwd_op._inputs
-        self._vars = {'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs}
+        self._vars = {'y': outs, 'dy': outs,
+                      id(self._fwd_op._inputs): outs}
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):

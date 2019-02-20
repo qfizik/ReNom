@@ -135,8 +135,7 @@ class deconv_backward_cpu(deconv_backward):
         x = self._fwd_in['cpu']
         w = self._fwd_w['cpu']
 
-        dx = imncol(dy, w, self._fwd_op._stride, padding=[
-                    0 for _ in range(len(self._fwd_op._stride))])
+        dx = imncol(dy, w, self._fwd_op._stride, padding=self._fwd_op._padding)
 
         l = [x for x in range(len(dy.shape))]  # noqa
         del(l[1])

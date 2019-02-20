@@ -6,13 +6,14 @@ import numpy as np
 class sigmoid_forward(operation):
 
     name = 'Sigmoid Cross Entropy(F)'
-    roles = ['Loss']
+    roles = ['loss']
 
     def setup(self, inputs):
         assert isinstance(inputs[1], dict)
 
         labels = inputs[1]['y']
         inputs = inputs[0]['y']
+        assert labels.shape == inputs.shape
         out_shape = (1, )
         gpus = inputs.gpus
         outs = GraphMultiStorage(shape=out_shape, gpus=gpus)
@@ -89,6 +90,7 @@ class sigmoid_backward(operation):
             rm.cuda.cusub(self._act_out1[gpu], self._label_input[gpu], self._outputs[gpu], handle)
             rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
             rm.cuda.cumul(self._outputs[gpu], dy, self._outputs[gpu], handle)
+
 
 
 class sigmoid_backward_cpu(sigmoid_backward):

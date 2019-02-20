@@ -127,14 +127,14 @@ def getNumericalDiff(lossMethod, testValue):
             (2, 1),
             (1, 1),
             (1, 2),
-            (1,),
+            # (1,),
         ],
         [
             (2, 2),
             (2, 1),
             (1, 1),
             (1, 2),
-            (1,),
+            # (1,),
         ],
         [
             rm.graph.core.UserGraph.__add__,
@@ -157,22 +157,29 @@ def getNumericalDiff(lossMethod, testValue):
             rm.graph.core.UserGraph.__itruediv__,
             rm.graph.core.UserGraph.__rtruediv__,
 
-            lambda a, b: rm.graph.AddGraphElement()(a, b),
-            lambda a, b: rm.graph.DivGraphElement()(a, b),
-            lambda a, b: rm.graph.MulGraphElement()(a, b),
-            lambda a, b: rm.graph.SubGraphElement()(a, b),
+            lambda a, b: rm.graph.Add()(a, b),
+            lambda a, b: rm.graph.Div()(a, b),
+            lambda a, b: rm.graph.Mul()(a, b),
+            lambda a, b: rm.graph.Sub()(a, b),
         ]
     ),
 ])
 def test_basic_binary_operations(test_shape1, test_shape2, oper, use_gpu, num_gpu):
     np.random.seed(45)
     rm.set_cuda_active(use_gpu)
+
     v1 = rand(*test_shape1)
     val1 = rm.graph.StaticVariable(v1, num_gpus=num_gpu)
+
     v2 = rand(*test_shape2)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
+
+    model = rm.graph.Dense(output_size=2, ignore_bias=True)
+
     lf = rm.graph.ConstantLoss()
-    loss = lf(oper(val1, val2))
+
+    h = oper(val1, val2)
+    loss = lf(oper(0*model(3 * h * 3), model(val1 - val2 + h)))
 
     def func():
         loss.forward()
@@ -180,9 +187,9 @@ def test_basic_binary_operations(test_shape1, test_shape2, oper, use_gpu, num_gp
         return ret
 
     compare(getNumericalDiff(func, val1.value),
-            loss.backward().get_gradient(val1.value).as_ndarray())
+            loss.backward().get_gradient(val1.value))
     compare(getNumericalDiff(func, val2.value),
-            loss.backward().get_gradient(val2.value).as_ndarray())
+            loss.backward().get_gradient(val2.value))
 
 
 @pytest.mark.parametrize("test_shape1, oper", [
@@ -215,7 +222,7 @@ def test_basic_unary_operations(test_shape1, oper, use_gpu, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, val1.value),
-            loss.backward().get_gradient(val1.value).as_ndarray())
+            loss.backward().get_gradient(val1.value))
 
 
 @pytest.mark.parametrize("params, oper", [
@@ -259,8 +266,8 @@ def test_basic_unary_operations(test_shape1, oper, use_gpu, num_gpu):
         [
             rm.graph.basics.sum,
             rm.graph.basics.mean,
-            lambda a, axis, keepdims: rm.graph.MeanGraphElement(axis, keepdims)(a),
-            lambda a, axis, keepdims: rm.graph.SumGraphElement(axis, keepdims)(a),
+            lambda a, axis, keepdims: rm.graph.Mean(axis, keepdims)(a),
+            lambda a, axis, keepdims: rm.graph.Sum(axis, keepdims)(a),
         ]
     ),
 ])
@@ -278,7 +285,7 @@ def test_reduce_unary_operations1(params, oper, use_gpu, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, val1.value),
-            loss.backward().get_gradient(val1.value).as_ndarray())
+            loss.backward().get_gradient(val1.value))
 
 
 @pytest.mark.parametrize("params, oper", [
@@ -327,7 +334,7 @@ def test_reduce_unary_operations2(params, oper, use_gpu, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, val1.value),
-            loss.backward().get_gradient(val1.value).as_ndarray())
+            loss.backward().get_gradient(val1.value))
 
 
 @pytest.mark.parametrize("test_shapes, axis", [
@@ -355,7 +362,7 @@ def test_concat(test_shapes, axis, use_gpu, num_gpu):
 
     for v in vals:
         compare(getNumericalDiff(func, v.value),
-                loss.backward().get_gradient(v.value).as_ndarray())
+                loss.backward().get_gradient(v.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -378,12 +385,12 @@ def test_dense(test_shape, use_gpu, num_gpu, ignore_bias):
         ret = loss.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value))
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output))
     if not ignore_bias:
         compare(getNumericalDiff(func, model.params['b'].output), loss.backward(
-        ).get_gradient(model.params['b'].output).as_ndarray())
+        ).get_gradient(model.params['b'].output))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -411,11 +418,11 @@ def test_lstm(test_shape, use_gpu, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, val.value), loss.backward(
-    ).get_gradient(val.value).as_ndarray(), abs_tol=1e-3)
+    ).get_gradient(val.value), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray(), abs_tol=1e-3)
+    ).get_gradient(model.params['w'].output), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wr'].output), loss.backward(
-    ).get_gradient(model.params['wr'].output).as_ndarray(), abs_tol=1e-3)
+    ).get_gradient(model.params['wr'].output), abs_tol=1e-3)
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -443,11 +450,11 @@ def test_gru(test_shape, use_gpu, ignore_bias, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, val.value), loss.backward(
-    ).get_gradient(val.value).as_ndarray(), abs_tol=1e-3)
+    ).get_gradient(val.value), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray(), abs_tol=1e-3)
+    ).get_gradient(model.params['w'].output), abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wr'].output), loss.backward(
-    ).get_gradient(model.params['wr'].output).as_ndarray(), abs_tol=1e-3)
+    ).get_gradient(model.params['wr'].output), abs_tol=1e-3)
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -471,11 +478,11 @@ def test_weight_norm(test_shape, use_gpu, num_gpu):
         ret = loss.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value))
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output))
     compare(getNumericalDiff(func, model.params['g'].output), loss.backward(
-    ).get_gradient(model.params['g'].output).as_ndarray())
+    ).get_gradient(model.params['g'].output))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -499,9 +506,9 @@ def test_layer_norm(test_shape, use_gpu, num_gpu):
         ret = loss.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value))
     compare(getNumericalDiff(func, model.params['g'].output), loss.backward(
-    ).get_gradient(model.params['g'].output).as_ndarray())
+    ).get_gradient(model.params['g'].output))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -523,7 +530,7 @@ def test_lrn(test_shape, use_gpu, num_gpu):
         ret = loss.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), loss.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -546,15 +553,15 @@ def test_embedding(test_shape, use_gpu, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output))
     compare(getNumericalDiff(func, model.params['b'].output), loss.backward(
-    ).get_gradient(model.params['b'].output).as_ndarray())
+    ).get_gradient(model.params['b'].output))
 
 
 @pytest.mark.parametrize("test_shape", [
     (1, 1, 5, 5),
-    (2, 3, 4, 5),
-    (2, 2, 4, 4, 4),
+    (2, 3, 5, 5),
+    (2, 2, 5, 5, 5),
 ])
 def test_conv(test_shape, use_gpu, num_gpu, ignore_bias):
     # TODO: Fix this weird issue
@@ -565,8 +572,10 @@ def test_conv(test_shape, use_gpu, num_gpu, ignore_bias):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.Conv(channels=2, ignore_bias=ignore_bias)
+    model2 = rm.graph.Conv(channels=4, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLoss()
     m = model(val)
+    m = model2(m)
     l = loss(m)
 
     def func():
@@ -575,11 +584,11 @@ def test_conv(test_shape, use_gpu, num_gpu, ignore_bias):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
     compare(getNumericalDiff(func, model.params['w'].output), l.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output))
     compare(getNumericalDiff(func, model.params['b'].output), l.backward(
-    ).get_gradient(model.params['b'].output).as_ndarray())
+    ).get_gradient(model.params['b'].output))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -603,11 +612,11 @@ def test_deconv(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
     compare(getNumericalDiff(func, model.params['w'].output), l.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output))
     compare(getNumericalDiff(func, model.params['b'].output), l.backward(
-    ).get_gradient(model.params['b'].output).as_ndarray())
+    ).get_gradient(model.params['b'].output))
 
 
 def test_l2_norm(use_gpu, num_gpu):
@@ -626,9 +635,9 @@ def test_l2_norm(use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
     compare(getNumericalDiff(func, model.params['w'].output), l.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -652,7 +661,7 @@ def test_max_pool(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -676,7 +685,7 @@ def test_avg_pool(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -702,7 +711,7 @@ def test_unpool(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -725,7 +734,7 @@ def test_cross_entropy(test_shape, use_gpu, num_gpu):
         ret = m.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -747,7 +756,7 @@ def test_softmax_cross_entropy(test_shape, use_gpu, num_gpu):
         ret = m.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -769,7 +778,7 @@ def test_sigmoid_cross_entropy(test_shape, use_gpu, num_gpu):
         ret = m.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -791,7 +800,7 @@ def test_smoothed_l1(test_shape, use_gpu, num_gpu):
         ret = m.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -855,7 +864,7 @@ def test_relu(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -878,7 +887,7 @@ def test_elu(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -901,7 +910,7 @@ def test_selu(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -924,7 +933,7 @@ def test_leaky_relu(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -946,7 +955,7 @@ def test_maxout(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -969,7 +978,7 @@ def test_tanh(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -992,7 +1001,7 @@ def test_sigmoid(test_shape, use_gpu, num_gpu):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape, axis", [
@@ -1020,7 +1029,7 @@ def test_dropout(test_shape, axis, use_gpu, num_gpu):
         return ret
 
     rm.set_renom_seed(15, all_devices=True)
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -1043,7 +1052,7 @@ def test_mean_squared(test_shape, use_gpu, num_gpu):
         ret = m.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -1065,7 +1074,7 @@ def test_clip(test_shape, use_gpu, num_gpu):
         ret = m.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
 @pytest.mark.parametrize("test_shape", [
@@ -1076,7 +1085,6 @@ def test_clip(test_shape, use_gpu, num_gpu):
 ])
 def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
     rm.set_cuda_active(use_gpu)
-    rm.set_renom_seed(45)
     v = fixed(test_shape)
     if len(test_shape) > 2:
         axis = 1
@@ -1084,9 +1092,10 @@ def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
         axis = None
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.BatchNormalize(axis=axis, ignore_bias=ignore_bias)
+    model2 = rm.graph.BatchNormalize(axis=axis, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLoss()
     m2 = model(val)
-    m = model(m2)
+    m = model2(m2)
     l = loss(m)
 
     def func():
@@ -1094,8 +1103,8 @@ def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
         ret = l.as_ndarray()
         return ret
 
-    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value).as_ndarray())
+    compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
     compare(getNumericalDiff(func, model.params['w'].output), l.backward(
-    ).get_gradient(model.params['w'].output).as_ndarray())
+    ).get_gradient(model.params['w'].output))
     compare(getNumericalDiff(func, model.params['b'].output), l.backward(
-    ).get_gradient(model.params['b'].output).as_ndarray())
+    ).get_gradient(model.params['b'].output))

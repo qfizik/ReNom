@@ -742,7 +742,8 @@ cdef extern from "cudnn.h":
         CUDNN_ACTIVATION_SIGMOID,
         CUDNN_ACTIVATION_RELU,
         CUDNN_ACTIVATION_TANH,
-        CUDNN_ACTIVATION_CLIPPED_RELU
+        CUDNN_ACTIVATION_CLIPPED_RELU,
+        CUDNN_ACTIVATION_IDENTITY,
 
     cudnnStatus_t cudnnCreateActivationDescriptor(
         cudnnActivationDescriptor_t * activationDesc)

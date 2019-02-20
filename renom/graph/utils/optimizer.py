@@ -11,10 +11,11 @@ class optimizer_factory:
         self.args = ()
         self.kwargs = {}
 
-    def get_op(self, out):
-        if id(out) not in self._ops:
-            self._ops[id(out)] = self.create_op()
-        return self._ops[id(out)]
+    def get_op(self, grad, out):
+        key = "{}{}".format(id(grad), id(out))
+        if key not in self._ops:
+            self._ops[key] = self.create_op()
+        return self._ops[key]
 
     def create_op(self):
         if rm.is_cuda_active():
@@ -52,7 +53,9 @@ class Sgd(optimizer_factory):
             for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
                 rm.cuda.cu_optimizer_sgd(self.learning_rate, self.momentum,
                                          self._dy[gpu], self._run_avg[gpu], self._ndy[gpu], handle)
-                self._outputs[gpu] -= self._ndy[gpu]
+                rm.cuda.cusub(self._outputs[gpu], self._ndy[gpu], self._outputs[gpu], handle)
+                self._run_avg[gpu] = self._ndy[gpu]
+
 
     class cpu_op(gpu_op):
 
@@ -317,7 +320,7 @@ class Adam(optimizer_factory):
                 rm.cuda.cu_optimizer_adam(self.alpha, self.epsilon, rb1, self.beta1, rb2, self.beta2, self.min,
                                           self.time % self.CHECK_ZERO_VALUE == 0, self._mom1[gpu],
                                           self._mom2[gpu], self._dy[gpu], ndy)
-                self._outputs[gpu] -= ndy
+                self._outputs[gpu] = self._outputs[gpu] - ndy
             self.rb1 = rb1 * self.beta1
             self.rb2 = rb2 * self.beta2
             self.time += 1
@@ -326,8 +329,10 @@ class Adam(optimizer_factory):
 
         def update(self):
             alpha = self.alpha
-            beta1 = self.rb1
-            beta2 = self.rb2
+            beta1 = self.beta1
+            beta2 = self.beta2
+            powered_beta1 = self.rb1
+            powered_beta2 = self.rb2
             dy = self._dy['cpu']
             mom1 = self._mom1['cpu']
             mom2 = self._mom2['cpu']
@@ -337,17 +342,17 @@ class Adam(optimizer_factory):
                 mom1[np.abs(mom1) < self.min] = 0
                 mom2[np.abs(mom2) < self.min] = 0
 
+            lrt = alpha * np.sqrt(1 - powered_beta2) / (1 - powered_beta1)
             new_mom1 = beta1 * mom1 + (1 - beta1) * dy
             new_mom2 = beta2 * mom2 + (1 - beta2) * dy ** 2
-            mom1_est = new_mom1 / (1 - beta1)
-            mom2_est = new_mom2 / (1 - beta2)
-            ret = alpha * mom1_est / (np.sqrt(mom2_est) + self.epsilon)
+
+            ret = lrt * new_mom1 / (np.sqrt(new_mom2) + self.epsilon)
 
             self._outputs['cpu'] = cur - ret
             self._mom1['cpu'] = new_mom1
             self._mom2['cpu'] = new_mom2
-            self.rb1 = beta1 * self.beta1
-            self.rb2 = beta2 * self.beta2
+            self.rb1 = powered_beta1 * self.beta1
+            self.rb2 = powered_beta2 * self.beta2
             self.time += 1
 
     def __init__(self, alpha=0.001, beta1=0.9, beta2=0.999, epsilon=1e-8):

@@ -110,7 +110,7 @@ class GraphMultiStorage:
         self._finished_setup = False
         self._ptrs = ptrs
         self.shape = shape
-        self._should_update = True
+
         if ptrs is not None:
             assert isinstance(ptrs, GraphMultiStorage)
             shp = list(self.shape)
