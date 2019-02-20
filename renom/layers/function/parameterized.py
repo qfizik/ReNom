@@ -538,7 +538,7 @@ class Model(with_metaclass(ABCMeta, object)):
         """
         for c in self.iter_models():
             if hasattr(c, "_initializer"):
-                setattr(c, "_initializer", f)
+                setattr(c, "_initializer", initializer)
 
     def truncate(self):
         for c in self.iter_models():
