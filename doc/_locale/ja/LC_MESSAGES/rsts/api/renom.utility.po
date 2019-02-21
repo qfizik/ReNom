@@ -134,6 +134,10 @@ msgstr "一様分布の下限値"
 msgid "Maximum limit of uniform distribution."
 msgstr "一様分布の上限値"
 
+#: of renom.utility.initializer.Orthogonal:1
+msgid "Initialize parameters using orthogonal initialization."
+msgstr "重みを直交化する."
+
 #: ../../rsts/api/renom.utility.rst:11
 msgid "renom.utility.searcher"
 msgstr ""
@@ -616,4 +620,3 @@ msgstr "4次元テンソルで表された入力画像データ. 同時に教師
 
 #~ msgid "He uniform initializer."
 #~ msgstr "Heの一様乱数に基づいて重みの初期化を行う."
-
