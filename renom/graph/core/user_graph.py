@@ -3,7 +3,7 @@ import numpy as np
 import renom as rm
 from .graph_element import graph_element
 from .operational_element import operational_element
-from .update_graph import update_operation
+from .update_graph import update_operation, gradient_accumulator
 from .operation import operation
 from .executor import Executor
 
@@ -51,6 +51,7 @@ class UserGraph(graph_element):
         for op in backward_operations:
             bwd_graph = operational_element(op, tags=['Backward'])
             self._bwd_graphs.append(bwd_graph)
+        self._out_bwds = self._bwd_graphs.copy()
 
     @staticmethod
     def _prepare_prevs(previous_elements):
@@ -142,7 +143,18 @@ class UserGraph(graph_element):
 
         backward_graph_input = previous_element.get_backward_output(pos)
         if backward_graph_input is not None:
-            for graph in self._bwd_graphs:
+            for i, graph in enumerate(self._bwd_graphs):
+                if len(graph._previous_elements) > 0 and \
+                    not isinstance(graph._op, gradient_accumulator):
+                    acc_op = gradient_accumulator()
+                    acc_g = operational_element(acc_op, tags=['Backward'])
+                    prevs = graph._previous_elements.copy()
+                    graph.remove_all_inputs()
+                    graph.add_input(acc_g)
+                    for elem in prevs:
+                        acc_g.add_input(elem)
+                        graph = acc_g
+                    self._bwd_graphs[i] = graph
                 graph.add_input(backward_graph_input)
 
     def disconnect_back(self, previous_element, pos=0):
@@ -267,7 +279,8 @@ class UserGraph(graph_element):
         if len(self._bwd_graphs) == 0:
             return None
         else:
-            return self._bwd_graphs[num]
+            bwd_g = self._out_bwds[num]
+            return bwd_g
 
     @property
     def output(self):
@@ -281,6 +294,15 @@ class UserLossGraph(UserGraph):
     '''
         A special case of the UserGraph where we
     '''
+
+    def connect_back(self, previous_element, pos=0):
+        if len(self._bwd_graphs) == 0:
+            return
+
+        backward_graph_input = previous_element.get_backward_output(pos)
+        if backward_graph_input is not None:
+            for graph in self._bwd_graphs:
+                graph.add_input(backward_graph_input)
 
     def connect(self, previous_elements):
         if isinstance(previous_elements, UserGraph):

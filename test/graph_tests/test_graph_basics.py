@@ -138,8 +138,8 @@ def test_split_backwards(use_gpu):
     l2 = act2(layer(v2))
     ll = l1 + l2
     ll.backward()
-    gv1 = ll.get_gradient(v1.value).as_ndarray()
-    gv2 = ll.get_gradient(v2.value).as_ndarray()
+    gv1 = ll.get_gradient(v1.value)
+    gv2 = ll.get_gradient(v2.value)
     assert not np.allclose(gv1, gv2)
 
 

@@ -9,6 +9,32 @@ import types
 T = True
 F = False
 
+class gradient_accumulator(operation):
+
+    name = 'Gradient Accumulator'
+
+    def setup(self, inputs):
+        self._num_grads = len(inputs)
+        self._inputs = [grad['dy'] for grad in inputs]
+        gpus = self._inputs[0].gpus
+        shape = self._inputs[0].shape
+        self.gpus = gpus
+        if self._num_grads == 1:
+            out = self._inputs[0]
+        else:
+            assert all(grad.shape == shape for grad in self._inputs)
+            out = GraphMultiStorage(shape=shape, gpus=self.gpus)
+        self._outputs = out
+        self._vars = {'y' : out, 'dy' : out}
+
+    def perform(self):
+        if self._num_grads == 1:
+            pass
+        else:
+            dy = 0
+            for input in self._inputs:
+                dy += input['cpu']
+            self._outputs['cpu'] = dy
 
 class update_operation(operation):
     '''
