@@ -145,7 +145,7 @@ class UserGraph(graph_element):
         if backward_graph_input is not None:
             for i, graph in enumerate(self._bwd_graphs):
                 if len(graph._previous_elements) > 0 and \
-                    not isinstance(graph._op, gradient_accumulator):
+                        not isinstance(graph._op, gradient_accumulator):
                     acc_op = gradient_accumulator()
                     acc_g = operational_element(acc_op, tags=['Backward'])
                     prevs = graph._previous_elements.copy()

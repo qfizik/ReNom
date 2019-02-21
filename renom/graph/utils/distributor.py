@@ -18,12 +18,13 @@ class dispatch(operation):
     roles = ['input']
     keyword = None
 
-    def __init__(self, value, batch_size=128, num_gpus=1, shuffle=True):
+    def __init__(self, value, batch_size=128, num_gpus=1, shuffle=True, drop_remainder=False):
         self._value_list = value
         if len(value) > 1:
             self._has_validation_data = True
         else:
             self._has_validation_data = False
+        self._drop = drop_remainder
         self._value = value[0]
         self._batch_num = 0
         self._batch_size = batch_size
@@ -54,7 +55,7 @@ class dispatch(operation):
 
     def perform(self):
         if self._finished:
-            raise StopIteration
+            raise StopIteration()
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             # handle.wait()
             cur_slice = slice(self._batch_num * self._batch_size,
@@ -64,7 +65,8 @@ class dispatch(operation):
             assert self._outputs[gpu].shape == arr.shape
             if len(arr) < self._batch_size:
                 self._finished = True
-                raise StopIteration
+                if self._drop:
+                    raise StopIteration()
             pin = handle.getPinnedMemory(arr)
             assert pin.shape == self._outputs[gpu].shape
             self._outputs[gpu].to_gpu(pin)
@@ -115,13 +117,15 @@ class dispatch_cpu(dispatch):
 
     def perform(self):
         if self._finished:
-            raise StopIteration
+            raise StopIteration()
         cur_slice = slice(self._batch_num * self._batch_size,
                           (1 + self._batch_num) * self._batch_size)
         arr = self._value[self._perm[cur_slice]]
         self._outputs.shape[0].value = len(arr)
         if len(arr) < self._batch_size:
             self._finished = True
+            if self._drop:
+                raise StopIteration()
         self._outputs['cpu'] = arr
         self._batch_num += 1
 
@@ -141,7 +145,8 @@ class data_entry_element(UserGraph):
 
 class Distro:
 
-    def __init__(self, data, labels, keyword=None, batch_size=64, num_gpus=1, shuffle=True, test_split=None):
+    def __init__(self, data, labels, keyword=None, batch_size=64,
+                 num_gpus=1, shuffle=True, test_split=None, drop_remainder=False):
         super().__init__()
         assert len(data) == len(labels)
         self._data = data
@@ -161,13 +166,15 @@ class Distro:
             data = [data]
             labels = [labels]
 
+        common_args = {'num_gpus': num_gpus, 'batch_size': batch_size,
+                       'shuffle': shuffle, 'drop_remainder': drop_remainder}
+
         if rm.is_cuda_active():
-            data_op = dispatch(data, num_gpus=num_gpus, batch_size=batch_size, shuffle=shuffle)
-            lbls_op = dispatch(labels, num_gpus=num_gpus, batch_size=batch_size, shuffle=shuffle)
+            data_op = dispatch(data, **common_args)
+            lbls_op = dispatch(labels, **common_args)
         else:
-            data_op = dispatch_cpu(data, num_gpus=num_gpus, batch_size=batch_size, shuffle=shuffle)
-            lbls_op = dispatch_cpu(labels, num_gpus=num_gpus,
-                                   batch_size=batch_size, shuffle=shuffle)
+            data_op = dispatch_cpu(data, **common_args)
+            lbls_op = dispatch_cpu(labels, **common_args)
         data_op.attach(lbls_op)
         if keyword is not None:
             assert isinstance(keyword, tuple) and len(keyword) == 2

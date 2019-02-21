@@ -25,16 +25,31 @@ class gradient_accumulator(operation):
             assert all(grad.shape == shape for grad in self._inputs)
             out = GraphMultiStorage(shape=shape, gpus=self.gpus)
         self._outputs = out
-        self._vars = {'y' : out, 'dy' : out}
+        self._vars = {'y': out, 'dy': out}
 
     def perform(self):
         if self._num_grads == 1:
             pass
         else:
-            dy = 0
-            for input in self._inputs:
-                dy += input['cpu']
-            self._outputs['cpu'] = dy
+            if rm.is_cuda_active():
+                self.accumulate_gpu()
+            else:
+                self.accumulate_cpu()
+
+
+    def accumulate_gpu(self):
+        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            rm.cu.cusub(self._outputs[gpu], self._outputs[gpu],
+                        self._outputs[gpu], handle)
+            for grad in self._inputs:
+                rm.cu.cuadd(self._outputs[gpu], grad[gpu],
+                            self._outputs[gpu], handle)
+
+    def accumulate_cpu(self):
+        dy = 0
+        for grad in self._inputs:
+            dy += grad['cpu']
+        self._outputs['cpu'] = dy
 
 class update_operation(operation):
     '''
