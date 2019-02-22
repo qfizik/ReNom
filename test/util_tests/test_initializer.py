@@ -12,12 +12,12 @@ from renom.config import precision
 
 class MyModel(rm.Model):
     def __init__(self):
-        self.c1=rm.Conv2d(32, filter=3, padding = 1, stride=1)
-        self.c2=rm.Conv2d(32, filter=3, padding = 1, stride=1)
-        self.l1=rm.Dense(128)
-        self.l2=rm.Dense(4)
+        self.c1 = rm.Conv2d(32, filter=3, padding=1, stride=1)
+        self.c2 = rm.Conv2d(32, filter=3, padding=1, stride=1)
+        self.l1 = rm.Dense(128)
+        self.l2 = rm.Dense(4)
 
-    def forward(self,x):
+    def forward(self, x):
         h = self.c1(x)
         h = rm.relu(h)
         h = self.c2(h)
@@ -71,10 +71,10 @@ class Test_Initializer:
         # create model and get weight
         model = self.model1
         model.set_initializer(initial_object)
-        x = np.random.random((1 ,128, 128, 1))
+        x = np.random.random((1, 128, 128, 1))
         _ = model(x)
 
-        weights=[]
+        weights = []
         for w in model.iter_models():
             if hasattr(w, "_initializer"):
                 weights.append(w.params.w.as_ndarray())
@@ -131,7 +131,7 @@ class Test_Initializer:
 
         for weight in weights:
             shape = weight.shape
-            std = self.glorot_range(shape, 2)*self.std_margin
+            std = self.glorot_range(shape, 2) * self.std_margin
 
             assert np.all(np.std(weight) <= std)
 
@@ -152,7 +152,7 @@ class Test_Initializer:
 
         for weight in weights:
             shape = weight.shape
-            std = self.he_range(shape, 2)*self.std_margin
+            std = self.he_range(shape, 2) * self.std_margin
 
             assert np.all(np.std(weight) <= std)
 
