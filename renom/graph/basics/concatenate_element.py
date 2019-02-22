@@ -97,7 +97,7 @@ class ConcatenateElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-class ConcatenateGraphElement(GraphFactory):
+class Concat(GraphFactory):
 
     def __init__(self, axis=0):
         super().__init__()
@@ -109,7 +109,7 @@ class ConcatenateGraphElement(GraphFactory):
         return ConcatenateElement(other, axis=self.axis)
 
 
-def concatenate(self, axis=0):
-    assert isinstance(self, (list, tuple)), \
+def concatenate(elems, axis=0):
+    assert isinstance(elems, (list, tuple)), \
         "Concatenate accepts only list or tuple of array."
-    return ConcatenateElement([*self], axis=axis)
+    return ConcatenateElement([*elems], axis=axis)

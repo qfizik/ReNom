@@ -14,6 +14,11 @@ class lstm_forward(operation):
         self._init = init.GlorotNormal() if initializer is None else initializer
 
     def setup(self, inputs):
+        if len(inputs) > 3:
+            prev_lstm = inputs[3]
+        else:
+            prev_lstm = None
+
         weights_r = inputs[2]['y']
         weights = inputs[1]['y']
         inputs = inputs[0]['y']
@@ -28,58 +33,15 @@ class lstm_forward(operation):
         weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=self._init)
         weights_r.__init__(shape=weight_r_shape, gpus=self.gpus, initializer=self._init)
         outs = GraphMultiStorage(shape=out_shape, gpus=self.gpus)
-        self._vars = {'y': outs, 'w': weights, 'wr': weights_r}
+        self._vars = {'y': outs, 'w': weights, 'wr': weights_r, 'pfgate': None}
         self._weights = weights
         self._weights_r = weights_r
         self._outputs = outs
-        self._state = None
+        self._prev = prev_lstm
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            x = self._inputs[gpu]
-            w = self._weights[gpu]
-            wr = self._weights_r[gpu]
-
-            if self._state is None:
-                shp = (x.shape[0], w.shape[1] // 4)
-                self._state = {}
-                for gpu_tmp, _ in rm.cuda.RenomHandlers(self.gpus):
-                    self._state[gpu_tmp] = StateHolder()
-                    tmp_state = self._state[gpu_tmp]
-                    tmp_state.set_prev('s' + str(gpu_tmp), rm.GPUValue(np.zeros(shp)))
-                    tmp_state.set_prev('z' + str(gpu_tmp), rm.GPUValue(np.zeros(shp)))
-                    tmp_state.set_prev('pfgate' + str(gpu_tmp), rm.GPUValue(np.zeros(shp)))
-
-            s_p = self._state[gpu].get_prev('s' + str(gpu))
-            z_p = self._state[gpu].get_prev('z' + str(gpu))
-            tmp1 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
-            tmp2 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
-
-            rm.cuda.cublas_gemm(x, 0, w, 0, tmp1, handle)
-            rm.cuda.cublas_gemm(z_p, 0, wr, 0, tmp2, handle)
-
-            u = tmp1 + tmp2
-
-            z = z_p.empty_like_me()
-            state = s_p.empty_like_me()
-
-            rm.cuda.culstm_forward_activate(u)
-            rm.cuda.culstm_forward(u, state, s_p, z)
-
-            ret = z
-            self._outputs[gpu] = ret
-            if self._state[gpu]._cur_time > 0:
-                self._state[gpu].set_prev('pfgate' + str(gpu), u)
-            self._state[gpu].push({'x' + str(gpu): x,
-                                   'ps' + str(gpu): s_p,
-                                   's' + str(gpu): state,
-                                   'z' + str(gpu): ret,
-                                   'u' + str(gpu): u,
-                                   'y' + str(gpu): ret,
-                                   })
-
-    def reset(self):
-        self._state = None
+            pass
 
 
 def sigmoid(x):
@@ -89,16 +51,16 @@ def sigmoid(x):
 class lstm_forward_cpu(lstm_forward):
 
     def perform(self):
+        prev = self._prev
         x = self._inputs['cpu']
         w = self._weights['cpu']
         wr = self._weights_r['cpu']
-        if self._state is None:
-            self._state = StateHolder({'s': np.zeros((x.shape[0], w.shape[1] // 4), dtype=rm.precision),
-                                       'z': np.zeros((x.shape[0], w.shape[1] // 4), dtype=rm.precision),
-                                       'pfgate': np.zeros((x.shape[0], w.shape[1] // 4)),
-                                       })
-        s = self._state.get_prev('s')
-        z = self._state.get_prev('z')
+        if prev is not None:
+            s = prev['s']
+            z = prev['z']
+        else:
+            s = np.zeros((x.shape[0], w.shape[1] // 4), dtype=rm.precision)
+            z = np.zeros((x.shape[0], w.shape[1] // 4), dtype=rm.precision)
 
         u = np.dot(x, w) + np.dot(z, wr)
         m = u.shape[1] // 4
@@ -112,16 +74,15 @@ class lstm_forward_cpu(lstm_forward):
 
         # Calculate ret
         self._outputs['cpu'] = ret
-        if self._state._cur_time > 0:
-            self._state.set_prev('pfgate', gated[:, :m])
-        self._state.push({'x': x,
-                          'ps': s,
-                          's': state,
-                          'z': ret,
-                          'gate': gated,
-                          'u': u,
-                          'y': ret,
-                          })
+        if prev is not None:
+            prev['pfgate'] = gated[:, :m]
+        self._vars['s'] = state
+        self._vars['ps'] = s
+        self._vars['u'] = u
+        self._vars['gate'] = gated
+        self._vars['x'] = x
+        self._vars['z'] = ret
+
 
 
 class lstm_backward(operation):
@@ -133,11 +94,10 @@ class lstm_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
-        gpus = inputs.gpus
+        self._inputs = inputs
+        gpus = inputs[0]['y'].gpus
         self.gpus = gpus
         self._inputs = inputs
-        self._state = None
         outs = GraphMultiStorage(shape=self._fwd_op._inputs.shape, gpus=self.gpus)
         w_out = GraphMultiStorage(shape=self._fwd_op._weights.shape, gpus=self.gpus)
         w_r_out = GraphMultiStorage(shape=self._fwd_op._weights_r.shape, gpus=self.gpus)
@@ -147,65 +107,11 @@ class lstm_backward(operation):
         self._vars = {'y': outs, id(self._fwd_op._inputs): outs,
                       'w': w_out, id(self._fwd_op._weights): w_out,
                       'wr': w_r_out, id(self._fwd_op._weights_r): w_r_out,
+                      'pfgate': None
                       }
 
     def perform(self):
-        self._state = self._fwd_op._state
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            _t = self._state[gpu]._cur_time
-            dy = self._inputs[gpu]
-            w = self._fwd_op._weights[gpu]
-            wr = self._fwd_op._weights_r[gpu]
-
-            self._outputs[gpu] = self._outputs[gpu].zeros_like_me()
-            self._w_out[gpu] = self._w_out[gpu].zeros_like_me()
-            self._w_r_out[gpu] = self._w_r_out[gpu].zeros_like_me()
-
-            drt = None
-            dou = None
-            pfg = None
-            self._state[gpu]._cur_time = _t
-            while(self._state[gpu]._cur_time > 0):
-                cur_state = self._state[gpu].peek()
-                x = cur_state['x' + str(gpu)]
-                y = cur_state['y' + str(gpu)]
-
-                u = cur_state['u' + str(gpu)]
-                s = cur_state['s' + str(gpu)]
-                rm.cuda.cutanh(s, s)
-                ps = cur_state['ps' + str(gpu)]
-
-                if drt is None:
-                    drt = u.zeros_like_me()
-                    dou = dy.zeros_like_me()
-
-                pfg = cur_state['pfgate' + str(gpu)]
-
-                e = dy
-
-                dr, dou_n = (a.empty_like_me() for a in (drt, dou))
-
-                rm.cuda.culstm_backward(u, dr, s, ps, e, pfg, dou, dou_n)
-                dx = rm.GPUValue(shape=(dr.shape[0], w.shape[0]))
-                rm.cuda.cublas_gemm(dr, 0, w, 1, dx, handle)
-
-                dw = rm.GPUValue(shape=(x.shape[1], dr.shape[1]))
-                rm.cuda.cublas_gemm(x, 1, dr, 0, dw, handle)
-
-                dwr = rm.GPUValue(shape=(y.shape[1], drt.shape[1]))
-                rm.cuda.cublas_gemm(y, 1, drt, 0, dwr, handle)
-
-                self._outputs[gpu] += dx
-                self._w_out[gpu] += dw
-                self._w_r_out[gpu] += dwr
-
-                drt = dr
-                dou = dou_n
-                self._state[gpu]._cur_time -= 1
-                tmp = dy.empty_like_me()
-                rm.cuda.cublas_gemm(dr, 0, wr, 1, tmp, handle)
-                dy = tmp
-
+        pass
 
 def gate_diff(x):
     return x * (-x + 1.)
@@ -218,54 +124,69 @@ def activation_diff(x):
 class lstm_backward_cpu(lstm_backward):
 
     def perform(self):
-        self._state = self._fwd_op._state
+        fwd = self._fwd_op._vars
+        dy = 0
+        n, m = self._fwd_op._outputs.shape
+        type = self._inputs[-1]['y']['cpu'].dtype
+        drt = np.zeros((n, m * 4), dtype=type)
+        dou = np.zeros((n, m), dtype=type)
+        for grad in self._inputs:
+            if 'pfgate' in grad:
+                dy += grad['z']
+                drt = grad['drt']
+                dou = grad['dou']
+            else:
+                dy += grad['y']['cpu']
 
-        dy = self._inputs['cpu']
-        n, m = dy.shape
+
+        #n, m = dy.shape
         dx, dw, dwr = (0, 0, 0)
 
-        w = self._fwd_op._weights['cpu']
-        wr = self._fwd_op._weights_r['cpu']
-        drt = np.zeros((n, m * 4), dtype=dy.dtype)
-        dou = np.zeros((n, m), dtype=dy.dtype)
+        w = fwd['w']['cpu']
+        wr = fwd['wr']['cpu']
 
-        while(self._state._cur_time > 0):
-            cur_state = self._state.peek()
-            u = cur_state['u']
-            s = np.tanh(cur_state['s'])
-            x = cur_state['x']
-            y = cur_state['y']
 
-            gated = cur_state['gate']
-            gd = gate_diff(gated)
-            ps = cur_state['ps']
 
-            pfg = cur_state['pfgate']
+        u = fwd['u']
+        s = np.tanh(fwd['s'])
+        x = fwd['x']
+        y = fwd['y']['cpu']
 
-            e = dy
+        gated = fwd['gate']
+        gd = gate_diff(gated)
+        ps = fwd['ps']
 
-            do = e * s * gd[:, 2 * m:]
-            dou = e * gated[:, 2 * m:] * activation_diff(s) + pfg * dou
+        pfg = fwd['pfgate']
+        if pfg is None:
+            pfg = np.zeros((x.shape[0], w.shape[1] // 4))
 
-            df = dou * gd[:, :m] * ps
-            di = dou * gd[:, m:2 * m] * u
-            dc = dou * activation_diff(u) * gated[:, m:2 * m]
+        e = dy
 
-            dr = np.hstack((dc, df, di, do))
-            dx += np.dot(dr, w.T)
 
-            dw += np.dot(x.T, dr)
+        do = e * s * gd[:, 2 * m:]
+        dou = e * gated[:, 2 * m:] * activation_diff(s) + pfg * dou
 
-            dwr += np.dot(y.T, drt)
+        df = dou * gd[:, :m] * ps
+        di = dou * gd[:, m:2 * m] * u
+        dc = dou * activation_diff(u) * gated[:, m:2 * m]
 
-            dy = np.dot(dr, wr.T)
-            drt = dr
-            self._state.pop()
+        dr = np.hstack((dc, df, di, do))
+        dx += np.dot(dr, w.T)
+
+        dw += np.dot(x.T, dr)
+
+        dwr += np.dot(y.T, drt)
+
+        dy = np.dot(dr, wr.T)
+        drt = dr
 
         # Calculate ret
         self._outputs['cpu'] = dx
         self._w_out['cpu'] = dw
         self._w_r_out['cpu'] = dwr
+        self._vars['z'] = dy
+        self._vars['drt'] = drt
+        self._vars['dou'] = dou
 
 
 class LstmElement(UserGraph):
@@ -276,6 +197,16 @@ class LstmElement(UserGraph):
         bwd_ops = [lstm_backward(fwd_op) if rm.is_cuda_active() else lstm_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
+    def connect_back(self, previous_element, pos=0):
+        if len(self._bwd_graphs) == 0:
+            return
+        pos = 0
+        backward_graph_input = previous_element.get_backward_output(pos)
+        if backward_graph_input is not None:
+            for graph in self._bwd_graphs:
+                graph.add_input(backward_graph_input)
+
+
 
 class Lstm(GraphFactory):
 
@@ -285,23 +216,21 @@ class Lstm(GraphFactory):
         self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['wr'] = graph_variable(weight_decay=weight_decay)
-        self._l = None
+        self._prev = None
+        self._prevlist = []
+
 
     def reset(self):
-        if self._l is not None:
-            self._l.detach()
-        self._l = None
+        self._prev = None
+        for p in self._prevlist:
+            p.detach()
+        self._prevlist = []
 
     def connect(self, other):
-        if self._l is None:
-            ret = LstmElement(self._output_size, self._init, previous_elements=[
-                              other, self.params['w'], self.params['wr']])
-        else:
-            ret = self._l
-            prvs = rm.graph.core.user_graph._prepare_prevs(
-                [other, self.params['w'], self.params['wr']])
-            assert prvs[1].output is self.params['w'].output
-            assert prvs[2].output is self.params['wr'].output
-            ret.connect(prvs)
-        self._l = ret
+        prevs = [other, self.params['w'], self.params['wr']]
+        if self._prev is not None:
+            prevs.append(self._prev)
+        ret = LstmElement(self._output_size, self._init, previous_elements=prevs)
+        self._prevlist.append(ret)
+        self._prev = ret
         return ret

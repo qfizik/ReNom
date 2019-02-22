@@ -9,7 +9,7 @@ from .sum_element import SumElement, Sum, sum
 from .mean_element import MeanElement, Mean, mean
 from .min_element import MinElement, Min, min
 from .max_element import MaxElement, Max, max
-from .concatenate_element import ConcatenateElement, concatenate
+from .concatenate_element import ConcatenateElement, concatenate, Concat
 from .sqrt_element import SqrtElement, sqrt
 from .log_element import LogElement, log
 from .square_element import SquareElement, square

@@ -406,23 +406,35 @@ def test_lstm(test_shape, use_gpu, num_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.Lstm(output_size=4)
+    c = rm.graph.Concat()
     l = rm.graph.ConstantLoss()
     m = model(val)
-    loss = l(m)
+
 
     def func():
-        m._fwd._op.reset()
-        loss.forward()
-        loss.forward()
-        ret = loss.as_ndarray()
-        return ret
+        model.reset()
+        h1 = model(val)
+        h2 = model(val)
+        h3 = model(val)
+        ret = l(c([h1, h2, h3]))
+        #ret = l(h3)
+        #ret = l(h2 + h2 * 2)
+        return ret.as_ndarray()
 
-    compare(getNumericalDiff(func, val.value), loss.backward(
-    ).get_gradient(val.value), abs_tol=1e-3)
-    compare(getNumericalDiff(func, model.params['w'].output), loss.backward(
-    ).get_gradient(model.params['w'].output), abs_tol=1e-3)
-    compare(getNumericalDiff(func, model.params['wr'].output), loss.backward(
-    ).get_gradient(model.params['wr'].output), abs_tol=1e-3)
+    model.reset()
+    h1 = model(val)
+    h2 = model(val)
+    h3 = model(val)
+    loss = l(c([h1, h2, h3]))
+    #loss = l(h3)
+    #loss = l(h2 + h2 * 2)
+    grad = loss.backward().get_gradient(val.value)
+    grad_w = loss.get_gradient(model.params['w'].output)
+    grad_wr = loss.get_gradient(model.params['wr'].output)
+
+    compare(getNumericalDiff(func, val.value), grad, abs_tol=1e-3)
+    compare(getNumericalDiff(func, model.params['w'].output), grad_w, abs_tol=1e-3)
+    compare(getNumericalDiff(func, model.params['wr'].output), grad_wr, abs_tol=1e-3)
 
 
 @pytest.mark.parametrize("test_shape", [
