@@ -147,7 +147,8 @@ class operational_element(graph_element):
     def print_tree(self):
         print('I am a \x1b[31m{:s}\x1b[0m at depth {:d} with tags: {}'.format(
             self._op.name, self.depth, self._tags))
-        print('My prevs are: \x1b[33m{}\x1b[0m'.format([v._op.name for v in self._previous_elements]))
+        print('My prevs are: \x1b[33m{}\x1b[0m'.format(
+            [v._op.name for v in self._previous_elements]))
 
     @graph_element.walk_tree
     @check_tags

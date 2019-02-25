@@ -71,7 +71,7 @@ class lstm_forward(operation):
 
             # Calculate ret
             self._outputs[gpu] = ret
-            
+
         if prev is not None:
             prev['pfgate'] = new_u
         self._vars['s'] = new_s
@@ -170,7 +170,8 @@ class lstm_backward(operation):
                 dou = grad['dou']
         if drt is None:
             drt = GraphMultiStorage(shape=u.shape, gpus=self.gpus, initializer=init.Constant(0))
-            dou = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus, initializer=init.Constant(0))
+            dou = GraphMultiStorage(shape=fwd['y'].shape,
+                                    gpus=self.gpus, initializer=init.Constant(0))
 
 
 
@@ -186,7 +187,8 @@ class lstm_backward(operation):
                     dy += grad['y'][gpu]
 
             rm.cuda.cutanh(s[gpu], s[gpu])
-            rm.cuda.culstm_backward(u[gpu], dr[gpu], s[gpu], ps[gpu], dy, pfg[gpu], dou[gpu], dou_n[gpu])
+            rm.cuda.culstm_backward(u[gpu], dr[gpu], s[gpu], ps[gpu],
+                                    dy, pfg[gpu], dou[gpu], dou_n[gpu])
 
             # dx
             rm.cuda.cublas_gemm(dr[gpu], 0, w[gpu], 1, self._outputs[gpu], handle)
