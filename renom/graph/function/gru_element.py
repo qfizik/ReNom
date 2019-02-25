@@ -14,6 +14,10 @@ class gru_forward(operation):
         self._init = init.GlorotNormal() if initializer is None else initializer
 
     def setup(self, inputs):
+        if len(inputs) > 4:
+            prev = inputs[4]
+        else:
+            prev = None
         bias = inputs[3]['y']
         weights_r = inputs[2]['y']
         weights = inputs[1]['y']
@@ -31,12 +35,12 @@ class gru_forward(operation):
         bias.__init__(shape=(1, self._output_size * 3),
                       gpus=self.gpus, initializer=init.Constant(1))
         outs = GraphMultiStorage(shape=out_shape, gpus=self.gpus)
-        self._vars = {'y': outs, 'w': weights, 'wr': weights_r, 'b': bias}
+        self._vars = {'y': outs, 'x': inputs, 'w': weights, 'wr': weights_r, 'b': bias}
         self._weights = weights
         self._weights_r = weights_r
+        self._prev_gru = prev
         self._bias = bias
         self._outputs = outs
-        self._state = None
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
@@ -83,11 +87,10 @@ class gru_forward_cpu(gru_forward):
         w = self._weights['cpu']
         u = self._weights_r['cpu']
         b = self._bias['cpu']
-        if self._state is None:
-            self._state = StateHolder({
-                'z': np.zeros((x.shape[0], w.shape[1] // 3), dtype=rm.precision),
-            })
-        pz = self._state.get_prev('z')
+        if self._prev_gru is None:
+            pz = np.zeros((x.shape[0], w.shape[1] // 3), dtype=rm.precision)
+        else:
+            pz = self._prev_gru['z']
 
         m = w.shape[1] // 3
         w_z, w_r, w_h = np.split(w, [m, m * 2, ], axis=1)
@@ -104,14 +107,11 @@ class gru_forward_cpu(gru_forward):
 
         # Calculate ret
         self._outputs['cpu'] = h
-        self._state.push({
-            'x': x,
-            'z': h,
-            'A': A,
-            'B': B,
-            'C': C,
-            'hminus': pz,
-        })
+        self._vars['z'] = h
+        self._vars['A'] = A
+        self._vars['B'] = B
+        self._vars['C'] = C
+        self._vars['hminus'] = pz
 
 
 class gru_backward(operation):
@@ -123,11 +123,9 @@ class gru_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['dy']
-        gpus = inputs.gpus
-        self.gpus = gpus
         self._inputs = inputs
-        self._state = None
+        gpus = inputs[0]['y'].gpus
+        self.gpus = gpus
         outs = GraphMultiStorage(shape=self._fwd_op._inputs.shape, gpus=self.gpus)
         w_out = GraphMultiStorage(shape=self._fwd_op._weights.shape, gpus=self.gpus)
         w_r_out = GraphMultiStorage(shape=self._fwd_op._weights_r.shape, gpus=self.gpus)
@@ -138,6 +136,7 @@ class gru_backward(operation):
             'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs,
             'w': w_out, id(self._fwd_op._weights): w_out,
             'wr': w_r_out, id(self._fwd_op._weights_r): w_r_out,
+            'gru_unit': None,
         }
 
     def perform(self):
@@ -193,56 +192,56 @@ def tanh_diff(x):
 class gru_backward_cpu(gru_backward):
 
     def perform(self):
-        self._state = self._fwd_op._state
-
-        dy = self._inputs['cpu']
+        fwd = self._fwd_op._vars
+        dy = 0
+        for grad in self._inputs:
+            if 'gru_unit' in grad:
+                dy += grad['z']
+            else:
+                dy += grad['y']['cpu']
         n, m = dy.shape
-        dx, dw, dwr = (0, 0, 0)
 
-        w = self._fwd_op._weights['cpu']
-        u = self._fwd_op._weights_r['cpu']
+        w = fwd['w']['cpu']
+        u = fwd['wr']['cpu']
         w_z, w_r, w_h = np.split(w, [m, m * 2, ], axis=1)
         u_z, u_r, u_h = np.split(u, [m, m * 2], axis=1)
 
-        while(self._state._cur_time > 0):
-            cur_state = self._state.peek()
-            x = cur_state['x']
-            A = cur_state['A']
-            B = cur_state['B']
-            C = cur_state['C']
-            hminus = cur_state['hminus']
-            y = dy
+        x = fwd['x']['cpu']
+        A = fwd['A']
+        B = fwd['B']
+        C = fwd['C']
+        hminus = fwd['hminus']
+        y = dy
 
-            dA = sigmoid_diff(A)
-            dB = sigmoid_diff(B)
-            dC = tanh_diff(C)
+        dA = sigmoid_diff(A)
+        dB = sigmoid_diff(B)
+        dC = tanh_diff(C)
 
-            # Calculate dx
-            dx_z = np.dot(y * dA, w_z.T)
-            dx_r = np.dot(y * dB * dC * u_h * hminus, w_r.T)
-            dx_h = np.dot(y * dC, w_h.T)
-            dx += dx_z + dx_r + dx_h
+        # Calculate dx
+        dx_z = np.dot(y * dA, w_z.T)
+        dx_r = np.dot(y * dB * dC * u_h * hminus, w_r.T)
+        dx_h = np.dot(y * dC, w_h.T)
+        dx = dx_z + dx_r + dx_h
 
-            # Calculate dw
-            dw_z = np.dot(x.T, y * dA)
-            dw_r = np.dot(x.T, y * dB * dC * u_h * hminus)
-            dw_h = np.dot(x.T, y * dC)
-            dw += np.concatenate([dw_z, dw_r, dw_h], axis=1)
+        # Calculate dw
+        dw_z = np.dot(x.T, y * dA)
+        dw_r = np.dot(x.T, y * dB * dC * u_h * hminus)
+        dw_h = np.dot(x.T, y * dC)
+        dw = np.concatenate([dw_z, dw_r, dw_h], axis=1)
 
-            du_z = np.sum(dA * hminus * y, axis=0, keepdims=True)
-            du_r = np.sum(y * dC * dB * u_h * hminus * hminus, axis=0, keepdims=True)
-            du_h = np.sum(sigmoid(B) * dC * y * hminus, axis=0, keepdims=True)
-            dwr += np.concatenate([du_z, du_r, du_h], axis=1)
-            pz_z = y * dA * u_z
-            pz_r = y * dC * dB * u_h * hminus * u_r
-            pz_h = y * dC * sigmoid(B) * u_h
+        du_z = np.sum(dA * hminus * y, axis=0, keepdims=True)
+        du_r = np.sum(y * dC * dB * u_h * hminus * hminus, axis=0, keepdims=True)
+        du_h = np.sum(sigmoid(B) * dC * y * hminus, axis=0, keepdims=True)
+        dwr = np.concatenate([du_z, du_r, du_h], axis=1)
+        pz_z = y * dA * u_z
+        pz_r = y * dC * dB * u_h * hminus * u_r
+        pz_h = y * dC * sigmoid(B) * u_h
 
-            dy = pz_z + pz_r + pz_h
-
-            self._state.pop()
+        dy = pz_z + pz_r + pz_h
 
         # Calculate ret
         self._outputs['cpu'] = dx
+        self._vars['z'] = dy
         self._w_out['cpu'] = dw
         self._w_r_out['cpu'] = dwr
 
@@ -255,6 +254,15 @@ class GruElement(UserGraph):
         bwd_ops = [gru_backward(fwd_op) if rm.is_cuda_active() else gru_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
+    def connect_back(self, previous_element, pos=0):
+        if len(self._bwd_graphs) == 0:
+            return
+        pos = 0
+        backward_graph_input = previous_element.get_backward_output(pos)
+        if backward_graph_input is not None:
+            for graph in self._bwd_graphs:
+                graph.add_input(backward_graph_input)
+
 
 class Gru(GraphFactory):
 
@@ -265,8 +273,22 @@ class Gru(GraphFactory):
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['wr'] = graph_variable(weight_decay=weight_decay)
         self.params['b'] = graph_variable(allow_update=not ignore_bias)
+        self._prev = None
+        self._prevlist = []
+
+
+    def reset(self):
+        self._prev = None
+        for p in self._prevlist:
+            p.detach()
+        self._prevlist = []
+
 
     def connect(self, other):
-        ret = GruElement(self._output_size, self._init, previous_elements=[
-                         other, self.params['w'], self.params['wr'], self.params['b']])
+        prevs = [other, self.params['w'], self.params['wr'], self.params['b']]
+        if self._prev is not None:
+            prevs.append(self._prev)
+        ret = GruElement(self._output_size, self._init, previous_elements=prevs)
+        self._prevlist.append(ret)
+        self._prev = ret
         return ret
