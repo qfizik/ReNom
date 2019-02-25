@@ -40,8 +40,46 @@ class lstm_forward(operation):
         self._prev = prev_lstm
 
     def perform(self):
+        prev = self._prev
+        n, m = self._inputs.shape[0], self._weights.shape[1] // 4
+        new_s = GraphMultiStorage(shape=(n, m), gpus=self.gpus)
+        new_z = GraphMultiStorage(shape=(n, m), gpus=self.gpus)
+        new_u = GraphMultiStorage(shape=(n, m * 4), gpus=self.gpus)
+        if prev is not None:
+            ps = prev['s']
+            pz = prev['z']
+        else:
+            ps = GraphMultiStorage(shape=(n, m), gpus=self.gpus, initializer=init.Constant(0))
+            pz = GraphMultiStorage(shape=(n, m), gpus=self.gpus, initializer=init.Constant(0))
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            pass
+            x = self._inputs[gpu]
+            w = self._weights[gpu]
+            wr = self._weights_r[gpu]
+
+            tmp1 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
+            tmp2 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
+
+            rm.cuda.cublas_gemm(x, 0, w, 0, tmp1, handle)
+            rm.cuda.cublas_gemm(pz[gpu], 0, wr, 0, tmp2, handle)
+
+            #u = tmp1 + tmp2
+            rm.cuda.cuadd(tmp1, tmp2, new_u[gpu], handle)
+            rm.cuda.culstm_forward_activate(new_u[gpu])
+            rm.cuda.culstm_forward(new_u[gpu], new_s[gpu], ps[gpu], new_z[gpu])
+
+            ret = new_z[gpu]
+
+            # Calculate ret
+            self._outputs[gpu] = ret
+            
+        if prev is not None:
+            prev['pfgate'] = new_u
+        self._vars['s'] = new_s
+        self._vars['ps'] = ps
+        self._vars['u'] = new_u
+        self._vars['x'] = self._inputs
+        self._vars['z'] = self._outputs
+        self._vars['pz'] = pz
 
 
 def sigmoid(x):
@@ -111,7 +149,61 @@ class lstm_backward(operation):
                       }
 
     def perform(self):
-        pass
+        fwd = self._fwd_op._vars
+        drt = None
+        dou = None
+
+        w = fwd['w']
+        wr = fwd['wr']
+
+        u = fwd['u']
+        s = fwd['s']
+        ps = fwd['ps']
+
+        pfg = fwd['pfgate']
+        if pfg is None:
+            pfg = GraphMultiStorage(shape=u.shape, gpus=self.gpus, initializer=init.Constant(0))
+
+        for grad in self._inputs:
+            if 'pfgate' in grad:
+                drt = grad['drt']
+                dou = grad['dou']
+        if drt is None:
+            drt = GraphMultiStorage(shape=u.shape, gpus=self.gpus, initializer=init.Constant(0))
+            dou = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus, initializer=init.Constant(0))
+
+
+
+        dr = GraphMultiStorage(shape=u.shape, gpus=self.gpus)
+        dou_n = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
+        new_z = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
+        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            dy = fwd['y'][gpu].zeros_like_me()
+            for grad in self._inputs:
+                if 'pfgate' in grad:
+                    dy += grad['z'][gpu]
+                else:
+                    dy += grad['y'][gpu]
+
+            rm.cuda.cutanh(s[gpu], s[gpu])
+            rm.cuda.culstm_backward(u[gpu], dr[gpu], s[gpu], ps[gpu], dy, pfg[gpu], dou[gpu], dou_n[gpu])
+
+            # dx
+            rm.cuda.cublas_gemm(dr[gpu], 0, w[gpu], 1, self._outputs[gpu], handle)
+
+            # dw
+            rm.cuda.cublas_gemm(fwd['x'][gpu], 1, dr[gpu], 0, self._w_out[gpu], handle)
+
+            # dwr
+            rm.cuda.cublas_gemm(fwd['y'][gpu], 1, drt[gpu], 0, self._w_r_out[gpu], handle)
+
+            # dz
+            rm.cuda.cublas_gemm(dr[gpu], 0, wr[gpu], 1, new_z[gpu], handle)
+
+        self._vars['drt'] = dr
+        self._vars['dou'] = dou_n
+        self._vars['z'] = new_z
+
 
 def gate_diff(x):
     return x * (-x + 1.)

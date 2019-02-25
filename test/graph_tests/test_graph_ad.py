@@ -408,7 +408,6 @@ def test_lstm(test_shape, use_gpu, num_gpu):
     model = rm.graph.Lstm(output_size=4)
     c = rm.graph.Concat()
     l = rm.graph.ConstantLoss()
-    m = model(val)
 
 
     def func():
