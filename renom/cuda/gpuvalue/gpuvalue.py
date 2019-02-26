@@ -259,12 +259,12 @@ def build_shapes(arr, indexes):
 
         if is_split_adv:
             # move adv indexes at topmost
-            indexes = ([ind for ind, stride, shape in advs] +
-                       [ind for ind, stride, shape in stds])
-            strides = ([stride for ind, stride, shape in advs] +
-                       [stride for ind, stride, shape in stds])
-            src_shape = ([shape for ind, stride, shape in advs] +
-                         [shape for ind, stride, shape in stds])
+            indexes = ([ind for ind, stride, shape in advs]
+                       + [ind for ind, stride, shape in stds])
+            strides = ([stride for ind, stride, shape in advs]
+                       + [stride for ind, stride, shape in stds])
+            src_shape = ([shape for ind, stride, shape in advs]
+                         + [shape for ind, stride, shape in stds])
 
         adv_shape = calc_broadcast_shape(*[adv.org_index for adv, stride, shape in advs])
 
@@ -353,16 +353,33 @@ def _build_broadcast_mask(left, right):
         reminds = right[:-1 * len(left)]
         for r in reminds:
             if r != 1:
-                raise ValueError("could not broadcast")
+                raise ValueError(
+                    "could not broadcast (non 1-indices of higher rank than destination)")
         right = right[-1 * len(left):]
     elif len(right) < len(left):
-        right = (1,) * (len(left) - len(right)) + right
+        loops = 0
+        l_pos = 0
+        r_pos = 0
+        new_right = tuple()
+        while len(new_right) < len(left):
+            if len(new_right) < len(left) and right[r_pos] == left[l_pos]:
+                new_right += (right[r_pos],)
+                r_pos += 1
+                l_pos += 1
+            else:
+                new_right += (1,)
+                l_pos += 1
+
+            loops += 1
+            if loops > len(left):
+                raise ValueError("could not broadcast (error expanding indices)")
+        right = new_right
 
     mask = []
     for lft, rgt in zip(left, right):
         if lft != rgt:
             if rgt != 1:
-                raise ValueError("could not broadcast")
+                raise ValueError("could not broadcast (error filling 1-indices)")
             mask.append(0)
         else:
             mask.append(1)
