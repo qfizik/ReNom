@@ -126,6 +126,11 @@ class operational_element(graph_element):
         for elem in self._next_elements:
             elem.continue_setup(tag)
 
+    @graph_element.walk_tree
+    def total_setup(self, tag=None):
+        self.setup(tag=tag)
+
+
     @check_tags
     def setup(self):
         if not self.inputs_changed():

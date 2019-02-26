@@ -199,7 +199,7 @@ class UserGraph(graph_element):
             'root': self._fwd._op,
         }
         if mode == 'training':
-            self._fwd.continue_setup()
+            self._fwd.total_setup()
         ret = Executor(call_list, ops, mode)
         if with_validation is True:
             ret._set_validation()
