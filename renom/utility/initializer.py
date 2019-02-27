@@ -86,7 +86,7 @@ class GlorotNormal(Initializer):
         if len(shape) == 2:
             fan_in = shape[0]
             fan_out = shape[1]
-        elif len(shape) == 4:
+        elif len(shape) > 2:
             size = np.prod(shape[2:])
             fan_in = shape[0] * size
             fan_out = shape[1] * size
@@ -192,3 +192,24 @@ class Uniform(Initializer):
         shape[1:]
         delt = self._max - self._min
         return (np.random.rand(*shape) * delt + self._min).astype(precision)
+
+
+class Orthogonal(Initializer):
+
+    '''Orthogonal initializer.
+    Initialize parameters using orthogonal initialization.
+
+    .. [1] Andrew M. Saxe, James L. McClelland, Surya Ganguli https://arxiv.org/abs/1312.6120
+       Exact solutions to the nonlinear dynamics of learning in deep linear neural networks
+    '''
+
+    def __init__(self):
+        super(Orthogonal, self).__init__()
+
+    def __call__(self, shape):
+        c_shape = (shape[0], np.prod(shape[1:]))
+        X = np.random.random(c_shape)
+        U, _, Vt = np.linalg.svd(X, full_matrices=False)
+        res = U if U.shape == c_shape else Vt
+
+        return res.reshape(shape).astype(precision)

@@ -164,7 +164,7 @@ class L2NormGraph(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
-class L2NormGraphElement(GraphFactory):
+class L2Norm(GraphFactory):
 
     def __init__(self, scale=20, weight_decay=None):
         super().__init__()

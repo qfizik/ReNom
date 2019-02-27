@@ -81,12 +81,15 @@ class BiasElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_graphs, previous_elements=previous_element)
 
 
-class BiasGraphElement(GraphFactory):
+class Bias(GraphFactory):
 
     def __init__(self):
         super().__init__()
         self.params['b'] = graph_variable()
 
     def connect(self, other):
+        if not self._make_update_graphs:
+            for op_num, upd_g in other._update_graphs:
+                upd_g.detach()
         ret = BiasElement(previous_element=[other, self.params['b']])
         return ret

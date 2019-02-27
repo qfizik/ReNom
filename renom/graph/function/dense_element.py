@@ -4,11 +4,11 @@ import renom as rm
 import numpy as np
 
 
-class DenseGraphElement(GraphFactory):
+class Dense(GraphFactory):
     '''Fully connected layer as described below.
 
         See also :py:class:`~renom.layers.function.dense.Dense`
-        See also :class:`~renom.graph.function.BiasGraphElement`
+        See also :class:`~renom.graph.function.Bias`
 
           :math:`f(x)= w \cdot x + b`
 
@@ -25,31 +25,31 @@ class DenseGraphElement(GraphFactory):
           In [3]: x = np.random.rand(3, 2)
           In [4]: x.shape
           Out[4]: (3, 2)
-          In [5]: layer = rm.graph.DenseGraphElement(3)
+          In [5]: layer = rm.graph.Dense(3)
           In [6]: z = layer(x).as_ndarray()
           In [7]: z.shape
           Out[7]: (3, 3)
     '''
 
-    def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
+    def __init__(self, output_size=1, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self.output_size = output_size
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self._ignore_bias = ignore_bias
         if not ignore_bias:
-            self._bias = rm.graph.BiasGraphElement()
+            self._bias = rm.graph.Bias()
             self.params['b'] = self._bias.params['b']
         self._init = initializer
 
     def connect(self, other):
-        ret = DenseGraph(output_size=self.output_size, initializer=self._init,
-                         previous_element=[other, self.params['w']])
+        ret = DenseElement(output_size=self.output_size, initializer=self._init,
+                           previous_element=[other, self.params['w']])
         if not self._ignore_bias:
             ret = self._bias(ret)
         return ret
 
 
-class DenseGraph(UserGraph):
+class DenseElement(UserGraph):
 
     def __init__(self, output_size, initializer, previous_element=None):
 

@@ -53,6 +53,12 @@ class shared_val:
     def __repr__(self):
         return self._val.__repr__()
 
+    def __le__(self, other):
+        return self._val <= int(other)
+
+    def __ge__(self, other):
+        return self._val >= int(other)
+
     def __lt__(self, other):
         return self._val < int(other)
 
@@ -85,11 +91,12 @@ class GraphMultiStorage:
     _shape = None
     _weight_decay = None
     _should_share = False
+    _gpus = None
 
     def __init__(self, shape=None, gpus=None, initializer=None,
                  share_init=None, ptrs=None):
         if self.ready is True:
-            assert self.shape == shape
+            assert self.shape == shape, "Required:{}, Actual:{}".format(self.shape, shape)
             return
         if shape is None:
             return
@@ -103,7 +110,7 @@ class GraphMultiStorage:
         self._finished_setup = False
         self._ptrs = ptrs
         self.shape = shape
-        self._should_update = True
+
         if ptrs is not None:
             assert isinstance(ptrs, GraphMultiStorage)
             shp = list(self.shape)
@@ -134,8 +141,6 @@ class GraphMultiStorage:
             with rm.cuda.RenomHandler(gpu):
                 if not self._should_share:
                     arr = get_arr()
-                meminfo = rm.cuda.cuGetMemInfo()
-                assert np.prod(self.shape) * np.dtype(rm.precision).itemsize <= meminfo[0]
                 self[gpu] = rm.GPUValue(array=arr, shape=self.shape,
                                         ptr=self._ptrs[gpu]._ptr if self._ptrs is not None else None)
 
@@ -167,6 +172,7 @@ class GraphMultiStorage:
         if isinstance(val, str):
             assert val == 'cpu'
         self._gpus = val
+        GraphMultiStorage._gpus = val
 
     def __iter__(self):
         for key in self._gpuvalues.keys():

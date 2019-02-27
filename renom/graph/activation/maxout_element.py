@@ -8,6 +8,8 @@ import numpy as np
 
 class maxout_forward(operation):
 
+    name = 'Maxout (F)'
+
     def __init__(self, slice_size=1):
         self._sz = slice_size
 
@@ -66,6 +68,8 @@ class maxout_forward_cpu(maxout_forward):
 
 class maxout_backward(operation):
 
+    name = 'Maxout (B)'
+
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 
@@ -123,7 +127,7 @@ class MaxoutElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class MaxoutGraphElement(GraphFactory):
+class Maxout(GraphFactory):
 
     def __init__(self, slice_size=1):
         '''Initializer for Elu graph producing GraphFactory.
@@ -140,3 +144,6 @@ class MaxoutGraphElement(GraphFactory):
     def connect(self, other):
         ret = MaxoutElement(self._sz, previous_elements=other)
         return ret
+
+def maxout(x, slice_size=1):
+    return MaxoutElement(slice_size, previous_elements=[x])

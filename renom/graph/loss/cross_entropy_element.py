@@ -5,8 +5,8 @@ import numpy as np
 
 class cross_entropy_forward(operation):
 
-    name = ' (F)'
-    roles = ['Loss']
+    name = 'Cross Entropy (F)'
+    roles = ['loss']
 
     def setup(self, inputs):
         assert isinstance(inputs[1], dict)
@@ -47,13 +47,17 @@ class cross_entropy_forward_cpu(cross_entropy_forward):
 
 class cross_entropy_backward(operation):
 
-    name = ' (B)'
+    name = 'Cross Entropy (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
 
+        if len(inputs) > 3:
+            self._dy = inputs[3]['y']
+        else:
+            self._dy = None
         predictions = inputs[0]['y']
         labels = inputs[1]['y']
         for a, b in zip(predictions.shape, labels.shape):
@@ -72,9 +76,14 @@ class cross_entropy_backward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            if self._dy is not None:
+                dy = self._dy[gpu]
+            else:
+                dy = 1
             rm.cuda.cudiv(self._label_input[gpu],
                           self._graph_input[gpu], self._outputs[gpu], handle)
             rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
+            rm.cuda.cumul(self._outputs[gpu], dy, self._outputs[gpu], handle)
 
 
 class cross_entropy_backward_cpu(cross_entropy_backward):
@@ -82,8 +91,11 @@ class cross_entropy_backward_cpu(cross_entropy_backward):
     def perform(self):
         pred = self._graph_input['cpu']
         real = self._label_input['cpu']
-
-        ret = -real / pred
+        if self._dy is not None:
+            dy = self._dy['cpu']
+        else:
+            dy = 1
+        ret = -real * dy / pred
         self._outputs['cpu'] = ret
 
 
@@ -96,7 +108,7 @@ class CrossEntropyElement(UserLossGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class CrossEntropyGraphElement(GraphFactory):
+class CrossEntropy(GraphFactory):
 
     def connect(self, predictions, true_values):
         ret = CrossEntropyElement(previous_elements=[predictions, true_values])

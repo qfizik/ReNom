@@ -11,12 +11,12 @@ This documentation is a list of the different activations in graph.
     :toctree: autosum/
     :nosignatures:
 
-    EluGraphElement
-    LeakyReluGraphElement
-    MaxoutGraphElement
-    ReluGraphElement
-    SeluGraphElement
-    SigmoidGraphElement
-    SoftmaxGraphElement
-    SoftplusGraphElement
-    TanhGraphElement
+    Elu
+    LeakyRelu
+    Maxout
+    Relu
+    Selu
+    Sigmoid
+    Softmax
+    Softplus
+    Tanh

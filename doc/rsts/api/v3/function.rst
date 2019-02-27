@@ -13,19 +13,19 @@ you can use to create the graph.
     :toctree: autosum/
     :nosignatures:
 
-    AvgPoolGraphElement
-    BatchNormalizeGraphElement
-    BiasGraphElement
-    ConvolutionalGraphElement
-    DeconvolutionalGraphElement
-    DenseGraphElement
-    DropoutGraphElement
-    EmbeddingGraphElement
-    GruGraphElement
-    L2NormGraphElement
-    LayerNormGraphElement
-    LrnGraphElement
-    LstmGraphElement
-    MaxPoolGraphElement
-    MaxUnPoolGraphElement
-    WeightNormGraphElement
+    AvgPool
+    BatchNormalize
+    Bias
+    Conv
+    Deconv
+    Dense
+    Dropout
+    Embedding
+    Gru
+    L2Norm
+    LayerNormalize
+    Lrn
+    Lstm
+    MaxPool
+    MaxUnPool
+    WeightNormalize

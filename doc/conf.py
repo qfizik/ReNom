@@ -378,7 +378,7 @@ from sphinx.util import import_object, rst, logging
 from sphinx.util.osutil import ensuredir
 from sphinx.util.inspect import safe_getattr
 from sphinx.util.rst import escape as rst_escape
-from sphinx.ext.autosummary import import_by_name, get_documenter, get_rst_suffix
+from sphinx.ext.autosummary import import_by_name, get_documenter, setup, get_rst_suffix
 from sphinx.ext.autosummary.generate import find_autosummary_in_files, _simple_info, _simple_warn, _underline
 
 logger = logging.getLogger(__name__)
@@ -388,6 +388,9 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                               warn=_simple_warn, info=_simple_info,
                               base_path=None, builder=None, template_dir=None,
                               imported_members=False, app=None):
+    """Sphinx extension. This function removes inherited methods doc strings.
+    Please modify the method 'get_members' to filter doc strings.
+    """
 
     showed_sources = list(sorted(sources))
     if len(showed_sources) > 20:
@@ -481,11 +484,6 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                     template = template_env.get_template('autosummary/base.rst')
 
             def get_members(obj, typ, include_public=[], imported=True):
-                """This function filters functions with following rules.
-                    - Is implemented in ReNom?
-                    - Is not overridden and is inherited function?
-                    - Does it have doc string?
-                """
                 items = []  # type: List[unicode]
                 for name in dir(obj):
                     try:
@@ -494,17 +492,16 @@ def generate_autosummary_docs(sources, output_dir=None, suffix='.rst',
                         continue
                     documenter = get_documenter(app, value, obj)
                     if documenter.objtype == typ:
+                        # skip imported members if expected
                         if imported or getattr(value, '__module__', None) == obj.__name__:
-                            s = getattr(getattr(obj, name, None), '__module__', None)
-                            p = getattr(obj, 'mro', lambda: [None])()[1]
-                            if s is None or s.find('renom') < 0:
-                                continue
-                            p_m = getattr(p, name, None)
-                            s_m = getattr(obj, name, None)
-                            if p_m == s_m or s_m.__doc__ is None:
-                                continue
-                            # skip imported members if expected
-                            items.append(name)
+                            parents = getattr(obj, 'mro', None)
+                            parent = parents()[1] if parents else []
+                            if parent:
+                                mt = getattr(obj, name, None)
+                                if name not in dir(parent) and mt is not None and mt.__doc__:
+                                    items.append(name)
+                            else:
+                                items.append(name)
                 public = [x for x in items
                           if x in include_public or not x.startswith('_')]
                 return public, items
@@ -579,7 +576,7 @@ def process_generate_options(app):
                               app=app)
 
 
-def setup(app):
+def setup(app):  # NOQA
     app.add_stylesheet('css/custom.css')
     app.connect('builder-inited', process_generate_options)
     app.add_config_value('extended_autosummary_generate', [], True, [bool])

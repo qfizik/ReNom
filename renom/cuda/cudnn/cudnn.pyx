@@ -534,7 +534,7 @@ def cuConvolutionForward(handle, conv_desc, filter_desc, x, w, y, algorithm):
 global_workspace = 0
 global_workspace_size = 0
 
-def cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc, x, w, y, b, algorithm, workspace = None):
+def cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc, x, w, y, b, algorithm, workspace=None, with_activation=True):
 
     if x.shape[0] == 0:
       return
@@ -549,7 +549,11 @@ def cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc, x, w, y, 
     cdef TensorDesc bDesc = TensorDesc(b.shape, dtype=b.dtype)
     cdef cudnnActivationDescriptor_t activation
     check(cudnnCreateActivationDescriptor(&activation))
-    check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, 0))
+    if with_activation:
+        check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, 0))
+    else:
+        check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_IDENTITY, CUDNN_NOT_PROPAGATE_NAN, 0))
+
     cdef cudnnConvolutionFwdAlgo_t algo = <cudnnConvolutionFwdAlgo_t><uintptr_t> algorithm
 
 
@@ -584,7 +588,7 @@ def cuConvolutionForwardBiasActivation(handle, conv_desc, filter_desc, x, w, y, 
         <void *> <uintptr_t> y._ptr))
 
 
-def cuActivationBackward(handle, y, dx):
+def cuActivationBackward(handle, y, dx, with_activation=True):
 
     if y.shape[0] == 0: return
     cdef cudnnHandle_t handler = <cd.cudnnHandle_t> <uintptr_t> handle.cudnn_handler
@@ -594,7 +598,10 @@ def cuActivationBackward(handle, y, dx):
 
     cdef cudnnActivationDescriptor_t activation
     check(cudnnCreateActivationDescriptor(&activation))
-    check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, 0))
+    if with_activation:
+        check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_RELU, CUDNN_NOT_PROPAGATE_NAN, 0))
+    else:
+        check(cudnnSetActivationDescriptor(activation, CUDNN_ACTIVATION_IDENTITY, CUDNN_NOT_PROPAGATE_NAN, 0))
 
     cdef TensorDesc dxDesc = TensorDesc(dx.shape, dtype=y.dtype)
     cdef TensorDesc yDesc = TensorDesc(y.shape, dtype=y.dtype)

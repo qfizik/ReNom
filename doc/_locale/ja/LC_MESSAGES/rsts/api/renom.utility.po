@@ -130,6 +130,10 @@ msgstr "一様分布の下限値"
 msgid "Maximum limit of uniform distribution."
 msgstr "一様分布の上限値"
 
+#: of renom.utility.initializer.Orthogonal:1
+msgid "Initialize parameters using orthogonal initialization."
+msgstr "重みを直交化する."
+
 #: ../../rsts/api/renom.utility.rst:11
 msgid "renom.utility.searcher"
 msgstr ""
@@ -416,148 +420,4 @@ msgstr "画像のカラーフォーマット"
 
 #~ msgid "He uniform initializer."
 #~ msgstr "Heの一様乱数に基づいて重みの初期化を行う."
-
-#~ msgid "renom.utility.distributor.threadingdistributor"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Base class for image distribution. Use"
-#~ " subclasses ImageClassificationDistributor, "
-#~ "ImageDetectionDistributor, ImageSegmentationDistributor "
-#~ "depending on the image task. Or "
-#~ "sublass it for original image tasks."
-#~ msgstr ""
-#~ "画像ファイルを扱うDistributorクラスの基底クラス.学習の目的ごとに, "
-#~ "派生クラスであるImageDetectionDistributor, "
-#~ "ImageClassificationDistributorを使用する."
-
-#~ msgid "List of labels (bbox and class) for every image (2 dimensional array)."
-#~ msgstr "画像それぞれに対する教師データのリスト."
-
-#~ msgid "List of classes name for this dataset."
-#~ msgstr "データセットに含まれるクラス名のリスト."
-
-#~ msgid "If True, apply datasets shuffle per epoch"
-#~ msgstr "真の場合, epochごとにデータはシャッフルされる."
-
-#~ msgid "Resize input image for converting batch ndarray."
-#~ msgstr "画像を指定されたサイズにリサイズする."
-
-#~ msgid "Color of Input Image. [\"RGB\", \"GRAY\"]"
-#~ msgstr "入力画像のカラーフォーマト."
-
-#~ msgid "Augmentater for input Image."
-#~ msgstr "データオーギュメンテーション設定."
-
-#~ msgid ""
-#~ "Distributor class for tasks of image "
-#~ "detection. Labels are expected to be "
-#~ "Bounding boxes and Classes. ex:) "
-#~ "np.array([[center x, center y, x_top_left, "
-#~ "height, 0, 0, 0, 1, 0]])"
-#~ msgstr ""
-#~ "オブジェクト検出モデルを作成するためのDistributorを提供するクラス.教師データは "
-#~ "バウンディングボックスとクラスラベルからなる.np.array([[center x, center "
-#~ "y, x_top_left, height, 0, 0, 0, 1,"
-#~ " 0]])"
-
-#~ msgid "list of image path"
-#~ msgstr "画像ファイルへのパスリスト"
-
-#~ msgid "list of labels (bbox and class) for every image"
-#~ msgstr "それぞれの画像に対する教師データのリスト."
-
-#~ msgid "list of classes name for this dataset"
-#~ msgstr "データセットに含まれるクラス名のリスト."
-
-#~ msgid "resize input image for converting batch ndarray"
-#~ msgstr "引数に指定されたサイズに画像がリサイズされる."
-
-#~ msgid "color of Input Image. [\"RGB\", \"GRAY\"]"
-#~ msgstr "入力画像のカラーフォーマット."
-
-#~ msgid "augmentater for Input Image"
-#~ msgstr "オーギュメンテーションの設定"
-
-#~ msgid "Returns generator of batch images."
-#~ msgstr "バッチを返すgeneratorオブジェクト"
-
-#~ msgid "size of a batch."
-#~ msgstr "バッチサイズ"
-
-#~ msgid ""
-#~ "Images(4 dimension) of input data for"
-#~ " Network.   If including labels, return "
-#~ "with transformed labels"
-#~ msgstr "4次元テンソルで表された入力画像データ. 同時に教師ラベルが与えられた場合,オーギュメンテーションに対応して教師データは変形される."
-
-#~ msgid "Images(4 dimension) of input data for Network."
-#~ msgstr "4次元テンソルで表された入力画像データ."
-
-#~ msgid "If including labels, return with transformed labels"
-#~ msgstr "4次元テンソルで表された入力画像データ. 同時に教師ラベルが与えられた場合,オーギュメンテーションに対応して教師データは変形される."
-
-#~ msgid "Distributor class for tasks of image classification."
-#~ msgstr "クラスタリングのためのDistributorクラス."
-
-#~ msgid "(function) augmentater for Input Image"
-#~ msgstr "オーギュメンテーションの設定"
-
-#~ msgid ""
-#~ "Images(4 dimension) of input data for"
-#~ " Network. If including labels, return "
-#~ "with original labels"
-#~ msgstr "4次元テンソルで表された入力画像データ."
-
-#~ msgid "renom.utility.image.data_augmentation.augmentation"
-#~ msgstr ""
-
-#~ msgid ""
-#~ "Apply transformation to the input x "
-#~ "and labels. You could choose transform"
-#~ " function from below. [\"Flip\", "
-#~ "\"Resize\", \"Crop\", \"Color_jitter\", \"Rescale\","
-#~ " \"Rotate\", \"Shift\"]."
-#~ msgstr ""
-#~ "画像データx, 教師データyともに, オーギュメンテーションを行う. "
-#~ "以下のオーギュメンテーションオプションを指定できる.[\"Flip\", \"Resize\", \"Crop\","
-#~ " \"Color_jitter\", \"Rescale\", \"Rotate\", "
-#~ "\"Shift\"]. \"Rotate\" transform can't apply"
-#~ " label transformation. So when you "
-#~ "want to use \"Rotate\", Please use "
-#~ "only image transformation."
-
-#~ msgid "list of instance for converter."
-#~ msgstr "Resize, Flipなどのコンバーターインスタンスのリスト."
-
-#~ msgid "apply random transformation or not"
-#~ msgstr "Trueが与えられた場合ランダムに画像変形を適用する."
-
-#~ msgid ""
-#~ "Performs a DataAugmentation of a Numpy"
-#~ " images. if x is a Batch, apply"
-#~ " DataAugmentation to Batch. if arguments"
-#~ " include labels, apply label "
-#~ "transformation."
-#~ msgstr ""
-#~ "画像に対しオーギュメンテーションを適用する.入力xが4次元テンソルである場合, "
-#~ "第一軸はバッチ数として認識され,バッチ内の各画像に対しオーギュメンテーションが適用される.教師データが同時に与えられていた場合, "
-#~ "教師データに対しても変形が行われる."
-
-#~ msgid "3 or 4(batch) dimensional images. dtype is float32. value=[0.0, 255.0]."
-#~ msgstr "3, 4(第一軸はバッチ数)次元テンソルデータ. "
-
-#~ msgid ""
-#~ "labels for classification, detection and "
-#~ "segmentation. 2-dimensional array"
-#~ msgstr "教師データ."
-
-#~ msgid "number of class of datasets"
-#~ msgstr "データセットに含まれるクラス数."
-
-#~ msgid ""
-#~ "Images(4 dimension) of augment transformed."
-#~ " If including labels, return with "
-#~ "transformed labels"
-#~ msgstr "4次元テンソルで表された入力画像データ. 同時に教師ラベルが与えられた場合,オーギュメンテーションに対応して教師データは変形される."
 

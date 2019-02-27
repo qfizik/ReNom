@@ -5,17 +5,18 @@ import renom.utility.initializer as init
 import numpy as np
 
 
-class deconvo_forward(operation):
+class deconv_forward(operation):
 
-    name = 'Convolution (F)'
+    name = 'Deconvolution (F)'
     consumes = ['w', 'b']
 
-    def __init__(self, channels, kernel=3, padding=0, stride=1):
+    def __init__(self, channels, kernel=3, padding=0, stride=1, initializer=None):
         self._channels = channels
         self._k = kernel
         self._p = padding
         self._s = stride
         self._d = 1
+        self._init = init.GlorotNormal() if initializer is None else initializer
 
     def setup(self, inputs):
 
@@ -32,7 +33,6 @@ class deconvo_forward(operation):
         self._dilation = np.array(list(self._d for i in range(dims))).astype(np.int32)
 
         self._inputs = inputs
-        self._init = init.GlorotNormal()
         gpus = inputs.gpus
         self.gpus = gpus
 
@@ -73,7 +73,7 @@ class deconvo_forward(operation):
             rm.cuda.cu_add_bias(self._bias[gpu], self._outputs[gpu])
 
 
-class deconvo_forward_cpu(deconvo_forward):
+class deconv_forward_cpu(deconv_forward):
 
     def perform(self):
         x = self._inputs['cpu']
@@ -88,9 +88,9 @@ class deconvo_forward_cpu(deconvo_forward):
         self._outputs['cpu'] = z
 
 
-class deconvo_backward(operation):
+class deconv_backward(operation):
 
-    name = 'Convolution (B)'
+    name = 'Deconvolution (B)'
     produces = ['w', 'b']
 
     def __init__(self, associated_forward):
@@ -110,6 +110,7 @@ class deconvo_backward(operation):
         self._weights_out = GraphMultiStorage(shape=self._fwd_w.shape, gpus=self.gpus)
 
         self._vars = {'w': self._weights_out, 'b': self._bias_out, 'y': self._outputs,
+                      'dy': self._outputs,
                       id(self._fwd_in): self._outputs,
                       id(self._fwd_w): self._weights_out,
                       id(self._fwd_b): self._bias_out,
@@ -127,15 +128,14 @@ class deconvo_backward(operation):
             rm.cuda.cuConvolutionBackwardBias(handle, self._inputs[gpu], self._bias_out[gpu])
 
 
-class deconvo_backward_cpu(deconvo_backward):
+class deconv_backward_cpu(deconv_backward):
 
     def perform(self):
         dy = self._inputs['cpu']
         x = self._fwd_in['cpu']
         w = self._fwd_w['cpu']
 
-        dx = imncol(dy, w, self._fwd_op._stride, padding=[
-                    0 for _ in range(len(self._fwd_op._stride))])
+        dx = imncol(dy, w, self._fwd_op._stride, padding=self._fwd_op._padding)
 
         l = [x for x in range(len(dy.shape))]  # noqa
         del(l[1])
@@ -146,13 +146,6 @@ class deconvo_backward_cpu(deconvo_backward):
             [x for x in range(2, len(dy.shape), 1)]), keepdims=True)
         db = np.sum(db, axis=0, keepdims=True)
 
-        # col = im2col(dy, x.shape[2:], self._fwd_op._kernel, self._fwd_op._stride,
-        #                       self._fwd_op._padding, self._fwd_op._dilation)
-        #dx = np.tensordot(col, w, ([1, 2, 3], [1, 2, 3]))
-        #dx = np.rollaxis(dx, 3, 1)
-        #dw = np.tensordot(x, col, ([0, 2, 3], [0, 4, 5]))
-        #db = np.sum(dy, axis=(0,2,3), keepdims = True)
-
         self._outputs['cpu'] = dx
         self._weights_out['cpu'] = dw
         self._bias_out['cpu'] = db
@@ -160,32 +153,30 @@ class deconvo_backward_cpu(deconvo_backward):
 
 class DeconvolutionalGraph(UserGraph):
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1, previous_element=None):
-
-        self._chnls = channels
-        self._krnl = kernel
-        self._pdng = padding
-        self._strd = stride
-        fwd_op = deconvo_forward(channels, kernel, padding, stride) if rm.is_cuda_active(
-        ) else deconvo_forward_cpu(channels, kernel, padding, stride)
-        bwd_ops = [deconvo_backward(fwd_op) if rm.is_cuda_active()
-                   else deconvo_backward_cpu(fwd_op)]
+    def __init__(self, channels=3, kernel=3, padding=0, stride=1, initializer=None, previous_element=None):
+        args = (channels, kernel, padding, stride, initializer)
+        fwd_op = deconv_forward(*args) if rm.is_cuda_active() else deconv_forward_cpu(*args)
+        bwd_ops = [deconv_backward(fwd_op) if rm.is_cuda_active()
+                   else deconv_backward_cpu(fwd_op)]
 
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
-class DeconvolutionalGraphElement(GraphFactory):
+class Deconv(GraphFactory):
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1):
+    def __init__(self, channels=3, kernel=3, padding=0, stride=1,
+                 initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self._chnls = channels
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
-        self.params['w'] = graph_variable()
-        self.params['b'] = graph_variable()
+        self._init = initializer
+
+        self.params['w'] = graph_variable(weight_decay=weight_decay)
+        self.params['b'] = graph_variable(allow_update=not ignore_bias)
 
     def connect(self, other):
-        ret = DeconvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, previous_element=[
+        ret = DeconvolutionalGraph(self._chnls, self._krnl, self._pdng, self._strd, self._init, previous_element=[
                                    other, self.params['w'], self.params['b']])
         return ret

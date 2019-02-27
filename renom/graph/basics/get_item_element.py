@@ -60,7 +60,7 @@ def _is_advanced_indexing(index):
     return True
 
 
-class get_item_back(operation):
+class get_item_backward(operation):
 
     name = 'Get Item (B)'
 
@@ -68,7 +68,7 @@ class get_item_back(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
         self._index = self._fwd_op._index
@@ -92,7 +92,7 @@ class get_item_back(operation):
                 self._outputs[gpu] = zero
 
 
-class get_item_back_cpu(get_item_back):
+class get_item_backward_cpu(get_item_backward):
 
     def perform(self):
         dy = self._inputs['cpu']
@@ -108,7 +108,8 @@ class GetItemElement(UserGraph):
     def __init__(self, index, previous_elements=None):
 
         fwd_op = get_item_forward(index) if rm.is_cuda_active() else get_item_forward_cpu(index)
-        bwd_ops = [get_item_back(fwd_op) if rm.is_cuda_active() else get_item_back_cpu(fwd_op)]
+        bwd_ops = [get_item_backward(fwd_op) if rm.is_cuda_active()
+                   else get_item_backward_cpu(fwd_op)]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 

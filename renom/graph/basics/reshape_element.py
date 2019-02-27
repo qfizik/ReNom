@@ -3,7 +3,7 @@ import renom as rm
 import numpy as np
 
 
-class reshape_op(operation):
+class reshape_forward(operation):
 
     name = 'Reshape (F)'
 
@@ -23,7 +23,7 @@ class reshape_op(operation):
         pass
 
 
-class reshape_op_back(operation):
+class reshape_backward(operation):
 
     name = 'Reshape (B)'
 
@@ -31,11 +31,12 @@ class reshape_op_back(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        self._inputs = inputs[0]['y']
+        self._inputs = inputs[0]['dy']
         shape = self._fwd_op._inputs.shape
         gpus = self._inputs.gpus
+        fwd_op_inputs = self._fwd_op._inputs
         self._outputs = GraphMultiStorage(shape=shape, gpus=gpus, ptrs=self._inputs)
-        self._vars = {'y': self._outputs}
+        self._vars = {'y': self._outputs, 'dy': self._outputs, id(fwd_op_inputs): fwd_op_inputs}
 
     def perform(self):
         pass
@@ -48,16 +49,17 @@ class ReshapeElement(UserGraph):
 
     def __init__(self, shape, previous_element=None):
         self._shape = shape
-        fwd_op = reshape_op(shape)
-        bwd_ops = [reshape_op_back(fwd_op)]
+        fwd_op = reshape_forward(shape)
+        bwd_ops = [reshape_backward(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
-class ReshapeGraphElement(GraphFactory):
+class Reshape(GraphFactory):
 
     def __init__(self, shape):
         super().__init__()
         self.shp = shape
 
     def connect(self, other):
-        return ReshapeElement(self.shp, other)
+        ret = ReshapeElement(self.shp, other)
+        return ret

@@ -56,6 +56,10 @@ class mean_squared_backward(operation):
 
         predictions = inputs[0]['y']
         real_values = inputs[1]['y']
+        if len(inputs) > 3:
+            self._dy = inputs[3]['y']
+        else:
+            self._dy = None
         self._graph_input = predictions
         self._label_input = real_values
         gpus = predictions.gpus
@@ -67,10 +71,15 @@ class mean_squared_backward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            if self._dy is not None:
+                dy = self._dy[gpu]
+            else:
+                dy = 1
             rm.cuda.cusub(self._graph_input[gpu],
                           self._label_input[gpu], self._outputs[gpu], handle)
             rm.cuda.cumul(self._outputs[gpu], 2, self._outputs[gpu], handle)
             rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
+            rm.cuda.cumul(self._outputs[gpu], dy, self._outputs[gpu], handle)
 
 
 class mean_squared_backward_cpu(mean_squared_backward):
@@ -80,7 +89,11 @@ class mean_squared_backward_cpu(mean_squared_backward):
         pred = self._graph_input['cpu']
         real = self._label_input['cpu']
         N = len(pred)
-        ret = (pred - real) / N
+        if self._dy is not None:
+            dy = self._dy['cpu']
+        else:
+            dy = 1
+        ret = (pred - real) * dy / N
         self._outputs['cpu'] = ret
 
 
@@ -94,7 +107,7 @@ class MeanSquaredElement(UserLossGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class MeanSquaredGraphElement(GraphFactory):
+class MeanSquared(GraphFactory):
 
     def connect(self, predictions, true_values):
         ret = MeanSquaredElement(previous_elements=[predictions, true_values])

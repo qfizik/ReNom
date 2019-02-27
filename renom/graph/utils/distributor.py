@@ -16,13 +16,20 @@ class dispatch(operation):
     '''
     name = 'Data Dispatcher'
     roles = ['input']
+    keyword = None
 
-    def __init__(self, value, batch_size=128, num_gpus=1, shuffle=True):
-        self._value = value
+    def __init__(self, value, batch_size=128, num_gpus=1, shuffle=True, drop_remainder=False):
+        self._value_list = value
+        if len(value) > 1:
+            self._has_validation_data = True
+        else:
+            self._has_validation_data = False
+        self._drop = drop_remainder
+        self._value = value[0]
         self._batch_num = 0
         self._batch_size = batch_size
         out_shape = [batch_size]
-        out_shape.extend(value.shape[1:])
+        out_shape.extend(self._value.shape[1:])
         self._num_gpus = num_gpus
         self.gpus = [gpu for gpu in range(num_gpus)] if rm.is_cuda_active() else 'cpu'
         self._outputs = GraphMultiStorage(shape=out_shape, gpus=self.gpus)
@@ -32,6 +39,7 @@ class dispatch(operation):
         self._perm = np.random.permutation(
             len(self._value)) if self._shuffle else np.arange(len(self._value))
         self._attached = None
+        self._master = None
 
     def setup(self, inputs):
         self._batch_vars = [v.shape[0] for v in self._outputs]
@@ -43,12 +51,11 @@ class dispatch(operation):
     @value.setter
     def value(self, new_val):
         self._value = new_val
-        self._finished = True
         self.reset()
 
     def perform(self):
         if self._finished:
-            raise StopIteration
+            raise StopIteration()
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             # handle.wait()
             cur_slice = slice(self._batch_num * self._batch_size,
@@ -58,29 +65,46 @@ class dispatch(operation):
             assert self._outputs[gpu].shape == arr.shape
             if len(arr) < self._batch_size:
                 self._finished = True
+                if self._drop:
+                    raise StopIteration()
             pin = handle.getPinnedMemory(arr)
             assert pin.shape == self._outputs[gpu].shape
             self._outputs[gpu].to_gpu(pin)
             self._batch_num += 1
 
+    def switch_source(self, id):
+        if self._master is not None:
+            return
+        assert self._attached is not None
+        other = self._attached
+        self._value = self._value_list[id]
+        other._value = other._value_list[id]
+        self.reset()
+
+    def change_input(self, new_values):
+        self._value_list = [new_values]
+        self._value = new_values
+        self.reset()
+
     def attach(self, other):
         assert isinstance(other, dispatch)
         assert self._value.shape[0] == other._value.shape[0]
         self._attached = other
+        other._master = self
         self._perm = other._perm
 
-    def reset(self, perm=None):
-        if self._finished is False:
+    def reset(self):
+        if self._master is not None:
             return
+        assert self._attached is not None
+        other = self._attached
         self._batch_num = 0
         self._finished = False
-        if perm is not None:
-            self._perm = perm
-        else:
-            self._perm = np.random.permutation(
-                len(self._value)) if self._shuffle else np.arange(len(self._value))
-        if self._attached is not None:
-            self._attached.reset(perm=self._perm)
+        other._batch_num = 0
+        other._finished = False
+        self._perm = np.random.permutation(
+            len(self._value)) if self._shuffle else np.arange(len(self._value))
+        other._perm = self._perm
 
     def set_batch_size(self, batch_size):
         self._batch_size = batch_size
@@ -93,13 +117,15 @@ class dispatch_cpu(dispatch):
 
     def perform(self):
         if self._finished:
-            raise StopIteration
+            raise StopIteration()
         cur_slice = slice(self._batch_num * self._batch_size,
                           (1 + self._batch_num) * self._batch_size)
         arr = self._value[self._perm[cur_slice]]
         self._outputs.shape[0].value = len(arr)
         if len(arr) < self._batch_size:
             self._finished = True
+            if self._drop:
+                raise StopIteration()
         self._outputs['cpu'] = arr
         self._batch_num += 1
 
@@ -110,26 +136,52 @@ class data_entry_element(UserGraph):
 
     def __init__(self, data_op, previous_element=None):
         fwd_op = data_op
+        self._data_op = data_op
         super().__init__(forward_operation=fwd_op, previous_elements=previous_element)
 
+    def reset(self):
+        self._data_op.reset()
 
-class DistributorElement:
 
-    def __init__(self, data, labels, batch_size=64, num_gpus=1, shuffle=True):
+class Distro:
+
+    def __init__(self, data, labels, keyword=None, batch_size=64,
+                 num_gpus=1, shuffle=True, test_split=None, drop_remainder=False):
         super().__init__()
+        assert len(data) == len(labels)
         self._data = data
         self._labels = labels
         self._batch_size = batch_size
         self._num_gpus = num_gpus
+        if test_split is not None:
+            assert isinstance(test_split, float) and test_split > 0. and test_split <= 1.
+            split = np.random.permutation(len(data))
+            split_point = int(np.floor(len(data) * test_split))
+            train_split, valid_split = split[:split_point], split[split_point:]
+            data_t, data_v = data[train_split], data[valid_split]
+            labels_t, labels_v = labels[train_split], labels[valid_split]
+            data = [data_t, data_v]
+            labels = [labels_t, labels_v]
+        elif not isinstance(data, list):
+            data = [data]
+            labels = [labels]
+
+        common_args = {'num_gpus': num_gpus, 'batch_size': batch_size,
+                       'shuffle': shuffle, 'drop_remainder': drop_remainder}
 
         if rm.is_cuda_active():
-            data_op = dispatch(data, num_gpus=num_gpus, batch_size=batch_size, shuffle=shuffle)
-            lbls_op = dispatch(labels, num_gpus=num_gpus, batch_size=batch_size, shuffle=shuffle)
+            data_op = dispatch(data, **common_args)
+            lbls_op = dispatch(labels, **common_args)
         else:
-            data_op = dispatch_cpu(data, num_gpus=num_gpus, batch_size=batch_size, shuffle=shuffle)
-            lbls_op = dispatch_cpu(labels, num_gpus=num_gpus,
-                                   batch_size=batch_size, shuffle=shuffle)
+            data_op = dispatch_cpu(data, **common_args)
+            lbls_op = dispatch_cpu(labels, **common_args)
         data_op.attach(lbls_op)
+        if keyword is not None:
+            assert isinstance(keyword, tuple) and len(keyword) == 2
+            for key in keyword:
+                assert isinstance(key, str)
+            data_op.keyword = keyword[0]
+            lbls_op.keyword = keyword[1]
 
         self._dt_op = data_op
         self._lb_op = lbls_op
@@ -139,7 +191,7 @@ class DistributorElement:
     def forward(self):
         pass
 
-    def getOutputGraphs(self):
+    def get_output_graphs(self):
         self._data_graph.detach()
         self._label_graph.detach()
         return self._data_graph, self._label_graph

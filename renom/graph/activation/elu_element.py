@@ -5,6 +5,8 @@ import numpy as np
 
 class elu_forward(operation):
 
+    name = 'Elu (F)'
+
     def __init__(self, alpha):
         self._alpha = alpha
 
@@ -32,6 +34,8 @@ class elu_forward_cpu(elu_forward):
 
 
 class elu_backward(operation):
+
+    name = 'Elu (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
@@ -72,7 +76,7 @@ class EluElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class EluGraphElement(GraphFactory):
+class Elu(GraphFactory):
 
     def __init__(self, alpha=0.01):
         '''Initializer for Elu graph producing GraphFactory.
@@ -88,3 +92,6 @@ class EluGraphElement(GraphFactory):
     def connect(self, other):
         ret = EluElement(alpha=self._alpha, previous_elements=other)
         return ret
+
+def elu(x, alpha=0.01):
+    return EluElement(alpha=alpha, previous_elements=[x])

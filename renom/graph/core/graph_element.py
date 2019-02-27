@@ -66,12 +66,18 @@ class graph_element(abc.ABC):
         if prev_next in self._next_elements:
             self._next_elements.remove(prev_next)
 
+    def remove_all_inputs(self):
+        for elem in self._previous_elements[::-1]:
+            self.remove_input(elem)
+
     def update_depth(self):
         if len(self._previous_elements) == 0:
+            max_depth = 0
             self.depth = 0
         else:
             max_depth = max(p.depth for p in self._previous_elements)
             self.depth = max_depth + 1
+
         for next_element in self._next_elements:
             next_element.update_depth()
 

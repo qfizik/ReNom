@@ -1,9 +1,9 @@
-from .softmax_element import SoftmaxGraphElement
-from .softplus_element import SoftplusGraphElement
-from .relu_element import ReluGraphElement
-from .elu_element import EluGraphElement
-from .selu_element import SeluGraphElement
-from .leaky_relu_element import LeakyReluGraphElement
-from .tanh_element import TanhGraphElement
-from .maxout_element import MaxoutGraphElement
-from .sigmoid_element import SigmoidGraphElement
+from .softmax_element import Softmax, softmax
+from .softplus_element import Softplus, softplus
+from .relu_element import Relu, relu
+from .elu_element import Elu, elu
+from .selu_element import Selu, selu
+from .leaky_relu_element import LeakyRelu, leaky_relu
+from .tanh_element import Tanh, tanh
+from .maxout_element import Maxout, maxout
+from .sigmoid_element import Sigmoid, sigmoid

@@ -52,23 +52,28 @@ class div_backward(operation):
         output_shape = key_value.shape
         outputs = GraphMultiStorage(shape=output_shape, gpus=gpus, initializer=None)
 
-        a = self._fwd_op.get_key("a")
-        b = self._fwd_op.get_key("b")
-        self._a = a if key == "a" else b
-        self._b = b if key == "a" else a
+        if key == "a":
+            self._opposit_value = self._fwd_op.get_key('b')
+        elif key == "b":
+            self._opposit_value = self._fwd_op.get_key('a')
+        else:
+            raise Exception()
+
         self.gpus = gpus
+        self._fwd_in = key_value
         self._vars = {'y': outputs, 'dy': outputs, id(key_value): outputs}
         self._outputs = outputs
 
     def perform(self):
         for i, (gpu, handle) in enumerate(rm.cuda.RenomHandlers(self.gpus)):
-            a = self._a[gpu]
-            b = self._b[gpu]
+            a = self._fwd_in[gpu]
+            b = self._opposit_value[gpu]
             dy = self._inputs[gpu]
             if self._key == "a":
                 dy = dy / b
-            else:
+            elif self._key == "b":
                 dy = a**(-2.0) * -1.0 * b * dy
+
             if a.shape != dy.shape:
                 dy = cu_broad_cast(a, dy)
             else:
@@ -79,8 +84,8 @@ class div_backward(operation):
 class div_backward_cpu(div_backward):
 
     def perform(self):
-        a = self._a['cpu']
-        b = self._b['cpu']
+        a = self._fwd_in['cpu']
+        b = self._opposit_value['cpu']
         dy = self._inputs['cpu']
         if self._key == "a":
             dy = dy / b
@@ -99,12 +104,12 @@ class DivElement(UserGraph):
     def __init__(self, previous_elements=None):
 
         fwd_op = div_forward() if rm.is_cuda_active() else div_forward_cpu()
-        bwd_ops = [div_backward(fwd_op, 'b') if rm.is_cuda_active() else div_backward_cpu(fwd_op, 'b'),
-                   div_backward(fwd_op, 'a') if rm.is_cuda_active() else div_backward_cpu(fwd_op, 'a')]
+        bwd_ops = [div_backward(fwd_op, 'a') if rm.is_cuda_active() else div_backward_cpu(fwd_op, 'a'),
+                   div_backward(fwd_op, 'b') if rm.is_cuda_active() else div_backward_cpu(fwd_op, 'b')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-class DivGraphElement(GraphFactory):
+class Div(GraphFactory):
 
     def connect(self, lhs, rhs):
         return DivElement([lhs, rhs])

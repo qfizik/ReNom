@@ -5,6 +5,8 @@ import numpy as np
 
 class softmax_forward(operation):
 
+    name = 'SoftMax (F)'
+
     def setup(self, inputs):
         inputs = inputs[0]['y']
         gpus = inputs.gpus
@@ -32,6 +34,8 @@ class softmax_forward_cpu(softmax_forward):
 
 
 class softmax_backward(operation):
+
+    name = 'SoftMax (B)'
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
@@ -73,8 +77,12 @@ class SoftmaxElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class SoftmaxGraphElement(GraphFactory):
+class Softmax(GraphFactory):
 
     def connect(self, other):
         ret = SoftmaxElement(previous_elements=other)
         return ret
+
+
+def softmax(x):
+    return SoftmaxElement(previous_elements=[x])

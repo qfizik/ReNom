@@ -66,7 +66,7 @@ class sum_backward(operation):
                                    else s for i, s in enumerate(fwd_inputs.shape)])
         self._ones = GraphMultiStorage(
             shape=fwd_inputs.shape, gpus=gpus, initializer=init.Constant(1))
-        self._vars = {'y': outs, id(fwd_inputs): outs}
+        self._vars = {'y': outs, 'dy': outs, id(fwd_inputs): outs}
 
     def perform(self):
         axis = self.axis
@@ -111,7 +111,12 @@ class SumElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-class SumGraphElement(GraphFactory):
+class Sum(GraphFactory):
+
+    def __init__(self, axis=None, keepdims=False):
+        super().__init__()
+        self.axis = axis
+        self.keepdims = keepdims
 
     def __init__(self, axis=None, keepdims=False):
         super().__init__()

@@ -6,6 +6,8 @@ import numpy as np
 
 class tanh_forward(operation):
 
+    name = 'Tanh (F)'
+
     def setup(self, inputs):
         inputs = inputs[0]['y']
         gpus = inputs.gpus
@@ -30,16 +32,18 @@ class tanh_forward_cpu(tanh_forward):
 
 class tanh_backward(operation):
 
+    name = 'Tanh (B)'
+
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
+        inputs = inputs[0]['dy']
         gpus = inputs.gpus
         self.gpus = gpus
         outs = GraphMultiStorage(shape=inputs.shape, gpus=gpus)
         one = GraphMultiStorage(shape=(1, ), gpus=gpus, initializer=init.Constant(1))
-        self._vars = {'y': outs, id(self._fwd_op._inputs): outs}
+        self._vars = {'y': outs, 'dy': outs, id(self._fwd_op._inputs): outs}
         self._fwd_out = self._fwd_op._outputs
         self._inputs = inputs
         self._outputs = outs
@@ -69,7 +73,7 @@ class TanhElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class TanhGraphElement(GraphFactory):
+class Tanh(GraphFactory):
 
     def __init__(self):
         super().__init__()
@@ -77,3 +81,7 @@ class TanhGraphElement(GraphFactory):
     def connect(self, other):
         ret = TanhElement(previous_elements=other)
         return ret
+
+
+def tanh(x):
+    return TanhElement(previous_elements=[x])

@@ -14,6 +14,8 @@ class operational_element(graph_element):
           UserGraph and should not be be constructed directly.
     '''
 
+    _tags_to_add = []
+
     def __init__(self, operation, previous_elements=None, tags=None):
         super(operational_element, self).__init__(previous_elements=previous_elements)
 
@@ -33,14 +35,25 @@ class operational_element(graph_element):
         for tag in new_tags:
             if tag not in self._tags:
                 self._tags.append(tag)
+        for tag in operational_element._tags_to_add:
+            if tag not in self._tags:
+                self._tags.append(tag)
 
     def check_tags(func):
         @functools.wraps(func)
         def ret_func(self, *args, tag=None, **kwargs):
-            if tag in self._tags or tag is None:
+            if not isinstance(tag, list):
+                tag = [tag]
+            if all(t in self._tags or t is None for t in tag):
                 return func(self, *args, **kwargs)
         return ret_func
 
+    @graph_element.walk_tree
+    def replace_tags(self, old_tag, new_tag):
+        if old_tag in self._tags:
+            self._tags[self._tags.index(old_tag)] = new_tag
+
+    # TODO: Rename gather_operations_with_tags
     @graph_element.walk_tree
     @check_tags
     def get_call_dict(self):
@@ -104,15 +117,19 @@ class operational_element(graph_element):
             elem.calculate_forward(tag)
         self.forward(tag=tag)
 
+    @graph_element.walk_tree
     def continue_forward(self, tag=None):
         self.forward(tag=tag)
-        for elem in self._next_elements:
-            elem.continue_forward(tag)
 
     def continue_setup(self, tag=None):
         self.setup(tag=tag)
         for elem in self._next_elements:
             elem.continue_setup(tag)
+
+    @graph_element.walk_tree
+    def total_setup(self, tag=None):
+        self.setup(tag=tag)
+
 
     @check_tags
     def setup(self):
@@ -133,8 +150,16 @@ class operational_element(graph_element):
 
     @graph_element.walk_tree
     def print_tree(self):
-        print('I am a {:s} at depth {:d} with tags: {}'.format(
+        print('I am a \x1b[31m{:s}\x1b[0m at depth {:d} with tags: {}'.format(
             self._op.name, self.depth, self._tags))
+        print('My prevs are: \x1b[33m{}\x1b[0m'.format(
+            [v._op.name for v in self._previous_elements]))
+
+    @graph_element.walk_tree
+    @check_tags
+    def set_attr(self, name, val):
+        setattr(self._op, name, val)
+
 
     @property
     def name(self):
@@ -159,3 +184,22 @@ class operational_element(graph_element):
 
     def __repr__(self):
         return self._op.__repr__()
+
+
+'''
+    TODO: This is not good code!
+    A sub-class should not attempt to nullify additions made by parent class.
+    Unfortunately, this looks the best as of right now, since the inheritance
+    schema would become ugly otherwise.
+'''
+
+
+class unidirectional_element(operational_element):
+
+    @property
+    def _next_elements(self):
+        return []
+
+    @_next_elements.setter
+    def _next_elements(self, val):
+        pass

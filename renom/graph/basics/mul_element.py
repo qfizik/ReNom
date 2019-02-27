@@ -52,36 +52,39 @@ class mul_backward(operation):
         output_shape = key_value.shape
         outputs = GraphMultiStorage(shape=output_shape, gpus=gpus, initializer=None)
 
-        a = self._fwd_op.get_key("a")
-        b = self._fwd_op.get_key("b")
-        self._a = a if key == "a" else b
-        self._b = b if key == "a" else a
+        if key == "a":
+            self._opposit_value = self._fwd_op.get_key('b')
+        elif key == "b":
+            self._opposit_value = self._fwd_op.get_key('a')
+        else:
+            raise Exception()
+        self._fwd_in = key_value
         self.gpus = gpus
         self._vars = {'y': outputs, 'dy': outputs, id(key_value): outputs}
         self._outputs = outputs
 
     def perform(self):
         for i, (gpu, handle) in enumerate(rm.cuda.RenomHandlers(self.gpus)):
-            a = self._a[gpu]
-            b = self._b[gpu]
+            oppsit = self._opposit_value[gpu]
+            fwd_in = self._fwd_in[gpu]
             dy = self._inputs[gpu]
-            if a.shape != dy.shape:
-                dy = cu_broad_cast(a, dy * b)
+            if fwd_in.shape != dy.shape:
+                dy = cu_broad_cast(fwd_in, dy * oppsit)
             else:
-                dy = dy * b
+                dy = dy * oppsit
             self._outputs[gpu] = dy
 
 
 class mul_backward_cpu(mul_backward):
 
     def perform(self):
-        a = self._a['cpu']
-        b = self._b['cpu']
+        fwd_in = self._fwd_in['cpu']
+        oppsit = self._opposit_value['cpu']
         dy = self._inputs['cpu']
-        if a.shape == dy.shape:
-            self._outputs['cpu'] = dy * b
+        if fwd_in.shape == dy.shape:
+            self._outputs['cpu'] = dy * oppsit
         else:
-            self._outputs['cpu'] = broad_cast(a, dy * b)
+            self._outputs['cpu'] = broad_cast(fwd_in, dy * oppsit)
 
 
 class MulElement(UserGraph):
@@ -91,12 +94,12 @@ class MulElement(UserGraph):
     def __init__(self, previous_elements=None):
 
         fwd_op = mul_forward() if rm.is_cuda_active() else mul_forward_cpu()
-        bwd_ops = [mul_backward(fwd_op, 'b') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'b'),
-                   mul_backward(fwd_op, 'a') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'a')]
+        bwd_ops = [mul_backward(fwd_op, 'a') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'a'),
+                   mul_backward(fwd_op, 'b') if rm.is_cuda_active() else mul_backward_cpu(fwd_op, 'b')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
-class MulGraphElement(GraphFactory):
+class Mul(GraphFactory):
 
     def connect(self, lhs, rhs):
         return MulElement([lhs, rhs])

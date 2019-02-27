@@ -2041,13 +2041,14 @@ namespace renom{
       }
     }
 
-    __global__ void cuda_optimizer_adam(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE gamma_orig, VALUE_TYPE beta, VALUE_TYPE beta_orig, VALUE_TYPE min, bool flug, VALUE_TYPE *u, VALUE_TYPE *r, VALUE_TYPE *ndy)
+    __global__ void cuda_optimizer_adam(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE powered_beta1, VALUE_TYPE beta1, VALUE_TYPE powered_beta2, VALUE_TYPE beta2, VALUE_TYPE min, bool flug, VALUE_TYPE *u, VALUE_TYPE *r, VALUE_TYPE *ndy)
     {
       int idx = blockIdx.x * blockDim.x + threadIdx.x;
       if (idx < Elems) {
-        u[idx] = beta_orig * u[idx] + (1.0 - beta_orig) * dy[idx];
-        r[idx] = gamma_orig * r[idx] + (1.0 - gamma_orig) * dy[idx] * dy[idx];
-        ndy[idx] = learning_rate * u[idx] / (sqrtf(r[idx] / (1.0 - gamma)) + eps) / (1.0 - beta);
+        VALUE_TYPE lrt = learning_rate * sqrtf(1 - powered_beta2) / (1 - powered_beta1);
+        u[idx] = beta1 * u[idx] + (1.0 - beta1) * dy[idx];
+        r[idx] = beta2 * r[idx] + (1.0 - beta2) * dy[idx] * dy[idx];
+        ndy[idx] = lrt * u[idx] / (sqrtf(r[idx]) + eps);
       }
     }
 
@@ -2261,16 +2262,33 @@ namespace renom{
         cuda_clip_roi <<<ceil(N*M/256.0), 256.0, 0, NULL>>>(N, M, roi_ptr, start, end, step, min_v, max_v, ary_ptr);
     }
 
-    __global__ void cuda_clip(int elem, VALUE_TYPE * array, VALUE_TYPE max, VALUE_TYPE min)
+    __global__ void cuda_clip(int elem, VALUE_TYPE * array, VALUE_TYPE max, VALUE_TYPE min, VALUE_TYPE * out)
     {
       int idx = blockIdx.x * blockDim.x + threadIdx.x;
       if (idx>=elem) return;
-      if (array[idx] < min) array[idx] = min;
-      if (array[idx] > max) array[idx] = max;
+      VALUE_TYPE v = array[idx];
+      if (v < min) out[idx] = min;
+      else if (v > max) out[idx] = max;
+      else out[idx] = v;
     }
 
-    void thrust_clip(int elem, VALUE_TYPE * array, VALUE_TYPE max, VALUE_TYPE min)
+    void thrust_clip(int elem, VALUE_TYPE * array, VALUE_TYPE max, VALUE_TYPE min, VALUE_TYPE * out)
     {
-      cuda_clip<<<ceil(elem/256.0), 256.0>>>(elem, array, max, min);
+      cuda_clip<<<ceil(elem/256.0), 256.0>>>(elem, array, max, min, out);
+    }
+
+    __global__ void cuda_clip_back(int elem, VALUE_TYPE * array, VALUE_TYPE max, VALUE_TYPE min, VALUE_TYPE * out)
+    {
+      int idx = blockIdx.x * blockDim.x + threadIdx.x;
+      if (idx>=elem) return;
+      VALUE_TYPE v = array[idx];
+      if (v < min) out[idx] = 0;
+      else if (v > max) out[idx] = 0;
+      else out[idx] = 1;
+    }
+
+    void thrust_clip_back(int elem, VALUE_TYPE * array, VALUE_TYPE max, VALUE_TYPE min, VALUE_TYPE * out)
+    {
+      cuda_clip_back<<<ceil(elem/256.0), 256.0>>>(elem, array, max, min, out);
     }
 }

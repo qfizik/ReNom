@@ -6,13 +6,14 @@ import numpy as np
 class sigmoid_forward(operation):
 
     name = 'Sigmoid Cross Entropy(F)'
-    roles = ['Loss']
+    roles = ['loss']
 
     def setup(self, inputs):
         assert isinstance(inputs[1], dict)
 
         labels = inputs[1]['y']
         inputs = inputs[0]['y']
+        assert labels.shape == inputs.shape
         out_shape = (1, )
         gpus = inputs.gpus
         outs = GraphMultiStorage(shape=out_shape, gpus=gpus)
@@ -60,6 +61,10 @@ class sigmoid_backward(operation):
 
     def setup(self, inputs):
 
+        if len(inputs) > 3:
+            self._dy = inputs[3]['y']
+        else:
+            self._dy = None
         predictions = inputs[0]['y']
         labels = inputs[1]['y']
         self._N = predictions.shape[0]
@@ -77,9 +82,15 @@ class sigmoid_backward(operation):
 
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+            if self._dy is not None:
+                dy = self._dy[gpu]
+            else:
+                dy = 1
             rm.cuda.cusigmoid(self._graph_input[gpu], self._act_out1[gpu])
             rm.cuda.cusub(self._act_out1[gpu], self._label_input[gpu], self._outputs[gpu], handle)
             rm.cuda.cudiv(self._outputs[gpu], self._N, self._outputs[gpu], handle)
+            rm.cuda.cumul(self._outputs[gpu], dy, self._outputs[gpu], handle)
+
 
 
 class sigmoid_backward_cpu(sigmoid_backward):
@@ -88,7 +99,11 @@ class sigmoid_backward_cpu(sigmoid_backward):
         z = self._fwd_op._z
         y = self._label_input['cpu']
         N = len(z)
-        ret = (z - y) / N
+        if self._dy is not None:
+            dy = self._dy['cpu']
+        else:
+            dy = 1
+        ret = (z - y) * dy / N
         self._outputs['cpu'] = ret
 
 
@@ -101,7 +116,7 @@ class SigmoidCrossEntropyElement(UserLossGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
-class SigmoidCrossEntropyGraphElement(GraphFactory):
+class SigmoidCrossEntropy(GraphFactory):
 
     def connect(self, predictions, true_values):
         ret = SigmoidCrossEntropyElement(previous_elements=[predictions, true_values])

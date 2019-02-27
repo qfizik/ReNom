@@ -1,4 +1,5 @@
 import renom as rm
+import renom.graph as rmg
 import numpy as np
 import pytest
 
@@ -30,10 +31,10 @@ def test_basic_add():
     v4 = np.random.rand(2, 2)
     v5 = v3 + v4
 
-    g1 = rm.graph.StaticVariable(v1)
-    g2 = rm.graph.StaticVariable(v2)
+    g1 = rmg.StaticVariable(v1)
+    g2 = rmg.StaticVariable(v2)
     g3 = g1 + g2
-    g4 = rm.graph.StaticVariable(v4)
+    g4 = rmg.StaticVariable(v4)
     g5 = g3 + g4
 
     compare(v5, g5.as_ndarray())
@@ -50,10 +51,10 @@ def test_basic_lstm():
 
     np.random.seed(45)
     v = np.random.rand(2, 2)
-    layer = rm.graph.LstmGraphElement(3)
+    layer = rmg.Lstm(3)
     t = np.random.rand(2, 3)
-    loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.sgd_update(0.01, 0.4)
+    loss = rmg.MeanSquared()
+    opt = rmg.Sgd(0.01, 0.4)
     p_l = 9999
     for i in range(3):
         layer.reset()
@@ -68,10 +69,116 @@ def test_slices(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     a = np.random.rand(3, 3, 3)
-    A = rm.graph.StaticVariable(a)
+    A = rmg.StaticVariable(a)
     b = a[:, 1, 0:2]
     B = A[:, 1, 0:2]
     compare(b, B.as_ndarray())
+
+
+def test_distributor_test_split(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    a = np.random.rand(10, 2).astype(rm.precision)
+    b = np.random.rand(10, 4).astype(rm.precision)
+    data, target = rm.graph.Distro(a, b, batch_size=2, test_split=0.8).get_output_graphs()
+    model = rm.graph.Dense(3)
+    count = 0
+    try:
+        while(True):
+            data.forward()
+            target.forward()
+            count += 1
+            x = model(data)
+    except StopIteration:
+        pass
+    assert count == 5
+    data._fwd._op.switch_source(1)
+    count = 0
+    try:
+        while(True):
+            data.forward()
+            target.forward()
+            count += 1
+            x = model(data)
+    except StopIteration:
+        pass
+    assert count == 2
+
+
+class BadSgd(rm.graph.utils.optimizer.optimizer_factory):
+
+    class gpu_op:
+
+        def setup(self, grad, val):
+            self._dy = grad
+            self._outputs = val
+            self.gpus = grad.gpus
+
+        def update(self):
+            for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+                self._outputs[gpu] += self._dy[gpu]
+
+    class cpu_op(gpu_op):
+
+        def update(self):
+            dy = self._dy['cpu']
+            self._outputs['cpu'] += 0.001 * dy
+
+
+def test_split_backwards(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v1 = rmg.StaticVariable(np.random.rand(2, 2))
+    v2 = rmg.StaticVariable(np.random.rand(2, 2))
+    layer = rmg.Dense(3)
+    act1 = rmg.Tanh()
+    act2 = rmg.Sigmoid()
+    l1 = act1(layer(v1))
+    l2 = act2(layer(v2))
+    ll = l1 + l2
+    ll.backward()
+    gv1 = ll.get_gradient(v1.value)
+    gv2 = ll.get_gradient(v2.value)
+    assert not np.allclose(gv1, gv2)
+
+
+def test_no_graph_artifacts():
+
+    v1 = rmg.StaticVariable(np.random.rand(2, 2))
+    v2 = rmg.StaticVariable(np.random.rand(2, 2))
+    layer = rmg.Dense(3)
+    l1 = layer(v1)
+    l1.backward()
+    l2 = layer(v2)
+    l2.backward()
+    l1.get_gradient(v1.value)
+    try:
+        l2.get_gradient(v1.value)
+        assert False, 'Graph artifacts occured in posterior graph'
+    except AttributeError:
+        pass
+
+    try:
+        l1.get_gradient(v2.value)
+        assert False, 'Graph artifacts occured in prior graph'
+    except AttributeError:
+        pass
+
+
+def test_diamond_shared():
+    v1 = rm.graph.StaticVariable(np.random.rand(2, 3))
+    t1 = rm.graph.StaticVariable(np.random.rand(2, 1))
+    l1 = rmg.Dense(2)
+    l21 = rmg.Dense(3)
+    l22 = rmg.Dense(1)
+    ls = rmg.MeanSquared()
+    g1 = l1(v1)
+    with l21.no_updates():
+        g21 = l22(l21(g1))
+    with l22.no_updates():
+        g22 = l22(l21(g1))
+    l = ls(g21 + g22, t1)
 
 
 def test_optimizer(use_gpu):
@@ -79,45 +186,55 @@ def test_optimizer(use_gpu):
     rm.set_cuda_active(use_gpu)
     np.random.seed(45)
     v = np.random.rand(2, 2)
-    layer = rm.graph.DenseGraphElement(3)
+    layer = rmg.Dense(3)
     t = np.random.rand(2, 3)
-    loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.adam_update()
-    p_l = 9999
+    loss = rmg.MeanSquared()
+    opt1 = BadSgd()
+    opt2 = rmg.Sgd()
+    p_l = 0
     for i in range(5):
+        l = loss(layer(v), t)
+        l_arr = l.as_ndarray()
+        assert l_arr > p_l
+        p_l = l_arr
+        l.backward().update(opt1)
+    p_l = 9999999
+    for i in range(5):
+        print(i)
         l = loss(layer(v), t)
         l_arr = l.as_ndarray()
         assert l_arr < p_l
         p_l = l_arr
-        l.backward().update(opt)
+        l.backward().update(opt2)
 
 
-@pytest.mark.skipif(rm.precision != np.float64, reason='Requires precise testing')
 def test_inference_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
     v = np.random.rand(20, 3).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rmg.Dense(4)
     t = np.random.rand(20, 4).astype(rm.precision)
-    loss = rm.graph.MeanSquaredGraphElement()
-    data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
-    exe = loss(layer(data), target).getInferenceExecutor()
+    loss = rmg.MeanSquared()
+    data, target = rmg.Distro(v, t, batch_size=2, shuffle=False).get_output_graphs()
+    exe = loss(layer(data), target).get_executor()
     losses = exe.execute(epochs=3)
-    assert all(losses[i] == losses[i + 1] for i in range(len(losses) - 1))
+    for i in range(len(losses) - 1):
+        assert losses[i] == losses[i + 1]
+    assert all(losses[i] == losses[i + 1] for i in range(len(losses) - 2))
 
 
 def test_training_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
-    np.random.seed(45)
-    v = np.random.rand(20, 3).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
-    t = np.random.rand(20, 4).astype(rm.precision)
-    loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.sgd_update()
-    data, target = rm.graph.DistributorElement(v, t, batch_size=2).getOutputGraphs()
-    exe = loss(layer(data), target).getTrainingExecutor(opt)
+    np.random.seed(30)
+    v = np.random.rand(500, 3).astype(rm.precision)
+    layer = rmg.Dense(2)
+    t = np.random.rand(500, 2).astype(rm.precision)
+    loss = rmg.MeanSquared()
+    opt = rmg.Sgd(0.01)
+    data, target = rmg.Distro(v, t, batch_size=10).get_output_graphs()
+    exe = loss(rmg.relu(layer(data)), target).get_executor(optimizer=opt, mode='training')
     losses = exe.execute(epochs=3)
     assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
 
@@ -128,24 +245,26 @@ def test_training_executor_validation(use_gpu):
     np.random.seed(45)
     v1 = np.random.rand(20, 3).astype(rm.precision)
     v2 = np.random.rand(6, 3).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rmg.Dense(4)
     t1 = np.random.rand(20, 4).astype(rm.precision)
     t2 = np.random.rand(6, 4).astype(rm.precision)
-    loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.sgd_update()
-    data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
+    loss = rmg.MeanSquared()
+    opt = rmg.Sgd()
+    data, target = rmg.Distro([v1, v2], [t1, t2], keyword=('v', 't'),
+                              batch_size=2).get_output_graphs()
     graph = loss(layer(data), target)
-    t_exe = graph.getTrainingExecutor(opt, with_validation=(v2, t2))
-    v_exe = graph.getInferenceExecutor()
+    t_exe = graph.get_executor(optimizer=opt, mode='training', with_validation=True)
+    v_exe = graph.get_executor()
 
     def check_validation(info):
         global validation_loss
-        validation_loss = info['validation_loss']
-        assert validation_loss != np.nan
+        if info['mode'] == 'training':
+            validation_loss = info['validation_loss']
+            assert validation_loss != np.nan
     t_exe.register_event('Epoch-Finish', check_validation)
 
     t_exe.execute(epochs=3)
-    v_exe.set_input_data(v2, t2)
+    v_exe.set_input_data({'v': v2, 't': t2})
     v_loss = v_exe.execute(epochs=1)
     assert np.allclose(validation_loss, v_loss)
 
@@ -155,35 +274,71 @@ def test_validation_executor(use_gpu):
 
     np.random.seed(45)
     v1 = np.random.rand(10, 2).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rmg.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
-    loss = rm.graph.MeanSquaredGraphElement()
-    data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
-    exe = loss(layer(data), target).getInferenceExecutor()
+    loss = rmg.MeanSquared()
+    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('v', 't')).get_output_graphs()
+    exe = loss(layer(data), target).get_executor()
     losses1 = np.array(exe.execute(epochs=3))
     v2, t2 = v1 * 2, t1 * 2
-    exe.set_input_data(v2, t2)
+    exe.set_input_data({'v': v2, 't': t2})
     losses2 = np.array(exe.execute(epochs=3))
-    assert np.allclose(losses1 * 4, losses2, atol=1)
+    assert np.allclose(losses1 * 4, losses2)
 
 
 def test_step_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
-    rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
     v1 = np.random.rand(10, 2).astype(rm.precision)
-    layer = rm.graph.DenseGraphElement(4)
+    layer = rmg.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
-    loss = rm.graph.MeanSquaredGraphElement()
-    data, target = rm.graph.DistributorElement(v1, t1, batch_size=2).getOutputGraphs()
-    exe = loss(layer(data), target).getInferenceExecutor()
+    loss = rmg.MeanSquared()
+    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('a', 'b')).get_output_graphs()
+    exe = loss(layer(data), target).get_executor()
     loss1 = np.array(exe.execute(epochs=1))
     loss2 = 0
     for i in range(0, 10, 2):
         v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
-        loss2 += exe.step(v2, t2)
-    assert np.allclose(loss1 * 4, loss2, atol=1)
+        loss2 += exe.step({'a': v2, 'b': t2})
+    assert np.allclose(loss1 * 4, loss2)
+
+
+def test_inference_mode():
+    v1 = np.random.rand(10, 2).astype(rm.precision)
+    model = rmg.Sequential([
+        rmg.Dense(3),
+        rmg.Dropout(),
+    ])
+    x = model(v1)
+    assert model.l1._prev._fwd._op._inference is False
+    x.set_inference(True)
+    assert model.l1._prev._fwd._op._inference is True
+
+    model = rmg.Sequential([
+        rmg.Dense(3),
+        rmg.Dropout(),
+    ])
+    model.set_inference(True)
+    x = model(v1)
+    assert model.l1._prev._fwd._op._inference is True
+    x.set_inference(False)
+    assert model.l1._prev._fwd._op._inference is False
+
+
+def test_updatable_mode():
+    v1 = np.random.rand(10, 2).astype(rm.precision)
+    model = rmg.Sequential([
+        rmg.Dense(3),
+        rmg.Dropout(),
+    ])
+    x = model(v1)
+    prev = model.l0.params['w'].as_ndarray()
+    x.backward()
+    x.set_updatable(False)
+    x.update()
+    after = model.l0.params['w'].as_ndarray()
+    assert np.allclose(prev, after)
 
 
 def test_finalizer(use_gpu):
@@ -191,12 +346,12 @@ def test_finalizer(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(2, 1, 3, 4)
-    layer1 = rm.graph.ConvolutionalGraphElement(channels=2)
-    res = rm.graph.ReshapeGraphElement([-1])
-    layer2 = rm.graph.DenseGraphElement(3)
+    layer1 = rmg.Conv(channels=2)
+    res = rmg.Reshape([-1])
+    layer2 = rmg.Dense(3)
     t = np.random.rand(2, 3)
-    loss = rm.graph.MeanSquaredGraphElement()
-    opt = rm.graph.sgd_update()
+    loss = rmg.MeanSquared()
+    opt = rmg.Sgd()
 
     z = v
     z = layer1(z)
@@ -211,10 +366,10 @@ def test_sequential(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(4, 4)
-    model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(1),
-        rm.graph.DenseGraphElement(5),
+    model = rmg.Sequential([
+        rmg.Dense(3),
+        rmg.Dense(1),
+        rmg.Dense(5),
     ])
     z = model(v).as_ndarray()
     assert z.shape == (4, 5)
@@ -225,7 +380,7 @@ def test_weight_decay(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(4, 4)
-    dense = rm.graph.DenseGraphElement(3, weight_decay=0.05)
+    dense = rmg.Dense(3, weight_decay=0.05)
     import os
     tmp_filename = get_random_filename()
     try:
@@ -249,9 +404,9 @@ def test_weight_decay(use_gpu):
     os.remove(tmp_filename)
 
 
-class noop(rm.graph.core.operation):
+class noop(rmg.core.operation):
     name = 'noop'
-    _vars = {'y': rm.graph.core.GraphMultiStorage(shape=(0,), gpus='cpu')}
+    _vars = {'y': rmg.core.GraphMultiStorage(shape=(0,), gpus='cpu')}
 
     def setup(self, inputs):
         pass
@@ -261,13 +416,13 @@ class noop(rm.graph.core.operation):
 
 
 @pytest.mark.parametrize('graph_nodes', [
-    {'A': rm.graph.core.operational_element(operation=noop(), tags=['Dummy']),
-        'B': rm.graph.core.operational_element(operation=noop(), tags=['Dummy']),
-        'C': rm.graph.core.operational_element(operation=noop(), tags=['Dummy'])
+    {'A': rmg.core.operational_element(operation=noop(), tags=['Dummy']),
+        'B': rmg.core.operational_element(operation=noop(), tags=['Dummy']),
+        'C': rmg.core.operational_element(operation=noop(), tags=['Dummy'])
      },
-    {'A': rm.graph.core.UserGraph(forward_operation=noop()),
-        'B': rm.graph.core.UserGraph(forward_operation=noop()),
-        'C': rm.graph.core.UserGraph(forward_operation=noop())
+    {'A': rmg.core.UserGraph(forward_operation=noop()),
+        'B': rmg.core.UserGraph(forward_operation=noop()),
+        'C': rmg.core.UserGraph(forward_operation=noop())
      },
 ])
 def test_graph_depth(graph_nodes):
@@ -313,12 +468,13 @@ def test_graph_depth(graph_nodes):
 @pytest.mark.parametrize('C_has_back', [True, False])
 def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
     rm.set_cuda_active(False)
+    rm.graph.core.GraphMultiStorage._gpus = None
 
-    A = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
+    A = rmg.core.UserGraph(forward_operation=noop(), backward_operations=[
         noop()] if A_has_back else None)
-    B = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
+    B = rmg.core.UserGraph(forward_operation=noop(), backward_operations=[
         noop()] if B_has_back else None)
-    C = rm.graph.core.UserGraph(forward_operation=noop(), backward_operations=[
+    C = rmg.core.UserGraph(forward_operation=noop(), backward_operations=[
         noop()] if C_has_back else None)
     assert A.depth == 0 and B.depth == 0 and C.depth == 0
     assert A_has_back and len(A._bwd_graphs) == 1 or len(A._bwd_graphs) == 0
@@ -376,7 +532,7 @@ def test_user_graph_connection(A_has_back, B_has_back, C_has_back):
         assert B._bwd_graphs[0].depth == 0 and A._bwd_graphs[0].depth == 1
 
     if A_has_back and B_has_back and C_has_back:
-        L = rm.graph.core.UserLossGraph(forward_operation=noop(), backward_operations=[noop()])
+        L = rmg.core.UserLossGraph(forward_operation=noop(), backward_operations=[noop()])
         # A_f -> B_f -> C_f -> L_f -> L_b -> C_b -> B_b -> A_b
         L(C)
         assert A.depth == 0 and B.depth == 1 and C.depth == 2 and L.depth == 3
@@ -418,7 +574,7 @@ def get_random_filename():
 def test_share_arr():
     rm.set_cuda_active(True)
 
-    storage = rm.graph.core.graph_storage.GraphMultiStorage
+    storage = rmg.core.graph_storage.GraphMultiStorage
     init = rm.utility.initializer.GlorotUniform()
     shape = (2, 2)
 
@@ -438,18 +594,20 @@ def test_share_arr():
     'cpu', 1, 2, 3, 4
 ])
 def test_save_load(devices_to_load):
+    rmg.core.GraphMultiStorage._gpus = None
     if devices_to_load != 'cpu':
         if not rm.cuda.has_cuda() or (rm.cuda.cuGetDeviceCount() < devices_to_load):
             pytest.skip()
         rm.set_cuda_active(True)
-        devices_to_load = [d for d in range(devices_to_load)]
+        device_list = [d for d in range(devices_to_load)]
     else:
+        device_list = devices_to_load
         rm.set_cuda_active(False)
 
-    model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(6),
-        rm.graph.DenseGraphElement(2),
+    model = rmg.Sequential([
+        rmg.Dense(3),
+        rmg.Dense(6),
+        rmg.Dense(2),
     ])
 
     x = np.random.rand(5, 4)
@@ -458,20 +616,21 @@ def test_save_load(devices_to_load):
     tmp_filename = get_random_filename()
     model.save(tmp_filename)
 
-    model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(6),
-        rm.graph.DenseGraphElement(2),
+    model = rmg.Sequential([
+        rmg.Dense(3),
+        rmg.Dense(6),
+        rmg.Dense(2),
     ])
-    model.load(tmp_filename, devices=devices_to_load)
+    model.load(tmp_filename, devices=device_list)
     y2 = model(x).as_ndarray()
-    assert np.allclose(y1, y2)
+    div = devices_to_load if devices_to_load != 'cpu' else 1
+    assert np.allclose(y1, y2 / div)
 
     try:
-        model = rm.graph.SequentialSubGraph([
-            rm.graph.DenseGraphElement(6),
-            rm.graph.DenseGraphElement(3),
-            rm.graph.DenseGraphElement(2),
+        model = rmg.Sequential([
+            rmg.Dense(6),
+            rmg.Dense(3),
+            rmg.Dense(2),
         ])
         model.load(tmp_filename)
         raise AssertionError('Model should not be able to load different shape')
@@ -496,10 +655,10 @@ def test_version_save_compability(use_gpu):
     y1 = v2_model(x)
     tmp_filename = get_random_filename()
     v2_model.save(tmp_filename)
-    v3_model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(5),
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(1),
+    v3_model = rmg.Sequential([
+        rmg.Dense(5),
+        rmg.Dense(3),
+        rmg.Dense(1),
     ])
     v3_model.load(tmp_filename)
     y2 = v3_model(x).as_ndarray()
@@ -509,6 +668,27 @@ def test_version_save_compability(use_gpu):
     os.remove(tmp_filename)
 
 
+def test_gradient_clipping(use_gpu):
+    if rm.precision != np.float64:
+        pytest.skip()
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(30)
+    v1 = np.random.rand(20, 5)
+    m = rmg.Dense(2, ignore_bias=True)
+    with rmg.core.with_gradient_clipping(-1e-5, 1e-5):
+        y = m(v1)
+    y.backward()
+    before = m.params['w'].as_ndarray()
+    grad = y.get_gradient(m.params['w'].output)
+    y.update(optimizer=rmg.Sgd(1, 0))
+    after = m.params['w'].as_ndarray()
+    diff = after - before
+
+    delta = np.ones_like(diff) * -1e-5
+    assert np.allclose(diff, delta)
+
+
 @pytest.mark.parametrize('ttype', [
     np.int, np.int32, np.int64,
     np.float, np.float32, np.float64
@@ -516,10 +696,10 @@ def test_version_save_compability(use_gpu):
 def test_dtype(ttype, use_gpu):
     rm.set_cuda_active(use_gpu)
 
-    model = rm.graph.SequentialSubGraph([
-        rm.graph.DenseGraphElement(3),
-        rm.graph.DenseGraphElement(6),
-        rm.graph.DenseGraphElement(2),
+    model = rmg.Sequential([
+        rmg.Dense(3),
+        rmg.Dense(6),
+        rmg.Dense(2),
     ])
 
     x = np.random.rand(5, 4).astype(ttype)

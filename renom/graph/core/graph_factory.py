@@ -3,8 +3,21 @@ import abc
 import numpy as np
 from .user_graph import UserGraph
 from .operation import operation
+from .operational_element import unidirectional_element
 from .graph_storage import GraphMultiStorage
+import contextlib as cl
+import functools
 import h5py
+
+
+def recursive_setting(func):
+    @functools.wraps(func)
+    def ret_func(self, *args, **kwargs):
+        func(self, *args, **kwargs)
+        for elem in self.__dict__.values():
+            if isinstance(elem, GraphFactory):
+                ret_func(elem, *args, **kwargs)
+    return ret_func
 
 
 class GraphFactory(abc.ABC):
@@ -34,6 +47,8 @@ class GraphFactory(abc.ABC):
         '''
         self.params = dict()
         self._prev = None
+        self._inference = None
+        self._make_update_graphs = True
 
     @abc.abstractmethod
     def connect(self, other):
@@ -45,14 +60,42 @@ class GraphFactory(abc.ABC):
         '''
         pass
 
+
     def __call__(self, *other):
-        for param in self.params:
-            self.params[param].detach()
-        if self._prev is not None:
-            self._prev.detach()
-        ret = self.connect(*other)
+        self_tag = id(self)
+        with rm.graph.core._with_operational_tag(self_tag):
+            ret = self.connect(*other)
+        ret._fwd.replace_tags(self_tag, id(ret))
+        for bwd in ret._bwd_graphs:
+            bwd.replace_tags(self_tag, id(ret))
+        if not self._make_update_graphs:
+            for op_num, upd_g in ret._update_graphs:
+                upd_g.detach()
+        if self._inference is not None:
+            ret._fwd._op._inference = True
         self._prev = ret
         return ret
+
+
+    @recursive_setting
+    def _set_make_updates(self, make_updates=True):
+        self._make_update_graphs = make_updates
+
+    @cl.contextmanager
+    def no_updates(self):
+        self._set_make_updates(False)
+        yield
+        self._set_make_updates(True)
+
+    @cl.contextmanager
+    def inference(self):
+        self.set_inference(False)
+        yield
+        self.set_inference(True)
+
+    @recursive_setting
+    def set_inference(self, infer=True):
+        self._inference = infer
 
     def _get_model_children(self):
         for k, v in self.__dict__.items():
@@ -227,13 +270,14 @@ class graph_variable(UserGraph):
         self._fwd_op._val.set_weight_decay(weight_decay)
 
     def allow_update(self, should_allow):
-        pass
+        self._fwd._op._val.set_updatable(should_allow)
 
     def __init__(self, weight_decay=None, allow_update=True):
         fwd_op = variable_input(weight_decay, allow_update)
         self._fwd_op = fwd_op
+        fwd_graph = unidirectional_element(fwd_op, tags=['Forward'])
         bwd_ops = []
-        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops)
+        super().__init__(forward_operation=fwd_graph, backward_operations=bwd_ops)
 
     def set_value(self, arr, gpus=None):
         assert isinstance(arr, np.ndarray)
