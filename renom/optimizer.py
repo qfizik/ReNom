@@ -333,7 +333,7 @@ class Rmsprop(Optimizer):
         pmse = pdy['pmse']
 
         r = self._g * pmse + (1 - self._g) * (dy**2)
-        ret = self._lr * dy / ( sqrt(r) + self._epsilon )
+        ret = self._lr * dy / (sqrt(r) + self._epsilon)
 
         self._params[node_id] = {
             'pmse': r,
@@ -348,11 +348,10 @@ class Rmsprop(Optimizer):
         if pdy is None:
             pdy = {
                 'pmse': get_gpu(dy).zeros_like_me(),
-                'pra': get_gpu(dy).zeros_like_me(),
             }
         r = pdy['pmse']
         ndy = get_gpu(dy).empty_like_me()
-        cu.cu_optimizer_rmsprop(self._lr, self._epsilon, self._g, self._ra, get_gpu(dy), k, ndy, r)
+        cu.cu_optimizer_rmsprop(self._lr, self._epsilon, self._g, self._ra, get_gpu(dy), ndy, r)
 
         self._params[node_id] = {
             'pmse': r,
