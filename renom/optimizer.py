@@ -329,22 +329,14 @@ class Rmsprop(Optimizer):
         if pdy is None:
             pdy = {
                 'pmse': 0,
-                'pra': 0,
             }
         pmse = pdy['pmse']
-        pra = pdy['pra']
 
         r = self._g * pmse + (1 - self._g) * (dy**2)
-        k = self._ra * pra + (1 - self._ra) * (dy)
-        v = (r - k**2)
-        if hasattr(v, "as_ndarray"):
-            v = v.as_ndarray()
-        v[v < 0] = 0
-        ret = self._lr * dy / sqrt(v + self._epsilon)
+        ret = self._lr * dy / ( sqrt(r) + self._epsilon )
 
         self._params[node_id] = {
             'pmse': r,
-            'pra': k,
         }
         if isinstance(ret, Node):
             ret.detach_graph()
@@ -359,13 +351,11 @@ class Rmsprop(Optimizer):
                 'pra': get_gpu(dy).zeros_like_me(),
             }
         r = pdy['pmse']
-        k = pdy['pra']
         ndy = get_gpu(dy).empty_like_me()
         cu.cu_optimizer_rmsprop(self._lr, self._epsilon, self._g, self._ra, get_gpu(dy), k, ndy, r)
 
         self._params[node_id] = {
             'pmse': r,
-            'pra': k,
         }
         return ndy
 
