@@ -1,5 +1,6 @@
 from .dense_element import Dense
 from .lstm_element import Lstm
+from .peephole_lstm_element import PeepholeLstm
 from .gru_element import Gru
 from .weight_normalize_element import WeightNormalize
 from .layer_normalize_element import LayerNormalize
