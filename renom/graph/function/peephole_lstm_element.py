@@ -59,6 +59,7 @@ class peephole_lstm_forward(operation):
             x = self._inputs[gpu]
             w = self._weights[gpu]
             wr = self._weights_r[gpu]
+            wc = self._weights_c[gpu]
 
             tmp1 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
             tmp2 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
@@ -68,8 +69,7 @@ class peephole_lstm_forward(operation):
 
             #u = tmp1 + tmp2
             rm.cuda.cuadd(tmp1, tmp2, new_u[gpu], handle)
-            rm.cuda.culstm_forward_activate(new_u[gpu])
-            rm.cuda.culstm_forward(new_u[gpu], new_s[gpu], ps[gpu], new_z[gpu])
+            rm.cuda.cupeepholelstm_forward(new_u[gpu], wc, ps[gpu], new_s[gpu], new_z[gpu])
 
             ret = new_z[gpu]
 
@@ -167,10 +167,15 @@ class peephole_lstm_backward(operation):
 
         w = fwd['w']
         wr = fwd['wr']
+        wc = fwd['wc']
 
         u = fwd['u']
         s = fwd['s']
         ps = fwd['ps']
+
+        n = fwd['y'].shape[0]
+        m = w.shape[1] // 4
+        dwc = GraphMultiStorage(shape=(n, m * 3), gpus=self.gpus, initializer=init.Constant(0))
 
         pfg = fwd['pfgate']
         if pfg is None:
@@ -179,16 +184,16 @@ class peephole_lstm_backward(operation):
         for grad in self._inputs:
             if 'pfgate' in grad:
                 drt = grad['drt']
-                dou = grad['dou']
+                dot = grad['dou']
         if drt is None:
             drt = GraphMultiStorage(shape=u.shape, gpus=self.gpus, initializer=init.Constant(0))
-            dou = GraphMultiStorage(shape=fwd['y'].shape,
+            dot = GraphMultiStorage(shape=fwd['y'].shape,
                                     gpus=self.gpus, initializer=init.Constant(0))
 
 
 
         dr = GraphMultiStorage(shape=u.shape, gpus=self.gpus)
-        dou_n = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
+        dou = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
         new_z = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             dy = fwd['y'][gpu].zeros_like_me()
@@ -198,15 +203,17 @@ class peephole_lstm_backward(operation):
                 else:
                     dy += grad['y'][gpu]
 
-            rm.cuda.cutanh(s[gpu], s[gpu])
-            rm.cuda.culstm_backward(u[gpu], dr[gpu], s[gpu], ps[gpu],
-                                    dy, pfg[gpu], dou[gpu], dou_n[gpu])
-
+            rm.cuda.cupeepholelstm_backward(u[gpu], ps[gpu], s[gpu], pfg[gpu],
+                            wc[gpu], dy, drt[gpu], dot[gpu], dr[gpu], dou[gpu], dwc[gpu])
             # dx
             rm.cuda.cublas_gemm(dr[gpu], 0, w[gpu], 1, self._outputs[gpu], handle)
 
             # dw
             rm.cuda.cublas_gemm(fwd['x'][gpu], 1, dr[gpu], 0, self._w_out[gpu], handle)
+
+            # dwc
+            d_wc = rm.cuda.cusum(dwc[gpu], handle, axis=0, keepdims=True)
+            self._w_c_out[gpu] = d_wc
 
             # dwr
             rm.cuda.cublas_gemm(fwd['y'][gpu], 1, drt[gpu], 0, self._w_r_out[gpu], handle)
@@ -215,7 +222,7 @@ class peephole_lstm_backward(operation):
             rm.cuda.cublas_gemm(dr[gpu], 0, wr[gpu], 1, new_z[gpu], handle)
 
         self._vars['drt'] = dr
-        self._vars['dou'] = dou_n
+        self._vars['dou'] = dou
         self._vars['z'] = new_z
 
 
@@ -288,9 +295,9 @@ class peephole_lstm_backward_cpu(peephole_lstm_backward):
         dwr = np.dot(y.T, drt)
 
         dwc = np.zeros(wc.shape, dtype=wc.dtype)
-        dwc[:, 2 * m:] = np.sum(do * s, axis=0)
-        dwc[:, :m] = np.sum(drt[:, m:2 * m] * s, axis=0)
-        dwc[:, m:2 * m] = np.sum(drt[:, 2 * m:3 * m] * s, axis=0)
+        dwc[:, 2 * m:] = np.sum(do * fwd['s'], axis=0)
+        dwc[:, :m] = np.sum(drt[:, m:2 * m] * fwd['s'], axis=0)
+        dwc[:, m:2 * m] = np.sum(drt[:, 2 * m:3 * m] * fwd['s'], axis=0)
 
         dy = np.dot(dr, wr.T)
 
@@ -300,7 +307,7 @@ class peephole_lstm_backward_cpu(peephole_lstm_backward):
         self._outputs['cpu'] = dx
         self._w_out['cpu'] = dw
         self._w_r_out['cpu'] = dwr
-        self._w_c_out['cpu'] = dwc
+        self._w_c_out['cpu'] = dwc 
         self._vars['z'] = dy
         self._vars['drt'] = dr
         self._vars['dot'] = dou

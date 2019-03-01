@@ -442,12 +442,12 @@ def test_lstm(test_shape, use_gpu, num_gpu):
     (4, 5),
 ])
 def test_peephole_lstm(test_shape, use_gpu, num_gpu):
-    np.random.seed(42)
+    np.random.seed(44)
     rm.set_cuda_active(use_gpu)
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.PeepholeLstm(output_size=4)
+    model = rm.graph.PeepholeLstm(output_size=1)
     c = rm.graph.Concat()
     l = rm.graph.ConstantLoss()
 
@@ -455,19 +455,19 @@ def test_peephole_lstm(test_shape, use_gpu, num_gpu):
     def func():
         model.reset()
         h1 = model(val)
-        #h2 = model(val)
-        #h3 = model(val)
-        #ret = l(c([h1, h2, h3]))
-        ret = l(h1)
+        h2 = model(val)
+        h3 = model(val)
+        ret = l(c([h1, h2, h3]))
+        #ret = l(h3)
         #ret = l(h2 + h2 * 2)
         return ret.as_ndarray()
 
     model.reset()
     h1 = model(val)
-    #h2 = model(val)
-    #h3 = model(val)
-    #loss = l(c([h1, h2, h3]))
-    loss = l(h1)
+    h2 = model(val)
+    h3 = model(val)
+    loss = l(c([h1, h2, h3]))
+    #loss = l(h3)
     #loss = l(h2 + h2 * 2)
     grad = loss.backward().get_gradient(val.value)
     grad_w = loss.get_gradient(model.params['w'].output)
