@@ -204,7 +204,7 @@ class peephole_lstm_backward(operation):
                     dy += grad['y'][gpu]
 
             rm.cuda.cupeepholelstm_backward(u[gpu], ps[gpu], s[gpu], pfg[gpu],
-                            wc[gpu], dy, drt[gpu], dot[gpu], dr[gpu], dou[gpu], dwc[gpu])
+                                            wc[gpu], dy, drt[gpu], dot[gpu], dr[gpu], dou[gpu], dwc[gpu])
             # dx
             rm.cuda.cublas_gemm(dr[gpu], 0, w[gpu], 1, self._outputs[gpu], handle)
 
@@ -307,7 +307,7 @@ class peephole_lstm_backward_cpu(peephole_lstm_backward):
         self._outputs['cpu'] = dx
         self._w_out['cpu'] = dw
         self._w_r_out['cpu'] = dwr
-        self._w_c_out['cpu'] = dwc 
+        self._w_c_out['cpu'] = dwc
         self._vars['z'] = dy
         self._vars['drt'] = dr
         self._vars['dot'] = dou
@@ -317,8 +317,10 @@ class PeepholeLstmElement(UserGraph):
 
     def __init__(self, output_size, initializer=None, previous_elements=None):
         args = (output_size, initializer)
-        fwd_op = peephole_lstm_forward(*args) if rm.is_cuda_active() else peephole_lstm_forward_cpu(*args)
-        bwd_ops = [peephole_lstm_backward(fwd_op) if rm.is_cuda_active() else peephole_lstm_backward_cpu(fwd_op)]
+        fwd_op = peephole_lstm_forward(
+            *args) if rm.is_cuda_active() else peephole_lstm_forward_cpu(*args)
+        bwd_ops = [peephole_lstm_backward(fwd_op) if rm.is_cuda_active()
+                   else peephole_lstm_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
     def connect_back(self, previous_element, pos=0):
