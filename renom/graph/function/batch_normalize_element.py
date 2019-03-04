@@ -17,7 +17,6 @@ class batch_norm_forward(operation):
         self._inference = False
         self._init = init.GlorotNormal() if initializer is None else initializer
 
-
     def setup(self, inputs):
         mv_v = inputs[4]['y']
         mv_m = inputs[3]['y']

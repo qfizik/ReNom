@@ -93,5 +93,6 @@ class Elu(GraphFactory):
         ret = EluElement(alpha=self._alpha, previous_elements=other)
         return ret
 
+
 def elu(x, alpha=0.01):
     return EluElement(alpha=alpha, previous_elements=[x])

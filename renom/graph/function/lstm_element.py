@@ -122,7 +122,6 @@ class lstm_forward_cpu(lstm_forward):
         self._vars['z'] = ret
 
 
-
 class lstm_backward(operation):
 
     name = 'LSTM (B)'
@@ -172,8 +171,6 @@ class lstm_backward(operation):
             drt = GraphMultiStorage(shape=u.shape, gpus=self.gpus, initializer=init.Constant(0))
             dou = GraphMultiStorage(shape=fwd['y'].shape,
                                     gpus=self.gpus, initializer=init.Constant(0))
-
-
 
         dr = GraphMultiStorage(shape=u.shape, gpus=self.gpus)
         dou_n = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
@@ -232,14 +229,11 @@ class lstm_backward_cpu(lstm_backward):
             else:
                 dy += grad['y']['cpu']
 
-
         #n, m = dy.shape
         dx, dw, dwr = (0, 0, 0)
 
         w = fwd['w']['cpu']
         wr = fwd['wr']['cpu']
-
-
 
         u = fwd['u']
         s = np.tanh(fwd['s'])
@@ -255,7 +249,6 @@ class lstm_backward_cpu(lstm_backward):
             pfg = np.zeros((x.shape[0], w.shape[1] // 4))
 
         e = dy
-
 
         do = e * s * gd[:, 2 * m:]
         dou = e * gated[:, 2 * m:] * activation_diff(s) + pfg * dou
@@ -301,7 +294,6 @@ class LstmElement(UserGraph):
                 graph.add_input(backward_graph_input)
 
 
-
 class Lstm(GraphFactory):
 
     def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
@@ -312,7 +304,6 @@ class Lstm(GraphFactory):
         self.params['wr'] = graph_variable(weight_decay=weight_decay)
         self._prev = None
         self._prevlist = []
-
 
     def reset(self):
         self._prev = None

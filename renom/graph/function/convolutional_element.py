@@ -37,19 +37,20 @@ class Conv(GraphFactory):
           Tensor data format is **NCHW**.
     """
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1,
+    def __init__(self, channels=3, kernel=3, padding=0, stride=1, groups=1,
                  initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self._chnls = channels
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
+        self._groups = groups
         self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['b'] = graph_variable(allow_update=not ignore_bias)
 
     def connect(self, other):
-        ret = ConvElement(self._chnls, self._krnl, self._pdng, self._strd,
+        ret = ConvElement(self._chnls, self._krnl, self._pdng, self._strd, self._groups,
                           self._init, previous_element=[other, self.params['w'], self.params['b']])
         return ret
 
@@ -61,11 +62,12 @@ class conv_forward(operation):
     workspace_size = 0
     workspace = None
 
-    def __init__(self, channels, kernel=3, padding=0, stride=1, initializer=None):
+    def __init__(self, channels, kernel=3, padding=0, stride=1, groups=1, initializer=None):
         self._channels = channels
         self._k = kernel
         self._p = padding
         self._s = stride
+        self._groups = groups
         self._d = 1
         self._init = init.GlorotNormal() if initializer is None else initializer
 
@@ -76,6 +78,8 @@ class conv_forward(operation):
         inputs = inputs[0]['y']
         input_shape = inputs.shape
         dims = len(input_shape[2:])
+        if dims != 2:
+            assert self._groups == 1, 'Currently only 2d inputs support grouping'
         self._dims = dims
         self._kernel = np.array(list(self._k for i in range(dims))).astype(np.int32)
         self._padding = np.array(list(self._p for i in range(dims))).astype(np.int32)
@@ -86,8 +90,11 @@ class conv_forward(operation):
         gpus = inputs.gpus
         self.gpus = gpus
 
-        weight_shape = (self._channels, input_shape[1], *self._kernel)
-        bias_shape = (1, self._channels, *(1 for i in range(dims)))
+        output_channels = self._channels
+        input_channels = input_shape[1] // self._groups
+
+        weight_shape = (output_channels, input_channels, *self._kernel)
+        bias_shape = (1, output_channels, *(1 for i in range(dims)))
 
         weights.__init__(shape=weight_shape, gpus=gpus, initializer=self._init)
         bias.__init__(shape=bias_shape, gpus=gpus, initializer=init.Constant(0))
@@ -149,19 +156,43 @@ class conv_forward(operation):
                 rm.cuda.cu_add_bias(self._bias[gpu], self._outputs[gpu])
 
 
-
 class conv_forward_cpu(conv_forward):
 
     def perform(self):
         x = self._inputs['cpu']
         w = self._weights['cpu']
         b = self._bias['cpu']
+        groups = self._groups
         if self._dims == 2:
             col = im2col(x, self._outputs.shape[2:], self._kernel,
                          self._stride, self._padding, self._dilation)
+            if groups == 1:
+                val = np.rollaxis(np.tensordot(col, w, ([1, 2, 3], [1, 2, 3])), 3, 1)
+                ret = val + b
+            else:
+                out_h, out_w = col.shape[-2:]
+
+                out_channels = w.shape[0]
+                in_channels = x.shape[1]
+
+                iCg = in_channels // groups
+                oCg = out_channels // groups
+                k_h, k_w = self._kernel
+                N = x.shape[0]
+
+                col = col.transpose(1, 2, 3, 0, 4, 5)
+                col = col.reshape(groups, iCg * k_h * k_w, N * out_h * out_w)
+                w_new = w.reshape(groups, oCg, iCg * k_h * k_w)
+
+                value = np.matmul(w_new, col)
+                value = value.reshape(groups * oCg, N, out_h, out_w)
+                value = value.transpose(1, 0, 2, 3)
+
+                value += b.reshape(1, b.size, 1, 1)
+
+                ret = value
             self._col = col
-            val = np.rollaxis(np.tensordot(col, w, ([1, 2, 3], [1, 2, 3])), 3, 1)
-            ret = val + b
+
         else:
             col = imncol(x, w, self._stride, self._padding)
             ret = col + b
@@ -180,6 +211,7 @@ class conv_backward(operation):
 
         inputs = inputs[0]['dy']
         self._inputs = inputs
+        self._groups = self._fwd_op._groups
         self._dims = self._fwd_op._dims
         self._fwd_w = self._fwd_op._weights
         self._fwd_b = self._fwd_op._bias
@@ -222,7 +254,6 @@ class conv_backward(operation):
                                               self._algo, workspace)
 
 
-
 class conv_backward_cpu(conv_backward):
 
     def perform(self):
@@ -230,16 +261,31 @@ class conv_backward_cpu(conv_backward):
         w = self._fwd_w['cpu']
         b = self._fwd_b['cpu']
         dy = self._inputs['cpu']
-        if self._dims == 2:
+        # TODO: Move these if statements to individual functions
+        stride = self._fwd_op._stride
+        padding = self._fwd_op._padding
+        dilation = self._fwd_op._dilation
+        kernel = self._fwd_op._kernel
+
+        if self._groups > 1:
+            groups = self._groups
+            col = self._fwd_op._col
+            dx, dw, db = rm.graph.utils.conv_cpu_methods.\
+                grouped_conv_back(x, w, b, dy, col, groups,
+                                  kernel, stride, padding, dilation)
+
+        elif self._dims == 2:
+            col = self._fwd_op._col
+
             dx = np.tensordot(w, dy, (0, 1))
             dx = np.rollaxis(dx, 3)
-            dx = col2im(dx, self._fwd_in.shape[2:], self._fwd_op._stride,
-                        self._fwd_op._padding, self._fwd_op._dilation)
-            dw = np.tensordot(dy, self._fwd_op._col, ([0, 2, 3], [0, 4, 5]))
+            dx = col2im(dx, x.shape[2:], stride,
+                        padding, dilation)
+            dw = np.tensordot(dy, col, ([0, 2, 3], [0, 4, 5]))
             db = np.sum(dy, (0, 2, 3), keepdims=True)
         else:
-            dx = colnim(dy, w, self._fwd_op._stride)
-            dw = colnw(x, dy, self._fwd_op._stride)
+            dx = colnim(dy, w, stride)
+            dw = colnw(x, dy, stride)
             db = np.sum(dy, axis=tuple(
                 [0, ] + [i for i in range(2, len(b.shape))]), keepdims=True)
         self._outputs['cpu'] = dx
@@ -249,13 +295,13 @@ class conv_backward_cpu(conv_backward):
 
 class ConvElement(UserGraph):
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1, initializer=None, previous_element=None):
+    def __init__(self, channels=3, kernel=3, padding=0, stride=1, groups=1, initializer=None, previous_element=None):
 
         self._chnls = channels
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
-        args = (channels, kernel, padding, stride, initializer)
+        args = (channels, kernel, padding, stride, groups, initializer)
         fwd_op = conv_forward(*args) if rm.is_cuda_active() else conv_forward_cpu(*args)
         bwd_ops = [conv_backward(fwd_op) if rm.is_cuda_active() else conv_backward_cpu(fwd_op)]
 

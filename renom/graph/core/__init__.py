@@ -50,6 +50,7 @@ def with_gradient_clipping(floor=None, ceil=None):
         yield
     UserGraph.set_gradient_clipping(False)
 
+
 @cl.contextmanager
 def _with_operational_tag(tag):
     operational_element._tags_to_add.append(tag)

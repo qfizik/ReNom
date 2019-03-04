@@ -94,5 +94,6 @@ class Selu(GraphFactory):
         ret = SeluElement(previous_elements=other)
         return ret
 
+
 def selu(x):
     return SeluElement(previous_elements=[x])

@@ -60,7 +60,6 @@ class GraphFactory(abc.ABC):
         '''
         pass
 
-
     def __call__(self, *other):
         self_tag = id(self)
         with rm.graph.core._with_operational_tag(self_tag):
@@ -75,7 +74,6 @@ class GraphFactory(abc.ABC):
             ret._fwd._op._inference = True
         self._prev = ret
         return ret
-
 
     @recursive_setting
     def _set_make_updates(self, make_updates=True):
