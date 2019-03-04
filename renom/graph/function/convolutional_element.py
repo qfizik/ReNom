@@ -113,6 +113,8 @@ class conv_forward(operation):
                 if dims == 2:
                     self._conv_desc = rm.cuda.ConvolutionDescriptor(
                         self._padding, self._stride, self._dilation, rm.precision)
+                    if self._groups > 1:
+                        rm.cuda.GroupConvolutionDescriptor(self._conv_desc, self._groups)
                     self._filter_desc = rm.cuda.FilterDescriptor(weight_shape, rm.precision)
                 else:
                     self._conv_desc = rm.cuda.ConvolutionNDescriptor(
