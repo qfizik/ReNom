@@ -78,8 +78,9 @@ class conv_forward(operation):
         inputs = inputs[0]['y']
         input_shape = inputs.shape
         dims = len(input_shape[2:])
+        groups = self._groups
         if dims != 2:
-            assert self._groups == 1, 'Currently only 2d inputs support grouping'
+            assert groups == 1, 'Currently only 2d inputs support grouping'
         self._dims = dims
         self._kernel = np.array(list(self._k for i in range(dims))).astype(np.int32)
         self._padding = np.array(list(self._p for i in range(dims))).astype(np.int32)
@@ -91,6 +92,10 @@ class conv_forward(operation):
         self.gpus = gpus
 
         output_channels = self._channels
+
+        if groups > 1:
+            assert all(dim % groups == 0 for dim in [input_shape[1], output_channels]), \
+                'Input and Output channels must be evenly divisible with group count.'
         input_channels = input_shape[1] // self._groups
 
         weight_shape = (output_channels, input_channels, *self._kernel)
@@ -172,26 +177,9 @@ class conv_forward_cpu(conv_forward):
                 val = np.rollaxis(np.tensordot(col, w, ([1, 2, 3], [1, 2, 3])), 3, 1)
                 ret = val + b
             else:
-                out_h, out_w = col.shape[-2:]
-
-                out_channels = w.shape[0]
-                in_channels = x.shape[1]
-
-                iCg = in_channels // groups
-                oCg = out_channels // groups
-                k_h, k_w = self._kernel
-                N = x.shape[0]
-
-                col = col.transpose(1, 2, 3, 0, 4, 5)
-                col = col.reshape(groups, iCg * k_h * k_w, N * out_h * out_w)
-                w_new = w.reshape(groups, oCg, iCg * k_h * k_w)
-
-                value = np.matmul(w_new, col)
-                value = value.reshape(groups * oCg, N, out_h, out_w)
-                value = value.transpose(1, 0, 2, 3)
-
-                value += b.reshape(1, b.size, 1, 1)
-
+                value, col = rm.graph.utils.conv_cpu_methods.\
+                    grouped_conv_forward(x, w, b, col, groups, self._kernel,
+                                         self._stride, self._padding, self._dilation)
                 ret = value
             self._col = col
 
