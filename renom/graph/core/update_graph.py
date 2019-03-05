@@ -9,6 +9,7 @@ import types
 T = True
 F = False
 
+
 class gradient_accumulator(operation):
 
     name = 'Gradient Accumulator'
@@ -36,7 +37,6 @@ class gradient_accumulator(operation):
             else:
                 self.accumulate_cpu()
 
-
     def accumulate_gpu(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             rm.cu.cusub(self._outputs[gpu], self._outputs[gpu],
@@ -50,6 +50,7 @@ class gradient_accumulator(operation):
         for grad in self._inputs:
             dy += grad['cpu']
         self._outputs['cpu'] = dy
+
 
 class update_operation(operation):
     '''
@@ -118,7 +119,6 @@ class update_operation(operation):
                     rm.cuda.cuadd(self._dy[gpu], self._wd[gpu], self._dy[gpu], handle)
             else:
                 self._dy['cpu'] = self._dy['cpu'] + self._outputs['cpu'] * wd
-
 
     def perform(self):
         if update_operation._communicator is not None:

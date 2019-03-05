@@ -30,6 +30,8 @@ class MyModel(rm.Model):
 ##############################################################
 # 2. decorator
 ##############################################################
+
+
 def _inject(cls, names):
     @pytest.fixture(autouse=True)
     def auto_injector_fixture(self, request):

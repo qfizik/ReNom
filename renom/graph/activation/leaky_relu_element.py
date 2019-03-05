@@ -95,5 +95,6 @@ class LeakyRelu(GraphFactory):
         ret = LeakyReluElement(slope=self._slope, previous_elements=other)
         return ret
 
+
 def leaky_relu(x, slope=0.01):
     return LeakyReluElement(slope=slope, previous_elements=[x])

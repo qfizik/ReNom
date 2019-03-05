@@ -409,7 +409,6 @@ def test_lstm(test_shape, use_gpu, num_gpu):
     c = rm.graph.Concat()
     l = rm.graph.ConstantLoss()
 
-
     def func():
         model.reset()
         h1 = model(val)
@@ -479,6 +478,50 @@ def test_peephole_lstm(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, model.params['wr'].output), grad_wr, abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wc'].output), grad_wc, abs_tol=1e-3)
 
+@pytest.mark.parametrize("test_shape", [
+    (2, 3),
+    (2, 1),
+    (1, 2),
+    (4, 5),
+])
+def test_peephole_lstm(test_shape, use_gpu, num_gpu):
+    np.random.seed(44)
+    rm.set_cuda_active(use_gpu)
+
+    v = rand(*test_shape)
+    val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
+    model = rm.graph.PeepholeLstm(output_size=1)
+    c = rm.graph.Concat()
+    l = rm.graph.ConstantLoss()
+
+
+    def func():
+        model.reset()
+        h1 = model(val)
+        h2 = model(val)
+        h3 = model(val)
+        ret = l(c([h1, h2, h3]))
+        #ret = l(h3)
+        #ret = l(h2 + h2 * 2)
+        return ret.as_ndarray()
+
+    model.reset()
+    h1 = model(val)
+    h2 = model(val)
+    h3 = model(val)
+    loss = l(c([h1, h2, h3]))
+    #loss = l(h3)
+    #loss = l(h2 + h2 * 2)
+    grad = loss.backward().get_gradient(val.value)
+    grad_w = loss.get_gradient(model.params['w'].output)
+    grad_wr = loss.get_gradient(model.params['wr'].output)
+    grad_wc = loss.get_gradient(model.params['wc'].output)
+
+    compare(getNumericalDiff(func, val.value), grad, abs_tol=1e-3)
+    compare(getNumericalDiff(func, model.params['w'].output), grad_w, abs_tol=1e-3)
+    compare(getNumericalDiff(func, model.params['wr'].output), grad_wr, abs_tol=1e-3)
+    compare(getNumericalDiff(func, model.params['wc'].output), grad_wc, abs_tol=1e-3)
+
 
 @pytest.mark.parametrize("test_shape", [
     (2, 3),
@@ -495,7 +538,6 @@ def test_gru(test_shape, use_gpu, num_gpu):
     model = rm.graph.Gru(output_size=4)
     c = rm.graph.Concat()
     l = rm.graph.ConstantLoss()
-
 
     def func():
         model.reset()
@@ -627,17 +669,26 @@ def test_embedding(test_shape, use_gpu, num_gpu):
 @pytest.mark.parametrize("test_shape", [
     (1, 1, 5, 5),
     (2, 3, 5, 5),
-    (2, 2, 5, 5, 5),
+    #(2, 2, 5, 5, 5),
 ])
-def test_conv(test_shape, use_gpu, num_gpu, ignore_bias):
+@pytest.mark.parametrize("groups", [1, 2])
+def test_conv(test_shape, use_gpu, num_gpu, ignore_bias, groups):
     # TODO: Fix this weird issue
     # Fails at seed 30 (some times) for some reason
-    np.random.seed(45)
+    np.random.seed(44)
     rm.set_cuda_active(use_gpu)
+
+    if groups > 1:
+        if len(test_shape) > 4:
+            pytest.skip()
+        test_shape = list(test_shape)
+        test_shape[0] *= groups
+        test_shape[1] *= groups
+        test_shape = tuple(test_shape)
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.Conv(channels=2, ignore_bias=ignore_bias)
+    model = rm.graph.Conv(channels=2, ignore_bias=ignore_bias, groups=groups)
     model2 = rm.graph.Conv(channels=4, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLoss()
     m = model(val)

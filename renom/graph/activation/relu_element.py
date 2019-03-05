@@ -78,5 +78,6 @@ class Relu(GraphFactory):
         ret = ReluElement(previous_elements=other)
         return ret
 
+
 def relu(x):
     return ReluElement(previous_elements=[x])

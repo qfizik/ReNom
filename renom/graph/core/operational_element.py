@@ -130,7 +130,6 @@ class operational_element(graph_element):
     def total_setup(self, tag=None):
         self.setup(tag=tag)
 
-
     @check_tags
     def setup(self):
         if not self.inputs_changed():
@@ -159,7 +158,6 @@ class operational_element(graph_element):
     @check_tags
     def set_attr(self, name, val):
         setattr(self._op, name, val)
-
 
     @property
     def name(self):
