@@ -434,6 +434,50 @@ def test_lstm(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, model.params['w'].output), grad_w, abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wr'].output), grad_wr, abs_tol=1e-3)
 
+@pytest.mark.parametrize("test_shape", [
+    (2, 3),
+    (2, 1),
+    (1, 2),
+    (4, 5),
+])
+def test_peephole_lstm(test_shape, use_gpu, num_gpu):
+    np.random.seed(44)
+    rm.set_cuda_active(use_gpu)
+
+    v = rand(*test_shape)
+    val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
+    model = rm.graph.PeepholeLstm(output_size=1)
+    c = rm.graph.Concat()
+    l = rm.graph.ConstantLoss()
+
+
+    def func():
+        model.reset()
+        h1 = model(val)
+        h2 = model(val)
+        h3 = model(val)
+        ret = l(c([h1, h2, h3]))
+        #ret = l(h3)
+        #ret = l(h2 + h2 * 2)
+        return ret.as_ndarray()
+
+    model.reset()
+    h1 = model(val)
+    h2 = model(val)
+    h3 = model(val)
+    loss = l(c([h1, h2, h3]))
+    #loss = l(h3)
+    #loss = l(h2 + h2 * 2)
+    grad = loss.backward().get_gradient(val.value)
+    grad_w = loss.get_gradient(model.params['w'].output)
+    grad_wr = loss.get_gradient(model.params['wr'].output)
+    grad_wc = loss.get_gradient(model.params['wc'].output)
+
+    compare(getNumericalDiff(func, val.value), grad, abs_tol=1e-3)
+    compare(getNumericalDiff(func, model.params['w'].output), grad_w, abs_tol=1e-3)
+    compare(getNumericalDiff(func, model.params['wr'].output), grad_wr, abs_tol=1e-3)
+    compare(getNumericalDiff(func, model.params['wc'].output), grad_wc, abs_tol=1e-3)
+
 
 @pytest.mark.parametrize("test_shape", [
     (2, 3),
