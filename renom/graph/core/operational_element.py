@@ -97,7 +97,6 @@ class operational_element(graph_element):
         self._op.perform()
 
     def finalize(self):
-        self.setup_all()
         finished = False
         while not finished:
             rets = self._smooth_iteration(flatten=True)
