@@ -709,3 +709,7 @@ def test_dtype(ttype, use_gpu):
 
 def test_pinnedmem():  # TODO
     pytest.skip()
+
+
+def test_finalize():
+    pytest.skip()
