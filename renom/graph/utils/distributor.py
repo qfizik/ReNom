@@ -166,6 +166,10 @@ class Distro:
             data = [data]
             labels = [labels]
 
+        for i in range(len(data)):
+            data[i] = data[i].astype(rm.precision)
+            labels[i] = labels[i].astype(rm.precision)
+
         common_args = {'num_gpus': num_gpus, 'batch_size': batch_size,
                        'shuffle': shuffle, 'drop_remainder': drop_remainder}
 
