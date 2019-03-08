@@ -31,7 +31,7 @@ class reshape_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        self._inputs = inputs[0]['dy']
+        self._inputs = inputs[0]['y']
         shape = self._fwd_op._inputs.shape
         gpus = self._inputs.gpus
         fwd_op_inputs = self._fwd_op._inputs

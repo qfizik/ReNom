@@ -36,7 +36,7 @@ class log_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         fwd_inputs = self._fwd_op._inputs
         shape = fwd_inputs.shape
         gpus = fwd_inputs.gpus

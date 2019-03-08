@@ -53,7 +53,7 @@ class embedding_weight_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         self._inputs = inputs
 
         gpus = inputs.gpus

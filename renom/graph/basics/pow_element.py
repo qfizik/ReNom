@@ -46,7 +46,7 @@ class pow_backward(operation):
         self._key = key
 
     def setup(self, inputs):
-        self._inputs = inputs[0]['dy']
+        self._inputs = inputs[0]['y']
         key = self._key
         key_value = self._fwd_op.get_key(key)
         gpus = key_value.gpus

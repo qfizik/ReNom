@@ -111,7 +111,7 @@ class dense_backward(operation):
 
     def setup(self, inputs):
 
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
         weights = self._fwd_op.get_key('w')
@@ -148,7 +148,7 @@ class dense_weight_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         self._inputs = inputs
 
         gpus = inputs.gpus

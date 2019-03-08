@@ -199,7 +199,7 @@ class conv_backward(operation):
 
     def setup(self, inputs):
 
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         self._inputs = inputs
         self._groups = self._fwd_op._groups
         self._dims = self._fwd_op._dims
