@@ -434,6 +434,7 @@ def test_lstm(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, model.params['w'].output), grad_w, abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wr'].output), grad_wr, abs_tol=1e-3)
 
+
 @pytest.mark.parametrize("test_shape", [
     (2, 3),
     (2, 1),
@@ -449,7 +450,6 @@ def test_peephole_lstm(test_shape, use_gpu, num_gpu):
     model = rm.graph.PeepholeLstm(output_size=1)
     c = rm.graph.Concat()
     l = rm.graph.ConstantLoss()
-
 
     def func():
         model.reset()
@@ -478,6 +478,7 @@ def test_peephole_lstm(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, model.params['wr'].output), grad_wr, abs_tol=1e-3)
     compare(getNumericalDiff(func, model.params['wc'].output), grad_wc, abs_tol=1e-3)
 
+
 @pytest.mark.parametrize("test_shape", [
     (2, 3),
     (2, 1),
@@ -493,7 +494,6 @@ def test_peephole_lstm(test_shape, use_gpu, num_gpu):
     model = rm.graph.PeepholeLstm(output_size=1)
     c = rm.graph.Concat()
     l = rm.graph.ConstantLoss()
-
 
     def func():
         model.reset()

@@ -131,7 +131,6 @@ class peephole_lstm_forward_cpu(peephole_lstm_forward):
         self._vars['z'] = ret
 
 
-
 class peephole_lstm_backward(operation):
 
     name = 'Peephole LSTM (B)'
@@ -189,8 +188,6 @@ class peephole_lstm_backward(operation):
             drt = GraphMultiStorage(shape=u.shape, gpus=self.gpus, initializer=init.Constant(0))
             dot = GraphMultiStorage(shape=fwd['y'].shape,
                                     gpus=self.gpus, initializer=init.Constant(0))
-
-
 
         dr = GraphMultiStorage(shape=u.shape, gpus=self.gpus)
         dou = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
@@ -251,15 +248,12 @@ class peephole_lstm_backward_cpu(peephole_lstm_backward):
             else:
                 dy += grad['y']['cpu']
 
-
         #n, m = dy.shape
         dx, dw, dwr = (0, 0, 0)
 
         w = fwd['w']['cpu']
         wr = fwd['wr']['cpu']
         wc = fwd['wc']['cpu']
-
-
 
         u = fwd['u']
         s = np.tanh(fwd['s'])
@@ -286,7 +280,6 @@ class peephole_lstm_backward_cpu(peephole_lstm_backward):
         du = dou * activation_diff(u) * gated[:, m:2 * m]
 
         dr = np.hstack((du, df, di, do))
-
 
         dx = np.dot(dr, w.T)
 
@@ -333,7 +326,6 @@ class PeepholeLstmElement(UserGraph):
                 graph.add_input(backward_graph_input)
 
 
-
 class PeepholeLstm(GraphFactory):
 
     def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
@@ -345,7 +337,6 @@ class PeepholeLstm(GraphFactory):
         self.params['wc'] = graph_variable(weight_decay=weight_decay)
         self._prev = None
         self._prevlist = []
-
 
     def reset(self):
         self._prev = None
