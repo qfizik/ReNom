@@ -100,6 +100,12 @@ class GraphFactory(abc.ABC):
             if isinstance(v, GraphFactory):
                 yield k, v
 
+    def __getitem__(self, name):
+        return self.params[name]
+
+    def __setitem__(self, name, value):
+        self.params[name] = value
+
     def _get_values(self, values):
         if self.params:
             for k in self.params.keys():
@@ -132,6 +138,13 @@ class GraphFactory(abc.ABC):
 
         flatten(('root',), values)
         return value_list
+
+    def load_v2_params(self, other_params, gpus=None):
+        self_params = self.params
+        for key in other_params:
+            if key in self_params:
+                other_val = other_params[key].as_ndarray()
+                self_params[key].set_value(other_val)
 
     def save(self, filename):
         """Save model attributes.
@@ -245,7 +258,10 @@ class GraphFactory(abc.ABC):
                     name = k
 
                 tmp = obj[name]
-                tmp.set_value(v, gpus=devices)
+                if isinstance(tmp, graph_variable):
+                    tmp.set_value(v, gpus=devices)
+                else:
+                    obj[name] = v
 
         f.close()
 
@@ -278,6 +294,8 @@ class graph_variable(UserGraph):
         super().__init__(forward_operation=fwd_graph, backward_operations=bwd_ops)
 
     def set_value(self, arr, gpus=None):
+        if not isinstance(arr, np.ndarray):
+            arr = np.array(arr).reshape(1, 1)
         assert isinstance(arr, np.ndarray)
         v = self._fwd_op.get_key('y')
         v.__init__(shape=arr.shape, gpus=gpus)

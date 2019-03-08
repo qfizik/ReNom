@@ -668,6 +668,27 @@ def test_version_save_compability(use_gpu):
     os.remove(tmp_filename)
 
 
+def test_save_serialized(use_gpu):
+    rm.set_cuda_active(use_gpu)
+    eps = 3
+    model_v2 = rm.BatchNormalize(epsilon=eps)
+    model_v3 = rmg.BatchNormalize()
+
+    x = np.random.rand(4, 2)
+    model_v2(x)
+    import os
+
+    tmp_filename = get_random_filename()
+    model_v2.save(tmp_filename)
+    try:
+        model_v3.load(tmp_filename)
+        assert model_v3.params['_epsilon'] == eps
+    except Exception as e:
+        os.remove(tmp_filename)
+        raise e
+    os.remove(tmp_filename)
+
+
 def test_gradient_clipping(use_gpu):
     if rm.precision != np.float64:
         pytest.skip()
