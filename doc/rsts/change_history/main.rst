@@ -2,6 +2,7 @@ Change logs
 ============
 
 **2.7.2**
+
 1. Modified BatchNormalize layer for calculating back propagation with inference mode.
 2. Fixed bug in Rmsprop.
 
