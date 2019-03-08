@@ -3,6 +3,7 @@
 
 from __future__ import division, print_function
 import numpy as np
+from numbers import Number
 from renom.core import Node, Variable, to_value
 from renom import precision
 from renom.layers.function.parameterized import Parametrized
@@ -51,7 +52,6 @@ class batch_normalize(Node):
         ret.attrs._b = b
         ret.attrs._m = mean
         ret.attrs._v = sq_var
-
         if not inference:
             N = np.prod([x.shape[s] for s in axs])
             ret.attrs._mov_m = (1 - momentum) * mov_m + momentum * mean
@@ -67,13 +67,17 @@ class batch_normalize(Node):
 
         if b is None:
             b = get_gpu(w).zeros_like_me()
-
         y, mean, sq_var = (get_gpu(g).empty_like_me() for g in (x, w, w))
+
+        if inference:
+            inv_var = 1.0 / np.sqrt(to_value(mov_s) + epsilon)
+            if isinstance(inv_var, Number):
+                inv_var = inv_var * np.ones_like(w)
+
         mov_m = get_gpu(mov_m)
         mov_s = get_gpu(mov_s)
         mv_m = mov_m if isinstance(mov_m, GPUValue) else get_gpu(w).zeros_like_me()
         mv_v = mov_s if isinstance(mov_s, GPUValue) else get_gpu(w).zeros_like_me()
-
         with cu.cudnn_handler() as handle:
             cu.cuBatchNormalizatoinForward(handle, get_gpu(x), mv_m, mv_v, get_gpu(w), get_gpu(b),
                                            y, mean, sq_var, momentum=momentum,
@@ -83,12 +87,15 @@ class batch_normalize(Node):
         ret.attrs._x = x
         ret.attrs._w = w
         ret.attrs._b = b
-        ret.attrs._m = mean
-        ret.attrs._v = sq_var
-
-        if not inference:
+        if inference:
+            ret.attrs._m = mv_m
+            ret.attrs._v = inv_var
+        else:
+            ret.attrs._m = mean
+            ret.attrs._v = sq_var
             ret.attrs._mov_m = mv_m
             ret.attrs._mov_v = mv_v
+
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):
@@ -103,7 +110,6 @@ class batch_normalize(Node):
             du = np.sum(-dxh * sq_var, axis=a, keepdims=True)
             dx = dxh * sq_var + (ds * 2 * meaned + du) / N
             self.attrs._x._update_diff(context, dx, **kwargs)
-
         if isinstance(self.attrs._w, Node):
             xh = meaned * sq_var
             self.attrs._w._update_diff(context, np.sum(xh * dy, axis=a, keepdims=True), **kwargs)
@@ -173,7 +179,6 @@ class BatchNormalize(Parametrized):
         Accelerating Deep Network Training by Reducing Internal Covariate Shift(2015)
 
     """
-
     SERIALIZED = ('_mov_mean', '_mov_std', '_epsilon', '_mode')
 
     def __init__(self,
@@ -220,4 +225,5 @@ class BatchNormalize(Parametrized):
                               self._epsilon)
         self._mov_mean = ret.attrs.get("_mov_m", self._mov_mean)
         self._mov_std = ret.attrs.get("_mov_v", self._mov_std)
+
         return ret

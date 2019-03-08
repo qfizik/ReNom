@@ -12,6 +12,8 @@ def to_value(array):
     if isinstance(array, Node):
         array.to_cpu()
         return array.view(np.ndarray)
+    elif isinstance(array, GPUValue):
+        return array.new_array()
     else:
         return array
 
