@@ -12,7 +12,7 @@ def to_value(array):
     if isinstance(array, Node):
         array.to_cpu()
         return array.view(np.ndarray)
-    elif isinstance(array, GPUValue):
+    elif renom.cuda.has_cuda() and isinstance(array, GPUValue):
         return array.new_array()
     else:
         return array
