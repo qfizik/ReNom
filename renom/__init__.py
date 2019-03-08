@@ -64,4 +64,4 @@ def set_renom_seed(seed=30):
     np.random.seed(seed)
 
 
-__version__ = "2.6.2"
+__version__ = "2.7.1"
