@@ -49,7 +49,7 @@ class mean_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         gpus = inputs.gpus
         out_shape = self._fwd_op._inputs.shape
         outs = GraphMultiStorage(shape=out_shape, gpus=gpus)
