@@ -145,8 +145,9 @@ class data_entry_element(UserGraph):
 
 class Distro:
 
-    def __init__(self, data, labels, keyword=None, batch_size=64,
-                 num_gpus=1, shuffle=True, test_split=None, drop_remainder=False):
+    def __init__(self, data, labels, test_data=None, test_labels=None,
+                 keyword=None, batch_size=64, num_gpus=1, shuffle=True,
+                 test_split=None, drop_remainder=False):
         super().__init__()
         assert len(data) == len(labels)
         self._data = data
@@ -162,6 +163,9 @@ class Distro:
             labels_t, labels_v = labels[train_split], labels[valid_split]
             data = [data_t, data_v]
             labels = [labels_t, labels_v]
+        elif test_data is not None and test_labels is not None:
+            data = [data, test_data]
+            labels = [labels, test_labels]
         elif not isinstance(data, list):
             data = [data]
             labels = [labels]
