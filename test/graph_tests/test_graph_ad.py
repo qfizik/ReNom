@@ -688,8 +688,8 @@ def test_conv(test_shape, use_gpu, num_gpu, ignore_bias, groups):
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.Conv(channels=2, ignore_bias=ignore_bias, groups=groups)
-    model2 = rm.graph.Conv(channels=4, ignore_bias=ignore_bias)
+    model = rm.graph.Conv(channel=2, ignore_bias=ignore_bias, groups=groups)
+    model2 = rm.graph.Conv(channel=4, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLoss()
     m = model(val)
     m = model2(m)

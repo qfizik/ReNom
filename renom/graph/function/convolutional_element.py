@@ -94,7 +94,7 @@ class conv_forward(operation):
         gpus = inputs.gpus
         self.gpus = gpus
 
-        output_channels = self._channel
+        output_channels = self._channels
 
         if groups > 1:
             assert all(dim % groups == 0 for dim in [input_shape[1], output_channels]), \
