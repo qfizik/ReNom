@@ -78,6 +78,34 @@ class SoftmaxElement(UserGraph):
 
 
 class Softmax(GraphFactory):
+    '''A factory class of softmax activation function element.
+
+    .. math::
+
+        y \in R^{N \\times J},
+        y_{nj} = \\frac{exp(x_{nj})}{\\sum_{k}^{J}{exp(x_{nk})}}
+
+    Args:
+        alpha (float): Alpha coefficient for Elu.
+
+    Example:
+        >>> import numpy as np 
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.array([-1, 0, 1])
+        >>>
+        >>> layer = rmg.Elu()
+        >>> layer(x)
+        Elu (F):
+        [-0.00632121  0.          1.        ]
+        >>>
+        >>> # Create element using function interface.
+        >>> rmg.elu(x)
+        Elu (F):
+        [-0.00632121  0.          1.        ]
+
+    '''
+
 
     def connect(self, other):
         ret = SoftmaxElement(previous_elements=other)

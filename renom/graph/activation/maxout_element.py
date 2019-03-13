@@ -128,18 +128,33 @@ class MaxoutElement(UserGraph):
 
 
 class Maxout(GraphFactory):
+    """A factory class of elu activation function element.
+
+    Args:
+        slice_size (int): The size of slices to perform maxout on.
+
+    Example:
+        >>> import numpy as np 
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.array([-1, 0, 1]).reshape(1, -1)
+        >>>
+        >>> layer = rmg.Maxout()
+        >>> layer(x)
+        Maxout (F):
+        [[-1.  0.  1.]]
+        >>>
+        >>> # Create element using function interface.
+        >>> rmg.maxout(x)
+        Maxout (F):
+        [[-1.  0.  1.]]
+
+
+    """
 
     def __init__(self, slice_size=1):
-        '''Initializer for Elu graph producing GraphFactory.
-
-            Args:
-                slice_size (int): The size of slices to perform maxout on.
-
-            For more detail, see :class:`.Maxout`
-
-        '''
-        self._sz = slice_size
         super().__init__()
+        self._sz = slice_size
 
     def connect(self, other):
         ret = MaxoutElement(self._sz, previous_elements=other)

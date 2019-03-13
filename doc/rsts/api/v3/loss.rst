@@ -8,6 +8,7 @@ This documentation describes the loss functions in renom.graph
 .. Please keep this list in lexicographical order.
 
 .. autosummary::
+    :template: template.rst
     :toctree: autosum/
     :nosignatures:
 

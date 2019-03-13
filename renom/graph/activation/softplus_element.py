@@ -73,6 +73,31 @@ class SoftplusElement(UserGraph):
 
 
 class Softplus(GraphFactory):
+    '''A factory class of elu activation function element.
+
+    .. math::
+
+        f(x) = log(1 + exp(x))
+
+    Args:
+        x (ndarray, Node): Input numpy array or Node instance.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.array([1., -1.])
+        >>> 
+        >>> layer = rmg.Softplus()
+        >>> layer(x)
+        Softplus (F):
+        [1.31326163, 0.31326169]
+        >>> 
+        >>> rmg.softplus(x)
+        Softplus (F):
+        [1.31326163, 0.31326169]
+
+    '''
 
     def connect(self, other):
         ret = SoftplusElement(previous_elements=other)

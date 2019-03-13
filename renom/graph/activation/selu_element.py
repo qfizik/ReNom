@@ -86,6 +86,36 @@ class SeluElement(UserGraph):
 
 
 class Selu(GraphFactory):
+    '''A factory class of selu activation function element.
+
+    .. math::
+
+        \\alpha = 1.6732632423543772848170429916717 \\\\
+        \lambda = 1.0507009873554804934193349852946 \\\\
+        y = \lambda * max(x, \\alpha * (exp(x) - 1))
+
+
+    Args:
+        alpha (float): Alpha coefficient for Elu.
+
+    Example:
+        >>> import numpy as np 
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.array([-1, 0, 1])
+        >>>
+        >>> layer = rmg.Elu()
+        >>> layer(x)
+        Elu (F):
+        [-0.00632121  0.          1.        ]
+        >>>
+        >>> # Create element using function interface.
+        >>> rmg.elu(x)
+        Elu (F):
+        [-0.00632121  0.          1.        ]
+
+    '''
+
 
     def __init__(self):
         super().__init__()

@@ -43,7 +43,7 @@ extensions = [
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.autosummary',
-    'sphinx.ext.jsmath',
+    'sphinxcontrib.katex',
     'sphinx.ext.napoleon',
     'IPython.sphinxext.ipython_console_highlighting'
 ]

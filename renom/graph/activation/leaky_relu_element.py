@@ -79,15 +79,32 @@ class LeakyReluElement(UserGraph):
 
 
 class LeakyRelu(GraphFactory):
+    '''A factory class of leaky relu activation function element.
 
+    .. math::
+
+        y = max(x, slope*x)
+
+    Args:
+        slope (float): Slope to apply to variables less than 1.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.array([-1, 0, 1])
+        >>>
+        >>> layer = rmg.LeakyRelu()
+        >>> layer(x)
+        LeakyRelu (F):
+        [-0.01  0.    1.  ]
+        >>>
+        >>> rmg.leaky_relu(x)
+        LeakyRelu (F):
+        [-0.01  0.    1.  ]
+
+    '''
     def __init__(self, slope=0.01):
-        '''Initializer for Leaky Relu graph producing GraphFactory.
-
-            Args:
-                slope (float): Slope to apply to variables less than 0.
-
-            For more detail, see :class:`.LeakyRelu`
-        '''
         super().__init__()
         self._slope = slope
 

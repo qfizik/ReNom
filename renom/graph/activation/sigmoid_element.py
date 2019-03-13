@@ -74,6 +74,29 @@ class SigmoidElement(UserGraph):
 
 
 class Sigmoid(GraphFactory):
+    '''A factory class of sigmoid activation function element.
+
+    .. math::
+
+        y = 1/(exp(-x) + 1)
+
+    Example:
+        >>> import numpy as np 
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.array([-1, 0, 1])
+        >>>
+        >>> layer = rmg.Sigmoid()
+        >>> layer(x)
+        Sigmoid (F):
+        [0.26894143 0.5        0.7310586 ]
+        >>>
+        >>> # Create element using function interface.
+        >>> rmg.sigmoid(x)
+        Sigmoid (F):
+        [0.26894143 0.5        0.7310586 ]
+
+    '''
 
     def connect(self, other):
         ret = SigmoidElement(previous_elements=other)

@@ -73,6 +73,30 @@ class ReluElement(UserGraph):
 
 
 class Relu(GraphFactory):
+    '''A factory class of relu activation function element.
+
+    .. math::
+
+        y = max(x, 0)
+
+    Example:
+        >>> import numpy as np 
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.array([-1, 0, 1])
+        >>>
+        >>> layer = rmg.Relu()
+        >>> layer(x)
+        Relu (F):
+        [0.  0.  1. ]
+        >>>
+        >>> # Create element using function interface.
+        >>> rmg.relu(x)
+        Relu (F):
+        [0.  0.  1. ]
+
+    '''
+
 
     def connect(self, other):
         ret = ReluElement(previous_elements=other)

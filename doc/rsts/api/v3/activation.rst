@@ -8,6 +8,7 @@ This documentation is a list of the different activations in graph.
 .. Please keep this list in lexicographical order.
 
 .. autosummary::
+    :template: template.rst
     :toctree: autosum/
     :nosignatures:
 

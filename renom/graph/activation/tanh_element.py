@@ -74,6 +74,32 @@ class TanhElement(UserGraph):
 
 
 class Tanh(GraphFactory):
+    '''A factory class of tanh activation function element.
+
+    .. math::
+
+        y = tanh(x)
+
+
+    Example:
+        >>> import numpy as np 
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.array([-1, 0, 1])
+        >>>
+        >>> layer = rmg.Tanh()
+        >>> layer(x)
+        Tanh (F):
+        [-0.7615942  0.         0.7615942]
+        >>>
+        >>> # Create element using function interface.
+        >>> rmg.tanh(x)
+        Tanh (F):
+        [-0.7615942  0.         0.7615942]
+
+
+    '''
+
 
     def __init__(self):
         super().__init__()

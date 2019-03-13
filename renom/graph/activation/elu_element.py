@@ -77,15 +77,35 @@ class EluElement(UserGraph):
 
 
 class Elu(GraphFactory):
+    '''A factory class of elu activation function element.
+
+    .. math::
+
+        y = max(x, alpha * exp(x) - 1)
+
+    Args:
+        alpha (float): Alpha coefficient for Elu.
+
+    Example:
+        >>> import numpy as np 
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.array([-1, 0, 1])
+        >>>
+        >>> layer = rmg.Elu()
+        >>> layer(x)
+        Elu (F):
+        [-0.00632121  0.          1.        ]
+        >>>
+        >>> # Create element using function interface.
+        >>> rmg.elu(x)
+        Elu (F):
+        [-0.00632121  0.          1.        ]
+
+    '''
+
 
     def __init__(self, alpha=0.01):
-        '''Initializer for Elu graph producing GraphFactory.
-
-            Args:
-                alpha (float): Alpha coefficient for Elu.
-
-            For more details, see :class:`.Elu`
-        '''
         super().__init__()
         self._alpha = alpha
 
