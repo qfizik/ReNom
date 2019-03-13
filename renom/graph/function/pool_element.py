@@ -150,8 +150,8 @@ class MaxPool(PoolGraphFactory):
 
     This function takes max operation for each cells overlapped by the filter kernel.
 
-    This function accepts input array which has 2~5 dimention. 
-    If argments of kernel, padding or strideis are given as int, it will be 
+    This function accepts input array which has 2~5 dimention.
+    If argments of kernel, padding or strideis are given as int, it will be
     expanded to fit the dimension of the input array.
 
     Args:
@@ -173,8 +173,8 @@ class AvgPool(PoolGraphFactory):
     '''Average pooling function.
     This function takes average for each cells overlapped by the filter kernel.
 
-    This function accepts input array which has 2~5 dimention. 
-    If argments of kernel, padding or strideis are given as int, it will be 
+    This function accepts input array which has 2~5 dimention.
+    If argments of kernel, padding or strideis are given as int, it will be
     expanded to fit the dimension of the input array.
 
     Args:

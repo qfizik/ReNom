@@ -136,8 +136,8 @@ class AverageUnPool2d:
 
         Args:
             x (Node, ndarray): The input to the unpooling method
-            prev_pool (average_pool2d): The previous pool to be unpooled. In the case of none, the model searches through the history for the previous layer.
-
+            prev_pool (average_pool2d): The previous pool to be unpooled. In the case of none,
+                the model searches through the history for the previous layer.
 
         Returns:
             (average_unpool2d): Unpooled array.

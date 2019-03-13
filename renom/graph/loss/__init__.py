@@ -3,4 +3,4 @@ from .cross_entropy_element import CrossEntropyElement, CrossEntropy
 from .softmax_cross_entropy_element import SoftmaxCrossEntropyElement, SoftmaxCrossEntropy
 from .sigmoid_cross_entropy_element import SigmoidCrossEntropyElement, SigmoidCrossEntropy
 from .mean_squared_element import MeanSquaredElement, MeanSquared
-from .smoothed_l1_element import SmoothedL1Element, SmoothedL1
+from .smooth_l1_element import SmoothL1Element, SmoothL1

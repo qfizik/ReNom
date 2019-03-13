@@ -170,7 +170,7 @@ class L2Norm(GraphFactory):
 
     Args:
         scale (float): Feature map is scaled to this value. Defaults to 20.
-        weight_decay (float): 
+        weight_decay (float):
 
     Example:
         >>> import numpy as np

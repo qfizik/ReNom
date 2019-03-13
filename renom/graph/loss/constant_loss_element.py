@@ -58,6 +58,9 @@ class ConstantLossElement(UserLossGraph):
 
 
 class ConstantLoss(GraphFactory):
+    '''A factory class of constant loss function element.
+
+    '''
 
     def connect(self, other):
         return ConstantLossElement(previous_element=other)

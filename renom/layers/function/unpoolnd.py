@@ -139,9 +139,9 @@ class AverageUnPoolNd:
     Unpools an input in a network where a previous pooling has occured.
 
     Args:
-        x (Node, np.ndarray):           The input to the unpooling method
-        prev_pool (average_poolnd, None):   The previous pool to be unpooled. In the case of none,
-                                        the model searches through the history for the previous layer.
+        x (Node, np.ndarray): The input to the unpooling method
+        prev_pool (average_poolnd, None): The previous pool to be unpooled. In the case of none,
+            the model searches through the history for the previous layer.
 
 
     Example:
@@ -150,18 +150,17 @@ class AverageUnPoolNd:
         >>> x = rm.Variable(np.random.rand(1, 3, 5, 5, 5))
         >>> poolnd = rm.AveragePoolNd(filter=(3, 3, 3))
         >>> unpoolnd = rm.AverageUnPoolNd()
-        >>> 
+        >>>
         >>> print("Input", x.shape)
         Input (1, 3, 5, 5, 5)
-        >>> 
+        >>>
         >>> h = poolnd(x)
         >>> print("Hidden layer", h.shape)
         Hidden layer (1, 3, 3, 3, 3)
-        >>> 
+        >>>
         >>> z = unpoolnd(h, h)
         >>> print("Output", z.shape)
         Output (1, 3, 5, 5, 5)
-
 
     Note:
         The input shape requirement:
@@ -184,8 +183,8 @@ class AverageUnPoolNd:
 
         Args:
             x (Node, ndarray): The input to the unpooling method
-            prev_pool (average_poolnd): The previous pool to be unpooled. In the case of none, the model searches through the history for the previous layer.
-
+            prev_pool (average_poolnd): The previous pool to be unpooled.
+                In the case of none, the model searches through the history for the previous layer.
 
         Returns:
             (average_unpoolnd): Unpooled array.

@@ -82,7 +82,7 @@ class BiasElement(UserGraph):
 
 
 class Bias(GraphFactory):
-    """This class 
+    """This class
 
     """
 

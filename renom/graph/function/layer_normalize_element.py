@@ -190,7 +190,7 @@ class LayerNormElement(UserGraph):
 class LayerNormalize(GraphFactory):
     '''Layer Normalization Model [layer_normalize]_.
     Applies a shift to a standard bell curve formation for each input unit.
-    The resultant bell curve can be transformed with the gain/bias parameters, 
+    The resultant bell curve can be transformed with the gain/bias parameters,
     displacing the mean with the bias or the variance with gain.
 
     Args:

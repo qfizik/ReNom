@@ -267,7 +267,7 @@ class Gru(GraphFactory):
     """Gated recurrent unit [gru]_ layer.
 
     Args:
-        output_size (int): 
+        output_size (int):
         initializer (Initializer):
         weight_decay (float):
         ignore_bias (bool):
@@ -276,8 +276,7 @@ class Gru(GraphFactory):
         >>> import numpy as np
         >>> import renom as rm
 
-
-    .. [gru] Junyoung Chung, Caglar Gulcehre, KyungHyun Cho, Yoshua Bengio. 
+    .. [gru] Junyoung Chung, Caglar Gulcehre, KyungHyun Cho, Yoshua Bengio.
         Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling. NIPS, 2014.
 
     """

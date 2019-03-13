@@ -134,7 +134,7 @@ class Maxout(GraphFactory):
         slice_size (int): The size of slices to perform maxout on.
 
     Example:
-        >>> import numpy as np 
+        >>> import numpy as np
         >>> import renom.graph as rmg
         >>>
         >>> x = np.array([-1, 0, 1]).reshape(1, -1)
@@ -148,7 +148,6 @@ class Maxout(GraphFactory):
         >>> rmg.maxout(x)
         Maxout (F):
         [[-1.  0.  1.]]
-
 
     """
 
