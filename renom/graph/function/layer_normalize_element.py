@@ -188,6 +188,32 @@ class LayerNormElement(UserGraph):
 
 
 class LayerNormalize(GraphFactory):
+    '''Layer Normalization Model [layer_normalize]_.
+    Applies a shift to a standard bell curve formation for each input unit.
+    The resultant bell curve can be transformed with the gain/bias parameters, 
+    displacing the mean with the bias or the variance with gain.
+
+    Args:
+        gain (float): Initial value of gain.
+        bias (float): Initial value of bias.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = np.random.rand(2,3)
+        >>> layer = rm.LayerNormalize(bias=0)
+        >>> x
+        array([[0.5833913 , 0.39715111, 0.19503325],
+               [0.74007066, 0.34642472, 0.57293373]])
+        >>> layer(x)
+        layer_normalize([[ 0.12076415,  0.00333703, -0.12410118],
+                   [ 0.11587134, -0.12813905,  0.01226771]])
+
+    .. [layer_normalize] Jimmy Lei Ba, Jamie Ryan Kiros, Geoffrey E. Hinton. Layer Normalization.
+        arXiv:1607.06450, 2016.
+
+    '''
+
 
     def __init__(self, gain=0.1):
         super().__init__()

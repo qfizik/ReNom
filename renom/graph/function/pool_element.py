@@ -125,31 +125,42 @@ class PoolElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
-class PoolGraphElement(GraphFactory):
+class PoolGraphFactory(GraphFactory):
+    '''General initializer for pooling functions.
+
+    Args:
+        kernel (int, tuple): The size of the kernel to apply on the images \
+        accross all dimensions
+        padding (int, tuple): The size of the padding to add to the edges of \
+        each image.
+        stride (int, tuple): The step size between the points where the \
+        kernels are to be applied.
+
+    '''
+
     def __init__(self, kernel=3, padding=0, stride=1):
-        '''General initializer for pooling functions.
-
-            Args:
-                kernel (int): The size of the kernel to apply on the images \
-                accross all dimensions
-                padding (int): The size of the padding to add to the edges of \
-                each image.
-                stride (int): The step size between the points where the \
-                kernels are to be applied.
-
-
-
-        '''
         super().__init__()
         self._krnl = kernel
         self._pad = padding
         self._strd = stride
 
 
-class MaxPool(PoolGraphElement):
+class MaxPool(PoolGraphFactory):
     '''Max pooling function.
 
-      For use-reference, see :class:`.MaxPool2d`
+    This function takes max operation for each cells overlapped by the filter kernel.
+
+    This function accepts input array which has 2~5 dimention. 
+    If argments of kernel, padding or strideis are given as int, it will be 
+    expanded to fit the dimension of the input array.
+
+    Args:
+        kernel (int, tuple): The size of the kernel to apply on the images \
+        accross all dimensions
+        padding (int, tuple): The size of the padding to add to the edges of \
+        each image.
+        stride (int, tuple): The step size between the points where the \
+        kernels are to be applied.
 
     '''
 
@@ -158,10 +169,21 @@ class MaxPool(PoolGraphElement):
         return ret
 
 
-class AvgPool(PoolGraphElement):
+class AvgPool(PoolGraphFactory):
     '''Average pooling function.
+    This function takes average for each cells overlapped by the filter kernel.
 
-      For use-reference, see :class:`.AveragePool2d`
+    This function accepts input array which has 2~5 dimention. 
+    If argments of kernel, padding or strideis are given as int, it will be 
+    expanded to fit the dimension of the input array.
+
+    Args:
+        kernel (int, tuple): The size of the kernel to apply on the images \
+        accross all dimensions
+        padding (int, tuple): The size of the padding to add to the edges of \
+        each image.
+        stride (int, tuple): The step size between the points where the \
+        kernels are to be applied.
 
     '''
 

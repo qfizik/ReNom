@@ -7,14 +7,13 @@ import numpy as np
 class Dense(GraphFactory):
     '''Fully connected layer as described below.
 
-        See also :py:class:`~renom.layers.function.dense.Dense`
-        See also :class:`~renom.graph.function.Bias`
-
           :math:`f(x)= w \cdot x + b`
 
       Args:
           output_size (int): Output unit size.
           initializer (Initializer): Initializer object for weight initialization.
+          weight_decay (float): Weight decay ratio. This must be None or 0 <= ratio.
+          ignore_bias (bool): If True is given, bias term will be ignored.
 
       Example:
 
@@ -29,6 +28,7 @@ class Dense(GraphFactory):
           In [6]: z = layer(x).as_ndarray()
           In [7]: z.shape
           Out[7]: (3, 3)
+
     '''
 
     def __init__(self, output_size=1, initializer=None, weight_decay=None, ignore_bias=False):

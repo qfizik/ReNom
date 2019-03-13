@@ -10,10 +10,12 @@ you can use to create the graph.
 ..  Please keep this list in lexicographical order.
 
 .. autosummary::
+    :template: template.rst
     :toctree: autosum/
     :nosignatures:
 
     AvgPool
+    AvgUnPool
     BatchNormalize
     Bias
     Conv

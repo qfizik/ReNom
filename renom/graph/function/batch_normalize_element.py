@@ -181,8 +181,42 @@ class BatchNormalizeElement(UserGraph):
 
 
 class BatchNormalize(GraphFactory):
-    '''See :class:`.BatchNormalize` for more.
-    '''
+    """Batch normalization function [bn]_.
+    This layer accelerates learning speed with reducing internal covariate shift
+    and allow us to set high learning rate.
+
+    When the forward propagation, if the argument ``inference`` is set to False this layer
+    calculates moving average of mean and variance.
+    Other wise the ``inference`` is set to True, this layer uses the moving average which
+    calculated in the above mode.
+
+
+
+
+    Args:
+        momentum (float): Momentum coefficient for the moving average.
+        epsilon (float): Small number added to avoid division by zero.
+        axis (int, None): 'activation'  or 'feature'.
+        ignore_bias (bool): If `True` is given, bias will not be added.
+        initializer (Initializer): Initializer object for weight initialization.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> x = np.random.rand(3, 2)
+        >>> x.shape
+        (3, 2)
+        >>> layer = rmg.BatchNormalize(momentum=0.99)
+        >>> layer(x, inference=False)
+        batch_normalize([[-0.05047419,  0.00471613],
+                         [-0.00887055, -0.01459344],
+                         [ 0.05934474,  0.00987731]], dtype=float32)
+
+    .. [bn] Sergey Ioffe, Christian Szegedy. Batch Normalization:
+        Accelerating Deep Network Training by Reducing Internal Covariate Shift(2015)
+
+    """
+
 
     def __init__(self, momentum=0.99, epsilon=1e-5, axis=None, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()

@@ -1,12 +1,11 @@
-import renom as rm
-from renom.layers.function.utils import im2col, col2im, imncol, colnim, colnw
-from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
-import renom.utility.initializer as init
 import numpy as np
+import renom as rm
+from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
+from renom.layers.function.utils import im2col, col2im, imncol, colnim, colnw
+import renom.utility.initializer as init
 
 
 class Conv(GraphFactory):
-
     """Convolutional Layer.
 
       This class creates a convolution filter to be convolved with
@@ -15,32 +14,36 @@ class Conv(GraphFactory):
       guarantee that they will perform equally.
 
       Args:
-          channel (int): The dimensionality of the output.
-          filter (int): Filter size of the convolution kernel.
-          padding (int): Size of the zero-padding around the image.
-          stride (int): Stride-size of the convolution.
+          channel (int, tuple): The dimensionality of the output.
+          kernel (int, tuple): Filter size of the convolution kernel.
+          padding (int, tuple): Size of the zero-padding around the image.
+          stride (int, tuple): Stride-size of the convolution.
+          groups (int): Number of groups to split convolution into. \
+              Must be divisor of input and output channels.
           initializer (Initializer): Initializer object for weight initialization.
+          weight_decay (float): Weight decay ratio. This must be None or 0 <= ratio.
+          ignore_bias (bool): If True is given, bias term will be ignored.
 
       Example:
-          In [1]: import numpy as np
-          In [2]: import renom as rm
-          In [3]: n, c, h, w = (10, 3, 32, 32)
-          In [4]: x = np.random.rand(n, c, h, w)
-          In [5]: x.shape
-          Out[5]: (10, 3, 32, 32)
-          In [6]: layer = rm.graph.Conv(channels = 5)
-          In [7]: z = layer(x).as_ndarray()
-          In [8]: z.shape
-          Out[8]: (10, 5, 30, 30)
+          >>> import numpy as np
+          >>> import renom.graph as rmg
+          >>> n, c, h, w = (10, 3, 32, 32)
+          >>> x = np.random.rand(n, c, h, w)
+          >>> x.shape
+          >>> (10, 3, 32, 32)
+          >>> layer = rmg.Conv(channel = 5)
+          >>> z = layer(x).as_ndarray()
+          >>> z.shape
+          >>> (10, 5, 30, 30)
 
       Note:
-          Tensor data format is **NCHW**.
+          Tensor data format is **NCHW***.
     """
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1, groups=1,
+    def __init__(self, channel=3, kernel=3, padding=0, stride=1, groups=1,
                  initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
-        self._chnls = channels
+        self._chnls = channel
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
@@ -62,8 +65,8 @@ class conv_forward(operation):
     workspace_size = 0
     workspace = None
 
-    def __init__(self, channels, kernel=3, padding=0, stride=1, groups=1, initializer=None):
-        self._channels = channels
+    def __init__(self, channel, kernel=3, padding=0, stride=1, groups=1, initializer=None):
+        self._channels = channel
         self._k = kernel
         self._p = padding
         self._s = stride
@@ -91,7 +94,7 @@ class conv_forward(operation):
         gpus = inputs.gpus
         self.gpus = gpus
 
-        output_channels = self._channels
+        output_channels = self._channel
 
         if groups > 1:
             assert all(dim % groups == 0 for dim in [input_shape[1], output_channels]), \
@@ -285,13 +288,13 @@ class conv_backward_cpu(conv_backward):
 
 class ConvElement(UserGraph):
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1, groups=1, initializer=None, previous_element=None):
+    def __init__(self, channel=3, kernel=3, padding=0, stride=1, groups=1, initializer=None, previous_element=None):
 
-        self._chnls = channels
+        self._chnls = channel
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
-        args = (channels, kernel, padding, stride, groups, initializer)
+        args = (channel, kernel, padding, stride, groups, initializer)
         fwd_op = conv_forward(*args) if rm.is_cuda_active() else conv_forward_cpu(*args)
         bwd_ops = [conv_backward(fwd_op) if rm.is_cuda_active() else conv_backward_cpu(fwd_op)]
 

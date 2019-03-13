@@ -82,6 +82,9 @@ class BiasElement(UserGraph):
 
 
 class Bias(GraphFactory):
+    """This class 
+
+    """
 
     def __init__(self):
         super().__init__()

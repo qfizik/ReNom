@@ -264,6 +264,23 @@ class GruElement(UserGraph):
 
 
 class Gru(GraphFactory):
+    """Gated recurrent unit [gru]_ layer.
+
+    Args:
+        output_size (int): 
+        initializer (Initializer):
+        weight_decay (float):
+        ignore_bias (bool):
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+
+
+    .. [gru] Junyoung Chung, Caglar Gulcehre, KyungHyun Cho, Yoshua Bengio. 
+        Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling. NIPS, 2014.
+
+    """
 
     def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()

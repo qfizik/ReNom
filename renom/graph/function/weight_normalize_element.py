@@ -144,6 +144,36 @@ class WeightNormElement(UserGraph):
 
 
 class WeightNormalize(GraphFactory):
+    ''' Weight Normalization Model [weight_norm]_.
+
+    A modification to the normal dense layer model, where the weight is normalized and multiplied
+    by a trainable gain factor.
+
+    The weight in this form is parameterized by the form:
+        w = v / ||v|| * gain
+
+    Note that in this version, gain is taken linear on the input s giving:
+        gain = s.
+    The original paper suggests a potential gain parameterization by taking the
+    exponential value of s instead:
+        gain = exp(s)
+
+    There might be support for this later.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = np.random.rand(2,3)
+        >>> layer = rm.WeightNormalization(4)
+        >>> layer(x)
+        weight_normalize([[1.00133252, 1.00713646, 0.98452991, 1.0043143],
+                    [0.983392 , 1.01545942, 0.99134618, 1.01834679]],
+                    dtype=float32)
+
+    .. [weight_norm] Tim Salimans, Diederik P. Kingma. Weight Normalization: A Simple Reparameterization 
+        to Accelerate Training of Deep Neural Networks. arXiv:1602.07868, 2016.
+    '''
+
 
     def __init__(self, output_size=1, gain=0.1, initializer=None, weight_decay=None, ignore_bias=None):
         # TODO: Add bias.

@@ -10,8 +10,8 @@ class deconv_forward(operation):
     name = 'Deconvolution (F)'
     consumes = ['w', 'b']
 
-    def __init__(self, channels, kernel=3, padding=0, stride=1, initializer=None):
-        self._channels = channels
+    def __init__(self, channel, kernel=3, padding=0, stride=1, initializer=None):
+        self._channels = channel
         self._k = kernel
         self._p = padding
         self._s = stride
@@ -153,8 +153,8 @@ class deconv_backward_cpu(deconv_backward):
 
 class DeconvolutionalGraph(UserGraph):
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1, initializer=None, previous_element=None):
-        args = (channels, kernel, padding, stride, initializer)
+    def __init__(self, channel=3, kernel=3, padding=0, stride=1, initializer=None, previous_element=None):
+        args = (channel, kernel, padding, stride, initializer)
         fwd_op = deconv_forward(*args) if rm.is_cuda_active() else deconv_forward_cpu(*args)
         bwd_ops = [deconv_backward(fwd_op) if rm.is_cuda_active()
                    else deconv_backward_cpu(fwd_op)]
@@ -163,11 +163,35 @@ class DeconvolutionalGraph(UserGraph):
 
 
 class Deconv(GraphFactory):
+    """Deconvolutional Layer.
 
-    def __init__(self, channels=3, kernel=3, padding=0, stride=1,
+      This class creates a deconvolution filter to be convolved with
+      the input tensor. This class accepts up to 3d image input.
+      Note that the 2d implementation differs slightly from the 3d implementation, giving no
+      guarantee that they will perform equally.
+
+      Args:
+          channel (int, tuple): The dimensionality of the output.
+          kernel (int, tuple): Filter size of the convolution kernel.
+          padding (int, tuple): Size of the zero-padding around the image.
+          stride (int, tuple): Stride-size of the convolution.
+          initializer (Initializer): Initializer object for weight initialization.
+          weight_decay (float): Weight decay ratio. This must be None or 0 <= ratio.
+          ignore_bias (bool): If True is given, bias term will be ignored.
+
+      Example:
+          >>> import numpy as np
+          >>> import renom.graph as rmg
+
+      Note:
+          Tensor data format is **NCHW***.
+    """
+
+
+    def __init__(self, channel=3, kernel=3, padding=0, stride=1,
                  initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
-        self._chnls = channels
+        self._chnls = channel
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride

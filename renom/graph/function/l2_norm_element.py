@@ -165,6 +165,29 @@ class L2NormGraph(UserGraph):
 
 
 class L2Norm(GraphFactory):
+    """ L2 Normalziation function [l2norm]_.
+    This layer is used to change the scale of feature maps by using L2 Normalization.
+
+    Args:
+        scale (float): Feature map is scaled to this value. Defaults to 20.
+        weight_decay (float): 
+
+    Example:
+        >>> import numpy as np
+        >>> import renom as rm
+        >>> x = np.random.rand(2, 1, 2, 2)
+        >>> layer = rm.L2Norm(20)
+        >>> z = layer(x)
+        >>> z
+        >>> l2_norm([[[[19.99999765, 19.99999749],
+            [19.9999743 , 19.99999749]]],
+            [[[19.99999764, 19.99998478],
+            [19.99999547, 19.9999974 ]]]])
+
+    .. [l2norm] Wei Liu, Andrew Rabinovich, Alexander C. Berg.
+        ParseNet: Looking Wider to See Better. ICLR, 2016.
+
+    """
 
     def __init__(self, scale=20, weight_decay=None):
         super().__init__()

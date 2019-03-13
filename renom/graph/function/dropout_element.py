@@ -12,6 +12,7 @@ class Dropout(GraphFactory):
 
     Args:
         dropout_ratio (float): Dropout ratio.
+        axis (int, None): Dropout is performed along this axis.
 
     Example:
 

@@ -135,8 +135,8 @@ class Lrn(GraphFactory):
         Out[6]:
         (3, 3, 32, 32)
 
-    .. [lrn] Alex Krizhevsky Krizhevsky, , Ilya IlyaSutskever Sutskever, Geoff.
-        ImageNet Classification with Deep Convolutional Neural Networks
+    .. [lrn] Alex Krizhevsky, Ilya Sutskever, Geoffrey E. Hinton.
+        ImageNet Classification with Deep Convolutional Neural Networks. NIPS, 2012.
 
     '''
 
