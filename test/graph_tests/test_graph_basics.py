@@ -346,7 +346,7 @@ def test_finalizer(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(2, 1, 3, 4)
-    layer1 = rmg.Conv(channels=2)
+    layer1 = rmg.Conv(channel=2)
     res = rmg.Reshape([-1])
     layer2 = rmg.Dense(3)
     t = np.random.rand(2, 3)

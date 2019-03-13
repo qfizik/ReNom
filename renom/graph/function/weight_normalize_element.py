@@ -170,7 +170,7 @@ class WeightNormalize(GraphFactory):
                     [0.983392 , 1.01545942, 0.99134618, 1.01834679]],
                     dtype=float32)
 
-    .. [weight_norm] Tim Salimans, Diederik P. Kingma. Weight Normalization: A Simple Reparameterization 
+    .. [weight_norm] Tim Salimans, Diederik P. Kingma. Weight Normalization: A Simple Reparameterization
         to Accelerate Training of Deep Neural Networks. arXiv:1602.07868, 2016.
     '''
 

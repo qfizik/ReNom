@@ -82,7 +82,7 @@ class Tanh(GraphFactory):
 
 
     Example:
-        >>> import numpy as np 
+        >>> import numpy as np
         >>> import renom.graph as rmg
         >>>
         >>> x = np.array([-1, 0, 1])

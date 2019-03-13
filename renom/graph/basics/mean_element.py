@@ -122,11 +122,6 @@ class Mean(GraphFactory):
         self.axis = axis
         self.keepdims = keepdims
 
-    def __init__(self, axis=None, keepdims=False):
-        super().__init__()
-        self.axis = axis
-        self.keepdims = keepdims
-
     def connect(self, other):
         ret = MeanElement([other], axis=self.axis, keepdims=self.keepdims)
         return ret

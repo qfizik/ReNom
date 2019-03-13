@@ -116,6 +116,8 @@ class SigmoidCrossEntropyElement(UserLossGraph):
 
 
 class SigmoidCrossEntropy(GraphFactory):
+    """A factory class of sigmoid cross entropy loss function element.
+    """
 
     def connect(self, predictions, true_values):
         ret = SigmoidCrossEntropyElement(previous_elements=[predictions, true_values])
