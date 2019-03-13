@@ -108,6 +108,13 @@ class MeanSquaredElement(UserLossGraph):
 
 
 class MeanSquared(GraphFactory):
+    """A factory class of mean squared loss function element.
+
+    .. math::
+        target, x \in R^{N \\times D} \\\\
+        y = \\frac{1}{N} \sum_{n, d}{(x_{nd} - target_{nd})^2}
+
+    """
 
     def connect(self, predictions, true_values):
         ret = MeanSquaredElement(previous_elements=[predictions, true_values])

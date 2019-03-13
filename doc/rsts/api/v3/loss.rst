@@ -16,5 +16,5 @@ This documentation describes the loss functions in renom.graph
     renom.graph.loss.CrossEntropy
     renom.graph.loss.MeanSquared
     renom.graph.loss.SigmoidCrossEntropy
-    renom.graph.loss.SmoothedL1
+    renom.graph.loss.SmoothL1
     renom.graph.loss.SoftmaxCrossEntropy

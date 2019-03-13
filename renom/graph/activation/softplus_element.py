@@ -85,14 +85,14 @@ class Softplus(GraphFactory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> x = np.array([1., -1.])
-        >>> 
+        >>>
         >>> layer = rmg.Softplus()
         >>> layer(x)
         Softplus (F):
         [1.31326163, 0.31326169]
-        >>> 
+        >>>
         >>> rmg.softplus(x)
         Softplus (F):
         [1.31326163, 0.31326169]

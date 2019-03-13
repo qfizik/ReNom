@@ -109,6 +109,14 @@ class CrossEntropyElement(UserLossGraph):
 
 
 class CrossEntropy(GraphFactory):
+    """A factory class of cross entropy loss function element.
+
+    .. math::
+
+        target, x \in R^{N \\times D} \\\\
+        y = -\\frac{1}{N}\sum_{n}{\sum_{d}{target_{nd} * log(x_{nd})}}
+
+    """
 
     def connect(self, predictions, true_values):
         ret = CrossEntropyElement(previous_elements=[predictions, true_values])
