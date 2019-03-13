@@ -903,13 +903,13 @@ def test_sigmoid_cross_entropy(test_shape, use_gpu, num_gpu):
     (2, 2),
     (2, 2, 2, 2),
 ])
-def test_smoothed_l1(test_shape, use_gpu, num_gpu):
+def test_smooth_l1(test_shape, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
     v2 = randInteger(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
-    model = rm.graph.SmoothedL1()
+    model = rm.graph.SmoothL1()
     m = model(val, val2) * 2
 
     def func():
