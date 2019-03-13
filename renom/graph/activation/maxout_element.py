@@ -145,5 +145,6 @@ class Maxout(GraphFactory):
         ret = MaxoutElement(self._sz, previous_elements=other)
         return ret
 
+
 def maxout(x, slice_size=1):
     return MaxoutElement(slice_size, previous_elements=[x])

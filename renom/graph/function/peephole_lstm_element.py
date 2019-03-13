@@ -4,21 +4,22 @@ import numpy as np
 import renom.utility.initializer as init
 
 
-class lstm_forward(operation):
+class peephole_lstm_forward(operation):
 
-    name = 'LSTM (F)'
-    consumes = ['w', 'wr']
+    name = 'Peephole LSTM (F)'
+    consumes = ['w', 'wr', 'wc']
 
     def __init__(self, output_size, initializer=None):
         self._output_size = output_size
         self._init = init.GlorotNormal() if initializer is None else initializer
 
     def setup(self, inputs):
-        if len(inputs) > 3:
-            prev_lstm = inputs[3]
+        if len(inputs) > 4:
+            prev_lstm = inputs[4]
         else:
             prev_lstm = None
 
+        weights_c = inputs[3]['y']
         weights_r = inputs[2]['y']
         weights = inputs[1]['y']
         inputs = inputs[0]['y']
@@ -29,13 +30,16 @@ class lstm_forward(operation):
 
         weight_shape = (input_shape[1], self._output_size * 4)
         weight_r_shape = (self._output_size, self._output_size * 4)
+        weight_c_shape = (1, self._output_size * 3)
         out_shape = (input_shape[0], self._output_size)
         weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=self._init)
         weights_r.__init__(shape=weight_r_shape, gpus=self.gpus, initializer=self._init)
+        weights_c.__init__(shape=weight_c_shape, gpus=self.gpus, initializer=self._init)
         outs = GraphMultiStorage(shape=out_shape, gpus=self.gpus)
-        self._vars = {'y': outs, 'w': weights, 'wr': weights_r, 'pfgate': None}
+        self._vars = {'y': outs, 'w': weights, 'wr': weights_r, 'wc': weights_c, 'pfgate': None}
         self._weights = weights
         self._weights_r = weights_r
+        self._weights_c = weights_c
         self._outputs = outs
         self._prev = prev_lstm
 
@@ -55,6 +59,7 @@ class lstm_forward(operation):
             x = self._inputs[gpu]
             w = self._weights[gpu]
             wr = self._weights_r[gpu]
+            wc = self._weights_c[gpu]
 
             tmp1 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
             tmp2 = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
@@ -64,8 +69,7 @@ class lstm_forward(operation):
 
             #u = tmp1 + tmp2
             rm.cuda.cuadd(tmp1, tmp2, new_u[gpu], handle)
-            rm.cuda.culstm_forward_activate(new_u[gpu])
-            rm.cuda.culstm_forward(new_u[gpu], new_s[gpu], ps[gpu], new_z[gpu])
+            rm.cuda.cupeepholelstm_forward(new_u[gpu], wc, ps[gpu], new_s[gpu], new_z[gpu])
 
             ret = new_z[gpu]
 
@@ -86,13 +90,14 @@ def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
 
-class lstm_forward_cpu(lstm_forward):
+class peephole_lstm_forward_cpu(peephole_lstm_forward):
 
     def perform(self):
         prev = self._prev
         x = self._inputs['cpu']
         w = self._weights['cpu']
         wr = self._weights_r['cpu']
+        wc = self._weights_c['cpu']
         if prev is not None:
             s = prev['s']
             z = prev['z']
@@ -102,14 +107,18 @@ class lstm_forward_cpu(lstm_forward):
 
         u = np.dot(x, w) + np.dot(z, wr)
         m = u.shape[1] // 4
-        u, gated = np.split(u, [m, ], axis=1)
+        u, gate_u = np.split(u, [m, ], axis=1)
         u = np.tanh(u)
 
-        gated = sigmoid(gated)
+        fg = sigmoid(s * wc[:, :m] + gate_u[:, :m])
+        ig = sigmoid(s * wc[:, m:2 * m] + gate_u[:, m:2 * m])
+        state = ig * u + fg * s
+        og = sigmoid(state * wc[:, 2 * m:] + gate_u[:, 2 * m:])
+        z = np.tanh(state) * og
 
-        state = gated[:, m:m * 2] * u + gated[:, :m] * s
-        ret = np.tanh(state) * gated[:, m * 2:]
+        gated = np.hstack((fg, ig, og))
 
+        ret = z
         # Calculate ret
         self._outputs['cpu'] = ret
         if prev is not None:
@@ -122,10 +131,10 @@ class lstm_forward_cpu(lstm_forward):
         self._vars['z'] = ret
 
 
-class lstm_backward(operation):
+class peephole_lstm_backward(operation):
 
-    name = 'LSTM (B)'
-    produces = ['w', 'wr']
+    name = 'Peephole LSTM (B)'
+    produces = ['w', 'wr', 'wc']
 
     def __init__(self, associated_forward):
         self._fwd_op = associated_forward
@@ -138,12 +147,15 @@ class lstm_backward(operation):
         outs = GraphMultiStorage(shape=self._fwd_op._inputs.shape, gpus=self.gpus)
         w_out = GraphMultiStorage(shape=self._fwd_op._weights.shape, gpus=self.gpus)
         w_r_out = GraphMultiStorage(shape=self._fwd_op._weights_r.shape, gpus=self.gpus)
+        w_c_out = GraphMultiStorage(shape=self._fwd_op._weights_c.shape, gpus=self.gpus)
         self._outputs = outs
         self._w_out = w_out
         self._w_r_out = w_r_out
+        self._w_c_out = w_c_out
         self._vars = {'y': outs, id(self._fwd_op._inputs): outs,
                       'w': w_out, id(self._fwd_op._weights): w_out,
                       'wr': w_r_out, id(self._fwd_op._weights_r): w_r_out,
+                      'wc': w_c_out, id(self._fwd_op._weights_c): w_c_out,
                       'pfgate': None
                       }
 
@@ -154,10 +166,15 @@ class lstm_backward(operation):
 
         w = fwd['w']
         wr = fwd['wr']
+        wc = fwd['wc']
 
         u = fwd['u']
         s = fwd['s']
         ps = fwd['ps']
+
+        n = fwd['y'].shape[0]
+        m = w.shape[1] // 4
+        dwc = GraphMultiStorage(shape=(n, m * 3), gpus=self.gpus, initializer=init.Constant(0))
 
         pfg = fwd['pfgate']
         if pfg is None:
@@ -166,14 +183,14 @@ class lstm_backward(operation):
         for grad in self._inputs:
             if 'pfgate' in grad:
                 drt = grad['drt']
-                dou = grad['dou']
+                dot = grad['dou']
         if drt is None:
             drt = GraphMultiStorage(shape=u.shape, gpus=self.gpus, initializer=init.Constant(0))
-            dou = GraphMultiStorage(shape=fwd['y'].shape,
+            dot = GraphMultiStorage(shape=fwd['y'].shape,
                                     gpus=self.gpus, initializer=init.Constant(0))
 
         dr = GraphMultiStorage(shape=u.shape, gpus=self.gpus)
-        dou_n = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
+        dou = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
         new_z = GraphMultiStorage(shape=fwd['y'].shape, gpus=self.gpus)
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             dy = fwd['y'][gpu].zeros_like_me()
@@ -183,15 +200,17 @@ class lstm_backward(operation):
                 else:
                     dy += grad['y'][gpu]
 
-            rm.cuda.cutanh(s[gpu], s[gpu])
-            rm.cuda.culstm_backward(u[gpu], dr[gpu], s[gpu], ps[gpu],
-                                    dy, pfg[gpu], dou[gpu], dou_n[gpu])
-
+            rm.cuda.cupeepholelstm_backward(u[gpu], ps[gpu], s[gpu], pfg[gpu],
+                                            wc[gpu], dy, drt[gpu], dot[gpu], dr[gpu], dou[gpu], dwc[gpu])
             # dx
             rm.cuda.cublas_gemm(dr[gpu], 0, w[gpu], 1, self._outputs[gpu], handle)
 
             # dw
             rm.cuda.cublas_gemm(fwd['x'][gpu], 1, dr[gpu], 0, self._w_out[gpu], handle)
+
+            # dwc
+            d_wc = rm.cuda.cusum(dwc[gpu], handle, axis=0, keepdims=True)
+            self._w_c_out[gpu] = d_wc
 
             # dwr
             rm.cuda.cublas_gemm(fwd['y'][gpu], 1, drt[gpu], 0, self._w_r_out[gpu], handle)
@@ -200,7 +219,7 @@ class lstm_backward(operation):
             rm.cuda.cublas_gemm(dr[gpu], 0, wr[gpu], 1, new_z[gpu], handle)
 
         self._vars['drt'] = dr
-        self._vars['dou'] = dou_n
+        self._vars['dou'] = dou
         self._vars['z'] = new_z
 
 
@@ -212,7 +231,7 @@ def activation_diff(x):
     return (1.0 - x ** 2)
 
 
-class lstm_backward_cpu(lstm_backward):
+class peephole_lstm_backward_cpu(peephole_lstm_backward):
 
     def perform(self):
         fwd = self._fwd_op._vars
@@ -220,12 +239,12 @@ class lstm_backward_cpu(lstm_backward):
         n, m = self._fwd_op._outputs.shape
         type = self._inputs[-1]['y']['cpu'].dtype
         drt = np.zeros((n, m * 4), dtype=type)
-        dou = np.zeros((n, m), dtype=type)
+        dot = np.zeros((n, m), dtype=type)
         for grad in self._inputs:
             if 'pfgate' in grad:
                 dy += grad['z']
                 drt = grad['drt']
-                dou = grad['dou']
+                dot = grad['dot']
             else:
                 dy += grad['y']['cpu']
 
@@ -234,6 +253,7 @@ class lstm_backward_cpu(lstm_backward):
 
         w = fwd['w']['cpu']
         wr = fwd['wr']['cpu']
+        wc = fwd['wc']['cpu']
 
         u = fwd['u']
         s = np.tanh(fwd['s'])
@@ -248,40 +268,52 @@ class lstm_backward_cpu(lstm_backward):
         if pfg is None:
             pfg = np.zeros((x.shape[0], w.shape[1] // 4))
 
-        e = dy
+        # Start Fix
 
-        do = e * s * gd[:, 2 * m:]
-        dou = e * gated[:, 2 * m:] * activation_diff(s) + pfg * dou
+        do = dy * s * gd[:, 2 * m:]
+        dou = dy * gated[:, 2 * m:] * activation_diff(s) + do * wc[:, 2 * m:]
 
-        df = dou * gd[:, :m] * ps
+        dou += pfg * dot + drt[:, m:2 * m] * wc[:, :m] + drt[:, 2 * m:3 * m] * wc[:, m:2 * m]
+
+        df = dou * gd[:, :m] * ps if ps is not None else np.zeros_like(dou)
         di = dou * gd[:, m:2 * m] * u
-        dc = dou * activation_diff(u) * gated[:, m:2 * m]
+        du = dou * activation_diff(u) * gated[:, m:2 * m]
 
-        dr = np.hstack((dc, df, di, do))
-        dx += np.dot(dr, w.T)
+        dr = np.hstack((du, df, di, do))
 
-        dw += np.dot(x.T, dr)
+        dx = np.dot(dr, w.T)
 
-        dwr += np.dot(y.T, drt)
+        dw = np.dot(x.T, dr)
+
+        dwr = np.dot(y.T, drt)
+
+        dwc = np.zeros(wc.shape, dtype=wc.dtype)
+        dwc[:, 2 * m:] = np.sum(do * fwd['s'], axis=0)
+        dwc[:, :m] = np.sum(drt[:, m:2 * m] * fwd['s'], axis=0)
+        dwc[:, m:2 * m] = np.sum(drt[:, 2 * m:3 * m] * fwd['s'], axis=0)
 
         dy = np.dot(dr, wr.T)
-        drt = dr
+
+        # End fix
 
         # Calculate ret
         self._outputs['cpu'] = dx
         self._w_out['cpu'] = dw
         self._w_r_out['cpu'] = dwr
+        self._w_c_out['cpu'] = dwc
         self._vars['z'] = dy
-        self._vars['drt'] = drt
-        self._vars['dou'] = dou
+        self._vars['drt'] = dr
+        self._vars['dot'] = dou
 
 
-class LstmElement(UserGraph):
+class PeepholeLstmElement(UserGraph):
 
     def __init__(self, output_size, initializer=None, previous_elements=None):
         args = (output_size, initializer)
-        fwd_op = lstm_forward(*args) if rm.is_cuda_active() else lstm_forward_cpu(*args)
-        bwd_ops = [lstm_backward(fwd_op) if rm.is_cuda_active() else lstm_backward_cpu(fwd_op)]
+        fwd_op = peephole_lstm_forward(
+            *args) if rm.is_cuda_active() else peephole_lstm_forward_cpu(*args)
+        bwd_ops = [peephole_lstm_backward(fwd_op) if rm.is_cuda_active()
+                   else peephole_lstm_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
     def connect_back(self, previous_element, pos=0):
@@ -294,7 +326,7 @@ class LstmElement(UserGraph):
                 graph.add_input(backward_graph_input)
 
 
-class Lstm(GraphFactory):
+class PeepholeLstm(GraphFactory):
 
     def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
@@ -302,6 +334,7 @@ class Lstm(GraphFactory):
         self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['wr'] = graph_variable(weight_decay=weight_decay)
+        self.params['wc'] = graph_variable(weight_decay=weight_decay)
         self._prev = None
         self._prevlist = []
 
@@ -312,10 +345,10 @@ class Lstm(GraphFactory):
         self._prevlist = []
 
     def connect(self, other):
-        prevs = [other, self.params['w'], self.params['wr']]
+        prevs = [other, self.params['w'], self.params['wr'], self.params['wc']]
         if self._prev is not None:
             prevs.append(self._prev)
-        ret = LstmElement(self._output_size, self._init, previous_elements=prevs)
+        ret = PeepholeLstmElement(self._output_size, self._init, previous_elements=prevs)
         self._prevlist.append(ret)
         self._prev = ret
         return ret

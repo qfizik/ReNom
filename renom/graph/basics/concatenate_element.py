@@ -53,7 +53,7 @@ class concatenate_backward(operation):
 
     def setup(self, inputs):
         n = self._nth_input
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         gpus = inputs.gpus
         fwd_inputs = self._fwd_op._inputs[n]
         out_shape = fwd_inputs.shape

@@ -44,7 +44,7 @@ class add_backward(operation):
         self._key = key
 
     def setup(self, inputs):
-        self._outputs = inputs[0]['dy']
+        self._outputs = inputs[0]['y']
         self._vars = {'y': self._outputs, 'dy': self._outputs,
                       id(self._fwd_op.get_key(self._key)): self._outputs}
 

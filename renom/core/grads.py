@@ -227,7 +227,7 @@ class Grads:
             >>> from **** import gradient_clipping
             >>>
             >>> grad = loss.grad()
-            >>> gradient_clipping(grad, threshold=0.5)
+            >>> grad.clip_gardient(threshold=0.5)
             >>>
             >>> grad.update(Sgd(lr=0.01))
 
@@ -247,9 +247,9 @@ class Grads:
             # regular norm
             total_norm = 0
             for i in variables:
-                arr = variables[i] ** norm
+                arr = np.abs(variables[i]) ** norm
                 total_norm += rm.sum(arr)
-            total_norm = total_norm ** (1 / total_norm)
+            total_norm = total_norm ** (1. / norm)
 
         # process gradient
         if threshold < total_norm:

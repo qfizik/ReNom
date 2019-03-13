@@ -79,5 +79,6 @@ class Sigmoid(GraphFactory):
         ret = SigmoidElement(previous_elements=other)
         return ret
 
+
 def sigmoid(x):
     return SigmoidElement(previous_elements=[x])

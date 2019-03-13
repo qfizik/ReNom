@@ -71,7 +71,6 @@ class gru_forward(operation):
         self._vars['ABC'] = new_ABC
 
 
-
 def sigmoid(x):
     return 1. / (1. + np.exp(-x))
 
@@ -276,13 +275,11 @@ class Gru(GraphFactory):
         self._prev = None
         self._prevlist = []
 
-
     def reset(self):
         self._prev = None
         for p in self._prevlist:
             p.detach()
         self._prevlist = []
-
 
     def connect(self, other):
         prevs = [other, self.params['w'], self.params['wr'], self.params['b']]

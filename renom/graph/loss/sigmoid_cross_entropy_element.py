@@ -92,7 +92,6 @@ class sigmoid_backward(operation):
             rm.cuda.cumul(self._outputs[gpu], dy, self._outputs[gpu], handle)
 
 
-
 class sigmoid_backward_cpu(sigmoid_backward):
 
     def perform(self):

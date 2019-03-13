@@ -1,4 +1,5 @@
 import renom as rm
+from renom.layers.function.batch_normalize import mode_dict
 from renom.graph.core import UserGraph, operation, GraphFactory, GraphMultiStorage, graph_variable
 import renom.utility.initializer as init
 import numpy as np
@@ -12,11 +13,15 @@ class batch_norm_forward(operation):
 
     def __init__(self, momentum=0.99, epsilon=1e-5, axis=None, initializer=None):
         self._momentum = momentum
+        # For v2 load support
+        if axis == mode_dict['activation']:
+            axis = None
+        elif axis == mode_dict['feature']:
+            axis = 1
         self._axis = axis
         self._epsilon = epsilon
         self._inference = False
         self._init = init.GlorotNormal() if initializer is None else initializer
-
 
     def setup(self, inputs):
         mv_v = inputs[4]['y']
@@ -111,7 +116,7 @@ class batch_norm_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
-        inputs = inputs[0]['dy']
+        inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
 
@@ -182,15 +187,18 @@ class BatchNormalize(GraphFactory):
     def __init__(self, momentum=0.99, epsilon=1e-5, axis=None, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self._mom = momentum
-        self._eps = epsilon
-        self._axis = axis
+        self.params['_epsilon'] = epsilon
+        self.params['_mode'] = axis
         self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['b'] = graph_variable(allow_update=not ignore_bias)
-        self.params['mv_m'] = graph_variable()
-        self.params['mv_v'] = graph_variable()
+        self._mov_mean = graph_variable()
+        self._mov_std = graph_variable()
+        self.params['_mov_mean'] = graph_variable()
+        self.params['_mov_std'] = graph_variable()
 
     def connect(self, other):
-        ret = BatchNormalizeElement(self._mom, self._eps, self._axis, self._init, previous_elements=[
-            other, self.params['w'], self.params['b'], self.params['mv_m'], self.params['mv_v']])
+        ret = BatchNormalizeElement(self._mom, self.params['_epsilon'], self.params['_mode'], self._init,
+                                    previous_elements=[
+            other, self.params['w'], self.params['b'], self.params['_mov_mean'], self.params['_mov_std']])
         return ret

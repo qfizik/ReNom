@@ -78,5 +78,6 @@ class Softplus(GraphFactory):
         ret = SoftplusElement(previous_elements=other)
         return ret
 
+
 def softplus(x):
     return SoftplusElement(previous_elements=[x])

@@ -56,7 +56,6 @@ class Sgd(optimizer_factory):
                 rm.cuda.cusub(self._outputs[gpu], self._ndy[gpu], self._outputs[gpu], handle)
                 self._run_avg[gpu] = self._ndy[gpu]
 
-
     class cpu_op(gpu_op):
 
         def update(self):
@@ -66,7 +65,6 @@ class Sgd(optimizer_factory):
             ret = (self.learning_rate * dy + avg * self.momentum)
             self._run_avg['cpu'] = ret
             self._outputs['cpu'] = cur - ret
-
 
     def __init__(self, learning_rate=0.01, momentum=0.4):
         super().__init__()
