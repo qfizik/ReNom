@@ -353,37 +353,18 @@ def _build_broadcast_mask(left, right):
         reminds = right[:-1 * len(left)]
         for r in reminds:
             if r != 1:
-                raise ValueError(
-                    "could not broadcast (non 1-indices of higher rank than destination)")
+                raise ValueError("could not broadcast")
         right = right[-1 * len(left):]
     elif len(right) < len(left):
-        loops = 0
-        l_pos = 0
-        r_pos = 0
-        new_right = tuple()
-        while len(new_right) < len(left):
-            if len(new_right) < len(left) and right[r_pos] == left[l_pos]:
-                new_right += (right[r_pos],)
-                r_pos += 1
-                l_pos += 1
-            else:
-                new_right += (1,)
-                l_pos += 1
-
-            loops += 1
-            if loops > len(left):
-                raise ValueError("could not broadcast (error expanding indices)")
-        right = new_right
-
+        right = (1,) * (len(left) - len(right)) + right
     mask = []
     for lft, rgt in zip(left, right):
         if lft != rgt:
             if rgt != 1:
-                raise ValueError("could not broadcast (error filling 1-indices)")
+                raise ValueError("could not broadcast")
             mask.append(0)
         else:
             mask.append(1)
-
     return mask, right
 
 
@@ -702,11 +683,8 @@ class GPUValue(object):
     def __getitem__(self, indexes):
         with use_device(self.device_id):
             slices, result_shapes, dest_shapes = build_shapes(self, indexes)
-
             dest_size = calc_int_prod(dest_shapes)
-
             ret = cu_get_item(self, self.size, dest_size, slices)
-
             ret.shape = tuple(result_shapes)
             return ret
 
