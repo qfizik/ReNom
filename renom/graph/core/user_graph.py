@@ -260,7 +260,6 @@ class UserGraph(graph_element):
                 else:
                     op._factory = optimizer
 
-
     def backward(self):
         if len(self._bwd_graphs[0]._previous_elements) == 0:
             rm.graph.ConstantLossElement(previous_element=self)

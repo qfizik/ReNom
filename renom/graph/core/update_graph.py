@@ -97,11 +97,10 @@ class update_operation(operation):
             else:
                 self._factory = rm.graph.Sgd(1.0, 0.0)
 
-
         if self._regularizer is None:
             if self._consumer.get_key(self._shared_key)._weight_decay is not None:
-                self._regularizer = self._consumer.get_key(self._shared_key)._weight_decay.create_op()
-
+                self._regularizer = self._consumer.get_key(
+                    self._shared_key)._weight_decay.create_op()
 
         assert self._factory is not None
         #self._dy = self._producer.get_key(self._shared_key)
@@ -109,7 +108,6 @@ class update_operation(operation):
             self._dy = inputs[0][self._shared_key]
         else:
             self._dy = inputs[0]['y']
-
 
         self._outputs = self._consumer.get_key(self._shared_key)
         self._wd = None  # For weight decay
@@ -124,7 +122,6 @@ class update_operation(operation):
             self._regularizer.setup(self._outputs, self._dy)
         if update_operation._communicator is None and not isinstance(self.gpus, str) and len(self.gpus) > 1:
             update_operation._communicator = rm.cuda.DeviceCommunicator(len(self.gpus))
-
 
     def perform(self):
         if update_operation._communicator is not None:

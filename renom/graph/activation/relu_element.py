@@ -97,7 +97,6 @@ class Relu(GraphFactory):
 
     '''
 
-
     def connect(self, other):
         ret = ReluElement(previous_elements=other)
         return ret

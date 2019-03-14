@@ -104,6 +104,7 @@ class LeakyRelu(GraphFactory):
         [-0.01  0.    1.  ]
 
     '''
+
     def __init__(self, slope=0.01):
         super().__init__()
         self._slope = slope

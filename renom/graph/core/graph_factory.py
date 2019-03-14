@@ -12,6 +12,7 @@ import h5py
 _str_optimizers = None
 _str_decays = None
 
+
 def recursive_setting(func):
     @functools.wraps(func)
     def ret_func(self, *args, **kwargs):
@@ -71,12 +72,12 @@ class GraphFactory(abc.ABC):
         global _str_optimizers
         if isinstance(optimizer, str):
             if _str_optimizers is None:
-                _str_optimizers = {'sgd' : rm.graph.Sgd(),
-                                   'adagrad' : rm.graph.Adagrad(),
-                                   'adadelta' : rm.graph.Adadelta(),
-                                   'adamax' : rm.graph.Adamax(),
-                                   'rmsprop' : rm.graph.Rmsprop(),
-                                   'adam' : rm.graph.Adam()}
+                _str_optimizers = {'sgd': rm.graph.Sgd(),
+                                   'adagrad': rm.graph.Adagrad(),
+                                   'adadelta': rm.graph.Adadelta(),
+                                   'adamax': rm.graph.Adamax(),
+                                   'rmsprop': rm.graph.Rmsprop(),
+                                   'adam': rm.graph.Adam()}
             return _str_optimizers[optimizer.lower()]
         else:
             return optimizer
@@ -86,7 +87,7 @@ class GraphFactory(abc.ABC):
         global _str_decays
         if isinstance(decay, str):
             if _str_decays is None:
-                _str_decays = {'l2' : rm.graph.l2_regularizer()}
+                _str_decays = {'l2': rm.graph.l2_regularizer()}
             return _str_decays[decay.lower()]
         else:
             return decay

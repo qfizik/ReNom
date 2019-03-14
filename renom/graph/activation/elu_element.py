@@ -104,7 +104,6 @@ class Elu(GraphFactory):
 
     '''
 
-
     def __init__(self, alpha=0.01):
         super().__init__()
         self._alpha = alpha

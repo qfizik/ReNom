@@ -106,7 +106,6 @@ class Softmax(GraphFactory):
 
     '''
 
-
     def connect(self, other):
         ret = SoftmaxElement(previous_elements=other)
         return ret

@@ -1,6 +1,7 @@
 import renom as rm
 import numpy as np
 
+
 class regularizer_factory:
 
     def __init__(self):
@@ -12,6 +13,7 @@ class regularizer_factory:
             return self.gpu_op(*self.args, **self.kwargs)
         else:
             return self.cpu_op(*self.args, **self.kwargs)
+
 
 class l2_regularizer(regularizer_factory):
 
