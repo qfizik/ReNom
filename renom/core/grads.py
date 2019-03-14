@@ -234,8 +234,9 @@ class Grads:
         '''
 
         # setting variables etc.
+        auto_update = self._auto_updates
         variables = self.variables
-        if len(variables) == 0:
+        if len(auto_update) == 0:
             return
         norm = float(norm)
         threshold = float(threshold)
@@ -246,8 +247,8 @@ class Grads:
         else:
             # regular norm
             total_norm = 0
-            for i in variables:
-                arr = np.abs(variables[i]) ** norm
+            for k in auto_update:
+                arr = np.abs(variables[id(k)]) ** norm
                 total_norm += rm.sum(arr)
             total_norm = total_norm ** (1. / norm)
 
@@ -255,6 +256,8 @@ class Grads:
         if threshold < total_norm:
             for i in variables:
                 variables[i] = threshold * variables[i] / (total_norm + 1e-6)
+
+        return total_norm
 
 
 def _grad(self, initial=None, detach_graph=True, weight_decay=None, **kwargs):
