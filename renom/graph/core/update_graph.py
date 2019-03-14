@@ -96,18 +96,25 @@ class update_operation(operation):
                 self._factory = out_fac
             else:
                 self._factory = rm.graph.Sgd(1.0, 0.0)
+
+
         if self._regularizer is None:
             if self._consumer.get_key(self._shared_key)._weight_decay is not None:
                 self._regularizer = self._consumer.get_key(self._shared_key)._weight_decay.create_op()
+
+
         assert self._factory is not None
         #self._dy = self._producer.get_key(self._shared_key)
         if self._shared_key in inputs[0]:
             self._dy = inputs[0][self._shared_key]
         else:
             self._dy = inputs[0]['y']
+
+
         self._outputs = self._consumer.get_key(self._shared_key)
         self._wd = None  # For weight decay
         self._vars = {'y': self._dy}
+
         gpus = self._outputs.gpus
         self.gpus = gpus
         if self._update_op is None:
@@ -123,10 +130,6 @@ class update_operation(operation):
         if update_operation._communicator is not None:
             update_operation._communicator.allReduce(self._dy)
         if self._outputs._should_update and self._should_update:
-            #self.check_weight_decay()
-            print('Printing op')
-            print(self._regularizer)
-            print(self._update_op)
             if self._regularizer is not None:
                 self._regularizer.apply()
             self._update_op.update()
