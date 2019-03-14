@@ -10,6 +10,7 @@ import functools
 import h5py
 
 _str_optimizers = None
+_str_decays = None
 
 def recursive_setting(func):
     @functools.wraps(func)
@@ -39,7 +40,7 @@ class GraphFactory(abc.ABC):
         later using the save/load methods.
     '''
 
-    def __init__(self, *args, optimizer=None, **kwargs):
+    def __init__(self, *args, parameter_decay=None, optimizer=None, **kwargs):
         '''Generic UserGraph initializer.
 
             Initializes the parameter field as an empty dictionary and
@@ -50,9 +51,20 @@ class GraphFactory(abc.ABC):
         self._prev = None
         self._inference = None
         self._make_update_graphs = True
-        self.prepare(*args, **kwargs)
-        if optimizer is not None:
-            self.set_optimizers(optimizer)
+        if isinstance(parameter_decay, dict):
+            for key in parameter_decay:
+                parameter_decay[key] = GraphFactory._get_decay(parameter_decay[key])
+        else:
+            parameter_decay = GraphFactory._get_decay(parameter_decay)
+        self._param_dec = parameter_decay
+        if isinstance(optimizer, dict):
+            for key in optimizer:
+                optimizer[key] = GraphFactory._get_opt(optimizer[key])
+        else:
+            optimizer = GraphFactory._get_opt(optimizer)
+        self._opti = optimizer
+        if hasattr(self, 'prepare'):
+            self.prepare(*args, **kwargs)
 
     @staticmethod
     def _get_opt(optimizer):
@@ -69,6 +81,16 @@ class GraphFactory(abc.ABC):
         else:
             return optimizer
 
+    @staticmethod
+    def _get_decay(decay):
+        global _str_decays
+        if isinstance(decay, str):
+            if _str_decays is None:
+                _str_decays = {'l2' : rm.graph.l2_regularizer()}
+            return _str_decays[decay.lower()]
+        else:
+            return decay
+
     def set_optimizers(self, optimizer):
         if isinstance(optimizer, dict):
             for key in self.params:
@@ -77,7 +99,23 @@ class GraphFactory(abc.ABC):
                     self.params[key].set_optimizer(opt)
         else:
             for key in self.params:
-                self.params[key].set_optimizer(optimizer)
+                if hasattr(self.params[key], 'set_optimizer'):
+                    opt = GraphFactory._get_opt(optimizer)
+                    self.params[key].set_optimizer(opt)
+
+# These two should be abstracted into one
+
+    def set_decays(self, decay):
+        if isinstance(decay, dict):
+            for key in self.params:
+                if key in decay:
+                    dec = GraphFactory._get_decay(decay[key])
+                    self.params[key].set_weight_decay(dec)
+        else:
+            for key in self.params:
+                if hasattr(self.params[key], 'set_weight_decay'):
+                    dec = GraphFactory._get_decay(decay)
+                    self.params[key].set_weight_decay(dec)
 
     @abc.abstractmethod
     def connect(self, other):
@@ -101,6 +139,11 @@ class GraphFactory(abc.ABC):
                 upd_g.detach()
         if self._inference is not None:
             ret._fwd._op._inference = True
+        if self._param_dec is not None:
+            ret.set_regularizer(self._param_dec)
+        if self._opti is not None:
+            ret.set_optimizer(self._opti)
+
         self._prev = ret
         return ret
 

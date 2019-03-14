@@ -31,9 +31,9 @@ class Dense(GraphFactory):
 
     '''
 
-    def prepare(self, output_size=1, initializer=None, weight_decay=None, ignore_bias=False):
+    def prepare(self, output_size=1, initializer=None, ignore_bias=False):
         self.output_size = output_size
-        self.params['w'] = graph_variable(weight_decay=weight_decay)
+        self.params['w'] = graph_variable()
         self._ignore_bias = ignore_bias
         if not ignore_bias:
             self._bias = rm.graph.Bias()

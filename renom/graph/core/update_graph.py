@@ -81,6 +81,7 @@ class update_operation(operation):
         self._shared_key = key
         self._update_op = None
         self._factory = factory
+        self._regularizer = None
         self.name += " ({} of {})".format(key, consumer.name[:-4])
 
     def set_update_op(self, fac):
@@ -89,14 +90,15 @@ class update_operation(operation):
         self._factory = fac
 
     def setup(self, inputs):
-        print('Yo')
-        print(self._consumer.get_key(self._shared_key)._optimizer)
         if self._factory is None:
             out_fac = self._consumer.get_key(self._shared_key)._optimizer
             if out_fac is not None:
                 self._factory = out_fac
             else:
                 self._factory = rm.graph.Sgd(1.0, 0.0)
+        if self._regularizer is None:
+            if self._consumer.get_key(self._shared_key)._weight_decay is not None:
+                self._regularizer = self._consumer.get_key(self._shared_key)._weight_decay.create_op()
         assert self._factory is not None
         #self._dy = self._producer.get_key(self._shared_key)
         if self._shared_key in inputs[0]:
@@ -111,26 +113,20 @@ class update_operation(operation):
         if self._update_op is None:
             self._update_op = self._factory.get_op(self._dy, self._outputs)
             self._update_op.setup(self._dy, self._outputs)
+        if self._regularizer is not None:
+            self._regularizer.setup(self._outputs, self._dy)
         if update_operation._communicator is None and not isinstance(self.gpus, str) and len(self.gpus) > 1:
             update_operation._communicator = rm.cuda.DeviceCommunicator(len(self.gpus))
 
-    def check_weight_decay(self):
-        if self._outputs._weight_decay is not None:
-            wd = self._outputs._weight_decay
-            if rm.cuda.is_cuda_active():
-                if self._wd is None:
-                    self._wd = GraphMultiStorage(shape=self._dy.shape, gpus=self.gpus)
-                for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-                    rm.cuda.cumul(self._outputs[gpu], wd, self._wd[gpu], handle)
-                    rm.cuda.cuadd(self._dy[gpu], self._wd[gpu], self._dy[gpu], handle)
-            else:
-                self._dy['cpu'] = self._dy['cpu'] + self._outputs['cpu'] * wd
 
     def perform(self):
         if update_operation._communicator is not None:
             update_operation._communicator.allReduce(self._dy)
         if self._outputs._should_update and self._should_update:
-            self.check_weight_decay()
+            #self.check_weight_decay()
             print('Printing op')
+            print(self._regularizer)
             print(self._update_op)
+            if self._regularizer is not None:
+                self._regularizer.apply()
             self._update_op.update()

@@ -380,7 +380,7 @@ def test_weight_decay(use_gpu):
 
     np.random.seed(45)
     v = np.random.rand(4, 4)
-    dense = rmg.Dense(3, weight_decay=0.05)
+    dense = rmg.Dense(3, parameter_decay={'w':rmg.l2_regularizer(0.05)})
     import os
     tmp_filename = get_random_filename()
     try:
@@ -391,8 +391,8 @@ def test_weight_decay(use_gpu):
         w1 = dense.params['w'].as_ndarray()
 
         dense.load(tmp_filename)
-        dense.params['w'].set_weight_decay(0.50)
         m2 = dense(v)
+        m2.set_regularizer(rmg.l2_regularizer(0.50))
         m_arr2 = m2.as_ndarray()
         m2.backward().update()
         w2 = dense.params['w'].as_ndarray()
