@@ -73,14 +73,14 @@ class update_operation(operation):
     _communicator = None
     _should_update = True
 
-    def __init__(self, consumer, producer, key, operation=None):
+    def __init__(self, consumer, producer, key, factory=None):
         # if operation is None:
         #  operation = Sgd(0.01, 0.4) if rm.is_cuda_active() else sgd_update_cpu(0.01, 0.4)
         self._consumer = consumer
         self._producer = producer
         self._shared_key = key
-        self._update_op = operation
-        self._factory = None
+        self._update_op = None
+        self._factory = factory
         self.name += " ({} of {})".format(key, consumer.name[:-4])
 
     def set_update_op(self, fac):
@@ -89,8 +89,14 @@ class update_operation(operation):
         self._factory = fac
 
     def setup(self, inputs):
+        print('Yo')
+        print(self._consumer.get_key(self._shared_key)._optimizer)
         if self._factory is None:
-            self._factory = rm.graph.Sgd(1.0, 0.0)
+            out_fac = self._consumer.get_key(self._shared_key)._optimizer
+            if out_fac is not None:
+                self._factory = out_fac
+            else:
+                self._factory = rm.graph.Sgd(1.0, 0.0)
         assert self._factory is not None
         #self._dy = self._producer.get_key(self._shared_key)
         if self._shared_key in inputs[0]:
@@ -125,4 +131,6 @@ class update_operation(operation):
             update_operation._communicator.allReduce(self._dy)
         if self._outputs._should_update and self._should_update:
             self.check_weight_decay()
+            print('Printing op')
+            print(self._update_op)
             self._update_op.update()

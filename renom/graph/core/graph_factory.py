@@ -9,6 +9,7 @@ import contextlib as cl
 import functools
 import h5py
 
+_str_optimizers = None
 
 def recursive_setting(func):
     @functools.wraps(func)
@@ -38,7 +39,7 @@ class GraphFactory(abc.ABC):
         later using the save/load methods.
     '''
 
-    def __init__(self):
+    def __init__(self, *args, optimizer=None, **kwargs):
         '''Generic UserGraph initializer.
 
             Initializes the parameter field as an empty dictionary and
@@ -49,6 +50,34 @@ class GraphFactory(abc.ABC):
         self._prev = None
         self._inference = None
         self._make_update_graphs = True
+        self.prepare(*args, **kwargs)
+        if optimizer is not None:
+            self.set_optimizers(optimizer)
+
+    @staticmethod
+    def _get_opt(optimizer):
+        global _str_optimizers
+        if isinstance(optimizer, str):
+            if _str_optimizers is None:
+                _str_optimizers = {'sgd' : rm.graph.Sgd(),
+                                   'adagrad' : rm.graph.Adagrad(),
+                                   'adadelta' : rm.graph.Adadelta(),
+                                   'adamax' : rm.graph.Adamax(),
+                                   'rmsprop' : rm.graph.Rmsprop(),
+                                   'adam' : rm.graph.Adam()}
+            return _str_optimizers[optimizer.lower()]
+        else:
+            return optimizer
+
+    def set_optimizers(self, optimizer):
+        if isinstance(optimizer, dict):
+            for key in self.params:
+                if key in optimizer:
+                    opt = GraphFactory._get_opt(optimizer[key])
+                    self.params[key].set_optimizer(opt)
+        else:
+            for key in self.params:
+                self.params[key].set_optimizer(optimizer)
 
     @abc.abstractmethod
     def connect(self, other):
@@ -283,11 +312,14 @@ class graph_variable(UserGraph):
     def set_weight_decay(self, weight_decay):
         self._fwd_op._val.set_weight_decay(weight_decay)
 
+    def set_optimizer(self, optimizer):
+        self._fwd_op._val.set_optimizer(optimizer)
+
     def allow_update(self, should_allow):
         self._fwd._op._val.set_updatable(should_allow)
 
-    def __init__(self, weight_decay=None, allow_update=True):
-        fwd_op = variable_input(weight_decay, allow_update)
+    def __init__(self, weight_decay=None, allow_update=True, optimizer=None):
+        fwd_op = variable_input(weight_decay, allow_update, optimizer)
         self._fwd_op = fwd_op
         fwd_graph = unidirectional_element(fwd_op, tags=['Forward'])
         bwd_ops = []
@@ -311,9 +343,10 @@ class variable_input(operation):
     name = 'Variable'
     roles = ['variable']
 
-    def __init__(self, weight_decay=None, allow_update=True):
+    def __init__(self, weight_decay=None, allow_update=True, optimizer=None):
         val = GraphMultiStorage()
         val.set_weight_decay(weight_decay)
+        val.set_optimizer(optimizer)
         val.set_updatable(allow_update)
         self._val = val
         self._vars = {'y': val}

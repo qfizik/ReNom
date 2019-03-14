@@ -86,8 +86,7 @@ class Bias(GraphFactory):
 
     """
 
-    def __init__(self):
-        super().__init__()
+    def prepare(self):
         self.params['b'] = graph_variable()
 
     def connect(self, other):
