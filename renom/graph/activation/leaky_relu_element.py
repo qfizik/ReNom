@@ -82,7 +82,7 @@ class leaky_relu_backward(operation):
         Args:
             inputs (list of GraphMultiStorage): Input data to this operation.
 
-        elu_forward class requires inputs to contain following keys.
+        leaky_relu_backward class requires inputs to contain following keys.
 
         +-------+-----+--------------------------------+
         | Index | Key |              Role              |
@@ -128,7 +128,7 @@ class LeakyReluElement(UserGraph):
 
 
 class LeakyRelu(GraphFactory):
-    '''A factory class of leaky relu activation function element.
+    '''A factory class of leaky relu activation function element. [leaky_relu]
 
     .. math::
 
@@ -152,6 +152,11 @@ class LeakyRelu(GraphFactory):
         LeakyRelu (F):
         [-0.01  0.    1.  ]
 
+
+    .. [leaky_relu] Bing Xu, Naiyan Wang, Tianqi Chen, Mu Li.
+        Empirical Evaluation of Rectified Activations in Convolutional Network.
+        arXiv:1505.00853, 2015.
+
     '''
 
     def prepare(self, slope=0.01):
@@ -169,7 +174,7 @@ def leaky_relu(x, slope=0.01):
         slope (float): Coefficient used in leaky relu.
 
     For more information, please refer \
-        :py:class:`~renom.graph.activation.leaky_relu_element.LeakyReluElement`.
+        :py:class:`~renom.graph.activation.leaky_relu_element.LeakyRelu`.
     '''
 
     return LeakyReluElement(slope=slope, previous_elements=[x])

@@ -1,12 +1,23 @@
-import renom as rm
-from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
-import renom.utility.initializer as init
-import numpy as np
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-# Original implementation is faulty, this is a simple one using numpy with only one axis allowed.
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
+import numpy as np
+import renom as rm
+from renom.graph.core import UserGraph, operation, GraphFactory, \
+    graph_variable, GraphMultiStorage
 
 
 class maxout_forward(operation):
+    '''Maxout forward operation class.
+
+    Args:
+        slice_size (float): Coefficient used in maxout.
+    '''
 
     name = 'Maxout (F)'
 
@@ -14,6 +25,20 @@ class maxout_forward(operation):
         self._sz = slice_size
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        leaky_relu_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -67,6 +92,12 @@ class maxout_forward_cpu(maxout_forward):
 
 
 class maxout_backward(operation):
+    '''Leaky relu backward operation class.
+
+    Args:
+        associated_forward (forward_operation): Corresponding forward operation.
+    '''
+
 
     name = 'Maxout (B)'
 
@@ -74,6 +105,20 @@ class maxout_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        elu_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
