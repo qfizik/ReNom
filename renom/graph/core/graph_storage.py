@@ -92,6 +92,7 @@ class GraphMultiStorage:
     _weight_decay = None
     _should_share = False
     _gpus = None
+    _optimizer = None
 
     def __init__(self, shape=None, gpus=None, initializer=None,
                  share_init=None, ptrs=None):
@@ -189,9 +190,10 @@ class GraphMultiStorage:
         return self._gpuvalues[index]
 
     def set_weight_decay(self, weight_decay):
-        if weight_decay is not None:
-            assert weight_decay > 0 and weight_decay < 1
         self._weight_decay = weight_decay
+
+    def set_optimizer(self, optimizer):
+        self._optimizer = optimizer
 
     def set_updatable(self, updatable):
         assert isinstance(updatable, bool)

@@ -138,8 +138,7 @@ class PoolGraphFactory(GraphFactory):
 
     '''
 
-    def __init__(self, kernel=3, padding=0, stride=1):
-        super().__init__()
+    def prepare(self, kernel=3, padding=0, stride=1):
         self._krnl = kernel
         self._pad = padding
         self._strd = stride

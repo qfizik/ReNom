@@ -214,9 +214,7 @@ class LayerNormalize(GraphFactory):
 
     '''
 
-
-    def __init__(self, gain=0.1):
-        super().__init__()
+    def prepare(self, gain=0.1):
         self._gain = gain
         self.params['g'] = graph_variable()
 

@@ -73,14 +73,15 @@ class update_operation(operation):
     _communicator = None
     _should_update = True
 
-    def __init__(self, consumer, producer, key, operation=None):
+    def __init__(self, consumer, producer, key, factory=None):
         # if operation is None:
         #  operation = Sgd(0.01, 0.4) if rm.is_cuda_active() else sgd_update_cpu(0.01, 0.4)
         self._consumer = consumer
         self._producer = producer
         self._shared_key = key
-        self._update_op = operation
-        self._factory = None
+        self._update_op = None
+        self._factory = factory
+        self._regularizer = None
         self.name += " ({} of {})".format(key, consumer.name[:-4])
 
     def set_update_op(self, fac):
@@ -90,39 +91,42 @@ class update_operation(operation):
 
     def setup(self, inputs):
         if self._factory is None:
-            self._factory = rm.graph.Sgd(1.0, 0.0)
+            out_fac = self._consumer.get_key(self._shared_key)._optimizer
+            if out_fac is not None:
+                self._factory = out_fac
+            else:
+                self._factory = rm.graph.Sgd(1.0, 0.0)
+
+        if self._regularizer is None:
+            if self._consumer.get_key(self._shared_key)._weight_decay is not None:
+                self._regularizer = self._consumer.get_key(
+                    self._shared_key)._weight_decay.create_op()
+
         assert self._factory is not None
         #self._dy = self._producer.get_key(self._shared_key)
         if self._shared_key in inputs[0]:
             self._dy = inputs[0][self._shared_key]
         else:
             self._dy = inputs[0]['y']
+
         self._outputs = self._consumer.get_key(self._shared_key)
         self._wd = None  # For weight decay
         self._vars = {'y': self._dy}
+
         gpus = self._outputs.gpus
         self.gpus = gpus
         if self._update_op is None:
             self._update_op = self._factory.get_op(self._dy, self._outputs)
             self._update_op.setup(self._dy, self._outputs)
+        if self._regularizer is not None:
+            self._regularizer.setup(self._outputs, self._dy)
         if update_operation._communicator is None and not isinstance(self.gpus, str) and len(self.gpus) > 1:
             update_operation._communicator = rm.cuda.DeviceCommunicator(len(self.gpus))
-
-    def check_weight_decay(self):
-        if self._outputs._weight_decay is not None:
-            wd = self._outputs._weight_decay
-            if rm.cuda.is_cuda_active():
-                if self._wd is None:
-                    self._wd = GraphMultiStorage(shape=self._dy.shape, gpus=self.gpus)
-                for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-                    rm.cuda.cumul(self._outputs[gpu], wd, self._wd[gpu], handle)
-                    rm.cuda.cuadd(self._dy[gpu], self._wd[gpu], self._dy[gpu], handle)
-            else:
-                self._dy['cpu'] = self._dy['cpu'] + self._outputs['cpu'] * wd
 
     def perform(self):
         if update_operation._communicator is not None:
             update_operation._communicator.allReduce(self._dy)
         if self._outputs._should_update and self._should_update:
-            self.check_weight_decay()
+            if self._regularizer is not None:
+                self._regularizer.apply()
             self._update_op.update()

@@ -1,10 +1,20 @@
-import renom as rm
-from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
-import renom.utility.initializer as init
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+import renom as rm
+from renom.graph.core import UserGraph, operation, GraphFactory, \
+    graph_variable, GraphMultiStorage
 
 
 class sigmoid_forward(operation):
+    '''Sigmoid forward operation class.
+    '''
 
     name = 'Sigmoid (F)'
 
@@ -38,6 +48,20 @@ class sigmoid_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        sigmoid_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['dy']
         gpus = inputs.gpus
         self.gpus = gpus

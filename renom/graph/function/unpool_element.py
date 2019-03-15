@@ -14,8 +14,7 @@ class MaxUnPoolElement(UserGraph):
 
 class MaxUnPool(GraphFactory):
 
-    def __init__(self, prev_pool):
-        super().__init__()
+    def prepare(self, prev_pool):
         self._prev_pool = prev_pool._fwd._op
 
     def connect(self, other):

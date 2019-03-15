@@ -1,9 +1,23 @@
-import renom as rm
-from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+import renom as rm
+from renom.graph.core import UserGraph, operation, GraphFactory, \
+    graph_variable, GraphMultiStorage
 
 
 class elu_forward(operation):
+    '''Elu forward operation class.
+
+    Args:
+        alpha (float): Coefficient used in elu.
+    '''
 
     name = 'Elu (F)'
 
@@ -11,12 +25,26 @@ class elu_forward(operation):
         self._alpha = alpha
 
     def setup(self, inputs):
-        inputs = inputs[0]['y']
-        gpus = inputs.gpus
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        elu_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
+        x = inputs[0]['y']
+        gpus = x.gpus
         self.gpus = gpus
-        in_shape = inputs.shape
-        outs = GraphMultiStorage(shape=in_shape, gpus=gpus)
-        self._inputs = inputs
+        input_shape = x.shape
+        outs = GraphMultiStorage(shape=input_shape, gpus=gpus)
+        self._inputs = x
         self._outputs = outs
         self._vars = {'y': outs}
 
@@ -34,6 +62,11 @@ class elu_forward_cpu(elu_forward):
 
 
 class elu_backward(operation):
+    '''Elu backward operation class.
+
+    Args:
+        associated_forward (forward_operation): Corresponding forward operation.
+    '''
 
     name = 'Elu (B)'
 
@@ -42,6 +75,20 @@ class elu_backward(operation):
         self._alpha = self._fwd_op._alpha
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        elu_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -69,6 +116,13 @@ class elu_backward_cpu(elu_backward):
 
 
 class EluElement(UserGraph):
+    '''Expansion of UserGraph class to Elu.
+
+    Args:
+        alpha (float): Coefficient used in elu.
+        previous_elements (None, list): List of previous user graph elements.
+
+    '''
 
     def __init__(self, alpha=0.01, previous_elements=None):
         fwd_op = elu_forward(alpha) if rm.is_cuda_active() else elu_forward_cpu(alpha)
@@ -77,11 +131,11 @@ class EluElement(UserGraph):
 
 
 class Elu(GraphFactory):
-    '''A factory class of elu activation function element.
+    '''A factory class of elu activation function element. [elu]_
 
     .. math::
 
-        y = max(x, alpha * exp(x) - 1)
+        y = max(x, \\alpha * exp(x) - 1)
 
     Args:
         alpha (float): Alpha coefficient for Elu.
@@ -102,11 +156,14 @@ class Elu(GraphFactory):
         Elu (F):
         [-0.00632121  0.          1.        ]
 
+
+    .. [elu] Djork-Arné Clevert, Thomas Unterthiner, Sepp Hochreiter.
+        Fast and Accurate Deep Network Learning by Exponential Linear Units (ELUs).
+        ICLR, 2016.
+
     '''
 
-
-    def __init__(self, alpha=0.01):
-        super().__init__()
+    def prepare(self, alpha=0.01):
         self._alpha = alpha
 
     def connect(self, other):
@@ -115,4 +172,11 @@ class Elu(GraphFactory):
 
 
 def elu(x, alpha=0.01):
+    '''A function style factory of elu activation function element.
+
+    Args:
+        alpha (float): Coefficient used in elu.
+
+    For more information, please refer :py:class:`~renom.graph.activation.elu_element.Elu`.
+    '''
     return EluElement(alpha=alpha, previous_elements=[x])

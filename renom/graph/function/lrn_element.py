@@ -140,8 +140,7 @@ class Lrn(GraphFactory):
 
     '''
 
-    def __init__(self, n=5, k=2, a=1e-4, b=0.75):
-        super().__init__()
+    def prepare(self, n=5, k=2, a=1e-4, b=0.75):
         self._n = n
         self._k = k
         self._a = a

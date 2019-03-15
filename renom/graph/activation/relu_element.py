@@ -1,13 +1,38 @@
-import renom as rm
-from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+import renom as rm
+from renom.graph.core import UserGraph, operation, GraphFactory, \
+    graph_variable, GraphMultiStorage
 
 
 class relu_forward(operation):
+    '''Relu forward operation class.
+    '''
 
     name = 'Relu (F)'
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        relu_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -31,6 +56,8 @@ class relu_forward_cpu(relu_forward):
 
 
 class relu_backward(operation):
+    '''Relu backward operation class.
+    '''
 
     name = 'Relu (B)'
 
@@ -38,6 +65,20 @@ class relu_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        relu_backward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -97,11 +138,15 @@ class Relu(GraphFactory):
 
     '''
 
-
     def connect(self, other):
         ret = ReluElement(previous_elements=other)
         return ret
 
 
 def relu(x):
+    '''A function style factory of relu activation function element.
+
+    For more information, please refer \
+        :py:class:`~renom.graph.activation.relu_element.Relu`.
+    '''
     return ReluElement(previous_elements=[x])

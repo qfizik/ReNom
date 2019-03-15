@@ -136,8 +136,7 @@ class Embedding(GraphFactory):
         2. Both ``output_size`` and ``input_size`` must be specified.
     """
 
-    def __init__(self, output_size, weight_decay=None):
-        super().__init__()
+    def prepare(self, output_size, weight_decay=None):
         self.output_size = output_size
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self._bias = rm.graph.Bias()

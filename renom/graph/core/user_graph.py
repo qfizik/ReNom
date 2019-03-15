@@ -236,6 +236,30 @@ class UserGraph(graph_element):
     def optimize(self):
         pass
 
+    def set_regularizer(self, regularizer):
+        tags = [id(self), 'Gradient']
+        for graph in self._out_bwds:
+            updates = graph.get_call_dict(tag=tags, flatten=True)
+            for op in updates:
+                if isinstance(regularizer, dict):
+                    key = op._shared_key
+                    if key in regularizer:
+                        op._regularizer = regularizer[key].create_op()
+                else:
+                    op._regularizer = regularizer.create_op()
+
+    def set_optimizer(self, optimizer):
+        tags = [id(self), 'Gradient']
+        for graph in self._out_bwds:
+            updates = graph.get_call_dict(tag=tags, flatten=True)
+            for op in updates:
+                if isinstance(optimizer, dict):
+                    key = op._shared_key
+                    if key in optimizer:
+                        op._factory = optimizer[key]
+                else:
+                    op._factory = optimizer
+
     def backward(self):
         if len(self._bwd_graphs[0]._previous_elements) == 0:
             rm.graph.ConstantLossElement(previous_element=self)
