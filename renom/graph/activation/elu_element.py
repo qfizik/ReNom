@@ -162,7 +162,6 @@ class Elu(GraphFactory):
         ICLR, 2016.
 
     '''
-
     def prepare(self, alpha=0.01):
         self._alpha = alpha
 
