@@ -27,5 +27,7 @@ class Activation:
             ret = rmg.Softplus(*args, **kwargs)
         elif namestring == 'tanh':
             ret = rmg.Tanh(*args, **kwargs)
+        else:
+            raise ValueError('Unknown name string')
 
         return ret
