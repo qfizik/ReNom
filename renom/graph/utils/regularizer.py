@@ -25,14 +25,14 @@ class l2_regularizer(regularizer_factory):
         def setup(self, param, grad):
             self._param = param
             self._grad = grad
+            self.gpus = param.gpus
 
         def apply(self):
-            pass
+            raise NotImplementedError()
 
     class cpu_op(gpu_op):
 
         def apply(self):
-            print('Called')
             self._grad['cpu'] += self._param['cpu'] * self.wd
 
     def __init__(self, wd=0.05):
