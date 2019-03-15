@@ -116,7 +116,6 @@ class Selu(GraphFactory):
 
     '''
 
-
     def connect(self, other):
         ret = SeluElement(previous_elements=other)
         return ret

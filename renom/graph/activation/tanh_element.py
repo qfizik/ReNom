@@ -100,7 +100,6 @@ class Tanh(GraphFactory):
 
     '''
 
-
     def connect(self, other):
         ret = TanhElement(previous_elements=other)
         return ret

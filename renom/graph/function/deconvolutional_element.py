@@ -188,7 +188,7 @@ class Deconv(GraphFactory):
     """
 
     def prepare(self, channel=3, kernel=3, padding=0, stride=1,
-                 initializer=None, weight_decay=None, ignore_bias=False):
+                initializer=None, weight_decay=None, ignore_bias=False):
         self._chnls = channel
         self._krnl = kernel
         self._pdng = padding
