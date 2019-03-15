@@ -49,8 +49,6 @@ class elu_forward(operation):
         self._vars = {'y': outs}
 
     def perform(self):
-        '''This function performs operation with gpu.
-        '''
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             rm.cuda.cueru_forward(self._alpha, self._inputs[gpu], self._outputs[gpu])
 
@@ -102,8 +100,6 @@ class elu_backward(operation):
         self._vars = {'y': outs, id(self._fwd_op._inputs): outs}
 
     def perform(self):
-        '''This function performs operation with cpu.
-        '''
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             rm.cuda.cueru_backward(self._alpha, self._fwd_in[gpu], self._outputs[gpu])
             rm.cu.cumul(self._outputs[gpu], self._inputs[gpu], self._outputs[gpu], handle)

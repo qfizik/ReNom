@@ -1,9 +1,23 @@
-import renom as rm
-from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+import renom as rm
+from renom.graph.core import UserGraph, operation, GraphFactory, \
+    graph_variable, GraphMultiStorage
 
 
 class leaky_relu_forward(operation):
+    '''Leaky relu forward operation class.
+
+    Args:
+        slope (float): Coefficient used in leaky_relu.
+    '''
 
     name = 'LeakyRelu (F)'
 
@@ -11,6 +25,20 @@ class leaky_relu_forward(operation):
         self._slope = slope
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        leaky_relu_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -35,6 +63,12 @@ class leaky_relu_forward_cpu(leaky_relu_forward):
 
 
 class leaky_relu_backward(operation):
+    '''Leaky relu backward operation class.
+
+    Args:
+        associated_forward (forward_operation): Corresponding forward operation.
+    '''
+
 
     name = 'LeakyRelu (B)'
 
@@ -43,6 +77,20 @@ class leaky_relu_backward(operation):
         self._slope = self._fwd_op._slope
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        elu_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -70,6 +118,7 @@ class leaky_relu_backward_cpu(leaky_relu_backward):
 
 
 class LeakyReluElement(UserGraph):
+
 
     def __init__(self, slope=0.01, previous_elements=None):
         fwd_op = leaky_relu_forward(slope) if rm.is_cuda_active() else leaky_relu_forward_cpu(slope)
@@ -114,4 +163,13 @@ class LeakyRelu(GraphFactory):
 
 
 def leaky_relu(x, slope=0.01):
+    '''A function style factory of leaky relu activation function element.
+
+    Args:
+        slope (float): Coefficient used in leaky relu.
+
+    For more information, please refer \
+        :py:class:`~renom.graph.activation.leaky_relu_element.LeakyReluElement`.
+    '''
+
     return LeakyReluElement(slope=slope, previous_elements=[x])
