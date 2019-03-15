@@ -100,8 +100,6 @@ class Tanh(GraphFactory):
 
     '''
 
-    def __init__(self):
-        super().__init__()
 
     def connect(self, other):
         ret = TanhElement(previous_elements=other)

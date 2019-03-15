@@ -189,8 +189,7 @@ class L2Norm(GraphFactory):
 
     """
 
-    def __init__(self, scale=20, weight_decay=None):
-        super().__init__()
+    def prepare(self, scale=20, weight_decay=None):
         self.scale = scale
         self.params['w'] = graph_variable(weight_decay=weight_decay)
 

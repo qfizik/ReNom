@@ -174,9 +174,8 @@ class WeightNormalize(GraphFactory):
         to Accelerate Training of Deep Neural Networks. arXiv:1602.07868, 2016.
     '''
 
-    def __init__(self, output_size=1, gain=0.1, initializer=None, weight_decay=None, ignore_bias=None):
+    def prepare(self, output_size=1, gain=0.1, initializer=None, weight_decay=None, ignore_bias=None):
         # TODO: Add bias.
-        super().__init__()
         self._gain = gain
         self._output_size = output_size
         self._init = initializer

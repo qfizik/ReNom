@@ -347,8 +347,7 @@ class Lstm(GraphFactory):
         Learning Precise Timing with LSTM Recurrent Networks. JMLR, 2002.
     '''
 
-    def __init__(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
-        super().__init__()
+    def prepare(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
         self._output_size = output_size
         self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)

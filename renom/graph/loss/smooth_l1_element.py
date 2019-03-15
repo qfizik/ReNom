@@ -139,8 +139,7 @@ class SmoothL1(GraphFactory):
 
     """
 
-    def __init__(self, delta=1.0):
-        super().__init__()
+    def prepare(self, delta=1.0):
         self._delta = delta
 
     def connect(self, predictions, true_values):

@@ -38,8 +38,7 @@ class Dropout(GraphFactory):
 
     """
 
-    def __init__(self, dropout_rate=0.5, axis=None):
-        super().__init__()
+    def prepare(self, dropout_rate=0.5, axis=None):
         self._dr = dropout_rate
         self._axis = axis
 

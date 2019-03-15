@@ -151,8 +151,7 @@ class Maxout(GraphFactory):
 
     """
 
-    def __init__(self, slice_size=1):
-        super().__init__()
+    def prepare(self, slice_size=1):
         self._sz = slice_size
 
     def connect(self, other):
