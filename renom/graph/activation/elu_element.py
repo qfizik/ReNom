@@ -167,7 +167,6 @@ class Elu(GraphFactory):
 
     '''
 
-
     def __init__(self, alpha=0.01):
         super().__init__()
         self._alpha = alpha
@@ -175,6 +174,7 @@ class Elu(GraphFactory):
     def connect(self, other):
         ret = EluElement(alpha=self._alpha, previous_elements=other)
         return ret
+
 
 def elu(x, alpha=0.01):
     '''A function style factory of elu activation function element.

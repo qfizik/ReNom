@@ -217,7 +217,6 @@ class BatchNormalize(GraphFactory):
 
     """
 
-
     def __init__(self, momentum=0.99, epsilon=1e-5, axis=None, initializer=None, weight_decay=None, ignore_bias=False):
         super().__init__()
         self._mom = momentum

@@ -7,3 +7,4 @@ from .leaky_relu_element import LeakyRelu, leaky_relu
 from .tanh_element import Tanh, tanh
 from .maxout_element import Maxout, maxout
 from .sigmoid_element import Sigmoid, sigmoid
+from .generic_activation import Activation
