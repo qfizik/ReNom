@@ -126,7 +126,7 @@ class Executor:
         self.register_event('Epoch-Finish', _norm_epoch_finish)
         self.register_event('Teardown', _norm_finish)
 
-    def execute(self, epochs, progress=True):
+    def execute(self, epochs=1, progress=True):
         '''
           This function executes computational graph.
 

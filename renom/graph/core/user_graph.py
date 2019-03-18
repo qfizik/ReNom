@@ -173,6 +173,14 @@ class UserGraph(graph_element):
         self.forward()
         return self._fwd.__repr__()
 
+    def gather_graph(self):
+        from .graph_container import graph_container
+        graphs = self._fwd.gather_graphs(flatten=True)
+        ret = graph_container()
+        ret.add(graphs)
+        return ret
+
+
     def get_executor(self, mode='inference', optimizer=None, with_validation=False):
         if mode != 'inference' and optimizer is not None:
             ups = self._fwd.get_call_dict(tag='Gradient')
