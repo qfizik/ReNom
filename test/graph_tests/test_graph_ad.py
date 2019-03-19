@@ -644,14 +644,23 @@ def test_lrn(test_shape, use_gpu, num_gpu):
 @pytest.mark.parametrize("test_shape", [
     (3, 1),
     (20, 1),
+    (2, 2),
 ])
-def test_embedding(test_shape, use_gpu, num_gpu):
+@pytest.mark.parametrize("output_size", [2, 2.5])
+def test_embedding(test_shape, output_size, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
 
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.Embedding(output_size=2)
+    model = rm.graph.Embedding(output_size=output_size)
     l = rm.graph.ConstantLoss()
+    if v.shape[1] != 1 or not isinstance(output_size, int):
+        try:
+            model(val)
+            assert False, 'Should raise exception when input shape is not (N, 1)'
+        except AssertionError:
+            return
+
     m = model(val)
     loss = l(m)
 
