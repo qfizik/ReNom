@@ -39,6 +39,13 @@ class GraphFactory(abc.ABC):
         params dictionary which is instantiated for each GraphFactory object. This allows GraphFactory
         to detach these variables when reconstructing the graph as well as save/load the variables
         later using the save/load methods.
+
+        Args:
+            activation(str, GraphFactory): If the activation argument are given, the activation layer
+            will be applied at the end of the graph factory, as part of the output graph.
+            If the argument is given as a string, it will be converted to the appropriate activation
+            GraphFactory according to the definitions in generic_activation.py.
+
     '''
 
     def __init__(self, *args, parameter_decay=None, optimizer=None, activation=None, **kwargs):
