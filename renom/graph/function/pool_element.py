@@ -3,6 +3,15 @@ from renom.layers.function.utils import im2col, col2im, imnpool, poolnim
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
 import numpy as np
 
+def _get_expanded_value(value, dims):
+    if isinstance(value, int):
+        ret = np.array(list(value for i in range(dims))).astype(np.int32)
+    elif isinstance(value, tuple):
+        assert len(value) == dims, 'tuple and input shape mismatch'
+        ret = value
+    else:
+        raise ValueError('Expected int or tuple, but got {}'.format(type(value)))
+    return ret
 
 class pool_forward(operation):
 
@@ -22,9 +31,9 @@ class pool_forward(operation):
         self._dims = dims
 
         self._inputs = inputs
-        self._kernel = np.array(list(self._k for i in range(dims))).astype(np.int32)
-        self._padding = np.array(list(self._p for i in range(dims))).astype(np.int32)
-        self._stride = np.array(list(self._s for i in range(dims))).astype(np.int32)
+        self._kernel = _get_expanded_value(self._k, dims)
+        self._padding = _get_expanded_value(self._p, dims)
+        self._stride = _get_expanded_value(self._s, dims)
 
         imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 -
                       self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
@@ -183,6 +192,11 @@ class AvgPool(PoolGraphFactory):
         each image.
         stride (int, tuple): The step size between the points where the \
         kernels are to be applied.
+
+      Note:
+          If any of the arguments are given as an integer, it will be expanded to fit the
+          size of the received input uniformly. If received as a tuple, the tuple must be
+          of the same dimensions as the input.
 
     '''
 

@@ -4,6 +4,15 @@ from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFacto
 import renom.utility.initializer as init
 import numpy as np
 
+def _get_expanded_value(value, dims):
+    if isinstance(value, int):
+        ret = np.array(list(value for i in range(dims))).astype(np.int32)
+    elif isinstance(value, tuple):
+        assert len(value) == dims, 'tuple and input shape mismatch'
+        ret = value
+    else:
+        raise ValueError('Expected int or tuple, but got {}'.format(type(value)))
+    return ret
 
 class deconv_forward(operation):
 
@@ -27,10 +36,10 @@ class deconv_forward(operation):
         dims = len(input_shape[2:])
         self._dims = dims
 
-        self._kernel = np.array(list(self._k for i in range(dims))).astype(np.int32)
-        self._padding = np.array(list(self._p for i in range(dims))).astype(np.int32)
-        self._stride = np.array(list(self._s for i in range(dims))).astype(np.int32)
-        self._dilation = np.array(list(self._d for i in range(dims))).astype(np.int32)
+        self._kernel = _get_expanded_value(self._k, dims)
+        self._padding = _get_expanded_value(self._p, dims)
+        self._stride = _get_expanded_value(self._s, dims)
+        self._dilation = _get_expanded_value(self._d, dims)
 
         self._inputs = inputs
         gpus = inputs.gpus
