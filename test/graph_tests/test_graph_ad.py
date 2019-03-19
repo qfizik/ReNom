@@ -831,13 +831,13 @@ def test_unpool(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
-@pytest.mark.parametrize("test_shape", [
-    (1, 8),
-    (2, 5),
-    (6, 1),
-    (2, 20),
+@pytest.mark.parametrize("test_shape, reduction", [
+    [(1, 8), 'sum'],
+    [(1, 8), 'mean'],
+    [(2, 8), 'sum'],
+    [(2, 8), 'mean'],
 ])
-def test_cross_entropy(test_shape, use_gpu, num_gpu):
+def test_cross_entropy(test_shape, reduction, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
     v2 = onehot(test_shape)
@@ -854,18 +854,19 @@ def test_cross_entropy(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
-@pytest.mark.parametrize("test_shape", [
-    (1, 4),
-    (2, 2),
-    (2, 2, 2, 2),
+@pytest.mark.parametrize("test_shape, reduction", [
+    [(1, 2), 'mean'],
+    [(1, 2), 'sum'],
+    [(2, 2), 'mean'],
+    [(2, 2), 'sum'],
 ])
-def test_softmax_cross_entropy(test_shape, use_gpu, num_gpu):
+def test_softmax_cross_entropy(test_shape, reduction, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
     v2 = onehot(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
-    model = rm.graph.SoftmaxCrossEntropy()
+    model = rm.graph.SoftmaxCrossEntropy(reduction)
     m = model(val, val2) * 2
 
     def func():
@@ -876,19 +877,23 @@ def test_softmax_cross_entropy(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
-@pytest.mark.parametrize("test_shape", [
-    (2, 1),
-    (2, 2),
-    (2, 2, 2, 2),
+@pytest.mark.parametrize("test_shape, reduction", [
+    [(1, 2), 'mean'],
+    [(1, 2), 'sum'],
+    [(1, 2), None],
+    [(2, 2), 'mean'],
+    [(2, 2), 'sum'],
+    [(2, 2), None],
 ])
-def test_sigmoid_cross_entropy(test_shape, use_gpu, num_gpu):
+def test_sigmoid_cross_entropy(test_shape, reduction, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
     v2 = randInteger(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
-    model = rm.graph.SigmoidCrossEntropy()
-    m = model(val, val2) * 2
+
+    loss = rm.graph.SigmoidCrossEntropy(reduction)
+    m = rm.graph.ConstantLoss()(loss(val, val2) * 2)
 
     def func():
         m.forward()
@@ -898,18 +903,19 @@ def test_sigmoid_cross_entropy(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
 
 
-@pytest.mark.parametrize("test_shape", [
-    (2, 1),
-    (2, 2),
-    (2, 2, 2, 2),
+@pytest.mark.parametrize("test_shape, reduction", [
+    [(1, 2), 'mean'],
+    [(1, 2), 'sum'],
+    [(2, 2), 'mean'],
+    [(2, 2), 'sum'],
 ])
-def test_smooth_l1(test_shape, use_gpu, num_gpu):
+def test_smooth_l1(test_shape, reduction, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
     v2 = randInteger(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
-    model = rm.graph.SmoothL1()
+    model = rm.graph.SmoothL1(reduction=reduction)
     m = model(val, val2) * 2
 
     def func():
@@ -1149,19 +1155,21 @@ def test_dropout(test_shape, axis, use_gpu, num_gpu):
     compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
 
 
-@pytest.mark.parametrize("test_shape", [
-    (1, 8),
-    (2, 5),
-    (6,),
-    (2, 20),
+@pytest.mark.parametrize("test_shape, reduction", [
+    [(1, 2), 'mean'],
+    [(1, 2), 'sum'],
+    [(2, 2), 'mean'],
+    [(2, 2), 'sum'],
+    [(2, 2, 2, 2), 'mean'],
+    [(2, 2, 2, 2), 'sum'],
 ])
-def test_mean_squared(test_shape, use_gpu, num_gpu):
+def test_mean_squared(test_shape, reduction, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     v = rand(test_shape)
     v2 = rand(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     val2 = rm.graph.StaticVariable(v2, num_gpus=num_gpu)
-    model = rm.graph.MeanSquared()
+    model = rm.graph.MeanSquared(reduction)
     m = model(val, val2) * 2
 
     def func():
