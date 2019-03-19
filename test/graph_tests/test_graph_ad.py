@@ -371,11 +371,12 @@ def test_concat(test_shapes, axis, use_gpu, num_gpu):
     (1, 2),
     (4, 5),
 ])
-def test_dense(test_shape, use_gpu, num_gpu, ignore_bias):
+@pytest.mark.parametrize("activation", [None, 'ReLU', rm.graph.Sigmoid()])
+def test_dense(test_shape, use_gpu, activation, num_gpu, ignore_bias):
     rm.set_cuda_active(use_gpu)
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.Dense(output_size=2, ignore_bias=ignore_bias)
+    model = rm.graph.Dense(output_size=2, ignore_bias=ignore_bias, activation=activation)
     l = rm.graph.ConstantLoss()
     m = model(val)
     loss = l(m)

@@ -41,7 +41,7 @@ class GraphFactory(abc.ABC):
         later using the save/load methods.
     '''
 
-    def __init__(self, *args, parameter_decay=None, optimizer=None, **kwargs):
+    def __init__(self, *args, parameter_decay=None, optimizer=None, activation=None, **kwargs):
         '''Generic UserGraph initializer.
 
             Initializes the parameter field as an empty dictionary and
@@ -52,6 +52,11 @@ class GraphFactory(abc.ABC):
         self._prev = None
         self._inference = None
         self._make_update_graphs = True
+        if isinstance(activation, str):
+            activation = rm.graph.Activation(activation)
+        if activation is not None:
+            assert isinstance(activation, GraphFactory)
+        self._activation = activation
         if isinstance(parameter_decay, dict):
             for key in parameter_decay:
                 parameter_decay[key] = GraphFactory._get_decay(parameter_decay[key])
@@ -132,6 +137,8 @@ class GraphFactory(abc.ABC):
         self_tag = id(self)
         with rm.graph.core._with_operational_tag(self_tag):
             ret = self.connect(*other)
+            if self._activation is not None:
+                ret = self._activation(ret)
         ret._fwd.replace_tags(self_tag, id(ret))
         for bwd in ret._bwd_graphs:
             bwd.replace_tags(self_tag, id(ret))
