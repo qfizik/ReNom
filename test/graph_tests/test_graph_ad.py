@@ -735,6 +735,19 @@ def test_deconv(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, model.params['b'].output), l.backward(
     ).get_gradient(model.params['b'].output))
 
+def test_deconv_nobias(use_gpu):
+    np.random.seed(45)
+    rm.set_cuda_active(use_gpu)
+
+    v = np.random.rand(1, 1, 3, 3)
+    model_nobias = rm.graph.Deconv(channel=1, kernel=1, ignore_bias=True)
+    model_bias = rm.graph.Deconv(channel=1, kernel=1, ignore_bias=False)
+    model_bias.params['w'] = model_nobias.params['w']
+    model_bias.params['b'].set_value(np.ones((1, 1, 1, 1)), 'cpu')
+    m1 = model_nobias(v).as_ndarray()
+    m2 = model_bias(v).as_ndarray()
+    assert np.allclose(m1, m2-1)
+
 
 def test_l2_norm(use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
