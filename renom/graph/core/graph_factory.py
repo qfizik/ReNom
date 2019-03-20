@@ -39,6 +39,14 @@ class GraphFactory(abc.ABC):
         params dictionary which is instantiated for each GraphFactory object. This allows GraphFactory
         to detach these variables when reconstructing the graph as well as save/load the variables
         later using the save/load methods.
+
+        Args:
+            optimizer(dict, optimizer_factory, string): The optimizer to be used with a specific graph
+            factory. If the optimizer is given as a string, it is converted to an optimizer with
+            default values instead. If the optimizer is given as a dict, it ties each variable in the
+            graph factory params with a specific optimizer, given again as (optimizer_factory, string).
+
+
     '''
 
     def __init__(self, *args, parameter_decay=None, optimizer=None, **kwargs):

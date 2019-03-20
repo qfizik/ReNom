@@ -98,7 +98,6 @@ class maxout_backward(operation):
         associated_forward (forward_operation): Corresponding forward operation.
     '''
 
-
     name = 'Maxout (B)'
 
     def __init__(self, associated_forward):
