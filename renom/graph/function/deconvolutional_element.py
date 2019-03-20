@@ -1,5 +1,5 @@
 import renom as rm
-from renom.layers.function.utils import im2col, col2im, colnim, imncol
+from renom.layers.function.utils import im2col, col2im, colnim, imncol, colnw
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import numpy as np
@@ -135,14 +135,24 @@ class deconv_backward_cpu(deconv_backward):
         x = self._fwd_in['cpu']
         w = self._fwd_w['cpu']
 
+        for batch in range(dy.shape[0]):
+            for chnl in range(dy.shape[1]):
+                rv = dy[batch, chnl].flatten()
+                dy[batch, chnl] = rv[::-1].reshape(dy[batch, chnl].shape)
+        for batch in range(x.shape[0]):
+            for chnl in range(x.shape[1]):
+                rv = x[batch, chnl].flatten()
+                x[batch, chnl] = rv[::-1].reshape(x[batch, chnl].shape)
+
         dx = imncol(dy, w, self._fwd_op._stride, padding=self._fwd_op._padding)
+        for batch in range(dx.shape[0]):
+            for chnl in range(dx.shape[1]):
+                rv = dx[batch, chnl].flatten()
+                dx[batch, chnl] = rv[::-1].reshape(dx[batch, chnl].shape)
 
-        l = [x for x in range(len(dy.shape))]  # noqa
-        del(l[1])
-        dw = np.ones_like(w) * \
-            np.swapaxes(np.sum(x, axis=tuple(l), keepdims=True), 0, 1)
+        dw = colnw(dy, x, self._fwd_op._stride)
 
-        db = np.sum(np.ones_like(dy), axis=tuple(
+        db = np.sum(dy, axis=tuple(
             [x for x in range(2, len(dy.shape), 1)]), keepdims=True)
         db = np.sum(db, axis=0, keepdims=True)
 
