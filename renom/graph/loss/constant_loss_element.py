@@ -131,7 +131,7 @@ class ConstantLoss(GraphFactory):
     '''A factory class of constant loss function element.
 
     Agrs:
-        reduction (str, None): Reduction method. Available arguments are described below. 
+        reduction (str, None): Reduction method. Available arguments are described below.
 
     +-----------+-------------------------------------------------------+
     | reduction |  description                                          |
