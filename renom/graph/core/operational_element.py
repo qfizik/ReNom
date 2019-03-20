@@ -53,9 +53,6 @@ class operational_element(graph_element):
         if old_tag in self._tags:
             self._tags[self._tags.index(old_tag)] = new_tag
 
-    @graph_element.walk_tree
-    def gather_graphs(self):
-        return self
 
     # TODO: Rename gather_operations_with_tags
     @graph_element.walk_tree
@@ -68,15 +65,6 @@ class operational_element(graph_element):
     def gather_operations_with_role(self, role):
         if role in self._op.roles:
             return self._op
-
-    @graph_element.walk_tree
-    @check_tags
-    def gather_roles(self):
-        return self._op.roles
-
-    def gather_with_info(self):
-        role_info = self.gather_roles()
-
 
     @graph_element.walk_tree
     @check_tags

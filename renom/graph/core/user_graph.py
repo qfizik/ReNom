@@ -173,15 +173,8 @@ class UserGraph(graph_element):
         self.forward()
         return self._fwd.__repr__()
 
-    def gather_graph(self):
-        from .graph_container import graph_container
-        graphs = self._fwd.gather_graphs(flatten=True)
-        ret = graph_container()
-        ret.add(graphs)
-        return ret
-
-
-    def get_executor(self, mode='inference', optimizer=None, with_validation=False):
+    def get_executor(self, mode='inference', optimizer=None):
+        ret = Executor(self, mode)
         if mode != 'inference' and optimizer is not None:
             ups = self._fwd.get_call_dict(tag='Gradient')
             for d in ups:
@@ -189,6 +182,13 @@ class UserGraph(graph_element):
                     if hasattr(ups[d][i], 'set_update_op'):
                         ups[d][i].set_update_op(optimizer)
 
+        if mode == 'training':
+            self._fwd.total_setup()
+        #ret = Executor(call_list, ops, mode)
+        self._fwd.finalize()
+        return ret
+
+    def get_executor_info(self):
         fwds = self._fwd.get_call_dict(tag='Forward')
         bwds = self._fwd.get_call_dict(tag='Backward')
         grds = self._fwd.get_call_dict(tag='Gradient')
@@ -204,19 +204,16 @@ class UserGraph(graph_element):
         ops = {
             'graph_inputs': ins,
             'losses': lss,
-            'root': self._fwd._op,
+            'root_op': self._fwd._op,
         }
-        if mode == 'training':
-            self._fwd.total_setup()
-        ret = Executor(call_list, ops, mode)
-        self._fwd.finalize()
-        if with_validation is True:
-            ret._set_validation()
-        return ret
+        return call_list, ops
 
     @graph_element.walk_tree
     def feed(self, to_replace, replace_with):
         if to_replace is self:
+            if len(self._previous_elements) > 0:
+                self.remove_all_inputs()
+                self._fwd.remove_all_inputs()
             self.add_input(replace_with)
             self._fwd.add_input(replace_with.get_forward_output())
             self._fwd._op.link(replace_with.get_forward_output()._op)

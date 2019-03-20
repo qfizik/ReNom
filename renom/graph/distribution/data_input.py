@@ -109,7 +109,7 @@ class Batcher(Fetcher):
         self.outs[source] = ret
 
     def __len__(self):
-        length = len(self.prev) // self.batch_size
+        length = int(np.ceil(len(self.prev) / self.batch_size))
         return length
 
 class put_op(operation):

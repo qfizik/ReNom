@@ -53,12 +53,12 @@ def _norm_step_finish(info):
 def _norm_epoch_finish(info):
     epoch_loss_list = info['epoch_loss_list']
     bar = info['bar']
-    all_losses = info['all_losses']
+    #all_losses = info['all_losses']
     epoch_name = info['epoch_name']
     loss = info['losses']
 
     epoch_loss_list.pop(-1)
-    all_losses.append(np.sum(epoch_loss_list))
+    #all_losses.append(np.sum(epoch_loss_list))
     cur_loss = np.mean(epoch_loss_list)
     if len(loss) == 0:
         bar.set_description("{0!s: >10}".format(epoch_name))
@@ -79,13 +79,13 @@ def _validation_func():
         # TODO: Move this to event
         ins = info['inputs']
         if info['mode'] == 'training':
-            ins[0].switch_source(1)
+            #ins[0].switch_source(1)
             info['epoch_loss_list'] = []
             info['mode'] = 'inference'
             info['nth_epoch'] -= 1  # Redo the epoch as validation
         else:
             info['mode'] = 'training'
-            ins[0].switch_source(0)
+            #ins[0].switch_source(0)
             info['validation_loss'] = np.sum(info['epoch_loss_list'])
         # _perform_validation END
     return _perform_validation
@@ -101,17 +101,10 @@ class Executor:
           losses (GraphElement):
     '''
 
-    def __init__(self, call_list, special_ops, mode='inference'):
-        self.call_list = call_list
-        self.dispatchers = special_ops['graph_inputs']
-        self.input_sources = {}
-        for disp in self.dispatchers:
-            if hasattr(disp, 'keyword') and disp.keyword is not None:
-                self.input_sources[disp.keyword] = disp
-        self.loss = special_ops['losses']
-        self.root = special_ops['root']
+    def __init__(self, root, mode='Training'):
+        self.root = root
         self.mode = mode
-
+        self.call_list = None
         self._events = {'Initialize': [],
                         'Epoch-Start': [],
                         'Step-Start': [],
@@ -126,7 +119,22 @@ class Executor:
         self.register_event('Epoch-Finish', _norm_epoch_finish)
         self.register_event('Teardown', _norm_finish)
 
-    def execute(self, epochs=1, progress=True):
+
+    def prepare_execution(self):
+        call_list, special_ops = self.root.get_executor_info()
+        self.call_list = call_list
+        self.dispatchers = special_ops['graph_inputs']
+        self.loss = special_ops['losses']
+        self.root_op = special_ops['root_op']
+
+    def prepare_validation(self):
+        call_list, special_ops = self.root.get_executor_info()
+        self.validation_list = call_list
+        self.valid_disp = special_ops['graph_inputs']
+        self.valid_loss = special_ops['losses']
+        self._set_validation()
+
+    def execute(self, feed_dict=None, validation_feed_dict=None, epochs=1, progress=True):
         '''
           This function executes computational graph.
 
@@ -134,6 +142,18 @@ class Executor:
               epochs (int): Number of epochs.
               progress (bool): If True is given, the progress will be shown.
         '''
+        if feed_dict is not None:
+            for key, value in feed_dict.items():
+                self.root.feed(key, value)
+
+        if self.call_list is None:
+            self.prepare_execution()
+
+        if validation_feed_dict is not None:
+            for key, value in validation_feed_dict.items():
+                self.root.feed(key, value)
+            self.prepare_validation()
+
         exe_info = {'inputs': self.dispatchers,
                     'losses': self.loss,
                     'progress': progress,
@@ -183,13 +203,24 @@ class Executor:
         for ev in self._events['Initialize']:
             ev(exe_info)
 
-        while exe_info['nth_epoch'] < epochs:
+        #while exe_info['nth_epoch'] < epochs:
+        for e in range(epochs):
             self.perform_event_epoch(exe_info)
+            if validation_feed_dict is not None:
+                tmp1 = self.dispatchers
+                tmp2 = self.call_list
+                self.dispatchers = self.valid_disp
+                self.call_list = self.validation_list
+                exe_info['inputs'] = self.dispatchers
+                self.perform_event_epoch(exe_info)
+                self.dispatchers = tmp1
+                self.call_list = tmp2
+                exe_info['inputs'] = self.dispatchers
 
         for ev in self._events['Teardown']:
             ev(exe_info)
 
-        return exe_info['all_losses']
+        #return exe_info['all_losses']
 
     def __del__(self):
         for i in range(len(self.dispatchers)):
@@ -248,27 +279,19 @@ class Executor:
         self._events[event_name] = []
 
     def _set_validation(self):
-        assert len(self.dispatchers) > 0 and \
-            len(self.dispatchers[0]._value_list) > 1
         self.register_event('Epoch-Finish', _validation_func())
 
-    def step(self, step_data=None):
+    def step(self, feed_dict):
+        if feed_dict is not None:
+            for key, value in feed_dict.items():
+                self.root.feed(key, value)
+        self.prepare_execution()
         exe_info = {
             'mode': 'step',
             'losses': self.loss,
         }
-        if step_data is not None:
-            assert isinstance(step_data, dict)
-            for key in step_data.keys():
-                assert isinstance(step_data[key], np.ndarray)
-                if key in self.input_sources:
-                    self.input_sources[key].value = step_data[key]
         self.perform_event_step(exe_info)
-        #loss = self.loss[0].as_ndarray()
-        loss = self.root.as_ndarray()
-        if step_data is not None:
-            for dis in self.dispatchers:
-                dis.switch_source(0)
+        loss = self.root_op.as_ndarray()
         return loss
 
     def set_input_data(self, new_data):
