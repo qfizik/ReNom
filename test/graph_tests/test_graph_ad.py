@@ -718,7 +718,7 @@ def test_conv(test_shape, use_gpu, num_gpu, ignore_bias, groups):
 
 
 @pytest.mark.parametrize("test_shape", [
-    (1, 1, 5, 5),
+    (1, 1, 1, 2),
     (2, 3, 5, 5),
 ])
 def test_deconv(test_shape, use_gpu, num_gpu):
@@ -727,9 +727,12 @@ def test_deconv(test_shape, use_gpu, num_gpu):
 
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.Deconv()
+    model1 = rm.graph.Deconv(channel=2, kernel=3)
+    model2 = rm.graph.Reshape([-1])
+    model3 = rm.graph.Dense(1)
     loss = rm.graph.ConstantLoss()
-    m = model(val)
+
+    m = model3(model2(model1((val))))
     l = loss(m)
 
     def func():
@@ -739,10 +742,10 @@ def test_deconv(test_shape, use_gpu, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, val.value), l.backward().get_gradient(val.value))
-    compare(getNumericalDiff(func, model.params['w'].output), l.backward(
-    ).get_gradient(model.params['w'].output))
-    compare(getNumericalDiff(func, model.params['b'].output), l.backward(
-    ).get_gradient(model.params['b'].output))
+    compare(getNumericalDiff(func, model1.params['w'].output), l.backward(
+    ).get_gradient(model1.params['w'].output))
+    compare(getNumericalDiff(func, model1.params['b'].output), l.backward(
+    ).get_gradient(model1.params['b'].output))
 
 def test_deconv_nobias(use_gpu):
     np.random.seed(45)
@@ -752,10 +755,14 @@ def test_deconv_nobias(use_gpu):
     model_nobias = rm.graph.Deconv(channel=1, kernel=1, ignore_bias=True)
     model_bias = rm.graph.Deconv(channel=1, kernel=1, ignore_bias=False)
     model_bias.params['w'] = model_nobias.params['w']
-    model_bias.params['b'].set_value(np.ones((1, 1, 1, 1)), 'cpu')
+    if use_gpu:
+        dev = [0]
+    else:
+        dev = 'cpu'
+    model_bias.params['b'].set_value(np.ones((1, 1, 1, 1)), dev)
     m1 = model_nobias(v).as_ndarray()
     m2 = model_bias(v).as_ndarray()
-    assert np.allclose(m1, m2-1)
+    assert np.allclose(m1, m2 - 1)
 
 
 def test_l2_norm(use_gpu, num_gpu):
