@@ -10,7 +10,8 @@ class embedding_forward(operation):
     consumes = ['w']
 
     def __init__(self, output_size):
-
+        assert isinstance(output_size, int), 'Embedding layer currently only accepts integers.'
+        print(isinstance(output_size, int), output_size)
         self._output_size = output_size
 
     def setup(self, inputs):
@@ -20,6 +21,7 @@ class embedding_forward(operation):
         self.gpus = inputs.gpus
         self._init = init.GlorotNormal()
         self._inputs = inputs
+        assert inputs.shape[1] == 1, 'Embedding layer expects an input size of 1.'
         weight_shape = (inputs.shape[1], self._output_size)
         weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=self._init)
         output_shape = (inputs.shape[0], self._output_size)
@@ -130,6 +132,10 @@ class Embedding(GraphFactory):
         >>> a = np.arange(N).reshape(N, 1)
         >>> layer = rm.Embedding(output_size=1, input_size=8)
         >>> out = layer(a)
+
+    Raises:
+        Assertion error when output_size is not an integer or received shape is not of
+        shape (N, 1).
 
     Note:
         1. This layer only accepts matrix which shape is (N, 1) and has integer value. *N is batch size.
