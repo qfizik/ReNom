@@ -756,7 +756,7 @@ def test_deconv_nobias(use_gpu):
     model_bias.params['b'].set_value(np.ones((1, 1, 1, 1)), 'cpu')
     m1 = model_nobias(v).as_ndarray()
     m2 = model_bias(v).as_ndarray()
-    assert np.allclose(m1, m2-1)
+    assert np.allclose(m1, m2 - 1)
 
 
 def test_l2_norm(use_gpu, num_gpu):

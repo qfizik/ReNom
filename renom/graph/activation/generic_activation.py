@@ -20,7 +20,7 @@ class Activation:
             softmax -> Softmax (No parameters)
             softplus -> Softplus (No parameters)
             tanh -> Tanh (No parameters)
-                
+
         '''
         assert isinstance(namestring, str)
         rmg = rm.graph
