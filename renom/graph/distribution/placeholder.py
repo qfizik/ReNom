@@ -9,21 +9,33 @@ class placeholder_op(operation):
     roles = ['placeholder']
 
     def __init__(self, shape, gpus, identifier):
-        shape = [1] + list(shape)
+        shape = [32] + list(shape)
         self.identity = identifier
+        self._other = None
 
         outs = GraphMultiStorage(shape=shape, gpus=gpus)
+        self._out = outs
         self._vars = {'y' : outs}
+        self.gpus = gpus
 
     def link(self, other_op):
-        
+        self._other = other_op
+        ins = other_op.get_output_signature()['y']
+        assert ins.shape[1:] == self._out.shape[1:]
+        self._out.shape = ins.shape
+        self._ins = ins
 
     def setup(self, inputs):
         pass
 
     def perform(self):
-        pass
-
+        if self._other is not None:
+            if rm.is_cuda_active():
+                for gpu in self.gpus:
+                    self._out[gpu] = self._ins[gpu]
+            else:
+                for gpu in self.gpus:
+                    self._out['cpu'] = self._ins['cpu']
 class Placeholder(UserGraph):
 
 

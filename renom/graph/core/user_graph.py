@@ -214,6 +214,13 @@ class UserGraph(graph_element):
             ret._set_validation()
         return ret
 
+    @graph_element.walk_tree
+    def feed(self, to_replace, replace_with):
+        if to_replace is self:
+            self.add_input(replace_with)
+            self._fwd.add_input(replace_with.get_forward_output())
+            self._fwd._op.link(replace_with.get_forward_output()._op)
+
     def set_inference(self, inference=True):
         if id(self) in self._fwd._tags:
             self._fwd.set_attr('_inference', inference, tag=id(self))
