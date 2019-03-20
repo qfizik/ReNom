@@ -710,7 +710,7 @@ def test_conv(test_shape, use_gpu, num_gpu, ignore_bias, groups):
 
 @pytest.mark.parametrize("test_shape", [
     (1, 1, 5, 5),
-    (2, 3, 5, 5),
+    (2, 2, 5, 5),
 ])
 def test_deconv(test_shape, use_gpu, num_gpu):
     np.random.seed(45)
@@ -724,7 +724,7 @@ def test_deconv(test_shape, use_gpu, num_gpu):
     l = loss(m)
 
     def func():
-        m.forward()
+        # m.forward()
         l.forward()
         ret = l.as_ndarray()
         return ret

@@ -44,7 +44,7 @@ class constant_loss_forward_cpu(constant_loss_forward):
             self._outputs['cpu'] = np.array(np.sum(self._inputs['cpu']))
 
         elif self.reduction == 'mean':
-            N = len(self._inputs['cpu'])
+            N = getattr(self._inputs['cpu'], '__len__', lambda: 1)()
             self._outputs['cpu'] = np.array(np.sum(self._inputs['cpu']) / N)
 
 
@@ -97,8 +97,6 @@ class constant_loss_backward_cpu(constant_loss_backward):
         if self._dy is not None:
             dy = self._dy['cpu']
             if self.reduction == 'mean':
-                N = int(shape[0])
-                self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision) / N
             elif self.reduction == 'sum':
                 self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision)
             self._outputs['cpu'] *= dy
@@ -108,6 +106,7 @@ class constant_loss_backward_cpu(constant_loss_backward):
                 self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision) / N
             elif self.reduction == 'sum':
                 self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision)
+
 
 
 class ConstantLossElement(UserLossGraph):
