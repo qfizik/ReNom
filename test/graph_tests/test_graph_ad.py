@@ -645,14 +645,23 @@ def test_lrn(test_shape, use_gpu, num_gpu):
 @pytest.mark.parametrize("test_shape", [
     (3, 1),
     (20, 1),
+    (2, 2),
 ])
-def test_embedding(test_shape, use_gpu, num_gpu):
+@pytest.mark.parametrize("output_size", [2, 2.5])
+def test_embedding(test_shape, output_size, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
 
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.Embedding(output_size=2)
+    model = rm.graph.Embedding(output_size=output_size)
     l = rm.graph.ConstantLoss()
+    if v.shape[1] != 1 or not isinstance(output_size, int):
+        try:
+            model(val)
+            assert False, 'Should raise exception when input shape is not (N, 1)'
+        except AssertionError:
+            return
+
     m = model(val)
     loss = l(m)
 
@@ -735,6 +744,19 @@ def test_deconv(test_shape, use_gpu, num_gpu):
     ).get_gradient(model.params['w'].output))
     compare(getNumericalDiff(func, model.params['b'].output), l.backward(
     ).get_gradient(model.params['b'].output))
+
+def test_deconv_nobias(use_gpu):
+    np.random.seed(45)
+    rm.set_cuda_active(use_gpu)
+
+    v = np.random.rand(1, 1, 3, 3)
+    model_nobias = rm.graph.Deconv(channel=1, kernel=1, ignore_bias=True)
+    model_bias = rm.graph.Deconv(channel=1, kernel=1, ignore_bias=False)
+    model_bias.params['w'] = model_nobias.params['w']
+    model_bias.params['b'].set_value(np.ones((1, 1, 1, 1)), 'cpu')
+    m1 = model_nobias(v).as_ndarray()
+    m2 = model_bias(v).as_ndarray()
+    assert np.allclose(m1, m2-1)
 
 
 def test_l2_norm(use_gpu, num_gpu):
