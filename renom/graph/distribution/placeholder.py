@@ -9,7 +9,7 @@ class placeholder_op(operation):
     roles = ['placeholder']
 
     def __init__(self, shape, gpus, identifier):
-        shape = [32] + list(shape)
+        shape = [1] + list(shape)
         self.identity = identifier
         self._other = None
 
@@ -36,6 +36,9 @@ class placeholder_op(operation):
             else:
                 for gpu in self.gpus:
                     self._out['cpu'] = self._ins['cpu']
+        else:
+            raise AttributeError('Placeholder has not yet been linked.')
+
 class Placeholder(UserGraph):
 
 

@@ -53,7 +53,6 @@ def _norm_step_finish(info):
 def _norm_epoch_finish(info):
     epoch_loss_list = info['epoch_loss_list']
     bar = info['bar']
-    #all_losses = info['all_losses']
     epoch_name = info['epoch_name']
     loss = info['losses']
 
@@ -105,6 +104,7 @@ class Executor:
         self.root = root
         self.mode = mode
         self.call_list = None
+        self.valid_disp = None
         self._events = {'Initialize': [],
                         'Epoch-Start': [],
                         'Step-Start': [],
@@ -146,7 +146,7 @@ class Executor:
             for key, value in feed_dict.items():
                 self.root.feed(key, value)
 
-        if self.call_list is None:
+        if self.call_list is None or feed_dict is not None:
             self.prepare_execution()
 
         if validation_feed_dict is not None:
@@ -167,15 +167,15 @@ class Executor:
             raise NotImplementedError('Currently static input is not supported')
 
         if len(self.dispatchers) >= 1 and \
-           isinstance(self.dispatchers[0], rm.graph.utils.distributor.dispatch):
+           isinstance(self.dispatchers[0], rm.graph.distribution.data_input.put_op):
             dis = self.dispatchers[0]
-            if len(dis._value_list) == 2:
+            if self.valid_disp is not None:
                 have_validation = True
-                v_d_num = len(dis._value_list[1])
+                v_d_num = len(self.valid_disp[0])
             else:
                 have_validation = False
                 v_d_num = 0
-            t_d_num = len(dis._value_list[0])
+            t_d_num = len(dis)
             tot_num = t_d_num + v_d_num
             if self.mode == 'inference':
                 m_depth = max(self.call_list['Forward'].keys())
@@ -187,15 +187,9 @@ class Executor:
             for part in self.call_list:
                 for depth in self.call_list[part]:
                     total += len(self.call_list[part][depth])
-            recognized = []
-            for disp in self.dispatchers:
-                if disp.keyword is not None:
-                    recognized.append(disp.keyword)
             print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num / tot_num))
             if have_validation is True:
                 print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num / tot_num))
-            if len(recognized) > 0:
-                print('Recognized input sources are:', *recognized)
             print('Graph max depth is:', m_depth)
             print('Total number of nodes executed is:', total)
             print('Mode:', self.mode)
@@ -220,7 +214,6 @@ class Executor:
         for ev in self._events['Teardown']:
             ev(exe_info)
 
-        #return exe_info['all_losses']
 
     def __del__(self):
         for i in range(len(self.dispatchers)):
@@ -293,14 +286,3 @@ class Executor:
         self.perform_event_step(exe_info)
         loss = self.root_op.as_ndarray()
         return loss
-
-    def set_input_data(self, new_data):
-        assert isinstance(new_data, dict)
-        self.unregister_events('Epoch-Finish')
-        self.register_event('Epoch-Finish', _norm_epoch_finish)
-        for key in new_data:
-            if key in self.input_sources:
-                if not isinstance(self.input_sources[key], rm.graph.utils.distributor.dispatch):
-                    raise NotImplementedError(
-                        'Currently can only set input sources for dispatchers.')
-                self.input_sources[key].change_input(new_data[key])

@@ -7,6 +7,28 @@ from .update_graph import update_operation, gradient_accumulator
 from .operation import operation
 from .executor import Executor
 
+def convertToUserGraph(to_convert):
+    '''A method to convert generic objects into UserGraph objects.
+
+    This method takes the argument to_convert and produces a UserGraph equivalent
+    object that can be used to produce the value given. It is assumed that the
+    value from to_convert is static, meaning that it will not change no matter how
+    often it is called.
+
+    Args:
+        to_convert(np.ndarray, number): The object to be converted.
+    '''
+    assert isinstance(to_convert, (np.ndarray, UserGraph, Number))
+    if isinstance(to_convert, Number):
+        ret = rm.graph.StaticVariable(np.array([to_convert]))
+    elif isinstance(to_convert, np.ndarray):
+        ret = rm.graph.StaticVariable(to_convert)
+    elif isinstance(to_convert, UserGraph):
+        ret = to_convert
+    else:
+        raise AttributeError('Received {}'.format(type(to_convert)))
+    return ret
+
 
 class UserGraph(graph_element):
     '''
@@ -58,16 +80,11 @@ class UserGraph(graph_element):
         if not isinstance(previous_elements, list):
             previous_elements = [previous_elements]
         for i, prev in enumerate(previous_elements):
-            assert isinstance(prev, (np.ndarray, UserGraph, Number))
-            if isinstance(prev, Number):
-                previous_elements[i] = rm.graph.StaticVariable(np.array([prev]))
-            elif isinstance(prev, np.ndarray):
-                previous_elements[i] = rm.graph.StaticVariable(prev)
+            previous_elements[i] = convertToUserGraph(prev)
         return previous_elements
 
     def _create_fwd_graph(self, forward_operation):
-        assert isinstance(forward_operation, operation) or isinstance(
-            forward_operation, operational_element)
+        assert isinstance(forward_operation, (operation, operational_element))
         if isinstance(forward_operation, operation):
             self._fwd = operational_element(operation=forward_operation, tags=['Forward'])
         elif isinstance(forward_operation, operational_element):
@@ -210,6 +227,32 @@ class UserGraph(graph_element):
 
     @graph_element.walk_tree
     def feed(self, to_replace, replace_with):
+        '''Replaces Placeholder objects in the graph.
+
+        This method searches through the UserGraph-level graph and inserts replace_with
+        in the location of to_replace. Note that this does not replace the original
+        Placeholder objects, but simply transfers the values between the graphs.
+        e.g:
+            x = Placeholder (NoOp)
+            L =  x -> Dense -> MeanSquared
+            y = DataInput -> Dense
+            L.feed(x, y) = DataInput -> Dense -> x -> Dense -> MeanSquared
+
+        When using the executor, use the feed_dict argument to feed placeholder
+        variables instead.
+
+        Args:
+            to_replace:
+                The placeholder object to be replaced.
+            replace_with:
+                The UserGraph to replace it with.
+
+        Notes:
+            In the future, it may be possible to replace any UserGraph object.
+        '''
+        assert isinstance(to_replace, rm.graph.Placeholder)
+        if not isinstance(replace_with, UserGraph):
+            replace_with = convertToUserGraph(replace_with)
         if to_replace is self:
             if len(self._previous_elements) > 0:
                 self.remove_all_inputs()
