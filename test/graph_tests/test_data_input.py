@@ -8,6 +8,7 @@ def get_rand(*shape, dtype=np.float32):
 
 DATA_POINTS = 8
 OUTPUT_SHAPE = 4
+BATCH_SIZE = 2
 class my_gen:
     def __getitem__(self, idx):
         if idx >= DATA_POINTS:
@@ -32,8 +33,20 @@ def test_basic_inputs(x, use_gpu):
 
     d = D.index().get_output_graphs()
     for i in range(len(x)):
-        print(i)
         assert np.allclose(x[i], d.forward().as_ndarray())
+    assert d.forward().as_ndarray().size == 0 # Ensure that it is finished
+    try:
+        d.forward()
+        assert False
+    except StopIteration:
+        pass
+
+    d = D.batch(DATA_POINTS).get_output_graphs()
+    for k in range(DATA_POINTS // BATCH_SIZE):
+        batch = d.forward().as_ndarray()
+        for i in range(BATCH_SIZE):
+            index = i + k * BATCH_SIZE
+            assert np.allclose(x[index], batch[i])
     assert d.forward().as_ndarray().size == 0
     try:
         d.forward()
