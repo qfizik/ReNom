@@ -69,7 +69,10 @@ class L1(regularizer_factory):
     class cpu_op(gpu_op):
 
         def apply(self):
-            self._grad['cpu'] += np.sign(self._param['cpu']) * self.wd
+            if self.wd == 0:
+                return
+            else:
+                self._grad['cpu'] += np.sign(self._param['cpu']) * self.wd
 
     def __init__(self, wd=0.05):
         super().__init__()

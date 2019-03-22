@@ -20,23 +20,18 @@ class placeholder_op(operation):
 
     def link(self, other_op):
         self._other = other_op
-        ins = other_op.get_output_signature()['y']
+        vars = other_op.get_output_signature()
+        ins = vars['y']
         assert ins.shape[1:] == self._out.shape[1:]
         self._out.shape = ins.shape
         self._ins = ins
+        vars['y'] = self._out
 
     def setup(self, inputs):
         pass
 
     def perform(self):
-        if self._other is not None:
-            if rm.is_cuda_active():
-                for gpu in self.gpus:
-                    self._out[gpu] = self._ins[gpu]
-            else:
-                self._out['cpu'] = self._ins['cpu']
-        else:
-            raise AttributeError('Placeholder has not yet been linked.')
+        pass
 
 class Placeholder(UserGraph):
 

@@ -2,6 +2,7 @@ import numpy as np
 from tqdm import tqdm
 import renom as rm
 import warnings
+from contextlib import contextmanager
 
 
 def _norm_init(info):
@@ -169,33 +170,7 @@ class Executor:
                           'Make sure that there is a valid dispatcher before executing.')
             raise NotImplementedError('Currently static input is not supported')
 
-        if len(self.dispatchers) >= 1 and \
-           isinstance(self.dispatchers[0], rm.graph.distribution.put_graph.put_op):
-            dis = self.dispatchers[0]
-            if self.valid_disp is not None:
-                have_validation = True
-                v_d_num = len(self.valid_disp[0])
-            else:
-                have_validation = False
-                v_d_num = 0
-            t_d_num = len(dis)
-            tot_num = t_d_num + v_d_num
-            if self.mode == 'inference':
-                m_depth = max(self.call_list['Forward'].keys())
-            else:
-                update_calls = list(self.call_list['Gradient'].keys())
-                backward_calls = list(self.call_list['Backward'].keys())
-                m_depth = max(update_calls + backward_calls)
-            total = 0
-            for part in self.call_list:
-                for depth in self.call_list[part]:
-                    total += len(self.call_list[part][depth])
-            print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num / tot_num))
-            if have_validation is True:
-                print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num / tot_num))
-            print('Graph max depth is:', m_depth)
-            print('Total number of nodes executed is:', total)
-            print('Mode:', self.mode)
+        self.print_info()
 
         for ev in self._events['Initialize']:
             ev(exe_info)
@@ -204,24 +179,22 @@ class Executor:
         for e in range(epochs):
             self.perform_event_epoch(exe_info)
             if validation_feed_dict is not None:
-                tmp1 = self.dispatchers
-                tmp2 = self.call_list
-                self.dispatchers = self.valid_disp
-                self.call_list = self.validation_list
-                exe_info['inputs'] = self.dispatchers
-                for key, value in validation_feed_dict.items():
-                    self.root.feed(key, value)
-                self.perform_event_epoch(exe_info)
-                for key, value in feed_dict.items():
-                    self.root.feed(key, value)
-                self.dispatchers = tmp1
-                self.call_list = tmp2
-                exe_info['inputs'] = self.dispatchers
-
+                with self.validation_mode():
+                    self.perform_event_epoch(exe_info)
         for ev in self._events['Teardown']:
             ev(exe_info)
 
-
+    @contextmanager
+    def validation_mode(self):
+        tmp1 = self.dispatchers
+        tmp2 = self.call_list
+        self.dispatchers = self.valid_disp
+        self.call_list = self.validation_list
+        exe_info['inputs'] = self.dispatchers
+        yield
+        self.dispatchers = tmp1
+        self.call_list = tmp2
+        exe_info['inputs'] = self.dispatchers
 
     def perform_event_epoch(self, exe_info):
         for ev in self._events['Epoch-Start']:
@@ -275,6 +248,35 @@ class Executor:
 
     def _set_validation(self):
         self.register_event('Epoch-Finish', _validation_func())
+
+    def print_info(self):
+        if len(self.dispatchers) >= 1 and \
+           isinstance(self.dispatchers[0], rm.graph.distribution.put_graph.put_op):
+            dis = self.dispatchers[0]
+            if self.valid_disp is not None:
+                have_validation = True
+                v_d_num = len(self.valid_disp[0])
+            else:
+                have_validation = False
+                v_d_num = 0
+            t_d_num = len(dis)
+            tot_num = t_d_num + v_d_num
+            if self.mode == 'inference':
+                m_depth = max(self.call_list['Forward'].keys())
+            else:
+                update_calls = list(self.call_list['Gradient'].keys())
+                backward_calls = list(self.call_list['Backward'].keys())
+                m_depth = max(update_calls + backward_calls)
+            total = 0
+            for part in self.call_list:
+                for depth in self.call_list[part]:
+                    total += len(self.call_list[part][depth])
+            print('Train Data num: {0:>6d} ({1:3.0%})'.format(t_d_num, t_d_num / tot_num))
+            if have_validation is True:
+                print('Valid Data num: {0:>6d} ({1:3.0%})'.format(v_d_num, v_d_num / tot_num))
+            print('Graph max depth is:', m_depth)
+            print('Total number of nodes executed is:', total)
+            print('Mode:', self.mode)
 
     def step(self, feed_dict):
         if feed_dict is not None:
