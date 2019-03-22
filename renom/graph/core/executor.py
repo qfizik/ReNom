@@ -179,13 +179,13 @@ class Executor:
         for e in range(epochs):
             self.perform_event_epoch(exe_info)
             if validation_feed_dict is not None:
-                with self.validation_mode():
+                with self.validation_mode(exe_info):
                     self.perform_event_epoch(exe_info)
         for ev in self._events['Teardown']:
             ev(exe_info)
 
     @contextmanager
-    def validation_mode(self):
+    def validation_mode(self, exe_info):
         tmp1 = self.dispatchers
         tmp2 = self.call_list
         self.dispatchers = self.valid_disp
