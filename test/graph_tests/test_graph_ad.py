@@ -1308,3 +1308,28 @@ def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
     ).get_gradient(model.params['w'].output))
     compare(getNumericalDiff(func, model.params['b'].output), l.backward(
     ).get_gradient(model.params['b'].output))
+
+
+@pytest.mark.parametrize("node, rois", [
+    [np.random.rand(3, 3, 8, 13) * 10, np.array([
+        [0, 1, 1, 6, 6],
+        [2, 6, 2, 7, 11],
+        [1, 3, 1, 5, 10],
+        [0, 3, 3, 3, 3]
+    ], dtype=np.float64)]
+])
+def test_roi_pool(node, rois, use_gpu, num_gpu):
+    rm.set_cuda_active(use_gpu)
+    val = rm.graph.StaticVariable(node, num_gpus=num_gpu)
+    rois = rm.graph.StaticVariable(rois, num_gpus=num_gpu)
+    layer = rm.graph.RoiPool(outh=7, outw=5, spatial_scale=0.6)
+    loss = rm.graph.ConstantLoss()
+    l = loss(layer(val, rois))
+
+    def func():
+        l.forward()
+        ret = l.as_ndarray()
+        return ret
+
+    compare(getNumericalDiff(func, val.value), l.backward(
+    ).get_gradient(val.value), abs_tol=1e-4, rel_tol=1e-3)
