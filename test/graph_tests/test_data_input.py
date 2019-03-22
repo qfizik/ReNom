@@ -9,6 +9,7 @@ def get_rand(*shape, dtype=np.float32):
 DATA_POINTS = 8
 OUTPUT_SHAPE = 4
 BATCH_SIZE = 2
+
 class my_gen:
     def __getitem__(self, idx):
         if idx >= DATA_POINTS:

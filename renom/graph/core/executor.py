@@ -142,6 +142,11 @@ class Executor:
               epochs (int): Number of epochs.
               progress (bool): If True is given, the progress will be shown.
         '''
+
+        if validation_feed_dict is not None:
+            for key, value in validation_feed_dict.items():
+                self.root.feed(key, value)
+            self.prepare_validation()
         if feed_dict is not None:
             for key, value in feed_dict.items():
                 self.root.feed(key, value)
@@ -149,10 +154,8 @@ class Executor:
         if self.call_list is None or feed_dict is not None:
             self.prepare_execution()
 
-        if validation_feed_dict is not None:
-            for key, value in validation_feed_dict.items():
-                self.root.feed(key, value)
-            self.prepare_validation()
+        assert len(self._events['Step-Finish']) == 2
+
 
         exe_info = {'inputs': self.dispatchers,
                     'losses': self.loss,
@@ -206,7 +209,11 @@ class Executor:
                 self.dispatchers = self.valid_disp
                 self.call_list = self.validation_list
                 exe_info['inputs'] = self.dispatchers
+                for key, value in validation_feed_dict.items():
+                    self.root.feed(key, value)
                 self.perform_event_epoch(exe_info)
+                for key, value in feed_dict.items():
+                    self.root.feed(key, value)
                 self.dispatchers = tmp1
                 self.call_list = tmp2
                 exe_info['inputs'] = self.dispatchers
@@ -215,11 +222,6 @@ class Executor:
             ev(exe_info)
 
 
-    def __del__(self):
-        for i in range(len(self.dispatchers)):
-            self.dispatchers[i] = None
-        for i in range(len(self.loss)):
-            self.loss[i] = None
 
     def perform_event_epoch(self, exe_info):
         for ev in self._events['Epoch-Start']:

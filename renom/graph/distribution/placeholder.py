@@ -34,8 +34,7 @@ class placeholder_op(operation):
                 for gpu in self.gpus:
                     self._out[gpu] = self._ins[gpu]
             else:
-                for gpu in self.gpus:
-                    self._out['cpu'] = self._ins['cpu']
+                self._out['cpu'] = self._ins['cpu']
         else:
             raise AttributeError('Placeholder has not yet been linked.')
 

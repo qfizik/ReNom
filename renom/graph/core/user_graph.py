@@ -140,6 +140,13 @@ class UserGraph(graph_element):
         self.simple_forward()
         return self
 
+    def remove_input(self, prev_input):
+        super().remove_input(prev_input)
+
+    def remove_next(self, prev_next):
+        super().remove_next(prev_next)
+
+
     def detach(self):
         self._fwd.detach()
         for graph in self._bwd_graphs:

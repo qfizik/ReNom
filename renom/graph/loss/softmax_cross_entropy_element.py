@@ -52,12 +52,16 @@ class softmax_cross_entropy_forward_cpu(softmax_cross_entropy_forward):
         y = self._lbls['cpu']
         assert x.shape == y.shape
         N = len(x)
-        maxes = np.max(x, axis=1, keepdims=True)
-        u = np.exp(x - maxes)
-        summed = np.sum(u, axis=1, keepdims=True)
-        z = u / (summed + 1e-8)
-        self._z = z
-        ret = -np.sum(y * np.log(z + 1e-8)) / N
+        if N == 0:
+            ret = np.array(np.nan)
+            self._z = np.array(0, dtype=rm.precision).reshape(1,)
+        else:
+            maxes = np.max(x, axis=1, keepdims=True)
+            u = np.exp(x - maxes)
+            summed = np.sum(u, axis=1, keepdims=True)
+            z = u / (summed + 1e-8)
+            self._z = z
+            ret = -np.sum(y * np.log(z + 1e-8)) / N
         self._outputs['cpu'] = ret.reshape(1,)
 
 
