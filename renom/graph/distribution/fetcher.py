@@ -1,4 +1,5 @@
 import numpy as np
+from renom import precision
 
 class Fetcher:
 
@@ -17,6 +18,12 @@ class Fetcher:
 
     def prepare(self, source):
         pass
+
+    def empty_out(self, source):
+        prev = self.outs[source]
+        new = np.array([], dtype=precision)
+        new.resize(0, *prev.shape[1:])
+        self.outs[source] = new
 
     def retrieve(self, source):
         return self.outs[source]
@@ -64,9 +71,10 @@ class Indexer(Fetcher):
 
     def prepare(self, source):
         if self.index[source] >= len(self):
+            self.empty_out(source)
             raise StopIteration()
         prev = self.prev.retrieve(source)
-        self.outs[source] = prev[self.index[source]]
+        self.outs[source] = prev[self.index[source]].astype(precision)
         self.index[source] += 1
 
     def reset(self):
@@ -81,11 +89,12 @@ class Shuffler(Fetcher):
 
     def prepare(self, source):
         if self.index[source] >= len(self):
+            self.empty_out(source)
             raise StopIteration()
         prev = self.prev.retrieve(source)
         perm = self.perm
         index = self.index[source]
-        self.outs[source] = prev[perm[index]]
+        self.outs[source] = prev[perm[index]].astype(precision)
         self.index[source] += 1
 
     def reset(self):
@@ -106,8 +115,7 @@ class Batcher(Fetcher):
             prev_val = prev.retrieve(source)
             ret.append(prev_val)
         except StopIteration as e:
-            prev_val = prev.retrieve(source)
-            self.outs[source] = np.array([prev_val], dtype=rm.precision)[1:2]
+            self.empty_out(source)
             raise e
         size = self.batch_size
         for i in range(size-1):

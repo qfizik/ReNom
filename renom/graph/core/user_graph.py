@@ -20,7 +20,8 @@ def convertToUserGraph(to_convert):
     '''
     assert isinstance(to_convert, (np.ndarray, UserGraph, Number))
     if isinstance(to_convert, Number):
-        ret = rm.graph.StaticVariable(np.array([to_convert]))
+        arr = np.array(to_convert, dtype=rm.precision).reshape(1, 1)
+        ret = rm.graph.StaticVariable(arr)
     elif isinstance(to_convert, np.ndarray):
         ret = rm.graph.StaticVariable(to_convert)
     elif isinstance(to_convert, UserGraph):
@@ -206,6 +207,19 @@ class UserGraph(graph_element):
         return ret
 
     def get_executor_info(self):
+        '''A method used by the executor.
+
+        Returns the graph execution list, as well as other information
+        that imposes 'meaning' unto the graph, such as designating
+        certain operations to be loss or input operations.
+
+        Returns:
+            call_list(dict): A dictionary that is divded into parts
+            Forward, Backward and Gradient, which subsequently are divided
+            into depths.
+            ops(dict): Special operations in the graph, desginating certain
+            operations as loss, input, etc.
+        '''
         fwds = self._fwd.get_call_dict(tag='Forward')
         bwds = self._fwd.get_call_dict(tag='Backward')
         grds = self._fwd.get_call_dict(tag='Gradient')
@@ -235,8 +249,8 @@ class UserGraph(graph_element):
         e.g:
             x = Placeholder (NoOp)
             L =  x -> Dense -> MeanSquared
-            y = DataInput -> Dense
-            L.feed(x, y) = DataInput -> Dense -> x -> Dense -> MeanSquared
+            y = DataInput
+            L.feed(x, y) = DataInput -> x -> Dense -> MeanSquared
 
         When using the executor, use the feed_dict argument to feed placeholder
         variables instead.
@@ -249,6 +263,10 @@ class UserGraph(graph_element):
 
         Notes:
             In the future, it may be possible to replace any UserGraph object.
+
+        TODO:
+            Add attaching for graphs with backward operations.
+
         '''
         assert isinstance(to_replace, rm.graph.Placeholder)
         if not isinstance(replace_with, UserGraph):

@@ -167,7 +167,7 @@ class Executor:
             raise NotImplementedError('Currently static input is not supported')
 
         if len(self.dispatchers) >= 1 and \
-           isinstance(self.dispatchers[0], rm.graph.distribution.data_input.put_op):
+           isinstance(self.dispatchers[0], rm.graph.distribution.put_graph.put_op):
             dis = self.dispatchers[0]
             if self.valid_disp is not None:
                 have_validation = True

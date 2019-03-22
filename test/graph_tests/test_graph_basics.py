@@ -366,8 +366,43 @@ def test_inference_mode():
     x.set_inference(False)
     assert model.l1._prev._fwd._op._inference is False
 
-def test_placeholder():
-    pass
+def test_feeder(use_gpu):
+    pytest.skip()
+
+def test_placeholder_forward(use_gpu):
+    a = 1
+    b = 2
+    c = 3
+    X = rmg.Placeholder(shape=(1,))
+    Y = rmg.Placeholder(shape=(1,))
+    Z = X + Y
+    Z.feed(X, a)
+    Z.feed(Y, b)
+    z_result = Z.forward().as_ndarray()
+    assert z_result == a + b
+    Z.feed(Y, c)
+    z_result = Z.forward().as_ndarray()
+    assert z_result == a + c
+
+
+
+def test_placeholder_backward(use_gpu):
+    pytest.skip()
+    rm.set_cuda_active(use_gpu)
+    v = rmg.StaticVariable(np.random.rand(4, 4))
+    D1 = rmg.Dense(6)
+    x = rmg.Placeholder(shape=(6,))
+    D2 = rmg.Dense(2)
+
+    g1 = D1(v)
+    g2 = D2(x)
+
+    g2.feed(x, g1)
+    g2.backward()
+    g2.print_tree()
+    g2.backward().get_gradient(v.output)
+
+
 
 def test_updatable_mode():
     v1 = np.random.rand(10, 2).astype(rm.precision)
