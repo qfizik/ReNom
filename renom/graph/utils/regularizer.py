@@ -51,6 +51,7 @@ class L2(regularizer_factory):
         self.wd = wd
         self.args = (wd,)
 
+
 class L1(regularizer_factory):
 
     class gpu_op:

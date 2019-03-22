@@ -2,6 +2,7 @@ import numpy as np
 import renom as rm
 from renom.graph.core import operation, UserGraph, GraphMultiStorage
 
+
 class put_op(operation):
 
     name = 'Put Operation'
@@ -12,8 +13,8 @@ class put_op(operation):
         self.source = source
         self.name = self.name + ' ({})'.format(self.source)
         example = self.fetcher.retrieve(self.source)
-        outs = GraphMultiStorage(shape = example.shape, gpus = 'cpu')
-        self._vars = {'y' : outs}
+        outs = GraphMultiStorage(shape=example.shape, gpus='cpu')
+        self._vars = {'y': outs}
         self._vars['y']['cpu'] = example
         self.reset()
 
@@ -40,10 +41,7 @@ class put_op(operation):
         self._vars['y'].shape[0].value = ret.shape[0]
 
 
-
-
 class put_graph(UserGraph):
-
 
     def __init__(self, fetcher, source):
         fwd_op = put_op(fetcher, source)

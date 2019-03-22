@@ -53,7 +53,6 @@ class operational_element(graph_element):
         if old_tag in self._tags:
             self._tags[self._tags.index(old_tag)] = new_tag
 
-
     # TODO: Rename gather_operations_with_tags
     @graph_element.walk_tree
     @check_tags
@@ -135,10 +134,13 @@ class operational_element(graph_element):
             return
         inputs = [prev.get_output() for prev in self._previous_elements]
         if rm.logging_level >= 50:
-            print('{time!s}: Setting up {name!s:}'.format(time=time.ctime(), name=self._op.name))
+            print('{time!s}: Setting up {name!s:} ({id})'.format(
+                time=time.ctime(), name=self._op.name, id=id(self._op)))
             for i, inp in enumerate(inputs):
                 print('{time!s}: Input #{0:d} has shape {1!s}'.format(
-                    i, inp['y'].shape, time=time.ctime()))
+                    i, inp['y'].shape, time=time.ctime()) +
+                    ' and name {name!s} ({id})'.format(name=self._previous_elements[i]._op.name,
+                                                       id=id(self._previous_elements[i]._op)))
         self._op.setup(inputs)
         self.prev_inputs = inputs
 

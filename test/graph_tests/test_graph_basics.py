@@ -88,7 +88,7 @@ def test_distributor_test_split(use_gpu):
     try:
         while(True):
             data.forward()
-            #target.forward()
+            # target.forward()
             count += 1
             x = model(data)
     except StopIteration:
@@ -221,12 +221,13 @@ def test_inference_executor(use_gpu):
     data, target = rmg.DataInput([v, t]).shuffle().batch(2).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
     losses = []
+
     def add_losses(info):
         epoch_loss_list = info['epoch_loss_list']
         losses.append(np.sum(epoch_loss_list))
     exe.register_event('Epoch-Finish', add_losses)
     exe.execute(epochs=3)
-    assert all(np.allclose(losses[i],losses[i + 1]) for i in range(len(losses) - 2))
+    assert all(np.allclose(losses[i], losses[i + 1]) for i in range(len(losses) - 2))
 
 
 def test_training_executor(use_gpu):
@@ -241,6 +242,7 @@ def test_training_executor(use_gpu):
     data, target = rmg.DataInput([v, t]).shuffle().batch(10).get_output_graphs()
     exe = loss(rmg.relu(layer(data)), target).get_executor(optimizer=opt, mode='training')
     losses = []
+
     def add_losses(info):
         epoch_loss_list = info['epoch_loss_list']
         losses.append(np.sum(epoch_loss_list))
@@ -260,7 +262,7 @@ def test_training_executor_validation(use_gpu):
     t2 = np.random.rand(6, 4).astype(rm.precision)
     loss = rmg.MeanSquared()
     opt = rmg.Sgd()
-    #data, target = rmg.Distro([v1, v2], [t1, t2], keyword=('v', 't'),
+    # data, target = rmg.Distro([v1, v2], [t1, t2], keyword=('v', 't'),
     #                          batch_size=2).get_output_graphs()
     data, target = rmg.DataInput([v1, t1]).index().batch(2).get_output_graphs()
     data_t, target_t = rmg.DataInput([v2, t2]).index().batch(2).get_output_graphs()
@@ -277,13 +279,14 @@ def test_training_executor_validation(use_gpu):
             assert validation_loss != np.nan
     t_exe.register_event('Epoch-Finish', check_validation)
 
-    t_exe.execute({v:data, t:target}, {v:data_t, t:target_t}, epochs=3)
+    t_exe.execute({v: data, t: target}, {v: data_t, t: target_t}, epochs=3)
     v_loss = []
+
     def add_losses(info):
         epoch_loss_list = info['epoch_loss_list']
         v_loss.append(np.sum(epoch_loss_list))
     v_exe.register_event('Epoch-Finish', add_losses)
-    v_exe.execute({v:data_t, t:target_t}, epochs=1)
+    v_exe.execute({v: data_t, t: target_t}, epochs=1)
     print(validation_loss)
     print(v_loss)
     assert np.allclose(validation_loss, v_loss)
@@ -302,11 +305,12 @@ def test_validation_executor(use_gpu):
     t = rmg.Placeholder(shape=(4,))
     exe = loss(layer(v), t).get_executor()
     losses = []
+
     def add_losses(info):
         epoch_loss_list = info['epoch_loss_list']
         losses.append(np.sum(epoch_loss_list))
     exe.register_event('Epoch-Finish', add_losses)
-    exe.execute({v:data, t:target}, epochs=3)
+    exe.execute({v: data, t: target}, epochs=3)
     losses1 = np.array(losses.copy())
     v2, t2 = v1 * 2, t1 * 2
     data_t, target_t = rmg.DataInput([v2, t2]).batch(2).get_output_graphs()
@@ -330,17 +334,18 @@ def test_step_executor(use_gpu):
     t = rmg.Placeholder(shape=(4,))
     exe = loss(layer(v), t).get_executor()
     losses = []
+
     def add_losses(info):
         epoch_loss_list = info['epoch_loss_list']
         losses.append(np.sum(epoch_loss_list))
     exe.register_event('Epoch-Finish', add_losses)
-    exe.execute({v:data, t:target}, epochs=1)
+    exe.execute({v: data, t: target}, epochs=1)
     loss1 = np.array(losses.copy())
     data_t, target_t = rmg.DataInput([v1 * 2, t1 * 2]).index().batch(2).get_output_graphs()
     loss2 = 0
     for i in range(0, 10, 2):
         v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
-        #TODO: ALlow NumPy insertion
+        # TODO: ALlow NumPy insertion
         loss2 += exe.step({v: v2, t: t2})
     assert np.allclose(loss1 * 4, loss2)
 
@@ -366,15 +371,13 @@ def test_inference_mode():
     x.set_inference(False)
     assert model.l1._prev._fwd._op._inference is False
 
-def test_feeder(use_gpu):
-    pytest.skip()
 
 def test_placeholder_forward(use_gpu):
     a = 1
     b = 2
     c = 3
-    X = rmg.Placeholder(shape=(1,))
-    Y = rmg.Placeholder(shape=(1,))
+    X = rmg.Placeholder(shape=(1, 1))
+    Y = rmg.Placeholder(shape=(1, 1))
     Z = X + Y
     Z.feed(X, a)
     Z.feed(Y, b)
@@ -385,23 +388,28 @@ def test_placeholder_forward(use_gpu):
     assert z_result == a + c
 
 
-
 def test_placeholder_backward(use_gpu):
-    pytest.skip()
     rm.set_cuda_active(use_gpu)
-    v = rmg.StaticVariable(np.random.rand(4, 4))
+    v = rmg.StaticVariable(np.random.rand(4, 3))
     D1 = rmg.Dense(6)
-    x = rmg.Placeholder(shape=(6,))
+    x = rmg.Placeholder(shape=(4, 6))
     D2 = rmg.Dense(2)
 
     g1 = D1(v)
     g2 = D2(x)
 
     g2.feed(x, g1)
-    g2.backward()
-    g2.print_tree()
-    g2.backward().get_gradient(v.output)
-
+    grad = g2.backward().get_gradient(v.output)
+    t = rmg.StaticVariable(np.random.rand(4, 2))
+    D3 = rmg.Dense(6)
+    g3 = D3(t)
+    g2.feed(x, g3)
+    grad = g2.backward().get_gradient(t.output)
+    try:
+        g2.get_gradient(v.output)
+        assert False
+    except Exception:
+        pass
 
 
 def test_updatable_mode():

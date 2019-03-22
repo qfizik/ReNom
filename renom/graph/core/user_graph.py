@@ -7,6 +7,7 @@ from .update_graph import update_operation, gradient_accumulator
 from .operation import operation
 from .executor import Executor
 
+
 def convertToUserGraph(to_convert):
     '''A method to convert generic objects into UserGraph objects.
 
@@ -146,7 +147,6 @@ class UserGraph(graph_element):
     def remove_next(self, prev_next):
         super().remove_next(prev_next)
 
-
     def detach(self):
         self._fwd.detach()
         for graph in self._bwd_graphs:
@@ -282,9 +282,16 @@ class UserGraph(graph_element):
             if len(self._previous_elements) > 0:
                 self.remove_all_inputs()
                 self._fwd.remove_all_inputs()
+                bwd = self._bwd_graphs[0]
+                for elem in bwd._next_elements:
+                    elem.remove_input(bwd)
             self.add_input(replace_with)
             self._fwd.add_input(replace_with.get_forward_output())
+            replace_with.connect_back(self, 0)
             self._fwd._op.link(replace_with.get_forward_output()._op)
+            assert len(self._bwd_graphs[0]._previous_elements) == 1
+            bbwd = self._bwd_graphs[0]._previous_elements[0]
+            self._bwd_graphs[0]._op.link(bbwd._op)
 
     def set_inference(self, inference=True):
         if id(self) in self._fwd._tags:

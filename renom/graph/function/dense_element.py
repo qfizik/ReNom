@@ -147,6 +147,7 @@ class dense_weight_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        print('Setting')
         inputs = inputs[0]['y']
         self._inputs = inputs
 
@@ -172,5 +173,6 @@ class dense_weight_backward(operation):
 class dense_weight_backward_cpu(dense_weight_backward):
 
     def perform(self):
+        print('Called')
         ret = np.dot(self._fwd_ins['cpu'].T, self._inputs['cpu'])
         self._outputs['cpu'] = ret

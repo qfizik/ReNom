@@ -58,7 +58,7 @@ def _norm_epoch_finish(info):
     loss = info['losses']
 
     epoch_loss_list.pop(-1)
-    #all_losses.append(np.sum(epoch_loss_list))
+    # all_losses.append(np.sum(epoch_loss_list))
     cur_loss = np.mean(epoch_loss_list)
     if len(loss) == 0:
         bar.set_description("{0!s: >10}".format(epoch_name))
@@ -79,13 +79,13 @@ def _validation_func():
         # TODO: Move this to event
         ins = info['inputs']
         if info['mode'] == 'training':
-            #ins[0].switch_source(1)
+            # ins[0].switch_source(1)
             info['epoch_loss_list'] = []
             info['mode'] = 'inference'
             info['nth_epoch'] -= 1  # Redo the epoch as validation
         else:
             info['mode'] = 'training'
-            #ins[0].switch_source(0)
+            # ins[0].switch_source(0)
             info['validation_loss'] = np.sum(info['epoch_loss_list'])
         # _perform_validation END
     return _perform_validation
@@ -119,7 +119,6 @@ class Executor:
         self.register_event('Step-Finish', _norm_step_finish)
         self.register_event('Epoch-Finish', _norm_epoch_finish)
         self.register_event('Teardown', _norm_finish)
-
 
     def prepare_execution(self):
         call_list, special_ops = self.root.get_executor_info()
@@ -157,7 +156,6 @@ class Executor:
 
         assert len(self._events['Step-Finish']) == 2
 
-
         exe_info = {'inputs': self.dispatchers,
                     'losses': self.loss,
                     'progress': progress,
@@ -175,7 +173,7 @@ class Executor:
         for ev in self._events['Initialize']:
             ev(exe_info)
 
-        #while exe_info['nth_epoch'] < epochs:
+        # while exe_info['nth_epoch'] < epochs:
         for e in range(epochs):
             self.perform_event_epoch(exe_info)
             if validation_feed_dict is not None:

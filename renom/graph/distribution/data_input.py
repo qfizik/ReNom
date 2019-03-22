@@ -16,6 +16,11 @@ def indexer(index_func):
 
 
 class DataInput:
+    '''A generic multi-source Input element.
+
+    This method interfaces the normal Dataset/Distributor/Generator/etc. type
+    interface for the ReNom graph.
+    '''
 
     def __init__(self, inputs):
         if not isinstance(inputs, list):
@@ -27,7 +32,7 @@ class DataInput:
 
     def get_output_graphs(self):
         assert self.indexed is True, 'The input sources must be indexed in ' \
-                    + 'some way before being converted to graphs!'
+            + 'some way before being converted to graphs!'
         ret = []
         num_sources = self.fetcher.num_sources
         for source in range(num_sources):
@@ -46,7 +51,7 @@ class DataInput:
         self.fetcher = Indexer(self.fetcher)
         return self
 
-    def batch(self, batch_size = 32):
+    def batch(self, batch_size=32):
         fetcher = self.fetcher
         if not (isinstance(fetcher, Indexer) or isinstance(fetcher, Shuffler)):
             self.shuffle()

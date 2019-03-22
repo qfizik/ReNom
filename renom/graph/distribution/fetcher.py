@@ -1,6 +1,7 @@
 import numpy as np
 from renom import precision
 
+
 class Fetcher:
 
     def __init__(self, prev, *args, **kwargs):
@@ -39,7 +40,6 @@ class Fetcher:
         return len(self.prev)
 
 
-
 class DataSources(Fetcher):
 
     def __init__(self, sources):
@@ -63,11 +63,11 @@ class DataSources(Fetcher):
     def __len__(self):
         return len(self.sources[0])
 
+
 class Indexer(Fetcher):
 
     def start(self, num_sources):
         self.index = [0 for source in range(num_sources)]
-
 
     def prepare(self, source):
         if self.index[source] >= len(self):

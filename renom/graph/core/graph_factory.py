@@ -58,7 +58,7 @@ class GraphFactory(abc.ABC):
         else:
             parameter_decay = GraphFactory._get_decay(parameter_decay)
         assert isinstance(parameter_decay, (dict, type(None), str)), \
-               type(parameter_decay)
+            type(parameter_decay)
         self._param_dec = parameter_decay
         if isinstance(optimizer, dict):
             for key in optimizer:
@@ -90,7 +90,7 @@ class GraphFactory(abc.ABC):
         if isinstance(decay, str):
             if _str_decays is None:
                 _str_decays = {'l2': rm.graph.L2(),
-                               'l1': rm.graph.L1(),}
+                               'l1': rm.graph.L1(), }
             return _str_decays[decay.lower()]
         else:
             return decay

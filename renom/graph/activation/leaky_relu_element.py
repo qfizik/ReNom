@@ -69,7 +69,6 @@ class leaky_relu_backward(operation):
         associated_forward (forward_operation): Corresponding forward operation.
     '''
 
-
     name = 'LeakyRelu (B)'
 
     def __init__(self, associated_forward):
@@ -118,7 +117,6 @@ class leaky_relu_backward_cpu(leaky_relu_backward):
 
 
 class LeakyReluElement(UserGraph):
-
 
     def __init__(self, slope=0.01, previous_elements=None):
         fwd_op = leaky_relu_forward(slope) if rm.is_cuda_active() else leaky_relu_forward_cpu(slope)

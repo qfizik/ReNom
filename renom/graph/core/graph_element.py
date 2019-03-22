@@ -1,6 +1,7 @@
 import numpy as np
 import abc
 import functools
+from warnings import warn
 
 
 class graph_element(abc.ABC):
@@ -49,6 +50,8 @@ class graph_element(abc.ABC):
     def add_input(self, new_input):
         if new_input not in self._previous_elements:
             self._previous_elements.append(new_input)
+        else:
+            warn('Attempting to add already existing input')
         new_input.add_next(self)
         self.update_depth()
 
