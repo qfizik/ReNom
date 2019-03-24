@@ -71,7 +71,6 @@ class selu_backward(operation):
         associated_forward (forward_operation): Corresponding forward operation.
     '''
 
-
     name = 'Selu (B)'
 
     def __init__(self, associated_forward):

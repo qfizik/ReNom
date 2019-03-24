@@ -39,9 +39,22 @@ class GraphFactory(abc.ABC):
         params dictionary which is instantiated for each GraphFactory object. This allows GraphFactory
         to detach these variables when reconstructing the graph as well as save/load the variables
         later using the save/load methods.
+
+        Args:
+            activation(str, GraphFactory): If the activation argument are given, the activation layer
+            will be applied at the end of the graph factory, as part of the output graph.
+            If the argument is given as a string, it will be converted to the appropriate activation
+            GraphFactory according to the definitions in generic_activation.py.
+
+            optimizer(dict, optimizer_factory, string): The optimizer to be used with a specific graph
+            factory. If the optimizer is given as a string, it is converted to an optimizer with
+            default values instead. If the optimizer is given as a dict, it ties each variable in the
+            graph factory params with a specific optimizer, given again as (optimizer_factory, string).
+
+
     '''
 
-    def __init__(self, *args, parameter_decay=None, optimizer=None, **kwargs):
+    def __init__(self, *args, parameter_decay=None, optimizer=None, activation=None, **kwargs):
         '''Generic UserGraph initializer.
 
             Initializes the parameter field as an empty dictionary and
@@ -52,6 +65,11 @@ class GraphFactory(abc.ABC):
         self._prev = None
         self._inference = None
         self._make_update_graphs = True
+        if isinstance(activation, str):
+            activation = rm.graph.Activation(activation)
+        if activation is not None:
+            assert isinstance(activation, GraphFactory)
+        self._activation = activation
         if isinstance(parameter_decay, dict):
             for key in parameter_decay:
                 parameter_decay[key] = GraphFactory._get_decay(parameter_decay[key])
@@ -132,6 +150,8 @@ class GraphFactory(abc.ABC):
         self_tag = id(self)
         with rm.graph.core._with_operational_tag(self_tag):
             ret = self.connect(*other)
+            if self._activation is not None:
+                ret = self._activation(ret)
         ret._fwd.replace_tags(self_tag, id(ret))
         for bwd in ret._bwd_graphs:
             bwd.replace_tags(self_tag, id(ret))

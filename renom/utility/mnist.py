@@ -4,6 +4,7 @@ import os
 from os import path
 import sys
 import numpy as np
+from tqdm import tqdm
 
 _mnist_urls = [
     'http://yann.lecun.com/exdb/mnist/train-images-idx3-ubyte.gz',
@@ -28,7 +29,20 @@ def _check_files_exist(folder, filenames, verbose=True):
     return True
 
 
+_bar = None
+
+
+def _my_hook(num, read, total):
+    global _bar
+    if _bar is None:
+        _bar = tqdm(total=total)
+    if _bar.n + read > total:
+        read = total - _bar.n
+    _bar.update(read)
+
+
 def _download_files(folder, filenames, urls, verbose=True):
+    global _bar
     getter = request.URLopener()
     if not path.isdir(folder):
         _maybe_print('Creating new data folder.', verbose)
@@ -37,12 +51,15 @@ def _download_files(folder, filenames, urls, verbose=True):
         _maybe_print('Checking if {} exists'.format(name), verbose)
         if not path.isfile(name):
             _maybe_print('Downloading {} into {}.'.format(link, name), verbose)
-            getter.retrieve(link, name)
+            getter.retrieve(link, name, _my_hook)
+            _bar.close()
+            _bar = None
+
         else:
             _maybe_print('File exists, skipping.', verbose)
 
 
-def get_mnist(download=True, onehot=True, verbose=True):
+def get_mnist(download=True, onehot=True, verbose=True, force_download=False):
     cur_folder = path.realpath(path.dirname(__file__))
     data_folder = path.join(cur_folder, 'data/')
     names = [link.split('/')[-1] for link in _mnist_urls]
@@ -56,6 +73,11 @@ def get_mnist(download=True, onehot=True, verbose=True):
         _download_files(data_folder, filenames, _mnist_urls, verbose)
     else:
         _maybe_print('Data exists.', verbose)
+        if force_download:
+            _maybe_print('Forcing redownload', verbose)
+            for filename in filenames:
+                os.remove(filename)
+            _download_files(data_folder, filenames, _mnist_urls, verbose)
 
     # Read in bytes
     mode = 'rb'
@@ -83,17 +105,18 @@ def get_mnist(download=True, onehot=True, verbose=True):
             array_type = np.dtype(type_char)
             array_contents = np.frombuffer(file_contents, array_type,
                                            -1, offset)
-            if onehot and name in [names[1], names[3]]:
-                _maybe_print('Converting labels to one-hot arrays', verbose)
-                classes = 10
-                size = array_contents.size
-                array = np.zeros((size, classes + 1), dtype=np.float32)
-                array[np.arange(size), array_contents] = 1
-            else:
-                array = array_contents.astype(np.float32).reshape(*shape)
-            final_array = np.expand_dims(array, 1)
-            ret_arrays.append(final_array)
-            _maybe_print('Finished decrypting {}'.format(name), verbose)
+        if onehot and name in [names[1], names[3]]:
+            _maybe_print('Converting labels to one-hot arrays', verbose)
+            classes = 10
+            size = array_contents.size
+            array = np.zeros((size, classes), dtype=np.float32)
+            array[np.arange(size), array_contents] = 1
+        else:
+            array = array_contents.astype(np.float32).reshape(*shape)
+            array = np.expand_dims(array, 1)
+        final_array = array
+        ret_arrays.append(final_array)
+        _maybe_print('Finished decrypting {}'.format(name), verbose)
 
     _maybe_print('Finished building arrays', verbose)
     return ret_arrays[0], ret_arrays[1], ret_arrays[2], ret_arrays[3]

@@ -10,6 +10,7 @@ from .lrn_element import Lrn
 from .convolutional_element import Conv
 from .deconvolutional_element import Deconv
 from .pool_element import MaxPool, AvgPool
+from .roi_pool_element import RoiPool
 from .unpool_element import MaxUnPool
 from .batch_normalize_element import BatchNormalize
 from .bias_element import Bias
