@@ -382,7 +382,7 @@ def test_different_optimizers(use_gpu):
     v = np.random.rand(1, 1)
     opt1 = rmg.Sgd(1)
     opt2 = rmg.Sgd(-1)
-    dense = rmg.Dense(1, optimizer={'w':opt1,'b':opt2})
+    dense = rmg.Dense(1, optimizer={'w': opt1, 'b': opt2})
     k = dense(v)
     k.backward()
     grad1 = k.get_gradient(dense.params['w'].output)

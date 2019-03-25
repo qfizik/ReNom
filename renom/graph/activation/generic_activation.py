@@ -4,6 +4,24 @@ import renom as rm
 class Activation:
 
     def __new__(cls, namestring, *args, **kwargs):
+        '''Generic activation layer.
+
+        This layer takes a string and produces an activation layer with default
+        parameters, as defined in each class. Each string is viewed as lower
+        capitalization, so ReLU, Relu, and relu will all produce the same result.
+
+        The following strings are accepted and produced:
+            relu -> Relu (No parameters)
+            elu -> Elu (alpha=0.01)
+            leaky relu -> LeakyRelu (slope=0.01)
+            maxout -> Maxout (slice_size=1)
+            selu -> Selu (No parameters)
+            sigmoid -> Sigmoid (No parameters)
+            softmax -> Softmax (No parameters)
+            softplus -> Softplus (No parameters)
+            tanh -> Tanh (No parameters)
+
+        '''
         assert isinstance(namestring, str)
         rmg = rm.graph
 
