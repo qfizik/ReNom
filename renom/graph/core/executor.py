@@ -56,6 +56,7 @@ def _norm_epoch_finish(info):
     bar = info['bar']
     epoch_name = info['epoch_name']
     loss = info['losses']
+    bar.n -= 1
 
     epoch_loss_list.pop(-1)
     # all_losses.append(np.sum(epoch_loss_list))
@@ -70,6 +71,10 @@ def _norm_epoch_finish(info):
         epoch_name = 'Finished #{:03d}'.format(info['nth_epoch'])
         bar.set_description('{0!s: >10} [train={1:5.3f}, valid={2:5.3f}]'.format(
             epoch_name, info['training_loss'], cur_loss))
+    elif info['mode'] == 'inference':
+        bar.set_description(
+            "{0!s: >10} avg-loss={1:5.3f}".format(epoch_name, cur_loss))
+
     # bar.close()
     info['nth_epoch'] += 1
 
@@ -273,7 +278,7 @@ class Executor:
             print('Total number of nodes executed is:', total)
             print('Mode:', self.mode)
 
-    def step(self, feed_dict):
+    def step(self, feed_dict = None):
         if feed_dict is not None:
             for key, value in feed_dict.items():
                 self.root.feed(key, value)
