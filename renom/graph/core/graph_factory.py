@@ -3,7 +3,7 @@ import abc
 import numpy as np
 from .user_graph import UserGraph
 from .operation import operation
-from .operational_element import unidirectional_element
+from .operational_element import operational_element
 from .graph_storage import GraphMultiStorage
 import contextlib as cl
 import functools
@@ -358,6 +358,10 @@ class GraphFactory(abc.ABC):
 
         f.close()
 
+class graph_variable_op(operational_element):
+
+    def add_next(self, new_next):
+        pass
 
 class graph_variable(UserGraph):
 
@@ -385,9 +389,15 @@ class graph_variable(UserGraph):
     def __init__(self, weight_decay=None, allow_update=True, optimizer=None):
         fwd_op = variable_input(weight_decay, allow_update, optimizer)
         self._fwd_op = fwd_op
-        fwd_graph = unidirectional_element(fwd_op, tags=['Forward'])
+        fwd_graph = graph_variable_op(fwd_op, tags=['Forward'])
         bwd_ops = []
         super().__init__(forward_operation=fwd_graph, backward_operations=bwd_ops)
+
+    def add_next(self, new_next):
+        pass
+
+    def connect_forward(self, previous_elements):
+        pass
 
     def set_value(self, arr, gpus=None):
         if not isinstance(arr, np.ndarray):
