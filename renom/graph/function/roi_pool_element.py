@@ -91,13 +91,13 @@ class roi_pooling_backward(operation):
             shape=self.fwd_inputs.shape, gpus=self.gpus, initializer=init.Constant(0))
         self._vars = {'y': self.outputs, id(self.fwd_inputs): self.outputs}
 
-
     def perform(self):
         n, c, h, w = self.fwd_inputs.shape
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             dy = self.inputs[gpu]
             rm.cuda.curoi_pool2d_backward(dy, self.fwd_argmax[gpu], self.fwd_rois[gpu],
                                           self.spatial_scale, c, h, w, self.outh, self.outw, self.outputs[gpu])
+
 
 class roi_pooling_backward_cpu(roi_pooling_backward):
 
@@ -128,9 +128,6 @@ class roi_pooling_backward_cpu(roi_pooling_backward):
                                 if max_idx_tmp[c] == (idx_h * w + idx_w):
                                     self.outputs['cpu'][idx, c, idx_h,
                                                         idx_w] += dy[i_roi, c, ph, pw]
-
-
-
 
 
 class RoiPoolElement(UserGraph):

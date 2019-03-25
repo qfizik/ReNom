@@ -748,6 +748,7 @@ def test_deconv(test_shape, use_gpu, num_gpu):
     compare(getNumericalDiff(func, model1.params['b'].output), l.backward(
     ).get_gradient(model1.params['b'].output))
 
+
 def test_deconv_nobias(use_gpu):
     np.random.seed(45)
     rm.set_cuda_active(use_gpu)
@@ -1229,7 +1230,6 @@ def test_constant_loss(test_shape, reduction, use_gpu, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, val.value), m.backward().get_gradient(val.value))
-
 
 
 @pytest.mark.parametrize("test_shape", [

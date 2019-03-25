@@ -77,7 +77,6 @@ def _norm_epoch_finish(info):
 def _validation_func():
     def _perform_validation(info):
         # TODO: Move this to event
-        ins = info['inputs']
         if info['mode'] == 'training':
             # ins[0].switch_source(1)
             info['epoch_loss_list'] = []

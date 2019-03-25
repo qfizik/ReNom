@@ -46,7 +46,6 @@ class placeholder_op(operation):
         else:
             self._out['cpu'] = prevs['cpu']
 
-
     def setup(self, inputs):
         '''Placeholder setup method
 

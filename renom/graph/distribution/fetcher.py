@@ -51,7 +51,7 @@ class DataSources(Fetcher):
             assert all(source is None for source in sources)
         else:
             lengths = [len(source) for source in sources]
-            assert all(lengths[i] == lengths[i+1] for i in range(num_sources - 1))
+            assert all(lengths[i] == lengths[i + 1] for i in range(num_sources - 1))
 
     def retrieve(self, source):
         ret = self.sources[source]
@@ -118,7 +118,7 @@ class Batcher(Fetcher):
             self.empty_out(source)
             raise e
         size = self.batch_size
-        for i in range(size-1):
+        for i in range(size - 1):
             try:
                 prev.prepare(source)
                 prev_val = prev.retrieve(source)

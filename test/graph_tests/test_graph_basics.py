@@ -479,7 +479,6 @@ def test_different_optimizers(use_gpu):
     assert np.allclose(b_before + grad2, b_after)
 
 
-
 def test_weight_decay(use_gpu):
     rm.set_cuda_active(use_gpu)
 

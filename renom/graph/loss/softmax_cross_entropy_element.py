@@ -45,7 +45,6 @@ class softmax_cross_entropy_forward(operation):
                     pass
                 self._outputs[gpu].copy_from(tmp)
 
-
     def get_loss(self):
         loss = 0
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
