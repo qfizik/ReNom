@@ -31,11 +31,8 @@ class add_forward(operation):
 class add_forward_cpu(add_forward):
 
     def perform(self):
-        print('Adding')
         a = self._a['cpu']
         b = self._b['cpu']
-        print(id(a), id(b))
-        print(a, b)
         self._c['cpu'] = a + b
 
 

@@ -8,6 +8,8 @@ import renom.utility.initializer as init
 
 class constant_loss_forward(operation):
 
+    name = 'Constant loss'
+
     def __init__(self, reduction='mean'):
         self.reduction = reduction
 
@@ -98,14 +100,14 @@ class constant_loss_backward_cpu(constant_loss_backward):
             dy = self._dy['cpu']
             if self.reduction == 'mean':
                 N = int(shape[0])
-                self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision) / N
+                self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision)
             elif self.reduction == 'sum':
                 self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision)
             self._outputs['cpu'] *= dy
         else:
             if self.reduction == 'mean':
                 N = int(shape[0])
-                self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision) / N
+                self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision)
             elif self.reduction == 'sum':
                 self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision)
 
