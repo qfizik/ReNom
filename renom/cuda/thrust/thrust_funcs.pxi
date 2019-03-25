@@ -1252,3 +1252,13 @@ def cu_optimizer_adamax(alpha, epsilon, beta1, beta2, moment1, moment2, dy, new_
     cdef VALUE_TYPE * ptr_ndy = <VALUE_TYPE * > < uintptr_t > new_dy._ptr
     thrust_optimizer_adamax(Elem, alp, eps, b_1, rb_1, b_2, rb_2,
                             ptr_mom1, ptr_mom2, ptr_dy, ptr_ndy)
+
+
+def cu_l2_regularizer(parameter, gradient, decay_rate):
+    cdef int Elem = 1
+    for v in parameter.shape:
+        Elem *= int(v)
+    cdef VALUE_TYPE dec = decay_rate
+    cdef VALUE_TYPE * ptr_param = <VALUE_TYPE*><uintptr_t> parameter._ptr
+    cdef VALUE_TYPE * ptr_grad = <VALUE_TYPE*><uintptr_t> gradient._ptr
+    thrust_l2_regularizer(Elem, ptr_param, ptr_grad, dec)

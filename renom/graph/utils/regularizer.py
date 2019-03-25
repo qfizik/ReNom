@@ -36,7 +36,8 @@ class L2(regularizer_factory):
             self.gpus = param.gpus
 
         def apply(self):
-            raise NotImplementedError()
+            for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+                rm.cuda.cu_l2_regularizer(self._param[gpu], self._grad[gpu], self.wd)
 
     class cpu_op(gpu_op):
 

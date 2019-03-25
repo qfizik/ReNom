@@ -388,5 +388,9 @@ namespace renom{
 
 	void thrust_clip_back(int elem, VALUE_TYPE *array, VALUE_TYPE max, VALUE_TYPE min, VALUE_TYPE *out_array);
 	__global__ void cuda_clip_back(int elem, VALUE_TYPE *array, VALUE_TYPE max, VALUE_TYPE min, VALUE_TYPE *out_array);
+
+    void thrust_l2_regularizer(int elem, VALUE_TYPE *ptr_param, VALUE_TYPE *ptr_grad, VALUE_TYPE dec);
+    __global__ void cuda_l2_regularizer(int elem, VALUE_TYPE *ptr_param, VALUE_TYPE *ptr_grad, VALUE_TYPE dec);
+
 }
 #endif
