@@ -278,7 +278,7 @@ class Executor:
             print('Total number of nodes executed is:', total)
             print('Mode:', self.mode)
 
-    def step(self, feed_dict = None):
+    def step(self, feed_dict=None):
         if feed_dict is not None:
             for key, value in feed_dict.items():
                 self.root.feed(key, value)
