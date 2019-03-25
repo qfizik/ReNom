@@ -289,9 +289,13 @@ class UserGraph(graph_element):
             self._fwd.add_input(replace_with.get_forward_output())
             replace_with.connect_back(self, 0)
             self._fwd._op.link(replace_with.get_forward_output()._op)
-            assert len(self._bwd_graphs[0]._previous_elements) == 1
-            bbwd = self._bwd_graphs[0]._previous_elements[0]
-            self._bwd_graphs[0]._op.link(bbwd._op)
+            for graph in self._bwd_graphs[0]._previous_elements:
+                print(graph._op.name)
+            prevs = len(self._bwd_graphs[0]._previous_elements)
+            assert prevs <= 1
+            if prevs < 0:
+                bbwd = self._bwd_graphs[0]._previous_elements[0]
+                self._bwd_graphs[0]._op.link(bbwd._op)
 
     def set_inference(self, inference=True):
         if id(self) in self._fwd._tags:
@@ -388,7 +392,7 @@ class UserGraph(graph_element):
         return self._fwd
 
     def get_backward_output(self, num=0):
-        if len(self._bwd_graphs) == 0:
+        if len(self._bwd_graphs) <= num:
             return None
         else:
             bwd_g = self._out_bwds[num]

@@ -1,6 +1,7 @@
 import renom as rm
 import numpy as np
 from renom.graph.core import operation, GraphMultiStorage, UserGraph
+from renom.graph.basics.static_variable import static_value
 
 
 class placeholder_op(operation):
@@ -33,6 +34,10 @@ class placeholder_op(operation):
         if not hasattr(other_op, '_vars'):
             return
         vars = other_op.get_output_signature()
+        if isinstance(other_op, static_value):
+            self._out = vars['y']
+            self._vars['y'] = vars['y']
+            return
         ins = vars['y']
         assert ins.shape == self._out.shape
         print(ins.shape)

@@ -154,8 +154,6 @@ class Executor:
         if self.call_list is None or feed_dict is not None:
             self.prepare_execution()
 
-        assert len(self._events['Step-Finish']) == 2
-
         exe_info = {'inputs': self.dispatchers,
                     'losses': self.loss,
                     'progress': progress,

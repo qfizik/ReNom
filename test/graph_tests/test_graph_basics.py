@@ -266,8 +266,8 @@ def test_training_executor_validation(use_gpu):
     #                          batch_size=2).get_output_graphs()
     data, target = rmg.DataInput([v1, t1]).index().batch(2).get_output_graphs()
     data_t, target_t = rmg.DataInput([v2, t2]).index().batch(2).get_output_graphs()
-    v = rmg.Placeholder(shape=(3,))
-    t = rmg.Placeholder(shape=(4,))
+    v = rmg.Placeholder(shape=(2, 3,))
+    t = rmg.Placeholder(shape=(2, 4,))
     graph = loss(layer(v), t)
     t_exe = graph.get_executor(optimizer=opt, mode='training')
     v_exe = graph.get_executor()
@@ -382,6 +382,7 @@ def test_placeholder_forward(use_gpu):
     Z.feed(X, a)
     Z.feed(Y, b)
     z_result = Z.forward().as_ndarray()
+    Z.print_tree()
     assert z_result == a + b
     Z.feed(Y, c)
     z_result = Z.forward().as_ndarray()
