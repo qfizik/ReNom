@@ -74,7 +74,8 @@ class softmax_cross_entropy_forward_cpu(softmax_cross_entropy_forward):
         else:
             ret = np.sum(ret).reshape(1,)
             if self.reduction == 'mean':
-                ret /= N
+                if N > 0:
+                    ret /= N
             elif self.reduction == 'sum':
                 pass
             else:
