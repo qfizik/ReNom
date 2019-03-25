@@ -8,12 +8,13 @@ class put_op(operation):
     name = 'Put Operation'
     roles = ['input']
 
-    def __init__(self, fetcher, source):
+    def __init__(self, fetcher, source, gpus):
         self.fetcher = fetcher
         self.source = source
         self.name = self.name + ' ({})'.format(self.source)
+        self.gpus = gpus
         example = self.fetcher.retrieve(self.source)
-        outs = GraphMultiStorage(shape=example.shape, gpus='cpu')
+        outs = GraphMultiStorage(shape=example.shape, gpus=gpus)
         self._vars = {'y': outs}
         self._vars['y']['cpu'] = example
         self.reset()
@@ -37,14 +38,22 @@ class put_op(operation):
         except StopIteration as e:
             self._finished = True
         ret = self.fetcher.retrieve(self.source)
-        self._vars['y']['cpu'] = ret
         self._vars['y'].shape[0].value = ret.shape[0]
+        if rm.is_cuda_active():
+            for gpu in self.gpus:
+                self._vars['y'][gpu] = rm.GPUValue(ret)
+        else:
+            self._vars['y']['cpu'] = ret
 
 
 class put_graph(UserGraph):
 
-    def __init__(self, fetcher, source):
-        fwd_op = put_op(fetcher, source)
+    def __init__(self, fetcher, source, gpus=1):
+        if rm.is_cuda_active():
+            gpus = [gpu for gpu in range(gpus)]
+        else:
+            gpus = 'cpu'
+        fwd_op = put_op(fetcher, source, gpus)
         super().__init__(fwd_op)
 
     def reset(self):

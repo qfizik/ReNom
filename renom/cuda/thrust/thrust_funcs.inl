@@ -2291,4 +2291,17 @@ namespace renom{
     {
       cuda_clip_back<<<ceil(elem/256.0), 256.0>>>(elem, array, max, min, out);
     }
+
+    __global__ void cuda_l2_regularizer(int elem, VALUE_TYPE *ptr_param, VALUE_TYPE *ptr_grad, VALUE_TYPE dec)
+    {
+      int idx = blockIdx.x * blockDim.x + threadIdx.x;
+      if (idx>=elem) return;
+      ptr_grad[idx] += ptr_param[idx] * dec; 
+    }
+
+    void thrust_l2_regularizer(int elem, VALUE_TYPE *ptr_param, VALUE_TYPE *ptr_grad, VALUE_TYPE dec)
+    {
+      cuda_l2_regularizer<<<ceil(elem/256.0), 256.0>>>(elem, ptr_param, ptr_grad, dec);
+    }
+
 }

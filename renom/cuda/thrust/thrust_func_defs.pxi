@@ -219,3 +219,4 @@ cdef extern from * namespace "renom":
     cdef void thrust_clip_roi(int N, int M, VALUE_TYPE *roi_ptr, int start, int end, int step, int min_v, int max_v, VALUE_TYPE *ary_ptr)
     cdef void thrust_clip(int elem, VALUE_TYPE *array, VALUE_TYPE max, VALUE_TYPE min, VALUE_TYPE *out_array)
     cdef void thrust_clip_back(int elem, VALUE_TYPE *array, VALUE_TYPE max, VALUE_TYPE min, VALUE_TYPE *out_array)
+    cdef void thrust_l2_regularizer(int elem, VALUE_TYPE *ptr_param, VALUE_TYPE *ptr_grad, VALUE_TYPE dec)

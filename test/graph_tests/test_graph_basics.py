@@ -237,7 +237,7 @@ def test_training_executor(use_gpu):
     v = np.random.rand(500, 3).astype(rm.precision)
     layer = rmg.Dense(2)
     t = np.random.rand(500, 2).astype(rm.precision)
-    loss = rmg.MeanSquared()
+    loss = rmg.MeanSquared(reduction='sum')
     opt = rmg.Sgd(0.01)
     data, target = rmg.DataInput([v, t]).shuffle().batch(10).get_output_graphs()
     exe = loss(rmg.relu(layer(data)), target).get_executor(optimizer=opt, mode='training')
@@ -248,6 +248,7 @@ def test_training_executor(use_gpu):
         losses.append(np.sum(epoch_loss_list))
     exe.register_event('Epoch-Finish', add_losses)
     exe.execute(epochs=3)
+    print(losses)
     assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
 
 
@@ -262,8 +263,6 @@ def test_training_executor_validation(use_gpu):
     t2 = np.random.rand(4, 4).astype(rm.precision)
     loss = rmg.MeanSquared()
     opt = rmg.Sgd()
-    # data, target = rmg.Distro([v1, v2], [t1, t2], keyword=('v', 't'),
-    #                          batch_size=2).get_output_graphs()
     data, target = rmg.DataInput([v1, t1]).index().batch(2).get_output_graphs()
     data_t, target_t = rmg.DataInput([v2, t2]).index().batch(2).get_output_graphs()
     v = rmg.Placeholder(shape=(2, 3,))
