@@ -23,6 +23,7 @@ class roi_pooling_forward(operation):
         self.gpus = inputs.gpus
         self.inputs = inputs
         self.rois = rois
+
         self.outputs = GraphMultiStorage(
             shape=output_shape, gpus=self.gpus, initializer=init.Constant(0))
         self.argmax = GraphMultiStorage(
@@ -32,6 +33,7 @@ class roi_pooling_forward(operation):
     def perform(self):
         _, c, h, w = self.inputs.shape
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
+
             rm.cuda.curoi_pool2d_forward(self.rois[gpu], self.inputs[gpu], self.spatial_scale, c,
                                          h, w, self.outh, self.outw, self.outputs[gpu], self.argmax[gpu])
 
