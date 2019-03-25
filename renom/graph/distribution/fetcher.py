@@ -123,7 +123,7 @@ class Batcher(Fetcher):
                 prev.prepare(source)
                 prev_val = prev.retrieve(source)
                 ret.append(prev_val)
-            except StopIteration as e:
+            except StopIteration:
                 break
         ret = np.array(ret)
         self.outs[source] = ret
