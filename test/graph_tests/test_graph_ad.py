@@ -91,6 +91,7 @@ def getNumericalDiff(lossMethod, testValue):
         for v in storage:
             tmp = np.empty(v.shape, dtype=np.float64)
             v.to_cpu(tmp)
+            tmp1 = tmp.copy()
             tmp[index] += value
             v.to_gpu(tmp)
 
@@ -107,7 +108,7 @@ def getNumericalDiff(lossMethod, testValue):
 
     diff = np.zeros(testValue.shape, dtype=np.float64)
     for nindex in np.ndindex(diff.shape):
-        loss = 0
+        loss = 0.
         k = retrieve_value(nindex, testValue)
         dx = eps * k if k != 0 else eps
         for i in range(len(coefficients1)):
@@ -115,6 +116,7 @@ def getNumericalDiff(lossMethod, testValue):
             ret = lossMethod() * coefficients1[i]
             store_value(nindex, testValue, -coefficients2[i] * dx)
             loss += ret
+
         v = loss / (dx * c)
         diff[nindex] = v
     return diff
@@ -1311,7 +1313,7 @@ def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
 
 
 @pytest.mark.parametrize("node, rois", [
-    [np.random.rand(3, 3, 8, 13) * 10, np.array([
+    [np.arange(3 * 3 * 8 * 13).reshape(3, 3, 8, 13), np.array([
         [0, 1, 1, 6, 6],
         [2, 6, 2, 7, 11],
         [1, 3, 1, 5, 10],
@@ -1320,8 +1322,10 @@ def test_batch_norm(test_shape, use_gpu, num_gpu, ignore_bias):
 ])
 def test_roi_pool(node, rois, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
+
     val = rm.graph.StaticVariable(node, num_gpus=num_gpu)
     rois = rm.graph.StaticVariable(rois, num_gpus=num_gpu)
+
     layer = rm.graph.RoiPool(outh=7, outw=5, spatial_scale=0.6)
     loss = rm.graph.ConstantLoss()
     l = loss(layer(val, rois))
@@ -1332,4 +1336,4 @@ def test_roi_pool(node, rois, use_gpu, num_gpu):
         return ret
 
     compare(getNumericalDiff(func, val.value), l.backward(
-    ).get_gradient(val.value), abs_tol=1e-4, rel_tol=1e-3)
+    ).get_gradient(val.value))
