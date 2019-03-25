@@ -289,8 +289,6 @@ class UserGraph(graph_element):
             self._fwd.add_input(replace_with.get_forward_output())
             replace_with.connect_back(self, 0)
             self._fwd._op.link(replace_with.get_forward_output()._op)
-            for graph in self._bwd_graphs[0]._previous_elements:
-                print(graph._op.name)
             prevs = len(self._bwd_graphs[0]._previous_elements)
             assert prevs <= 1
             if prevs < 0:

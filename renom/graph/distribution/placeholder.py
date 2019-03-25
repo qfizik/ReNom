@@ -34,16 +34,18 @@ class placeholder_op(operation):
         if not hasattr(other_op, '_vars'):
             return
         vars = other_op.get_output_signature()
-        if isinstance(other_op, static_value):
-            self._out = vars['y']
-            self._vars['y'] = vars['y']
-            return
         ins = vars['y']
-        assert ins.shape == self._out.shape
-        print(ins.shape)
+        assert ins.shape[1:] == self._out.shape[1:]
         self._out.shape = ins.shape
         self._ins = ins
+        prevs = vars['y']
         vars['y'] = self._out
+        if rm.is_cuda_active():
+            for gpu in prevs.gpus:
+                self._out[gpu] = prevs[gpu]
+        else:
+            self._out['cpu'] = prevs['cpu']
+
 
     def setup(self, inputs):
         '''Placeholder setup method
