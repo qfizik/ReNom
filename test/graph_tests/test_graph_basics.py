@@ -458,6 +458,28 @@ def test_sequential(use_gpu):
     assert z.shape == (4, 5)
 
 
+def test_different_optimizers(use_gpu):
+    rm.set_cuda_active(use_gpu)
+
+    np.random.seed(45)
+    v = np.random.rand(1, 1)
+    opt1 = rmg.Sgd(1)
+    opt2 = rmg.Sgd(-1)
+    dense = rmg.Dense(1, optimizer={'w': opt1, 'b': opt2})
+    k = dense(v)
+    k.backward()
+    grad1 = k.get_gradient(dense.params['w'].output)
+    grad2 = k.get_gradient(dense.params['b'].output)
+    w_before = dense.params['w'].as_ndarray()
+    b_before = dense.params['b'].as_ndarray()
+    k.update()
+    w_after = dense.params['w'].as_ndarray()
+    b_after = dense.params['b'].as_ndarray()
+    assert np.allclose(w_before - grad1, w_after)
+    assert np.allclose(b_before + grad2, b_after)
+
+
+
 def test_weight_decay(use_gpu):
     rm.set_cuda_active(use_gpu)
 

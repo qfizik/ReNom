@@ -1,9 +1,20 @@
-import renom as rm
-from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+import renom as rm
+from renom.graph.core import UserGraph, operation, GraphFactory, \
+    graph_variable, GraphMultiStorage
 
 
 class selu_forward(operation):
+    '''Selu forward operation class.
+    '''
 
     name = 'Selu (F)'
 
@@ -14,6 +25,20 @@ class selu_forward(operation):
         self._lamda = lamda
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        selu_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -40,6 +65,11 @@ class selu_forward_cpu(selu_forward):
 
 
 class selu_backward(operation):
+    '''Selu backward operation class.
+
+    Args:
+        associated_forward (forward_operation): Corresponding forward operation.
+    '''
 
     name = 'Selu (B)'
 
@@ -49,6 +79,20 @@ class selu_backward(operation):
         self._lamda = self._fwd_op._lamda
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        selu_backward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -94,10 +138,6 @@ class Selu(GraphFactory):
         \lambda = 1.0507009873554804934193349852946 \\\\
         y = \lambda * max(x, \\alpha * (exp(x) - 1))
 
-
-    Args:
-        alpha (float): Alpha coefficient for Elu.
-
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
@@ -122,4 +162,10 @@ class Selu(GraphFactory):
 
 
 def selu(x):
+    '''A function style factory of selu activation function element.
+
+    For more information, please refer \
+        :py:class:`~renom.graph.activation.selu_element.Selu`.
+    '''
+
     return SeluElement(previous_elements=[x])
