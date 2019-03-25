@@ -33,6 +33,7 @@ class DataInput:
     def get_output_graphs(self):
         assert self.indexed is True, 'The input sources must be indexed in ' \
             + 'some way before being converted to graphs!'
+        self.fetcher._reset()
         ret = []
         num_sources = self.fetcher.num_sources
         for source in range(num_sources):

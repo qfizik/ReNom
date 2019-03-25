@@ -10,9 +10,9 @@ class Fetcher:
         self.num_sources = num_sources
         self.outs = [None for source in range(num_sources)]
         self.start(num_sources, *args, **kwargs)
+        self._reset()
         for source in range(num_sources):
             self.prepare(source)
-        self._reset()
 
     def start(self, num_sources):
         pass

@@ -48,11 +48,14 @@ def test_basic_inputs(x, use_gpu):
     except StopIteration:
         pass
 
-    d = D.batch(DATA_POINTS).get_output_graphs()
+    d = D.batch(BATCH_SIZE).get_output_graphs()
+    d.reset()
     for k in range(DATA_POINTS // BATCH_SIZE):
         batch = d.forward().as_ndarray()
         for i in range(BATCH_SIZE):
             index = i + k * BATCH_SIZE
+            print(x[index])
+            print(batch[i])
             assert np.allclose(x[index], batch[i])
     assert d.forward().as_ndarray().size == 0
     try:
