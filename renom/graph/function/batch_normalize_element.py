@@ -6,7 +6,8 @@ import numpy as np
 mode_dict = {
     'activation': 0,
     'feature': 1,
-    }
+}
+
 
 class batch_norm_forward(operation):
 

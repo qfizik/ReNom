@@ -745,7 +745,7 @@ def test_save_load(devices_to_load):
 
 
 def test_version_save_compability(use_gpu):
-    pytest.skip() # Deprecated
+    pytest.skip()  # Deprecated
     rm.set_cuda_active(use_gpu)
 
     x = np.random.rand(1, 4)
@@ -773,7 +773,7 @@ def test_version_save_compability(use_gpu):
 
 
 def test_save_serialized(use_gpu):
-    pytest.skip() # Deprecated
+    pytest.skip()  # Deprecated
     rm.set_cuda_active(use_gpu)
     eps = 3
     model_v2 = rm.BatchNormalize(epsilon=eps)

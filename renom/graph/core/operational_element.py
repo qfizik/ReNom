@@ -164,7 +164,6 @@ class operational_element(graph_element):
     def name(self):
         return self._op.name
 
-
     @property
     def output(self):
         if self.inputs_changed():

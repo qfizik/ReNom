@@ -395,7 +395,6 @@ class GPUValue(object):
         else:
             self.device_id = cuGetDevice()
 
-
         assert self._ptr
         self._ptr.refcount += 1
 
