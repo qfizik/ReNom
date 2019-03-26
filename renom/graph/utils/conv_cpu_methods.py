@@ -1,5 +1,5 @@
 import numpy as np
-from renom.layers.function.utils import im2col, col2im, imncol, colnim, colnw
+from renom.utils import im2col, col2im, imncol, colnim, colnw
 
 def _get_expanded_value(value, dims):
     if isinstance(value, int):

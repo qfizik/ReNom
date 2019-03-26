@@ -103,7 +103,7 @@ class leaky_relu_backward(operation):
     def perform(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
             rm.cuda.culeaky_leru_backward(self._slope, self._fwd_in[gpu], self._outputs[gpu])
-            rm.cu.cumul(self._outputs[gpu], self._inputs[gpu], self._outputs[gpu], handle)
+            rm.cuda.cumul(self._outputs[gpu], self._inputs[gpu], self._outputs[gpu], handle)
 
 
 class leaky_relu_backward_cpu(leaky_relu_backward):

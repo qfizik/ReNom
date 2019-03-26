@@ -1,7 +1,7 @@
 import numpy as np
 import renom as rm
 from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
-from renom.core import broad_cast, cu_broad_cast
+from renom.utils import broad_cast, cu_broad_cast
 
 
 class pow_forward(operation):

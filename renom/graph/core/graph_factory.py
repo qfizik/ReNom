@@ -361,10 +361,12 @@ class GraphFactory(abc.ABC):
 
         f.close()
 
+
 class graph_variable_op(operational_element):
 
     def add_next(self, new_next):
         pass
+
 
 class graph_variable(UserGraph):
 
