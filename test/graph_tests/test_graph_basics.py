@@ -80,24 +80,26 @@ def test_distributor_test_split(use_gpu):
 
     a = np.random.rand(10, 2).astype(rm.precision)
     b = np.random.rand(10, 4).astype(rm.precision)
-    data, target = rm.graph.Distro(a, b, batch_size=2, test_split=0.8).get_output_graphs()
+    #data, target = rm.graph.Distro(a, b, batch_size=2, test_split=0.8).get_output_graphs()
+    data, target = rmg.DataInput([a[:8], b[:8]]).shuffle().batch(2).get_output_graphs()
+    data.reset()
     model = rm.graph.Dense(3)
     count = 0
     try:
         while(True):
             data.forward()
-            target.forward()
+            # target.forward()
             count += 1
             x = model(data)
     except StopIteration:
         pass
     assert count == 5
-    data._fwd._op.switch_source(1)
+    data, target = rmg.DataInput([a[8:], b[8:]]).shuffle().batch(2).get_output_graphs()
+    data.reset()
     count = 0
     try:
         while(True):
             data.forward()
-            target.forward()
             count += 1
             x = model(data)
     except StopIteration:
@@ -211,31 +213,42 @@ def test_optimizer(use_gpu):
 def test_inference_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
-    np.random.seed(45)
+    np.random.seed(42)
     v = np.random.rand(20, 3).astype(rm.precision)
     layer = rmg.Dense(4)
     t = np.random.rand(20, 4).astype(rm.precision)
     loss = rmg.MeanSquared()
-    data, target = rmg.Distro(v, t, batch_size=2, shuffle=False).get_output_graphs()
+    data, target = rmg.DataInput([v, t]).shuffle().batch(2).get_output_graphs()
     exe = loss(layer(data), target).get_executor()
-    losses = exe.execute(epochs=3)
-    for i in range(len(losses) - 1):
-        assert losses[i] == losses[i + 1]
-    assert all(losses[i] == losses[i + 1] for i in range(len(losses) - 2))
+    losses = []
+
+    def add_losses(info):
+        epoch_loss_list = info['epoch_loss_list']
+        losses.append(np.sum(epoch_loss_list))
+    exe.register_event('Epoch-Finish', add_losses)
+    exe.execute(epochs=3)
+    assert all(np.allclose(losses[i], losses[i + 1]) for i in range(len(losses) - 2))
 
 
 def test_training_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
-    np.random.seed(30)
+    np.random.seed(25)
     v = np.random.rand(500, 3).astype(rm.precision)
     layer = rmg.Dense(2)
     t = np.random.rand(500, 2).astype(rm.precision)
-    loss = rmg.MeanSquared()
+    loss = rmg.MeanSquared(reduction='sum')
     opt = rmg.Sgd(0.01)
-    data, target = rmg.Distro(v, t, batch_size=10).get_output_graphs()
+    data, target = rmg.DataInput([v, t]).shuffle().batch(10).get_output_graphs()
     exe = loss(rmg.relu(layer(data)), target).get_executor(optimizer=opt, mode='training')
-    losses = exe.execute(epochs=3)
+    losses = []
+
+    def add_losses(info):
+        epoch_loss_list = info['epoch_loss_list']
+        losses.append(np.sum(epoch_loss_list))
+    exe.register_event('Epoch-Finish', add_losses)
+    exe.execute(epochs=3)
+    print(losses)
     assert all(losses[i] >= losses[i + 1] for i in range(len(losses) - 1))
 
 
@@ -243,29 +256,34 @@ def test_training_executor_validation(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
-    v1 = np.random.rand(20, 3).astype(rm.precision)
-    v2 = np.random.rand(6, 3).astype(rm.precision)
+    v1 = np.random.rand(10, 3).astype(rm.precision)
+    v2 = np.random.rand(4, 3).astype(rm.precision)
     layer = rmg.Dense(4)
-    t1 = np.random.rand(20, 4).astype(rm.precision)
-    t2 = np.random.rand(6, 4).astype(rm.precision)
+    t1 = np.random.rand(10, 4).astype(rm.precision)
+    t2 = np.random.rand(4, 4).astype(rm.precision)
     loss = rmg.MeanSquared()
     opt = rmg.Sgd()
-    data, target = rmg.Distro([v1, v2], [t1, t2], keyword=('v', 't'),
-                              batch_size=2).get_output_graphs()
-    graph = loss(layer(data), target)
-    t_exe = graph.get_executor(optimizer=opt, mode='training', with_validation=True)
+    data, target = rmg.DataInput([v1, t1]).index().batch(2).get_output_graphs()
+    data_t, target_t = rmg.DataInput([v2, t2]).index().batch(2).get_output_graphs()
+    v = rmg.Placeholder(shape=(2, 3,))
+    t = rmg.Placeholder(shape=(2, 4,))
+    graph = loss(layer(v), t)
+    t_exe = graph.get_executor(optimizer=opt, mode='training')
     v_exe = graph.get_executor()
 
     def check_validation(info):
         global validation_loss
-        if info['mode'] == 'training':
-            validation_loss = info['validation_loss']
-            assert validation_loss != np.nan
+        validation_loss = np.sum(info['epoch_loss_list'])
     t_exe.register_event('Epoch-Finish', check_validation)
 
-    t_exe.execute(epochs=3)
-    v_exe.set_input_data({'v': v2, 't': t2})
-    v_loss = v_exe.execute(epochs=1)
+    t_exe.execute({v: data, t: target}, {v: data_t, t: target_t}, epochs=3)
+
+    def add_losses(info):
+        global v_loss
+        epoch_loss_list = info['epoch_loss_list']
+        v_loss = np.sum(epoch_loss_list)
+    v_exe.register_event('Epoch-Finish', add_losses)
+    v_exe.execute({v: data_t, t: target_t}, epochs=1)
     assert np.allclose(validation_loss, v_loss)
 
 
@@ -273,16 +291,27 @@ def test_validation_executor(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
-    v1 = np.random.rand(10, 2).astype(rm.precision)
+    v1 = np.random.rand(4, 2).astype(rm.precision)
     layer = rmg.Dense(4)
-    t1 = np.random.rand(10, 4).astype(rm.precision)
+    t1 = np.random.rand(4, 4).astype(rm.precision)
     loss = rmg.MeanSquared()
-    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('v', 't')).get_output_graphs()
-    exe = loss(layer(data), target).get_executor()
-    losses1 = np.array(exe.execute(epochs=3))
+    data, target = rmg.DataInput([v1, t1]).batch(2).get_output_graphs()
+    v = rmg.Placeholder(shape=(2, 2,))
+    t = rmg.Placeholder(shape=(2, 4,))
+    exe = loss(layer(v), t).get_executor()
+    losses = []
+
+    def add_losses(info):
+        epoch_loss_list = info['epoch_loss_list']
+        losses.append(np.sum(epoch_loss_list))
+    exe.register_event('Epoch-Finish', add_losses)
+    exe.execute({v: data, t: target}, epochs=3)
+    losses1 = np.array(losses.copy())
     v2, t2 = v1 * 2, t1 * 2
-    exe.set_input_data({'v': v2, 't': t2})
-    losses2 = np.array(exe.execute(epochs=3))
+    data_t, target_t = rmg.DataInput([v2, t2]).batch(2).get_output_graphs()
+    losses.clear()
+    losses2 = exe.execute({v: data_t, t: target_t}, epochs=3)
+    losses2 = np.array(losses.copy())
     assert np.allclose(losses1 * 4, losses2)
 
 
@@ -294,13 +323,25 @@ def test_step_executor(use_gpu):
     layer = rmg.Dense(4)
     t1 = np.random.rand(10, 4).astype(rm.precision)
     loss = rmg.MeanSquared()
-    data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('a', 'b')).get_output_graphs()
-    exe = loss(layer(data), target).get_executor()
-    loss1 = np.array(exe.execute(epochs=1))
+    #data, target = rmg.Distro(v1, t1, batch_size=2, keyword=('a', 'b')).get_output_graphs()
+    data, target = rmg.DataInput([v1, t1]).index().batch(2).get_output_graphs()
+    v = rmg.Placeholder(shape=(2, 2,))
+    t = rmg.Placeholder(shape=(2, 4,))
+    exe = loss(layer(v), t).get_executor()
+    losses = []
+
+    def add_losses(info):
+        epoch_loss_list = info['epoch_loss_list']
+        losses.append(np.sum(epoch_loss_list))
+    exe.register_event('Epoch-Finish', add_losses)
+    exe.execute({v: data, t: target}, epochs=1)
+    loss1 = np.array(losses.copy())
+    data_t, target_t = rmg.DataInput([v1 * 2, t1 * 2]).index().batch(2).get_output_graphs()
     loss2 = 0
     for i in range(0, 10, 2):
         v2, t2 = v1[i:i + 2] * 2, t1[i:i + 2] * 2
-        loss2 += exe.step({'a': v2, 'b': t2})
+        # TODO: ALlow NumPy insertion
+        loss2 += exe.step({v: v2, t: t2})
     assert np.allclose(loss1 * 4, loss2)
 
 
@@ -324,6 +365,47 @@ def test_inference_mode():
     assert model.l1._prev._fwd._op._inference is True
     x.set_inference(False)
     assert model.l1._prev._fwd._op._inference is False
+
+
+def test_placeholder_forward(use_gpu):
+    a = 1
+    b = 2
+    c = 3
+    X = rmg.Placeholder(shape=(1, 1))
+    Y = rmg.Placeholder(shape=(1, 1))
+    Z = X + Y
+    Z.feed(X, a)
+    Z.feed(Y, b)
+    z_result = Z.forward().as_ndarray()
+    Z.print_tree()
+    assert z_result == a + b
+    Z.feed(Y, c)
+    z_result = Z.forward().as_ndarray()
+    assert z_result == a + c
+
+
+def test_placeholder_backward(use_gpu):
+    rm.set_cuda_active(use_gpu)
+    v = rmg.StaticVariable(np.random.rand(4, 3))
+    D1 = rmg.Dense(6)
+    x = rmg.Placeholder(shape=(4, 6))
+    D2 = rmg.Dense(2)
+
+    g1 = D1(v)
+    g2 = D2(x)
+
+    g2.feed(x, g1)
+    grad = g2.backward().get_gradient(v.output)
+    t = rmg.StaticVariable(np.random.rand(4, 2))
+    D3 = rmg.Dense(6)
+    g3 = D3(t)
+    g2.feed(x, g3)
+    grad = g2.backward().get_gradient(t.output)
+    try:
+        g2.get_gradient(v.output)
+        assert False
+    except Exception:
+        pass
 
 
 def test_updatable_mode():
@@ -396,13 +478,12 @@ def test_different_optimizers(use_gpu):
     assert np.allclose(b_before + grad2, b_after)
 
 
-
 def test_weight_decay(use_gpu):
     rm.set_cuda_active(use_gpu)
 
     np.random.seed(45)
     v = np.random.rand(4, 4)
-    dense = rmg.Dense(3, parameter_decay={'w': rmg.l2_regularizer(0.05)})
+    dense = rmg.Dense(3, parameter_decay={'w': rmg.L2(0.05)})
     import os
     tmp_filename = get_random_filename()
     try:
@@ -414,7 +495,7 @@ def test_weight_decay(use_gpu):
 
         dense.load(tmp_filename)
         m2 = dense(v)
-        m2.set_regularizer(rmg.l2_regularizer(0.50))
+        m2.set_regularizer(rmg.L2(0.50))
         m_arr2 = m2.as_ndarray()
         m2.backward().update()
         w2 = dense.params['w'].as_ndarray()

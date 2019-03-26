@@ -54,7 +54,6 @@ class sigmoid_forward(operation):
                 self._outputs[gpu].copy_from(tmp)
 
 
-
 class sigmoid_forward_cpu(sigmoid_forward):
 
     def perform(self):
@@ -172,7 +171,6 @@ class SigmoidCrossEntropy(GraphFactory):
 
     def prepare(self, reduction='mean'):
         self.reduction = reduction
-
 
     def connect(self, predictions, true_values):
         ret = SigmoidCrossEntropyElement(self.reduction, previous_elements=[
