@@ -3,6 +3,7 @@ import renom as rm
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
 from renom.layers.function.utils import im2col, col2im, imncol, colnim, colnw
 import renom.utility.initializer as init
+from renom.graph.utils.conv_cpu_methods import grouped_conv_forward, grouped_conv_back, _get_expanded_value
 
 
 class Conv(GraphFactory):
@@ -24,6 +25,11 @@ class Conv(GraphFactory):
           weight_decay (float): Weight decay ratio. This must be None or 0 <= ratio.
           ignore_bias (bool): If True is given, bias term will be ignored.
 
+      Note:
+          If any of the arguments are given as an integer, it will be expanded to fit the
+          size of the received input uniformly. If received as a tuple, the tuple must be
+          of the same dimensions as the input.
+
       Example:
           >>> import numpy as np
           >>> import renom.graph as rmg
@@ -40,19 +46,20 @@ class Conv(GraphFactory):
           Tensor data format is **NCHW***.
     """
 
-    def prepare(self, channel=3, kernel=3, padding=0, stride=1, groups=1,
+    def prepare(self, channel=3, kernel=3, padding=0, stride=1, dilation=1, groups=1,
                 initializer=None, weight_decay=None, ignore_bias=False):
         self._chnls = channel
         self._krnl = kernel
         self._pdng = padding
         self._strd = stride
+        self._dil = dilation
         self._groups = groups
         self._init = initializer
         self.params['w'] = graph_variable(weight_decay=weight_decay)
         self.params['b'] = graph_variable(allow_update=not ignore_bias)
 
     def connect(self, other):
-        ret = ConvElement(self._chnls, self._krnl, self._pdng, self._strd, self._groups,
+        ret = ConvElement(self._chnls, self._krnl, self._pdng, self._strd, self._dil, self._groups,
                           self._init, previous_element=[other, self.params['w'], self.params['b']])
         return ret
 
@@ -64,7 +71,7 @@ class conv_forward(operation):
     workspace_size = 0
     workspace = None
 
-    def __init__(self, channel, kernel=3, padding=0, stride=1, groups=1, initializer=None):
+    def __init__(self, channel, kernel=3, padding=0, stride=1, dilation=1, groups=1, initializer=None):
         self._channels = channel
         self._k = kernel
         self._p = padding
@@ -84,10 +91,10 @@ class conv_forward(operation):
         if dims != 2:
             assert groups == 1, 'Currently only 2d inputs support grouping'
         self._dims = dims
-        self._kernel = np.array(list(self._k for i in range(dims))).astype(np.int32)
-        self._padding = np.array(list(self._p for i in range(dims))).astype(np.int32)
-        self._stride = np.array(list(self._s for i in range(dims))).astype(np.int32)
-        self._dilation = np.array(list(self._d for i in range(dims))).astype(np.int32)
+        self._kernel = _get_expanded_value(self._k, dims)
+        self._padding = _get_expanded_value(self._p, dims)
+        self._stride = _get_expanded_value(self._s, dims)
+        self._dilation = _get_expanded_value(self._d, dims)
 
         self._inputs = inputs
         gpus = inputs.gpus
@@ -109,8 +116,8 @@ class conv_forward(operation):
         self._weights = weights
         self._bias = bias
 
-        imgs = tuple((input_shape[i + 2] + self._padding[i] * 2
-                      - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
+        imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 -
+                      self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
         output_shape = [input_shape[0], self._channels, *imgs]
         self._outputs = GraphMultiStorage(shape=output_shape, gpus=gpus)
         self._vars = {'w': self._weights, 'b': self._bias, 'y': self._outputs}
@@ -179,9 +186,9 @@ class conv_forward_cpu(conv_forward):
                 val = np.rollaxis(np.tensordot(col, w, ([1, 2, 3], [1, 2, 3])), 3, 1)
                 ret = val + b
             else:
-                value, col = rm.graph.utils.conv_cpu_methods.\
-                    grouped_conv_forward(x, w, b, col, groups, self._kernel,
-                                         self._stride, self._padding, self._dilation)
+                value, col = grouped_conv_forward(x, w, b, col, groups, self._kernel,
+                                                  self._stride, self._padding,
+                                                  self._dilation)
                 ret = value
             self._col = col
 
@@ -262,9 +269,8 @@ class conv_backward_cpu(conv_backward):
         if self._groups > 1:
             groups = self._groups
             col = self._fwd_op._col
-            dx, dw, db = rm.graph.utils.conv_cpu_methods.\
-                grouped_conv_back(x, w, b, dy, col, groups,
-                                  kernel, stride, padding, dilation)
+            dx, dw, db = grouped_conv_back(x, w, b, dy, col, groups,
+                                           kernel, stride, padding, dilation)
 
         elif self._dims == 2:
             col = self._fwd_op._col
@@ -287,13 +293,9 @@ class conv_backward_cpu(conv_backward):
 
 class ConvElement(UserGraph):
 
-    def __init__(self, channel=3, kernel=3, padding=0, stride=1, groups=1, initializer=None, previous_element=None):
-
-        self._chnls = channel
-        self._krnl = kernel
-        self._pdng = padding
-        self._strd = stride
-        args = (channel, kernel, padding, stride, groups, initializer)
+    def __init__(self, channel=3, kernel=3, padding=0, stride=1, dilation=1,
+                 groups=1, initializer=None, previous_element=None):
+        args = (channel, kernel, padding, stride, dilation, groups, initializer)
         fwd_op = conv_forward(*args) if rm.is_cuda_active() else conv_forward_cpu(*args)
         bwd_ops = [conv_backward(fwd_op) if rm.is_cuda_active() else conv_backward_cpu(fwd_op)]
 

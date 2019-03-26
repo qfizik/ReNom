@@ -1,6 +1,17 @@
 import numpy as np
 from renom.layers.function.utils import im2col, col2im, imncol, colnim, colnw
 
+def _get_expanded_value(value, dims):
+    if isinstance(value, int):
+        ret = np.array(list(value for i in range(dims))).astype(np.int32)
+    elif isinstance(value, tuple):
+        assert len(value) == dims, 'tuple and input shape mismatch'
+        ret = np.array(value).astype(np.int32)
+    else:
+        raise ValueError('Expected int or tuple, but got {}'.format(type(value)))
+    return ret
+
+
 
 def grouped_conv_forward(x, w, b, col, groups, kernel, stride, padding, dilation):
     out_h, out_w = col.shape[-2:]
