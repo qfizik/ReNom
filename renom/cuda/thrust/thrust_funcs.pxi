@@ -52,7 +52,7 @@ def culeaky_leru_forward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_leaky_relu_forward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_leaky_relu_forward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def culeaky_leru_backward(s, gpu_value1, gpu_value2):
@@ -61,7 +61,7 @@ def culeaky_leru_backward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_leaky_relu_backward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_leaky_relu_backward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def cueru_forward(s, gpu_value1, gpu_value2):
@@ -70,7 +70,7 @@ def cueru_forward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_elu_forward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_elu_forward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def cueru_backward(s, gpu_value1, gpu_value2):
@@ -79,7 +79,7 @@ def cueru_backward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_elu_backward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_elu_backward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def cusoftplus_forward(gpu_value1, gpu_value2):
@@ -143,7 +143,7 @@ def cuswish_forward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_swish_forward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_swish_forward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def cuswish_backward(s, gpu_value1, gpu_value2):
@@ -152,7 +152,7 @@ def cuswish_backward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_swish_backward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_swish_backward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 ctypedef void(*BINOP_FUNC)(
@@ -618,7 +618,7 @@ def _calc_index(reductions, kept_shapes_size, n):
     return ret
 
 
-cdef _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, REDUCE_FUNC func, args, cudaStream_t stream=< cudaStream_t > 0):
+cdef _reduce_array(max_grids, num_threads, gpu_value1, axis, keepdims, REDUCE_FUNC func, args, cudaStream_t stream= < cudaStream_t > 0):
     assert num_threads < 600
 
     if not gpu_value1.shape:
@@ -1097,7 +1097,7 @@ def cu_get_item(gpu_value1, size, dest_size, slices):
     cdef VALUE_TYPE * ptr_result = <VALUE_TYPE * > < uintptr_t > result._ptr
 
     cdef getitem_slice_infos infos
-    _build_slice_infos( & infos, slices)
+    _build_slice_infos(& infos, slices)
 
     cdef getitem_slice_info * info
 
@@ -1122,7 +1122,7 @@ def cu_set_item(value, valuesize, gpu_value1, slices, strides, broadcasted_strid
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
 
     cdef getitem_slice_infos infos
-    _build_slice_infos( & infos, slices)
+    _build_slice_infos(& infos, slices)
 
     infos.stride_size = len(strides)
     for i, (s, b) in enumerate(zip(strides, broadcasted_strides)):
@@ -1252,3 +1252,13 @@ def cu_optimizer_adamax(alpha, epsilon, beta1, beta2, moment1, moment2, dy, new_
     cdef VALUE_TYPE * ptr_ndy = <VALUE_TYPE * > < uintptr_t > new_dy._ptr
     thrust_optimizer_adamax(Elem, alp, eps, b_1, rb_1, b_2, rb_2,
                             ptr_mom1, ptr_mom2, ptr_dy, ptr_ndy)
+
+
+def cu_l2_regularizer(parameter, gradient, decay_rate):
+    cdef int Elem = 1
+    for v in parameter.shape:
+        Elem *= int(v)
+    cdef VALUE_TYPE dec = decay_rate
+    cdef VALUE_TYPE * ptr_param = <VALUE_TYPE * > < uintptr_t > parameter._ptr
+    cdef VALUE_TYPE * ptr_grad = <VALUE_TYPE * > < uintptr_t > gradient._ptr
+    thrust_l2_regularizer(Elem, ptr_param, ptr_grad, dec)

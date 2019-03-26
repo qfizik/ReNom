@@ -8,6 +8,8 @@ import renom.utility.initializer as init
 
 class constant_loss_forward(operation):
 
+    name = 'Constant loss'
+
     def __init__(self, reduction='mean'):
         self.reduction = reduction
 
@@ -110,7 +112,6 @@ class constant_loss_backward_cpu(constant_loss_backward):
                 self._outputs['cpu'][:] = np.ones(shape, dtype=rm.precision)
 
 
-
 class ConstantLossElement(UserLossGraph):
 
     is_connector_element = True
@@ -123,8 +124,6 @@ class ConstantLossElement(UserLossGraph):
         bwd_ops = [constant_loss_backward(fwd_op) if rm.is_cuda_active()
                    else constant_loss_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
-        self._bwd_graphs[0].add_input(previous_element.get_forward_output())
-        self._bwd_graphs[0].add_input(self._fwd)
 
 
 class ConstantLoss(GraphFactory):
@@ -144,7 +143,7 @@ class ConstantLoss(GraphFactory):
     +-----------+-------------------------------------------------------+
     '''
 
-    def prepare(self, reduction='mean'):
+    def prepare(self, reduction='sum'):
         self.reduction = reduction
 
     def connect(self, other):

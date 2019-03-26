@@ -8,6 +8,30 @@ from .operation import operation
 from .executor import Executor
 
 
+def convertToUserGraph(to_convert):
+    '''A method to convert generic objects into UserGraph objects.
+
+    This method takes the argument to_convert and produces a UserGraph equivalent
+    object that can be used to produce the value given. It is assumed that the
+    value from to_convert is static, meaning that it will not change no matter how
+    often it is called.
+
+    Args:
+        to_convert(np.ndarray, number): The object to be converted.
+    '''
+    assert isinstance(to_convert, (np.ndarray, UserGraph, Number))
+    if isinstance(to_convert, Number):
+        arr = np.array(to_convert, dtype=rm.precision).reshape(1, 1)
+        ret = rm.graph.StaticVariable(arr)
+    elif isinstance(to_convert, np.ndarray):
+        ret = rm.graph.StaticVariable(to_convert)
+    elif isinstance(to_convert, UserGraph):
+        ret = to_convert
+    else:
+        raise AttributeError('Received {}'.format(type(to_convert)))
+    return ret
+
+
 class UserGraph(graph_element):
     '''
         The UserGraph class is the main class that will be interfacing with the user.
@@ -58,16 +82,11 @@ class UserGraph(graph_element):
         if not isinstance(previous_elements, list):
             previous_elements = [previous_elements]
         for i, prev in enumerate(previous_elements):
-            assert isinstance(prev, (np.ndarray, UserGraph, Number))
-            if isinstance(prev, Number):
-                previous_elements[i] = rm.graph.StaticVariable(np.array([prev]))
-            elif isinstance(prev, np.ndarray):
-                previous_elements[i] = rm.graph.StaticVariable(prev)
+            previous_elements[i] = convertToUserGraph(prev)
         return previous_elements
 
     def _create_fwd_graph(self, forward_operation):
-        assert isinstance(forward_operation, operation) or isinstance(
-            forward_operation, operational_element)
+        assert isinstance(forward_operation, (operation, operational_element))
         if isinstance(forward_operation, operation):
             self._fwd = operational_element(operation=forward_operation, tags=['Forward'])
         elif isinstance(forward_operation, operational_element):
@@ -122,6 +141,12 @@ class UserGraph(graph_element):
         self.simple_forward()
         return self
 
+    def remove_input(self, prev_input):
+        super().remove_input(prev_input)
+
+    def remove_next(self, prev_next):
+        super().remove_next(prev_next)
+
     def detach(self):
         self._fwd.detach()
         for graph in self._bwd_graphs:
@@ -173,7 +198,8 @@ class UserGraph(graph_element):
         self.forward()
         return self._fwd.__repr__()
 
-    def get_executor(self, mode='inference', optimizer=None, with_validation=False):
+    def get_executor(self, mode='inference', optimizer=None):
+        ret = Executor(self, mode)
         if mode != 'inference' and optimizer is not None:
             ups = self._fwd.get_call_dict(tag='Gradient')
             for d in ups:
@@ -181,6 +207,26 @@ class UserGraph(graph_element):
                     if hasattr(ups[d][i], 'set_update_op'):
                         ups[d][i].set_update_op(optimizer)
 
+        if mode == 'training':
+            self._fwd.total_setup()
+        #ret = Executor(call_list, ops, mode)
+        self._fwd.finalize()
+        return ret
+
+    def get_executor_info(self):
+        '''A method used by the executor.
+
+        Returns the graph execution list, as well as other information
+        that imposes 'meaning' unto the graph, such as designating
+        certain operations to be loss or input operations.
+
+        Returns:
+            call_list(dict): A dictionary that is divded into parts
+            Forward, Backward and Gradient, which subsequently are divided
+            into depths.
+            ops(dict): Special operations in the graph, desginating certain
+            operations as loss, input, etc.
+        '''
         fwds = self._fwd.get_call_dict(tag='Forward')
         bwds = self._fwd.get_call_dict(tag='Backward')
         grds = self._fwd.get_call_dict(tag='Gradient')
@@ -196,15 +242,58 @@ class UserGraph(graph_element):
         ops = {
             'graph_inputs': ins,
             'losses': lss,
-            'root': self._fwd._op,
+            'root_op': self._fwd._op,
         }
-        if mode == 'training':
-            self._fwd.total_setup()
-        ret = Executor(call_list, ops, mode)
-        self._fwd.finalize()
-        if with_validation is True:
-            ret._set_validation()
-        return ret
+        return call_list, ops
+
+    @graph_element.walk_tree
+    def feed(self, to_replace, replace_with):
+        '''Replaces Placeholder objects in the graph.
+
+        This method searches through the UserGraph-level graph and inserts replace_with
+        in the location of to_replace. Note that this does not replace the original
+        Placeholder objects, but simply transfers the values between the graphs.
+        e.g:
+            x = Placeholder (NoOp)
+            L =  x -> Dense -> MeanSquared
+            y = DataInput
+            L.feed(x, y) = DataInput -> x -> Dense -> MeanSquared
+
+        When using the executor, use the feed_dict argument to feed placeholder
+        variables instead.
+
+        Args:
+            to_replace:
+                The placeholder object to be replaced.
+            replace_with:
+                The UserGraph to replace it with.
+
+        Notes:
+            In the future, it may be possible to replace any UserGraph object.
+
+        TODO:
+            Add attaching for graphs with backward operations.
+
+        '''
+        assert isinstance(to_replace, rm.graph.Placeholder)
+        if not isinstance(replace_with, UserGraph):
+            replace_with = convertToUserGraph(replace_with)
+        if to_replace is self:
+            if len(self._previous_elements) > 0:
+                self.remove_all_inputs()
+                self._fwd.remove_all_inputs()
+                bwd = self._bwd_graphs[0]
+                for elem in bwd._next_elements:
+                    elem.remove_input(bwd)
+            self.add_input(replace_with)
+            self._fwd.add_input(replace_with.get_forward_output())
+            replace_with.connect_back(self, 0)
+            self._fwd._op.link(replace_with.get_forward_output()._op)
+            prevs = len(self._bwd_graphs[0]._previous_elements)
+            assert prevs <= 1
+            if prevs < 0:
+                bbwd = self._bwd_graphs[0]._previous_elements[0]
+                self._bwd_graphs[0]._op.link(bbwd._op)
 
     def set_inference(self, inference=True):
         if id(self) in self._fwd._tags:
@@ -301,7 +390,7 @@ class UserGraph(graph_element):
         return self._fwd
 
     def get_backward_output(self, num=0):
-        if len(self._bwd_graphs) == 0:
+        if len(self._bwd_graphs) <= num:
             return None
         else:
             bwd_g = self._out_bwds[num]

@@ -1485,7 +1485,7 @@ namespace renom{
         int hend = static_cast<int>(ceil(static_cast<float>(ph+1)*bin_size_h));
         int wend = static_cast<int>(ceil(static_cast<float>(pw+1)*bin_size_w));
 
-        float maxval = -1E+37;
+        VALUE_TYPE maxval = -1E+37;
         int maxidx = -1;
 
         hstart = min(max(hstart + roi_start_h, 0), height);
@@ -1534,7 +1534,7 @@ namespace renom{
         int c = (idx / (width * height)) % channels;
         int num = idx / (width * height * channels);
 
-        float gradient = 0;
+        VALUE_TYPE gradient = 0;
         for (int roi_n=0; roi_n < N; ++roi_n ){
             if (num != static_cast<int>(rois[roi_n*5])){
                 continue;
@@ -2291,4 +2291,17 @@ namespace renom{
     {
       cuda_clip_back<<<ceil(elem/256.0), 256.0>>>(elem, array, max, min, out);
     }
+
+    __global__ void cuda_l2_regularizer(int elem, VALUE_TYPE *ptr_param, VALUE_TYPE *ptr_grad, VALUE_TYPE dec)
+    {
+      int idx = blockIdx.x * blockDim.x + threadIdx.x;
+      if (idx>=elem) return;
+      ptr_grad[idx] += ptr_param[idx] * dec; 
+    }
+
+    void thrust_l2_regularizer(int elem, VALUE_TYPE *ptr_param, VALUE_TYPE *ptr_grad, VALUE_TYPE dec)
+    {
+      cuda_l2_regularizer<<<ceil(elem/256.0), 256.0>>>(elem, ptr_param, ptr_grad, dec);
+    }
+
 }

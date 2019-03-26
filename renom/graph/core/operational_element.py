@@ -57,8 +57,7 @@ class operational_element(graph_element):
     @graph_element.walk_tree
     @check_tags
     def get_call_dict(self):
-        if not isinstance(self._op, rm.graph.core.graph_factory.variable_input):
-            return self._op
+        return self._op
 
     @graph_element.walk_tree
     @check_tags
@@ -135,10 +134,13 @@ class operational_element(graph_element):
             return
         inputs = [prev.get_output() for prev in self._previous_elements]
         if rm.logging_level >= 50:
-            print('{time!s}: Setting up {name!s:}'.format(time=time.ctime(), name=self._op.name))
+            print('{time!s}: Setting up {name!s:} ({id})'.format(
+                time=time.ctime(), name=self._op.name, id=id(self._op)))
             for i, inp in enumerate(inputs):
                 print('{time!s}: Input #{0:d} has shape {1!s}'.format(
-                    i, inp['y'].shape, time=time.ctime()))
+                    i, inp['y'].shape, time=time.ctime())
+                    + ' and name {name!s} ({id})'.format(name=self._previous_elements[i]._op.name,
+                                                       id=id(self._previous_elements[i]._op)))
         self._op.setup(inputs)
         self.prev_inputs = inputs
 
@@ -162,9 +164,6 @@ class operational_element(graph_element):
     def name(self):
         return self._op.name
 
-    def add_next(self, new_next):
-        assert isinstance(new_next, operational_element)
-        super().add_next(new_next)
 
     @property
     def output(self):
