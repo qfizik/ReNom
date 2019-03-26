@@ -4,7 +4,6 @@ import itertools
 import collections
 import cython
 import numpy as np
-import renom.debug_graph as debug
 
 try:
     from renom.cuda import is_cuda_active, use_device
@@ -396,8 +395,6 @@ class GPUValue(object):
         else:
             self.device_id = cuGetDevice()
 
-        if debug.GET_ACTIVE_GPU() is not None:
-            debug.SET_GPU_DICT(id(self), self)
 
         assert self._ptr
         self._ptr.refcount += 1
