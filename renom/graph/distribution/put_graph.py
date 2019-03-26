@@ -23,7 +23,7 @@ class put_op(operation):
         pass
 
     def __len__(self):
-        return len(self.fetcher) + 1
+        return len(self.fetcher)
 
     def reset(self):
         if self.source == 0:

@@ -50,24 +50,32 @@ class graph_element(abc.ABC):
     def add_input(self, new_input):
         if new_input not in self._previous_elements:
             self._previous_elements.append(new_input)
-        #else:
-        #    warn('Attempting to add already existing input')
+        else:
+            warn('Attempting to add already existing input')
         new_input.add_next(self)
         self.update_depth()
 
     def add_next(self, new_next):
         if new_next not in self._next_elements:
             self._next_elements.append(new_next)
+        else:
+            warn('Attempting to add already existing next')
+
 
     def remove_input(self, prev_input):
         if prev_input in self._previous_elements:
-            prev_input.remove_next(self)
+            if self in prev_input._next_elements:
+                prev_input.remove_next(self)
             self._previous_elements.remove(prev_input)
+        else:
+            warn('Attempting to remove non-existing input')
         self.update_depth()
 
     def remove_next(self, prev_next):
         if prev_next in self._next_elements:
             self._next_elements.remove(prev_next)
+        else:
+            warn('Attempting to remove non-existing next')
 
     def remove_all_inputs(self):
         for elem in self._previous_elements[::-1]:

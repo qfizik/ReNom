@@ -164,9 +164,6 @@ class operational_element(graph_element):
     def name(self):
         return self._op.name
 
-    def add_next(self, new_next):
-        assert isinstance(new_next, operational_element)
-        super().add_next(new_next)
 
     @property
     def output(self):
