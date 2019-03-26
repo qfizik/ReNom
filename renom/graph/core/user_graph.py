@@ -131,10 +131,7 @@ class UserGraph(graph_element):
         if isinstance(previous_elements, UserGraph):
             previous_elements = [previous_elements]
 
-        for elem in previous_elements:
-            self.add_input(elem)
-            prev_graph_input = elem.get_forward_output()
-            self._fwd.add_input(prev_graph_input)
+        self.connect_forward(previous_elements)
 
         for num, elem in enumerate(previous_elements):
             elem.connect_back(self, pos=num)
@@ -161,6 +158,12 @@ class UserGraph(graph_element):
             UserGraph._add_clipping = (floor, ceil)
         else:
             UserGraph._add_clipping = None
+
+    def connect_forward(self, previous_elements):
+        for elem in previous_elements:
+            self.add_input(elem)
+            prev_graph_input = elem.get_forward_output()
+            self._fwd.add_input(prev_graph_input)
 
     def connect_back(self, previous_element, pos=0):
         if len(self._bwd_graphs) == 0:
