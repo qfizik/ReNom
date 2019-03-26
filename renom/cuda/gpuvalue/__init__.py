@@ -1,1 +1,1 @@
-from .gpuvalue import GPUValue, get_gpu
+from .gpuvalue import GPUValue

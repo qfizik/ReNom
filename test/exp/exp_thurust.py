@@ -7,7 +7,6 @@ import renom
 import renom.cuda
 from renom.cuda import thrust_float
 from renom.cuda import thrust_double
-from renom.core import GPUValue, Node
 
 
 def test_negate_float():
