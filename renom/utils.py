@@ -1,5 +1,6 @@
 # -*- coding: utf - 8 -*-
 import numpy as np
+import renom
 from renom import precision
 
 
@@ -388,7 +389,7 @@ def broad_cast(hs, dy):
 
 
 def cu_broad_cast(hs, dy):
-    if isinstance(hs, GPUValue):
+    if isinstance(hs, renom.GPUValue):
         shape = list(hs.shape)
         if hs.shape != dy.shape:
             axis = []
@@ -400,6 +401,6 @@ def cu_broad_cast(hs, dy):
                     axis.append(i)
             if axis:
                 with renom.cuda.RenomHandler() as handle:
-                    dy = cusum(dy, handle, axis=tuple(axis))
+                    dy = renom.cuda.cusum(dy, handle, axis=tuple(axis))
             dy = dy.reshape(hs.shape)
     return dy

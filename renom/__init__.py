@@ -48,7 +48,7 @@ import argparse
 import numpy as np
 from renom.config import precision
 from renom import cuda
-from renom.cuda import has_cuda, set_cuda_active, is_cuda_active
+from renom.cuda import has_cuda, set_cuda_active, is_cuda_active, get_device_count
 from renom.cuda.gpuvalue import GPUValue
 from renom import graph
 
@@ -63,7 +63,7 @@ def set_renom_seed(seed=30, all_devices=False):
         all_devices(bool): If True is given, the seed will be set to each device's curand generator.
     """
     if is_cuda_active():
-        curand_set_seed(seed, all_devices=all_devices)
+        cuda.curand_set_seed(seed, all_devices=all_devices)
     np.random.seed(seed)
 
 

@@ -37,7 +37,7 @@ class mean_squared_forward(operation):
             if self.reduction is None:
                 self._outputs[gpu].copy_from(self._tmp[gpu])
             else:
-                tmp = rm.cu.cusum(self._tmp[gpu], handle)
+                tmp = rm.cuda.cusum(self._tmp[gpu], handle)
                 if self.reduction == 'mean':
                     rm.cuda.cudiv(tmp, int(self._N), tmp, handle)
                 elif self.reduction == 'sum':
