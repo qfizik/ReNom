@@ -701,7 +701,7 @@ def test_conv(test_shape, use_gpu, num_gpu, ignore_bias, dilation, groups):
 
     v = rand(*test_shape)
     dims = len(test_shape[2:])
-    k = tuple(range(2, 2 + dims, 1))
+    k = tuple(range(1, 1 + dims, 1))
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.Conv(channel=2, kernel=k, ignore_bias=ignore_bias, groups=groups)
     model2 = rm.graph.Conv(channel=4, dilation=dilation, ignore_bias=ignore_bias)
@@ -810,7 +810,7 @@ def test_max_pool(test_shape, use_gpu, num_gpu):
     loss = rm.graph.ConstantLoss()
 
     if dims == 3:
-        broken_model = rm.graph.MaxPool(kernel=3, padding=0, stride=(2,3))
+        broken_model = rm.graph.MaxPool(kernel=3, padding=0, stride=(2, 3))
         try:
             broken_model(val)
             assert False

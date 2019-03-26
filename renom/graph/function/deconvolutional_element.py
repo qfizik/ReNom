@@ -2,17 +2,9 @@ import renom as rm
 from renom.layers.function.utils import im2col, col2im, colnim, imncol, colnw
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
+from renom.graph.utils.conv_cpu_methods import _get_expanded_value
 import numpy as np
 
-def _get_expanded_value(value, dims):
-    if isinstance(value, int):
-        ret = np.array(list(value for i in range(dims))).astype(np.int32)
-    elif isinstance(value, tuple):
-        assert len(value) == dims, 'tuple and input shape mismatch'
-        ret = value
-    else:
-        raise ValueError('Expected int or tuple, but got {}'.format(type(value)))
-    return ret
 
 class deconv_forward(operation):
 

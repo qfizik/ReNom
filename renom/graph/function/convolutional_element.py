@@ -3,17 +3,7 @@ import renom as rm
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
 from renom.layers.function.utils import im2col, col2im, imncol, colnim, colnw
 import renom.utility.initializer as init
-
-
-def _get_expanded_value(value, dims):
-    if isinstance(value, int):
-        ret = np.array(list(value for i in range(dims))).astype(np.int32)
-    elif isinstance(value, tuple):
-        assert len(value) == dims, 'tuple and input shape mismatch'
-        ret = value
-    else:
-        raise ValueError('Expected int or tuple, but got {}'.format(type(value)))
-    return ret
+from renom.graph.utils.conv_cpu_methods import grouped_conv_forward, grouped_conv_back, _get_expanded_value
 
 
 class Conv(GraphFactory):
@@ -126,8 +116,8 @@ class conv_forward(operation):
         self._weights = weights
         self._bias = bias
 
-        imgs = tuple((input_shape[i + 2] + self._padding[i] * 2
-                      - self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
+        imgs = tuple((input_shape[i + 2] + self._padding[i] * 2 -
+                      self._kernel[i]) // self._stride[i] + 1 for i in range(dims))
         output_shape = [input_shape[0], self._channels, *imgs]
         self._outputs = GraphMultiStorage(shape=output_shape, gpus=gpus)
         self._vars = {'w': self._weights, 'b': self._bias, 'y': self._outputs}
@@ -196,9 +186,9 @@ class conv_forward_cpu(conv_forward):
                 val = np.rollaxis(np.tensordot(col, w, ([1, 2, 3], [1, 2, 3])), 3, 1)
                 ret = val + b
             else:
-                value, col = rm.graph.utils.conv_cpu_methods.\
-                    grouped_conv_forward(x, w, b, col, groups, self._kernel,
-                                         self._stride, self._padding, self._dilation)
+                value, col = grouped_conv_forward(x, w, b, col, groups, self._kernel,
+                                                  self._stride, self._padding,
+                                                  self._dilation)
                 ret = value
             self._col = col
 
@@ -279,9 +269,8 @@ class conv_backward_cpu(conv_backward):
         if self._groups > 1:
             groups = self._groups
             col = self._fwd_op._col
-            dx, dw, db = rm.graph.utils.conv_cpu_methods.\
-                grouped_conv_back(x, w, b, dy, col, groups,
-                                  kernel, stride, padding, dilation)
+            dx, dw, db = grouped_conv_back(x, w, b, dy, col, groups,
+                                           kernel, stride, padding, dilation)
 
         elif self._dims == 2:
             col = self._fwd_op._col
