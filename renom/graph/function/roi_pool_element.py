@@ -2,7 +2,7 @@
 import numpy as np
 import renom as rm
 import renom.utility.initializer as init
-from renom.layers.function.utils import roi_pooling_slice, region_cordinates, roi_pooling_slice_decode
+from renom.utils import roi_pooling_slice, region_cordinates, roi_pooling_slice_decode
 from renom.graph.core import UserGraph, operational_element, operation, \
     GraphMultiStorage, GraphFactory, graph_variable
 

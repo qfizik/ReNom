@@ -1,5 +1,5 @@
 import renom as rm
-from renom.layers.function.utils import im2col, col2im, colnim, imncol, colnw
+from renom.utils import im2col, col2im, colnim, imncol, colnw
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
 import numpy as np

@@ -1,9 +1,12 @@
 import renom as rm
-from renom.layers.function.batch_normalize import mode_dict
 from renom.graph.core import UserGraph, operation, GraphFactory, GraphMultiStorage, graph_variable
 import renom.utility.initializer as init
 import numpy as np
 
+mode_dict = {
+    'activation': 0,
+    'feature': 1,
+    }
 
 class batch_norm_forward(operation):
 

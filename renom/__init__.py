@@ -48,18 +48,8 @@ import argparse
 import numpy as np
 from renom.config import precision
 from renom import cuda
-from renom import core
-from renom.core import Pos
-from renom.core import Variable
-from renom import operation
-from renom.operation import *
-from renom.utility import *
-from renom.utility.distributor import *
-from renom.layers.activation import *
-from renom.layers.function import *
-from renom.layers.loss import *
-from renom.optimizer import *
-from renom.debug_graph import *
+from renom.cuda import has_cuda, set_cuda_active, is_cuda_active
+from renom.cuda.gpuvalue import GPUValue
 from renom import graph
 
 logging_level = 0

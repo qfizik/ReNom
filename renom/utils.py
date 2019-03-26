@@ -1,6 +1,5 @@
 # -*- coding: utf - 8 -*-
 import numpy as np
-from renom.core import to_value
 from renom import precision
 
 
@@ -362,10 +361,44 @@ def roi_pooling_slice_decode(size, stride, out_size, roi_offset):
 
 
 def region_cordinates(roi, spatial_scale):
-    idx, xmin, ymin, xmax, ymax = to_value(roi)
+    idx, xmin, ymin, xmax, ymax = roi
     idx = int(idx)
     xmin = int(round(xmin * spatial_scale))
     ymin = int(round(ymin * spatial_scale))
     xmax = int(round(xmax * spatial_scale))
     ymax = int(round(ymax * spatial_scale))
     return idx, xmin, ymin, xmax, ymax
+
+def broad_cast(hs, dy):
+    if isinstance(hs, np.ndarray):
+        shape = list(hs.shape)
+        if hs.shape != dy.shape:
+            axis = []
+            while len(shape) != len(dy.shape):
+                if len(shape) < len(dy.shape):
+                    shape.insert(0, 1)
+            for i, s in enumerate(shape):
+                if s == 1:
+                    axis.append(i)
+            if axis:
+                dy = np.sum(dy, axis=tuple(axis))
+        dy = dy.reshape(hs.shape)
+    return dy
+
+
+def cu_broad_cast(hs, dy):
+    if isinstance(hs, GPUValue):
+        shape = list(hs.shape)
+        if hs.shape != dy.shape:
+            axis = []
+            while len(shape) != len(dy.shape):
+                if len(shape) < len(dy.shape):
+                    shape.insert(0, 1)
+            for i, s in enumerate(shape):
+                if s == 1:
+                    axis.append(i)
+            if axis:
+                with renom.cuda.RenomHandler() as handle:
+                    dy = cusum(dy, handle, axis=tuple(axis))
+            dy = dy.reshape(hs.shape)
+    return dy
