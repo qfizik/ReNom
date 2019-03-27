@@ -61,7 +61,6 @@ class graph_element(abc.ABC):
         else:
             warn('Attempting to add already existing next')
 
-
     def remove_input(self, prev_input):
         if prev_input in self._previous_elements:
             if self in prev_input._next_elements:
