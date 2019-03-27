@@ -7,16 +7,19 @@ ReNom DL version 3 is available.
 Concept of ReNom version 3
 ---------------------------
 
-The goal of ReNomDL version 3.0 is to allow users implement a high performance neural network.
-So far, many deep learning frame works are provided from many vendors. However many of frame works 
-requires users programming skills. The training time and inference time is depends on users programming skill
-that are including cuda programming, parallel computing and so on.
+The goal of ReNomDL version 3.0 is to allow users implement high performance neural networks with 
+minimal programming skills and device-related issues. Many deep learning frame works are provided from 
+many vendors, however most of these frameworks depends a lot on the programming skills of the user, 
+either disallowing beginners entry to the more optimized libraries or providing little flexibility in 
+the easier frameworks. This impacts the training and inference times of your networks significantly and 
+users desiring more performance and flexibility from their frameworks must eventually deal with 
+learning cuda-device programming, parallel computing, etc. ReNomDL serves as a mediator between user-defined 
+neural networks  and their devices, allowing for high speed and good scalability in their own machines.
 
-ReNomDL has functions to optimize user defined neural networks. This allows users high speed and scalable training.
 
 
-High Performance
-~~~~~~~~~~~~~~~~~
+Features
+---------
 
 ReNomDL allows you to implement neural networks that are high performance at training speed and less gpu mempry.
 
@@ -24,13 +27,17 @@ ReNomDL allows you to implement neural networks that are high performance at tra
 Eager mode and Executor mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-ReNomDL provides 2 modes to run neural network. The first one, **Eager mode**, is same running mode as 
-ReNomDL version 2. In **Eager mode**, the input data will flow layers and the output of each layers are
-evaluated immediately.
+One of the features of ReNomDL is that it provides 2 modes for running neural networks. The first one, 
+Eager mode, is the same as running your models in ReNomDL version 2. In Eager mode, the input data will 
+flow through the layers and the output of each layer can be observed evaluated immediately.
+The second one is Executor mode which is a new feature of ReNomDL version 3. 
+You can extract a computational graph as an Executor object from the output of a neural network. 
+This allows the Executor object to assume that the user is finished defining the graph and optimizes 
+it according to the type of graph that was created.
 
-The second one is **Executor mode** which is new feature of ReNomDL version 3. You can extract computational
-graph as an **Executor object** from outputs of neural network. The **Executor object** will be optimized according to
-the information that the graph nodes has. This 
+Eager mode stores the user defined graph in information that can later be used in the executor mode to 
+ensure that, while the user checks that the graph produces the correct results. Later on when finished 
+building the graph, ReNomDL then has the option to execute the graph quickly using the executor mode.
 
 
 .. code-block:: python
@@ -85,13 +92,15 @@ the information that the graph nodes has. This
 Computational Graph optimization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-As mentioned above, `Executor mode` will optimize the extracted computational graph.
+One of the key features of ReNomDL v3 is that it now produces a computational graph, whereas in v2, 
+the graph existed as a result of the user connecting the different computational elements together. 
+As of v3, this connection is now made explicit in the graph, giving it the opportunity to make predictions on 
+the operations that are to take place during execution mode. A key advantage of this is that it allows 
+the graph to reduce the required space to a minimum, allows us to remove unnecessary operations or simply 
+use better algorithms to perform the same computations as before the optimization.
 
-
-
-Multi GPU Scalability
-~~~~~~~~~~~~~~~~~~~~~
-
-Graph will be here.
+All of this happens in a much more light-weight form as part of the optimization procedure reduces 
+execution to the bare minimum of what is actually required to perform the graph, 
+which becomes significantly more important as multi-device machines are becoming more and more important
 
 
