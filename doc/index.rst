@@ -9,6 +9,7 @@ Welcome to document of ReNom.
     :maxdepth: 1
 
     rsts/introduction/main
+    rsts/differences/main
     rsts/installation/main
     rsts/api/main
     rsts/onnx/main

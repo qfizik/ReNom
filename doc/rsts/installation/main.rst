@@ -3,16 +3,15 @@ Installation
 
 You have to take following steps to use ReNom in your environment.
 
-1. Install the python(we confirm the operation in python 2.7, 3.4, 3.5 and 3.6)
+1. Install the python(we confirm the operation in python 3.4, 3.5 and 3.6)
 2. Install the ReNom environment
 
-First, you have to install the python.
-There are many web pages that explain how to intall the python.
-And, you can download ReNom from following link.
+You can download ReNom from following github link.
 
 URL: https://github.com/ReNom-dev-team/ReNom
 
-If you already installed the GPU environments.
+If you already have installed cuda toolkits to your environments, you can build
+cuda modules and install ReNom.
 
 .. code-block:: sh
 
@@ -21,7 +20,7 @@ If you already installed the GPU environments.
    python setup.py build_ext -f -i
    pip install -e .
 
-If you did not set the GPU environments.
+If you have not set up the GPU environments.
 
 .. code-block:: sh
 
