@@ -1,11 +1,10 @@
-renom.graph.function
-====================
+renom.graph.basics
+===================
 
 This documentation contains a list of the different GraphFactory objects
 you can use to create the graph.
 
 .. currentmodule:: renom.graph
-
 
 ..  Please keep this list in lexicographical order.
 
@@ -14,20 +13,10 @@ you can use to create the graph.
     :toctree: autosum/
     :nosignatures:
 
-    AvgPool
-    AvgUnPool
-    BatchNormalize
-    Bias
-    Conv
-    Deconv
-    Dense
-    Dropout
-    Embedding
-    Gru
-    L2Norm
-    LayerNormalize
-    Lrn
-    Lstm
-    MaxPool
-    MaxUnPool
-    WeightNormalize
+    Add
+    Clip
+    Concatenate
+    Div
+    Exp
+    GetItem
+    Log

@@ -74,3 +74,8 @@ class Reshape(GraphFactory):
     def connect(self, other):
         ret = ReshapeElement(self.shp, other)
         return ret
+
+
+@populate_graph
+def reshape(x, shape):
+    return Reshape(shape)(x)

@@ -7,6 +7,7 @@ renom.graph
     :maxdepth: 1
 
     core
+    basics
     function
     activation
     loss

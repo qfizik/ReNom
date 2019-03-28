@@ -128,6 +128,8 @@ class MeanElement(UserGraph):
 
 @populate_graph
 class Mean(GraphFactory):
+    '''Mean function
+    '''
 
     def __init__(self, axis=None, keepdims=False):
         super().__init__()

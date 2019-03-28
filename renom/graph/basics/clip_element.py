@@ -8,25 +8,42 @@
 
 import numpy as np
 
-from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
 import renom as rm
+from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
 from renom.graph import populate_graph
 
 
 class clip_forward(operation):
+    '''Clip forward operation class.
+
+    Args:
+        floor (float): The lower bound of clipping.
+        ceil (float): The upper bound of clipping.
+
+    '''
 
     name = 'Clip (F)'
 
-    def __init__(self, floor, ceil, use_key=None):
+    def __init__(self, floor, ceil):
         self.floor = floor
         self.ceil = ceil
-        self.key = use_key
 
     def setup(self, inputs):
-        key = self.key
-        if key is None:
-            key = 'y'
-        inputs = inputs[0][key]
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        clip_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
+        inputs = inputs[0]['y']
         output_shape = inputs.shape
         gpus = inputs.gpus
 
@@ -47,6 +64,8 @@ class clip_forward_cpu(clip_forward):
 
 
 class clip_backward(operation):
+    '''Clip backward operation class.
+    '''
 
     name = 'Clip (B)'
 
@@ -56,6 +75,20 @@ class clip_backward(operation):
         self.ceil = self._fwd_op.ceil
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        clip_backward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         fwd_inputs = self._fwd_op._inputs
         shape = fwd_inputs.shape
@@ -89,15 +122,52 @@ class ClipElement(UserGraph):
 
     _name = 'Clip Element'
 
-    def __init__(self, floor, ceil, previous_element=None):
+    def __init__(self, floor, ceil, previous_elements=None):
         fwd_op = clip_forward(floor, ceil) if rm.is_cuda_active() else clip_forward_cpu(floor, ceil)
         bwd_ops = [clip_backward(fwd_op) if rm.is_cuda_active() else clip_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops,
-                         previous_elements=previous_element)
+                         previous_elements=previous_elements)
+
+@populate_graph
+class Clip(GraphFactory):
+    '''A factory class of clip function element.
+
+    Args:
+        floor (float): The lower bound of clipping.
+        ceil (float): The upper bound of clipping.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(6).reshape(2, 3)
+        >>> 
+        >>> rmg.clip(x, 0, 1)
+        Clip (F):
+        [[0. 1. 1.]
+         [1. 1. 1.]]
+
+    '''
+
+    def prepare(self, floor, ceil):
+        self.floor = floor
+        self.ceil = ceil
+
+    def connect(self, other):
+        return ClipElement(self.floor, self.ceil, previous_elements=[other])
 
 
-def clip(self):
-    ret = ClipElement([self])
+@populate_graph
+def clip(self, floor, ceil):
+    '''A function style factory of clip function element.
+
+    Args:
+        floor (float): The lower bound of clipping.
+        ceil (float): The upper bound of clipping.
+
+    For more information, please refer :py:class:`~renom.graph.basics.clip_element.Clip`.
+    '''
+    ret = Clip(floor, ceil)(self)
     return ret
 
 

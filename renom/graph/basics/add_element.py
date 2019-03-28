@@ -9,12 +9,15 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph, GraphFactory
+from renom.graph.core import operation, GraphMultiStorage, \
+    operational_element, UserGraph, GraphFactory
 from renom.graph.utils import broad_cast, cu_broad_cast
 from renom.graph import populate_graph
 
 
 class add_forward(operation):
+    '''Add forward operation class.
+    '''
 
     name = 'Add (F)'
 
@@ -23,6 +26,22 @@ class add_forward(operation):
         self._b = None
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        add_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Output of 2nd previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         a = inputs[0]['y']
         b = inputs[1]['y']
         assert len(a) == len(b)
@@ -47,6 +66,8 @@ class add_forward_cpu(add_forward):
 
 
 class add_backward(operation):
+    '''Add backward operation class.
+    '''
 
     name = 'Add (B)'
 
@@ -55,6 +76,20 @@ class add_backward(operation):
         self._key = key
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        add_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self._inputs = inputs[0]['y']
         key = self._key
         a = self._fwd_op.get_key(key)
@@ -101,13 +136,32 @@ class AddElement(UserGraph):
 
 @populate_graph
 class Add(GraphFactory):
+    '''A factory class of add function element.
+    Add operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x1 = np.arange(6).reshape(2, 3)
+        >>> x2 = np.arange(3).reshape(1, 3)
+        >>> 
+        >>> v1 = rmg.StaticVariable(x1)
+        >>> v2 = rmg.StaticVariable(x2)
+        >>> 
+        >>> v1 + v2
+        Add (F):
+        [[0. 2. 4.]
+         [3. 5. 7.]]
+
+    '''
 
     def connect(self, lhs, rhs):
         return AddElement([lhs, rhs])
 
 
 def _add(self, other):
-    ret = AddElement([self, other])
+    ret = Add()(self, other)
     return ret
 
 

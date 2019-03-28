@@ -9,7 +9,7 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
+from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph, GraphFactory
 from renom.graph.utils import broad_cast, cu_broad_cast
 from renom.graph import populate_graph
 
@@ -121,9 +121,14 @@ class PowElement(UserGraph):
                    pow_backward(fwd_op, 'a') if rm.is_cuda_active() else pow_backward_cpu(fwd_op, 'a')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
+@populate_graph
+class Pow(GraphFactory):
+
+    def connect(self, x, power):
+        return PowElement(previous_elements=[x, power])
 
 def _pow(self, other):
-    ret = PowElement([self, other])
+    ret = Pow()(self, other)
     return ret
 
 

@@ -82,8 +82,17 @@ class ExpElement(UserGraph):
 
 @populate_graph
 @populate_basics
+class Exp(GraphFactory):
+    '''Exponential 
+    '''
+    def connect(self, x):
+        return ExpElement([x])
+
+
+@populate_graph
+@populate_basics
 def exp(self):
-    ret = ExpElement([self])
+    ret = Exp()(self)
     return ret
 
 

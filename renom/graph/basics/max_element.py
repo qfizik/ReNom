@@ -168,10 +168,11 @@ class MaxElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
+@populate_graph
 class Max(GraphFactory):
 
     def connect(self, other):
-        ret = MaxElement(other)
+        ret = MaxElement(previous_elements=[other])
         return ret
 
 

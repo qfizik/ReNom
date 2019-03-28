@@ -129,7 +129,8 @@ class EluElement(UserGraph):
     def __init__(self, alpha=0.01, previous_elements=None):
         fwd_op = elu_forward(alpha) if rm.is_cuda_active() else elu_forward_cpu(alpha)
         bwd_ops = [elu_backward(fwd_op) if rm.is_cuda_active() else elu_backward_cpu(fwd_op)]
-        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
+        super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops,
+                         previous_elements=previous_elements)
 
 
 @populate_graph

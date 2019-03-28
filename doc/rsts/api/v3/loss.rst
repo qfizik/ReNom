@@ -3,7 +3,7 @@ renom.graph.loss
 
 This documentation describes the loss functions in renom.graph
 
-.. automodule:: renom.graph.loss
+.. currentmodule:: renom.graph.loss
 
 .. Please keep this list in lexicographical order.
 

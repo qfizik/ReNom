@@ -9,7 +9,10 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
+from renom.graph.core import operation, operational_element, UserGraph, \
+    GraphMultiStorage, GraphFactory
+from renom.graph import populate_graph
+from renom.graph.basics import populate_basics
 
 
 class get_item_forward(operation):
@@ -121,9 +124,18 @@ class GetItemElement(UserGraph):
                    else get_item_backward_cpu(fwd_op)]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
+@populate_graph
+@populate_basics
+class GetItem(GraphFactory):
+    """GetItem
+    """
+
+    def connect(self, x, index):
+        return GetItemElement(index, previous_elements=[x])
+
 
 def _get_item(self, index):
-    ret = GetItemElement(index, self)
+    ret = GetItem()(index, self)
     return ret
 
 

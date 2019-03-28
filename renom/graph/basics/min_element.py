@@ -168,6 +168,7 @@ class MinElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
+@populate_graph
 class Min(GraphFactory):
 
     def connect(self, other):

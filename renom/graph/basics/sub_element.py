@@ -116,11 +116,11 @@ class SubElement(UserGraph):
 class Sub(GraphFactory):
 
     def connect(self, lhs, rhs):
-        return SubElement([lhs, rhs])
+        return SubElement(previous_elements=[lhs, rhs])
 
 
 def _sub(self, other):
-    ret = SubElement([self, other])
+    ret = Sub()(self, other)
     return ret
 
 

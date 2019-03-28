@@ -8,8 +8,8 @@
 
 import numpy as np
 
-from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
 import renom as rm
+from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
 from renom.graph import populate_graph
 from renom.graph.basics import populate_basics
 
@@ -71,7 +71,7 @@ class sqrt_backward_cpu(sqrt_backward):
 
 class SqrtElement(UserGraph):
 
-    _name = 'Sqrt Element'
+    name = 'Sqrt'
 
     def __init__(self, previous_element=None):
         fwd_op = sqrt_forward() if rm.is_cuda_active() else sqrt_forward_cpu()
@@ -79,11 +79,18 @@ class SqrtElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops,
                          previous_elements=previous_element)
 
+@populate_graph
+@populate_basics
+class Sqrt(GraphFactory):
+
+    def connect(self, x):
+        return SqrtElement(previous_element=[x])
+
 
 @populate_graph
 @populate_basics
 def sqrt(self):
-    ret = SqrtElement([self])
+    ret = Sqrt(self)
     return ret
 
 

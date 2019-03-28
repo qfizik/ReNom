@@ -9,9 +9,10 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import UserGraph, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
-from renom.graph.train import initializer as init
 from renom import cuda
+from renom.graph.core import UserGraph, operational_element, operation, \
+    GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.train import initializer as init
 from renom.graph import populate_graph
 
 

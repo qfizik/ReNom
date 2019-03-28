@@ -79,11 +79,17 @@ class LogElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops,
                          previous_elements=previous_element)
 
+@populate_graph
+class Log(GraphFactory):
+
+    def connect(self, x):
+        return LogElement(previous_element=[x])
+
 
 @populate_graph
 @populate_basics
 def log(self):
-    ret = LogElement([self])
+    ret = Log()(self)
     return ret
 
 
