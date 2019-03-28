@@ -16,6 +16,8 @@ users desiring more performance and flexibility from their frameworks must event
 learning cuda-device programming, parallel computing, etc. ReNomDL serves as a mediator between user-defined 
 neural networks  and their devices, allowing for high speed and good scalability in their own machines.
 
+ReNomDL allows you to implement neural networks that are high performance at training speed and less gpu mempry.
+
 
 
 Features
@@ -102,5 +104,4 @@ use better algorithms to perform the same computations as before the optimizatio
 All of this happens in a much more light-weight form as part of the optimization procedure reduces 
 execution to the bare minimum of what is actually required to perform the graph, 
 which becomes significantly more important as multi-device machines are becoming more and more important
-
 

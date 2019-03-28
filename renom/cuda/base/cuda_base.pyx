@@ -18,6 +18,7 @@ from cuda_utils cimport _VoidPtr
 import renom
 from renom.config import precision
 import collections
+from renom.cuda.gpuvalue import GPUValue
 
 # Indicate Python started shutdown process
 cdef int _python_shutdown = 0
@@ -251,7 +252,7 @@ cpdef cuMemcpyD2DAsync(uintptr_t gpu_ptr1, uintptr_t gpu_ptr2, int size, int str
     return
 
 def check_heap_device(*heaps):
-    devices = {h._ptr.device_id for h in heaps if isinstance(h, renom.core.GPUValue)}
+    devices = {h._ptr.device_id for h in heaps if isinstance(h, GPUValue)}
 
     current = {cuGetDevice()}
     if devices != current:

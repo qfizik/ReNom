@@ -1,7 +1,8 @@
 import renom as rm
-from renom.layers.function.utils import im2col, col2im, colnim, imncol, colnw
+from renom.utils import im2col, col2im, colnim, imncol, colnw
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
 import renom.utility.initializer as init
+from renom.graph.utils.conv_cpu_methods import _get_expanded_value
 import numpy as np
 
 
@@ -27,10 +28,10 @@ class deconv_forward(operation):
         dims = len(input_shape[2:])
         self._dims = dims
 
-        self._kernel = np.array(list(self._k for i in range(dims))).astype(np.int32)
-        self._padding = np.array(list(self._p for i in range(dims))).astype(np.int32)
-        self._stride = np.array(list(self._s for i in range(dims))).astype(np.int32)
-        self._dilation = np.array(list(self._d for i in range(dims))).astype(np.int32)
+        self._kernel = _get_expanded_value(self._k, dims)
+        self._padding = _get_expanded_value(self._p, dims)
+        self._stride = _get_expanded_value(self._s, dims)
+        self._dilation = _get_expanded_value(self._d, dims)
 
         self._inputs = inputs
         gpus = inputs.gpus

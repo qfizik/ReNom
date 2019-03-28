@@ -179,22 +179,3 @@ class operational_element(graph_element):
 
     def __repr__(self):
         return self._op.__repr__()
-
-
-'''
-    TODO: This is not good code!
-    A sub-class should not attempt to nullify additions made by parent class.
-    Unfortunately, this looks the best as of right now, since the inheritance
-    schema would become ugly otherwise.
-'''
-
-
-class unidirectional_element(operational_element):
-
-    @property
-    def _next_elements(self):
-        return []
-
-    @_next_elements.setter
-    def _next_elements(self, val):
-        pass

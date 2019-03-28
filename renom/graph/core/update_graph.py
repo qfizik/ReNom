@@ -39,11 +39,11 @@ class gradient_accumulator(operation):
 
     def accumulate_gpu(self):
         for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            rm.cu.cusub(self._outputs[gpu], self._outputs[gpu],
-                        self._outputs[gpu], handle)
+            rm.cuda.cusub(self._outputs[gpu], self._outputs[gpu],
+                          self._outputs[gpu], handle)
             for grad in self._inputs:
-                rm.cu.cuadd(self._outputs[gpu], grad[gpu],
-                            self._outputs[gpu], handle)
+                rm.cuda.cuadd(self._outputs[gpu], grad[gpu],
+                              self._outputs[gpu], handle)
 
     def accumulate_cpu(self):
         dy = 0

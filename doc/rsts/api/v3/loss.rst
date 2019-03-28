@@ -12,9 +12,9 @@ This documentation describes the loss functions in renom.graph
     :toctree: autosum/
     :nosignatures:
 
-    renom.graph.loss.ConstantLoss
-    renom.graph.loss.CrossEntropy
-    renom.graph.loss.MeanSquared
-    renom.graph.loss.SigmoidCrossEntropy
-    renom.graph.loss.SmoothL1
-    renom.graph.loss.SoftmaxCrossEntropy
+    ConstantLoss
+    CrossEntropy
+    MeanSquared
+    SigmoidCrossEntropy
+    SmoothL1
+    SoftmaxCrossEntropy

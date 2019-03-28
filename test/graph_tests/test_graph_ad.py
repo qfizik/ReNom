@@ -680,11 +680,12 @@ def test_embedding(test_shape, output_size, use_gpu, num_gpu):
 
 @pytest.mark.parametrize("test_shape", [
     (1, 1, 5, 5),
-    (2, 3, 5, 5),
-    #(2, 2, 5, 5, 5),
+    (2, 3, 4, 5),
+    (2, 2, 5, 5, 5),
 ])
 @pytest.mark.parametrize("groups", [1, 2])
-def test_conv(test_shape, use_gpu, num_gpu, ignore_bias, groups):
+@pytest.mark.parametrize("dilation", [1, 2])
+def test_conv(test_shape, use_gpu, num_gpu, ignore_bias, dilation, groups):
     # TODO: Fix this weird issue
     # Fails at seed 30 (some times) for some reason
     np.random.seed(43)
@@ -699,9 +700,11 @@ def test_conv(test_shape, use_gpu, num_gpu, ignore_bias, groups):
         test_shape = tuple(test_shape)
 
     v = rand(*test_shape)
+    dims = len(test_shape[2:])
+    k = tuple(range(1, 1 + dims, 1))
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.Conv(channel=2, ignore_bias=ignore_bias, groups=groups)
-    model2 = rm.graph.Conv(channel=4, ignore_bias=ignore_bias)
+    model = rm.graph.Conv(channel=2, kernel=k, ignore_bias=ignore_bias, groups=groups)
+    model2 = rm.graph.Conv(channel=4, dilation=dilation, ignore_bias=ignore_bias)
     loss = rm.graph.ConstantLoss()
     m = model(val)
     m = model2(m)
@@ -792,17 +795,29 @@ def test_l2_norm(use_gpu, num_gpu):
 
 @pytest.mark.parametrize("test_shape", [
     (1, 1, 5, 5),
-    (2, 3, 5, 5),
+    (2, 3, 4, 5),
     (2, 3, 4, 4, 4),
 ])
 def test_max_pool(test_shape, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
     # Fails on seed 30
     np.random.seed(45)
+    dims = len(test_shape[2:])
+    s = tuple(range(2, 2 + dims, 1))
     v = np.random.randint(0, 5000, test_shape).astype(rm.precision)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
-    model = rm.graph.MaxPool(kernel=3, padding=0, stride=1)
+    model = rm.graph.MaxPool(kernel=3, padding=0, stride=s)
     loss = rm.graph.ConstantLoss()
+
+    if dims == 3:
+        broken_model = rm.graph.MaxPool(kernel=3, padding=0, stride=(2, 3))
+        try:
+            broken_model(val)
+            assert False
+        except AssertionError as e:
+            pass
+
+
     m = model(val)
     l = loss(m)
 
