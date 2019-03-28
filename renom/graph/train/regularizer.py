@@ -1,5 +1,8 @@
-import renom as rm
 import numpy as np
+
+import renom as rm
+from renom import cuda
+from renom.graph import populate_graph
 
 
 class regularizer_factory:
@@ -22,7 +25,7 @@ class regularizer_factory:
             setattr(op, name, val)
         self.__dict__[name] = val
 
-
+@populate_graph
 class L2(regularizer_factory):
 
     class gpu_op:
@@ -36,8 +39,8 @@ class L2(regularizer_factory):
             self.gpus = param.gpus
 
         def apply(self):
-            for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-                rm.cuda.cu_l2_regularizer(self._param[gpu], self._grad[gpu], self.wd)
+            for gpu, handle in cuda.RenomHandlers(self.gpus):
+                cuda.cu_l2_regularizer(self._param[gpu], self._grad[gpu], self.wd)
 
     class cpu_op(gpu_op):
 

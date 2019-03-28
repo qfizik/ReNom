@@ -1,8 +1,11 @@
-import renom as rm
-import numpy as np
-from .put_graph import put_graph
 from functools import wraps
+
+import numpy as np
+
+import renom as rm
+from .put_graph import put_graph
 from .fetcher import *
+from renom.graph import populate_graph
 
 
 def indexer(index_func):
@@ -15,6 +18,7 @@ def indexer(index_func):
     return new_index_func
 
 
+@populate_graph
 class DataInput:
     '''A generic multi-source Input element.
 

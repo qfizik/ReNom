@@ -107,7 +107,7 @@ def test_distributor_test_split(use_gpu):
     assert count == 2
 
 
-class BadSgd(rm.graph.utils.optimizer.optimizer_factory):
+class BadSgd(rm.graph.train.optimizer.optimizer_factory):
 
     class gpu_op:
 

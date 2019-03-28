@@ -39,9 +39,14 @@
     Please not that the core package is NOT imported into the graph module. The idea is to
     attempt to keep the internals of the graph module unexposed to the user.
 '''
-from .basics import *
-from .function import *
-from .loss import *
-from .utils import *
-from .activation import *
-from .distribution import *
+from renom import populate_value
+populate_graph = populate_value('renom.graph')
+
+from . import core
+from . import basics
+from . import train
+from . import function
+from . import loss
+from . import utils
+from . import activation
+from . import distribution

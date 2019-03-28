@@ -1,7 +1,9 @@
-import renom as rm
 import numpy as np
+
+import renom as rm
 from renom.graph.core import GraphMultiStorage
-import renom.utility.initializer as init
+from renom.graph.train import initializer as init
+from renom.graph import populate_graph
 
 
 class optimizer_factory:
@@ -29,6 +31,7 @@ T = True
 F = False
 
 
+@populate_graph
 class Sgd(optimizer_factory):
 
     class gpu_op:

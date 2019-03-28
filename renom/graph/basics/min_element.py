@@ -1,8 +1,18 @@
-import renom as rm
-from renom.graph.core import UserGraph, GraphMultiStorage, operation, GraphFactory
-import renom.utility.initializer as init
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
 
+import renom as rm
+from renom.graph.core import UserGraph, GraphMultiStorage, operation, GraphFactory
+from renom.graph.train import initializer as init
+from renom.graph import populate_graph
+from renom.graph.basics import populate_basics
 
 class min_forward(operation):
 
@@ -163,7 +173,8 @@ class Min(GraphFactory):
         ret = MinElement(other)
         return ret
 
-
+@populate_graph
+@populate_basics
 def min(self, axis=None, keepdims=False):
     return MinElement([self], axis=axis, keepdims=keepdims)
 

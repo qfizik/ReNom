@@ -1,8 +1,19 @@
-import renom as rm
-from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
 
+import renom as rm
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
+from renom.graph import populate_graph
 
+
+@populate_graph
 class Dropout(GraphFactory):
     """Applies Dropout [dropout]_ to the input.
 

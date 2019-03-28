@@ -1,6 +1,15 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import renom as rm
+from renom.graph import populate_graph
 
-
+@populate_graph
 class Activation:
 
     def __new__(cls, namestring, *args, **kwargs):

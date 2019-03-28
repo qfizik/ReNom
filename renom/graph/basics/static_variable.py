@@ -1,7 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+
 import renom as rm
 from renom.graph.core import GraphMultiStorage, operational_element, UserGraph, operation
-
+from renom.graph import populate_graph
 
 class static_value(operation):
 
@@ -47,6 +56,7 @@ class static_value(operation):
         pass
 
 
+@populate_graph
 class StaticVariable(UserGraph):
 
     _name = 'Static Element'

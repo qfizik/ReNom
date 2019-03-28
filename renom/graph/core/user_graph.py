@@ -3,7 +3,7 @@ import numpy as np
 import renom as rm
 from .graph_element import graph_element
 from .operational_element import operational_element
-from .update_graph import update_operation, gradient_accumulator
+from renom.graph.core.update_graph import update_operation, gradient_accumulator
 from .operation import operation
 from .executor import Executor
 

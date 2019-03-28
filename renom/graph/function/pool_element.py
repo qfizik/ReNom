@@ -1,8 +1,18 @@
-import renom as rm
-from renom.utils import im2col, col2im, imnpool, poolnim
-from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
-from renom.graph.utils.conv_cpu_methods import _get_expanded_value
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+
+import renom as rm
+from renom.graph.utils import im2col, col2im, imnpool, poolnim
+from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
+from renom.graph.utils import _get_expanded_value
+from renom.graph import populate_graph
 
 class pool_forward(operation):
 
@@ -144,6 +154,7 @@ class PoolGraphFactory(GraphFactory):
         self._strd = stride
 
 
+@populate_graph
 class MaxPool(PoolGraphFactory):
     '''Max pooling function.
 
@@ -168,6 +179,7 @@ class MaxPool(PoolGraphFactory):
         return ret
 
 
+@populate_graph
 class AvgPool(PoolGraphFactory):
     '''Average pooling function.
     This function takes average for each cells overlapped by the filter kernel.

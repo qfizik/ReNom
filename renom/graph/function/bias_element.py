@@ -1,7 +1,18 @@
-from renom.graph.core import UserGraph, operation, GraphMultiStorage, GraphFactory, graph_variable
-import renom.utility.initializer as init
-import renom as rm
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+
+from renom.graph.core import UserGraph, operation, GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.train import initializer as init
+import renom as rm
+from renom import cuda
+from renom.graph import populate_graph
 
 
 class bias_forward(operation):
@@ -31,8 +42,8 @@ class bias_forward(operation):
         self._biases = bias
 
     def perform(self):
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            rm.cuda.cuadd(self._inputs[gpu], self._biases[gpu], self._outputs[gpu], handle)
+        for gpu, handle in cuda.RenomHandlers(self.gpus):
+            cuda.cuadd(self._inputs[gpu], self._biases[gpu], self._outputs[gpu], handle)
 
 
 class bias_forward_cpu(bias_forward):
@@ -59,8 +70,8 @@ class bias_backward(operation):
         self._inputs = inputs
 
     def perform(self):
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            ret = rm.cuda.cusum(self._inputs[gpu], handle, axis=0, keepdims=True)
+        for gpu, handle in cuda.RenomHandlers(self.gpus):
+            ret = cuda.cusum(self._inputs[gpu], handle, axis=0, keepdims=True)
             self._bias_back[gpu].copy_from(ret)
 
 
@@ -81,6 +92,7 @@ class BiasElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_graphs, previous_elements=previous_element)
 
 
+@populate_graph
 class Bias(GraphFactory):
     """This class
 

@@ -1,11 +1,21 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+
 import renom as rm
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory, graph_variable
-from renom.utils import im2col, col2im, imncol, colnim, colnw
-import renom.utility.initializer as init
-from renom.graph.utils.conv_cpu_methods import grouped_conv_forward, grouped_conv_back, _get_expanded_value
+from renom.graph.utils import im2col, col2im, imncol, colnim, colnw
+from renom.graph.train import initializer as init
+from renom.graph.utils import grouped_conv_forward, grouped_conv_back, _get_expanded_value
+from renom.graph import populate_graph
 
-
+@populate_graph
 class Conv(GraphFactory):
     """Convolutional Layer.
 

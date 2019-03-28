@@ -46,10 +46,12 @@ __version__ = "3.0.0"
 
 import argparse
 import numpy as np
+
 from renom.config import precision
 from renom import cuda
 from renom.cuda import has_cuda, set_cuda_active, is_cuda_active, get_device_count
 from renom.cuda.gpuvalue import GPUValue
+from renom.auxiliary import populate_value
 from renom import graph
 
 logging_level = 0

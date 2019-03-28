@@ -29,11 +29,11 @@
         the graph_variable.
 
 '''
-from .graph_storage import GraphMultiStorage
-from .user_graph import UserGraph, UserLossGraph
-from .operational_element import operational_element
-from .operation import operation, StateHolder
-from .graph_factory import GraphFactory, graph_variable
+from renom.graph.core.graph_storage import GraphMultiStorage
+from renom.graph.core.user_graph import UserGraph, UserLossGraph
+from renom.graph.core.operational_element import operational_element
+from renom.graph.core.operation import operation, StateHolder
+from renom.graph.core.graph_factory import GraphFactory, graph_variable
 import contextlib as cl
 
 
