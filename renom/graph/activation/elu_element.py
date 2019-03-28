@@ -7,9 +7,11 @@
 # ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
 
 import numpy as np
+
 import renom as rm
 from renom.graph.core import UserGraph, operation, GraphFactory, \
     graph_variable, GraphMultiStorage
+from renom.graph import populate_graph
 
 
 class elu_forward(operation):
@@ -130,6 +132,7 @@ class EluElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
+@populate_graph
 class Elu(GraphFactory):
     '''A factory class of elu activation function element. [elu]_
 
@@ -171,6 +174,7 @@ class Elu(GraphFactory):
         return ret
 
 
+@populate_graph
 def elu(x, alpha=0.01):
     '''A function style factory of elu activation function element.
 

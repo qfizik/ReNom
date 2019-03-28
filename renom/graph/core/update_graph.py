@@ -1,9 +1,11 @@
+#from __future__ import absolute_import
+
 import renom as rm
 import numpy as np
 from .operation import operation
 from .operational_element import operational_element
 from .graph_storage import GraphMultiStorage
-import renom.utility.initializer as init
+from renom.graph.train import initializer as init
 import types
 
 T = True

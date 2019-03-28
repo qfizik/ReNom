@@ -1,7 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+
 import renom as rm
 from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph, GraphFactory
-from renom.utils import broad_cast, cu_broad_cast
+from renom.graph.utils import broad_cast, cu_broad_cast
+from renom.graph import populate_graph
 
 
 class sub_forward(operation):
@@ -102,6 +112,7 @@ class SubElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
+@populate_graph
 class Sub(GraphFactory):
 
     def connect(self, lhs, rhs):

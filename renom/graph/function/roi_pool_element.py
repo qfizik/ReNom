@@ -1,10 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
 
 import numpy as np
+
 import renom as rm
-import renom.utility.initializer as init
-from renom.utils import roi_pooling_slice, region_cordinates, roi_pooling_slice_decode
+from renom.graph.train import initializer as init
+from renom.graph.utils import roi_pooling_slice, region_cordinates, roi_pooling_slice_decode
 from renom.graph.core import UserGraph, operational_element, operation, \
     GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph import populate_graph
 
 
 class roi_pooling_forward(operation):
@@ -148,6 +157,7 @@ class RoiPoolElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
+@populate_graph
 class RoiPool(GraphFactory):
     '''ROI pooling function.
 

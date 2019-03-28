@@ -1,7 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
+import numpy as np
+
 import renom as rm
 from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage, StateHolder
-import numpy as np
-import renom.utility.initializer as init
+from renom.graph.train import initializer as init
+from renom.graph import populate_graph
 
 
 class peephole_lstm_forward(operation):
@@ -326,6 +336,7 @@ class PeepholeLstmElement(UserGraph):
                 graph.add_input(backward_graph_input)
 
 
+@populate_graph
 class PeepholeLstm(GraphFactory):
 
     def prepare(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):

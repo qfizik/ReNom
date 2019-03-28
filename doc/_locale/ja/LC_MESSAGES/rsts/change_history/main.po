@@ -54,7 +54,7 @@ msgid "Add ``He Normal`` weight initializer."
 msgstr "重みの初期化方法``He Normal``を追加."
 
 #: ../../rsts/change_history/main.rst:17
-msgid ":py:meth:`renom.utility.initializer.HeNormal`."
+msgid ":py:meth:`renom.graph.train.initializer.HeNormal`."
 msgstr ""
 
 #: ../../rsts/change_history/main.rst:20
@@ -62,6 +62,6 @@ msgid "Add ``He Uniform`` weight initializer."
 msgstr "重みの初期化方法``He Uniform``を追加."
 
 #: ../../rsts/change_history/main.rst:20
-msgid ":py:meth:`renom.utility.initializer.HeUniform`."
+msgid ":py:meth:`renom.graph.train.initializer.HeUniform`."
 msgstr ""
 

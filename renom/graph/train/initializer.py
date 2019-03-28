@@ -2,8 +2,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import division
 from builtins import object
+
 import numpy as np
+
 from renom.config import precision
+from renom.graph import populate_graph
 
 
 class Initializer(object):
@@ -15,7 +18,7 @@ class Initializer(object):
 
     Example:
         >>> import renom as rm
-        >>> from renom.utility.initializer import GlorotUniform
+        >>> from renom.graph.train.initializer import GlorotUniform
         >>>
         >>> layer = rm.Dense(output_size=2, input_size=2, initializer=GlorotUniform())
         >>> print(layer.params.w)

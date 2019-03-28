@@ -1,6 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
+import numpy as np
+
 import renom as rm
 from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
-import numpy as np
+from renom.graph import populate_graph
 
 
 class softplus_forward(operation):
@@ -72,6 +82,7 @@ class SoftplusElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
+@populate_graph
 class Softplus(GraphFactory):
     '''A factory class of elu activation function element.
 
@@ -104,5 +115,6 @@ class Softplus(GraphFactory):
         return ret
 
 
+@populate_graph
 def softplus(x):
     return SoftplusElement(previous_elements=[x])

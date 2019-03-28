@@ -1,6 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
+import numpy as np
+
 import renom as rm
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
-import numpy as np
+from renom.graph import populate_graph
 
 
 class lrn_forward(operation):
@@ -107,6 +117,7 @@ class LrnElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
 
 
+@populate_graph
 class Lrn(GraphFactory):
     '''Local response normalization function [lrn]_ .
 

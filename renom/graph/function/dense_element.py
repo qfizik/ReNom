@@ -1,9 +1,21 @@
-from renom.graph.core import UserGraph, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
-import renom.utility.initializer as init
-import renom as rm
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
 
+import renom as rm
+from renom.graph.core import UserGraph, operational_element, operation, GraphMultiStorage, GraphFactory, graph_variable
+from renom.graph.train import initializer as init
+from renom import cuda
+from renom.graph import populate_graph
 
+
+@populate_graph
 class Dense(GraphFactory):
     '''Fully connected layer as described below.
 
@@ -89,9 +101,9 @@ class dense_forward(operation):
         self._outputs = outputs
 
     def perform(self):
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            rm.cuda.cublas_gemm(self._inputs[gpu], 0,
-                                self._weights[gpu], 0, self._outputs[gpu], handle)
+        for gpu, handle in cuda.RenomHandlers(self.gpus):
+            cuda.cublas_gemm(self._inputs[gpu], 0,
+                             self._weights[gpu], 0, self._outputs[gpu], handle)
 
 
 class dense_forward_cpu(dense_forward):
@@ -126,9 +138,9 @@ class dense_backward(operation):
         self._outputs = outputs
 
     def perform(self):
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            rm.cuda.cublas_gemm(self._inputs[gpu], 0,
-                                self._weights[gpu], 1, self._outputs[gpu], handle)
+        for gpu, handle in cuda.RenomHandlers(self.gpus):
+            cuda.cublas_gemm(self._inputs[gpu], 0,
+                             self._weights[gpu], 1, self._outputs[gpu], handle)
 
 
 class dense_backward_cpu(dense_backward):
@@ -164,9 +176,9 @@ class dense_weight_backward(operation):
         self._outputs = outputs
 
     def perform(self):
-        for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
-            rm.cuda.cublas_gemm(self._fwd_ins[gpu], 1,
-                                self._inputs[gpu], 0, self._outputs[gpu], handle)
+        for gpu, handle in cuda.RenomHandlers(self.gpus):
+            cuda.cublas_gemm(self._fwd_ins[gpu], 1,
+                             self._inputs[gpu], 0, self._outputs[gpu], handle)
 
 
 class dense_weight_backward_cpu(dense_weight_backward):

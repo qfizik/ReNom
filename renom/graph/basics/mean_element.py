@@ -1,7 +1,18 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
+import numpy as np
+
 import renom as rm
 from renom.graph.core import UserGraph, GraphMultiStorage, operation, GraphFactory
-import renom.utility.initializer as init
-import numpy as np
+from renom.graph.train import initializer as init
+from renom.graph import populate_graph
+from renom.graph.basics import populate_basics
 
 
 class mean_forward(operation):
@@ -115,6 +126,7 @@ class MeanElement(UserGraph):
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
 
+@populate_graph
 class Mean(GraphFactory):
 
     def __init__(self, axis=None, keepdims=False):
@@ -127,6 +139,8 @@ class Mean(GraphFactory):
         return ret
 
 
+@populate_graph
+@populate_basics
 def mean(self, axis=None, keepdims=False):
     return MeanElement([self], axis=axis, keepdims=keepdims)
 

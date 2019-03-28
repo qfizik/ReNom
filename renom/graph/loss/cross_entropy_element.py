@@ -1,6 +1,16 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
+import numpy as np
+
 import renom as rm
 from renom.graph.core import operation, UserLossGraph, graph_element, GraphMultiStorage, GraphFactory
-import numpy as np
+from renom.graph import populate_graph
 
 
 class cross_entropy_forward(operation):
@@ -139,6 +149,7 @@ class CrossEntropyElement(UserLossGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
+@populate_graph
 class CrossEntropy(GraphFactory):
     '''A factory class of cross entropy loss function element.
 

@@ -1,6 +1,17 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
+import numpy as np
+
 from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
 import renom as rm
-import numpy as np
+from renom.graph import populate_graph
+from renom.graph.basics import populate_basics
 
 
 class log_forward(operation):
@@ -69,6 +80,8 @@ class LogElement(UserGraph):
                          previous_elements=previous_element)
 
 
+@populate_graph
+@populate_basics
 def log(self):
     ret = LogElement([self])
     return ret

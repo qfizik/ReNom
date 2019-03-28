@@ -1,7 +1,9 @@
-import renom as rm
 import numpy as np
+
+import renom as rm
 from renom.graph.core import operation, GraphMultiStorage, UserGraph
 from renom.graph.basics.static_variable import static_value
+from renom.graph import populate_graph
 
 
 class placeholder_op(operation):
@@ -60,6 +62,7 @@ class placeholder_op(operation):
         pass
 
 
+@populate_graph
 class Placeholder(UserGraph):
 
     def __init__(self, shape, num_gpus=1):

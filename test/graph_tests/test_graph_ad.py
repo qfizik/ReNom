@@ -817,7 +817,6 @@ def test_max_pool(test_shape, use_gpu, num_gpu):
         except AssertionError as e:
             pass
 
-
     m = model(val)
     l = loss(m)
 

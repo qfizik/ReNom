@@ -8,3 +8,6 @@ from .tanh_element import Tanh, tanh
 from .maxout_element import Maxout, maxout
 from .sigmoid_element import Sigmoid, sigmoid
 from .generic_activation import Activation
+
+from renom import graph
+graph.Sigmoid = Sigmoid

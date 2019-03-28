@@ -7,9 +7,11 @@
 # ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
 
 import numpy as np
+
 import renom as rm
 from renom.graph.core import UserGraph, operation, GraphFactory, \
     graph_variable, GraphMultiStorage
+from renom.graph import populate_graph
 
 
 class leaky_relu_forward(operation):
@@ -125,6 +127,7 @@ class LeakyReluElement(UserGraph):
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
 
+@populate_graph
 class LeakyRelu(GraphFactory):
     '''A factory class of leaky relu activation function element. [leaky_relu]
 
@@ -165,6 +168,7 @@ class LeakyRelu(GraphFactory):
         return ret
 
 
+@populate_graph
 def leaky_relu(x, slope=0.01):
     '''A function style factory of leaky relu activation function element.
 

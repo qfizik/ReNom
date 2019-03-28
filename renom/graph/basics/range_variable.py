@@ -1,3 +1,5 @@
+raise NotImplementedError()
+
 import numpy as np
 import renom as rm
 from graph_element import graph_element
