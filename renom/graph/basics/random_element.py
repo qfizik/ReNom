@@ -12,6 +12,7 @@ import renom as rm
 from renom.graph.core import GraphMultiStorage, operational_element, UserGraph, operation
 from renom.graph import populate_graph
 
+
 class random_uniform(operation):
 
     name = 'Random Uniform (F)'

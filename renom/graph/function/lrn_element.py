@@ -12,6 +12,7 @@ import renom as rm
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
 from renom.graph import populate_graph
 
+
 class lrn_forward(operation):
 
     name = 'LRN (F)'

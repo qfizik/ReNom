@@ -13,6 +13,7 @@ from renom.graph.utils import im2col, col2im, imnpool, poolnim
 from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFactory
 from renom.graph import populate_graph
 
+
 class MaxUnPoolElement(UserGraph):
 
     def __init__(self, prev_pool, previous_element=None):

@@ -14,6 +14,7 @@ from renom.graph.train import initializer as init
 from renom.graph import populate_graph
 from renom.graph.basics import populate_basics
 
+
 class min_forward(operation):
 
     name = 'Min (F)'
@@ -172,6 +173,7 @@ class Min(GraphFactory):
     def connect(self, other):
         ret = MinElement(other)
         return ret
+
 
 @populate_graph
 @populate_basics

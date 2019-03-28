@@ -12,6 +12,7 @@ from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFacto
 import renom as rm
 from renom.graph import populate_graph
 
+
 class clip_forward(operation):
 
     name = 'Clip (F)'

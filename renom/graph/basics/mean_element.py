@@ -14,6 +14,7 @@ from renom.graph.train import initializer as init
 from renom.graph import populate_graph
 from renom.graph.basics import populate_basics
 
+
 class mean_forward(operation):
 
     name = 'Mean (F)'

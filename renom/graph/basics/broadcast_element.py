@@ -12,6 +12,7 @@ import renom as rm
 from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
 from renom.graph import populate_graph
 
+
 class broadcast_forward(operation):
 
     name = 'Broadcast (F)'

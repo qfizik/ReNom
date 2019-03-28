@@ -14,7 +14,6 @@ from renom.graph.train import initializer as init
 from renom.graph import populate_graph
 
 
-
 class tanh_forward(operation):
 
     name = 'Tanh (F)'

@@ -6,6 +6,7 @@ from renom import precision
 from renom.graph.core import UserGraph, GraphFactory
 from renom.graph import populate_graph
 
+
 @populate_graph
 class Sequential(GraphFactory):
 
@@ -430,6 +431,7 @@ def cu_broad_cast(hs, dy):
             dy = dy.reshape(hs.shape)
     return dy
 
+
 def _get_expanded_value(value, dims):
     if isinstance(value, int):
         ret = np.array(list(value for i in range(dims))).astype(np.int32)
@@ -439,7 +441,6 @@ def _get_expanded_value(value, dims):
     else:
         raise ValueError('Expected int or tuple, but got {}'.format(type(value)))
     return ret
-
 
 
 def grouped_conv_forward(x, w, b, col, groups, kernel, stride, padding, dilation):

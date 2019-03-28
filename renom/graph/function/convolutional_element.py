@@ -15,6 +15,7 @@ from renom.graph.train import initializer as init
 from renom.graph.utils import grouped_conv_forward, grouped_conv_back, _get_expanded_value
 from renom.graph import populate_graph
 
+
 @populate_graph
 class Conv(GraphFactory):
     """Convolutional Layer.

@@ -25,6 +25,7 @@ class regularizer_factory:
             setattr(op, name, val)
         self.__dict__[name] = val
 
+
 @populate_graph
 class L2(regularizer_factory):
 

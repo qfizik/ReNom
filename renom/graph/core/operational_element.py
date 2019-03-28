@@ -140,7 +140,7 @@ class operational_element(graph_element):
                 print('{time!s}: Input #{0:d} has shape {1!s}'.format(
                     i, inp['y'].shape, time=time.ctime()) +
                     ' and name {name!s} ({id})'.format(name=self._previous_elements[i]._op.name,
-                                                         id=id(self._previous_elements[i]._op)))
+                                                       id=id(self._previous_elements[i]._op)))
         self._op.setup(inputs)
         self.prev_inputs = inputs
 

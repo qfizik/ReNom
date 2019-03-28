@@ -12,6 +12,7 @@ import renom as rm
 from renom.graph.core import UserLossGraph, operation, GraphMultiStorage, GraphFactory
 from renom.graph import populate_graph
 
+
 class mean_squared_forward(operation):
 
     name = 'Mean Squared (F)'

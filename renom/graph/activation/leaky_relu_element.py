@@ -167,6 +167,7 @@ class LeakyRelu(GraphFactory):
         ret = LeakyReluElement(slope=self._slope, previous_elements=other)
         return ret
 
+
 @populate_graph
 def leaky_relu(x, slope=0.01):
     '''A function style factory of leaky relu activation function element.

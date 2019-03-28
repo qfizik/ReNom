@@ -14,7 +14,6 @@ from renom.graph.train import initializer as init
 from renom.graph import populate_graph
 
 
-
 class lstm_forward(operation):
 
     name = 'LSTM (F)'

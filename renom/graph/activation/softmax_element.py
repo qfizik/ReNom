@@ -12,6 +12,7 @@ import renom as rm
 from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 from renom.graph import populate_graph
 
+
 class softmax_forward(operation):
 
     name = 'SoftMax (F)'

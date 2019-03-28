@@ -14,6 +14,7 @@ from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFacto
 from renom.graph.utils import _get_expanded_value
 from renom.graph import populate_graph
 
+
 class pool_forward(operation):
 
     name = 'Pool (F)'

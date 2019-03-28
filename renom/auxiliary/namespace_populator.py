@@ -7,6 +7,7 @@
 # ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
 import sys
 
+
 def populate_value(namespace):
     def populator(variable):
         if not hasattr(variable, '__name__'):
@@ -16,6 +17,7 @@ def populate_value(namespace):
         setattr(sys.modules[namespace], variable.__name__, variable)
         return variable
     return populator
+
 
 def populate_constant(namespace, name):
     def populator(variable):

@@ -14,7 +14,6 @@ from renom.graph.utils import broad_cast, cu_broad_cast
 from renom.graph import populate_graph
 
 
-
 class sub_forward(operation):
 
     name = 'Sub (F)'

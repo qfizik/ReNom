@@ -13,6 +13,7 @@ from renom.graph.train import initializer as init
 import renom as rm
 from renom.graph import populate_graph
 
+
 class embedding_forward(operation):
 
     name = 'Embedding (F)'

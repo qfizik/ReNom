@@ -9,7 +9,6 @@ from renom.config import precision
 from renom.graph import populate_graph
 
 
-
 class Initializer(object):
     """Base class of initializer.
 

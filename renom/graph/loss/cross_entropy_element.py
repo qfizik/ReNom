@@ -12,6 +12,7 @@ import renom as rm
 from renom.graph.core import operation, UserLossGraph, graph_element, GraphMultiStorage, GraphFactory
 from renom.graph import populate_graph
 
+
 class cross_entropy_forward(operation):
 
     name = 'Cross Entropy (F)'

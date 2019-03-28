@@ -9,6 +9,7 @@
 import renom as rm
 from renom.graph import populate_graph
 
+
 @populate_graph
 class Activation:
 

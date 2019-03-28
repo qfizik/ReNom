@@ -15,7 +15,6 @@ from renom.graph.train import initializer as init
 from renom.graph import populate_graph
 
 
-
 class constant_loss_forward(operation):
 
     name = 'Constant loss'

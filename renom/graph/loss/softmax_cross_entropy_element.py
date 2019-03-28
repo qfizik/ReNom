@@ -12,6 +12,7 @@ import renom as rm
 from renom.graph.core import operation, UserLossGraph, graph_element, GraphMultiStorage, GraphFactory
 from renom.graph import populate_graph
 
+
 class softmax_cross_entropy_forward(operation):
 
     name = 'Softmax Cross Entropy(F)'

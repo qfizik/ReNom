@@ -12,6 +12,7 @@ from renom.graph.core import operation, operational_element, UserGraph, GraphMul
 import renom as rm
 from renom.graph import populate_graph
 
+
 class reshape_forward(operation):
 
     name = 'Reshape (F)'
@@ -61,6 +62,7 @@ class ReshapeElement(UserGraph):
         fwd_op = reshape_forward(shape)
         bwd_ops = [reshape_backward(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_element)
+
 
 @populate_graph
 class Reshape(GraphFactory):
