@@ -92,7 +92,7 @@ locale_dirs = ["_locale"]
 gettext_compact = False
 language = 'en'
 autodoc_member_order = "bysource"
-autodoc_default_flags = ['members', ]
+autodoc_default_flags = []
 
 # There are two options for replacing |today|: either, you set today to some
 # non-false value, then it is used:

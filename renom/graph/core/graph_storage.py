@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
 import renom as rm
 
@@ -74,20 +82,32 @@ class shared_val:
 
 class GraphMultiStorage:
     '''
-          The storage class of the graph. The graph is constructed through a brick and
-          mortar construction, type with the GraphMultiStorage being the party responsible
-          for keeping operations tied together indirectly.
+    The storage class of the graph. The graph is constructed through a brick and
+    mortar construction, type with the GraphMultiStorage being the party responsible
+    for keeping operations tied together indirectly.
 
-          The key points of the GraphMultiStorage class is that it allows device agnosticism
-          through only indirectly implementing the storage. The actual data is contained in
-          the GPUValue objects.
+    The key points of the GraphMultiStorage class is that it allows device agnosticism
+    through only indirectly implementing the storage. The actual data is contained in
+    the GPUValue objects.
 
-          When interfacing data for external devices, indexing the object will retrieve
-          the GPUValue defined on the indexed device.
-          When interfacing data for the cpu however, the storage should be indexed using
-          the 'cpu' special string.
+    When interfacing data for external devices, indexing the object will retrieve
+    the GPUValue defined on the indexed device.
+    When interfacing data for the cpu however, the storage should be indexed using
+    the 'cpu' special string.
+
+    Args:
+        shape (tuple): The shape of array.
+        gpus (int): Number of gpu.
+        initializer (Initializer): Initializer object for initializing array.
+        share_init (bool): If True, each data on multiple gpus will be 
+            initialized using same value.
+        ptrs (GPUValue): GraphMultiStorage will be instantiated using given GPUValue object.
+
     '''
+
     ready = False
+    '''True if required memory space is ready'''
+
     _shape = None
     _weight_decay = None
     _should_share = False
@@ -147,6 +167,8 @@ class GraphMultiStorage:
 
     @property
     def shape(self):
+        '''Shape of array.
+        '''
         return self._shape
 
     @shape.setter
@@ -161,10 +183,18 @@ class GraphMultiStorage:
 
     @staticmethod
     def share_init_by_default(should_share):
+        '''Static method. This function will set share initializing flag.
+
+        Args:
+            should_share (bool): If True, each data on multiple 
+                gpus will be initialized using same value.
+        '''
         GraphMultiStorage._should_share = should_share
 
     @property
     def gpus(self):
+        '''Gpu ids which GraphMultiStorage object keeps data on.
+        '''
         return self._gpus
 
     @gpus.setter
@@ -190,12 +220,32 @@ class GraphMultiStorage:
         return self._gpuvalues[index]
 
     def set_weight_decay(self, weight_decay):
+        '''This function set weight decay ratio to GraphMultiStorage.
+        Weight decay ratio will be used as following formula.
+
+        .. math::
+            loss = lossfunction(x, y) + weight\_decay/2. * l2norm\_of\_weights
+
+        Args:
+            weight_decay (float): Weight decay ratio.
+
+        '''
         self._weight_decay = weight_decay
 
     def set_optimizer(self, optimizer):
+        '''This function set optimizer to GraphMultiStorage object.
+
+        Args:
+            optimizer (operation): Optimizer operation.
+        '''
         self._optimizer = optimizer
 
     def set_updatable(self, updatable):
+        '''This function set updatable flag to GraphMultiStorage object.
+
+        Args:
+            updatable (bool): Updatable flag.
+        '''
         assert isinstance(updatable, bool)
         self._should_update = updatable
 
@@ -215,6 +265,13 @@ class GraphMultiStorage:
         return self._gpuvalues[k].__str__()
 
     def as_ndarray(self):
+        '''This function returns array as ndarray.
+        If the GraphMultiStorage object has array on the multiple gpus, 
+        this function will gather all arrays and returns element wise mean.
+
+        Returns:
+            (ndarray): The array GraphMultiStorage object contains.
+        '''
         if not rm.is_cuda_active():
             return self._gpuvalues['cpu']
         ret = 0

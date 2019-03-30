@@ -1,13 +1,24 @@
-import renom as rm
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import abc
+import functools
+import contextlib as cl
+
+import h5py
 import numpy as np
+
+import renom as rm
 from .user_graph import UserGraph
 from .operation import operation
-from .operational_element import operational_element
 from .graph_storage import GraphMultiStorage
-import contextlib as cl
-import functools
-import h5py
+from .operational_element import operational_element
+
 
 _str_optimizers = None
 _str_decays = None
@@ -63,8 +74,9 @@ class GraphFactory(abc.ABC):
         '''
         self.params = dict()
         self._prev = None
-        self._inference = None
+        self._inference = False
         self._make_update_graphs = True
+
         if isinstance(activation, str):
             activation = rm.graph.Activation(activation)
         if activation is not None:
@@ -114,6 +126,11 @@ class GraphFactory(abc.ABC):
             return decay
 
     def set_optimizers(self, optimizer):
+        '''This function set optimizer to GraphFactory object.
+
+        Args:
+            optimizer (optimizer_operation): Optimizer operation set to GraphFactory.
+        '''
         if isinstance(optimizer, dict):
             for key in self.params:
                 if key in optimizer:
@@ -128,6 +145,12 @@ class GraphFactory(abc.ABC):
 # These two should be abstracted into one
 
     def set_decays(self, decay):
+        '''This function set weight decay ratio to GraphFactory object.
+
+        Args:
+            weight_decay (float): Weight decay ratio.
+        '''
+
         if isinstance(decay, dict):
             for key in self.params:
                 if key in decay:
@@ -161,8 +184,9 @@ class GraphFactory(abc.ABC):
         if not self._make_update_graphs:
             for op_num, upd_g in ret._update_graphs:
                 upd_g.detach()
-        if self._inference is not None:
-            ret._fwd._op._inference = True
+
+        ret._fwd._op._inference = self._inference
+
         if self._param_dec is not None:
             ret.set_regularizer(self._param_dec)
         if self._opti is not None:
@@ -177,18 +201,93 @@ class GraphFactory(abc.ABC):
 
     @cl.contextmanager
     def no_updates(self):
+        '''Context manager.
+        Related object used a calculation which defined in this context manager
+        will not be updated.
+        This context manager affects GraphFactory object recursively
+
+        Example:
+            >>> import numpy as np
+            >>> import renom.graph as rmg
+            >>>
+            >>> m = np.arange(4).reshape(2, 2)
+            >>>
+            >>> #### Example 1.
+            >>> layer1 = rmg.Dense(1)
+            >>> weight1 = layer1.params['w']
+            >>>
+            >>> # Update will be performed.
+            >>> out1 = layer1(m)
+            >>> print("Before update1", weight1)
+            Before update1 Variable:
+            [[0.8224679 ]
+            [0.23228107]]
+            >>> out1.backward().update()
+            >>> print("After update1", weight1)
+            After update1 Variable:
+            [[-0.17753208]
+            [-1.7677189 ]]
+            >>>
+            >>> #### Example 2.
+            >>> layer2 = rmg.Dense(1)
+            >>> weight2 = layer2.params['w']
+            >>>
+            >>> # Update will "not" be performed.
+            >>> with layer2.no_updates():
+            ...     out2 = layer2(m)
+            ...        
+            >>> print("Before update2", weight2)
+            Before update2 Variable:
+            [[-0.22761208]
+            [-0.89233965]]
+            >>> out2.backward().update()
+            >>> print("After update2", weight2)
+            After update2 Variable:
+            [[-0.22761208]
+            [-0.89233965]]
+
+        '''
         self._set_make_updates(False)
         yield
         self._set_make_updates(True)
 
     @cl.contextmanager
     def inference(self):
-        self.set_inference(False)
-        yield
+        '''Context manager.
+        Calculation defined in this context manager will be run as inference mode.
+        This context manager affects GraphFactory object recursively
+
+        Example:
+            >>> import numpy as np
+            >>> import renom.graph as rmg
+            >>>
+            >>> m = np.arange(4).reshape(2, 2)
+            >>> layer = rmg.Dense(1)
+            >>> dropout = rmg.Dropout()
+            >>> print(dropout(layer(m)))
+            Dropout (F):
+            [[1.3728707]
+            [0.       ]]
+            >>>
+            >>> with dropout.inference():
+            ...     print(dropout(layer(m)))
+            Dropout (F):
+            [[0.68643534]
+            [3.0078702 ]]
+
+        '''
         self.set_inference(True)
+        yield
+        self.set_inference(False)
 
     @recursive_setting
     def set_inference(self, infer=True):
+        '''This function sets inference flag to GraphFactory object.
+        This function affects GraphFactory object recursively.
+
+        Args:
+            infer (bool): Inference flag.
+        '''
         self._inference = infer
 
     def _get_model_children(self):
@@ -236,6 +335,9 @@ class GraphFactory(abc.ABC):
         return value_list
 
     def load_v2_params(self, other_params, gpus=None):
+        '''This function loads weights of ReNomDL version 2.
+
+        '''
         self_params = self.params
         for key in other_params:
             if key in self_params:

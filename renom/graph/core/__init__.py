@@ -1,13 +1,27 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 '''
     This is a brief overview of the core package and its modules. In general,
-    these modules provide the 'engine', which implements the graph. The names
+    these modules provide the ``engine``, which implements the graph. The names
     might change to be more descriptive later.
 
-    graph_storage:
-        The graph_storage module is responsible for providing and maintaining the storage
+    GraphMultiStorage:
+        The GraphMultiStorage module is responsible for providing and maintaining the storage
         of the graph through the GraphMultiStorage.
 
-    user_graph:
+    GraphFactory:
+        A class made to simplify the definitions of graph building. Instead of maintaining
+        and reconnecting a single graph, the user simply constructs a new one using the
+        GraphFactory. The variables are kept consistent through different graphs using
+        the graph_variable.
+
+    UserGraph:
         In the use_graph module, we store the UserGraph class and related classes.
         The module contents are responsible for interfacing the user with the
         underlying components.
@@ -22,13 +36,8 @@
         graph is a series of connected operations. When the graph executes, it performs
         the operations found in the graph.
 
-    graph_factory:
-        A class made to simplify the definitions of graph building. Instead of maintaining
-        and reconnecting a single graph, the user simply constructs a new one using the
-        GraphFactory. The variables are kept consistent through different graphs using
-        the graph_variable.
-
 '''
+
 from renom.graph.core.graph_storage import GraphMultiStorage
 from renom.graph.core.user_graph import UserGraph, UserLossGraph
 from renom.graph.core.operational_element import operational_element

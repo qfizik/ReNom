@@ -11,3 +11,5 @@ renom.graph.core
     GraphMultiStorage
     GraphFactory
     UserGraph
+    operational_element
+    operation
