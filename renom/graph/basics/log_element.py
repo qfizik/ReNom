@@ -8,17 +8,34 @@
 
 import numpy as np
 
-from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
+from renom.graph.core import operation, operational_element, \
+    UserGraph, GraphMultiStorage, GraphFactory
 import renom as rm
 from renom.graph import populate_graph
 from renom.graph.basics import populate_basics
 
 
 class log_forward(operation):
+    '''Log forward operation class.
+    '''
 
     name = 'Log (F)'
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        log_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         output_shape = inputs.shape
         gpus = inputs.gpus
@@ -40,6 +57,8 @@ class log_forward_cpu(log_forward):
 
 
 class log_backward(operation):
+    '''Log backward operation class.
+    '''
 
     name = 'Log (B)'
 
@@ -47,6 +66,20 @@ class log_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        log_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         fwd_inputs = self._fwd_op._inputs
         shape = fwd_inputs.shape
@@ -81,6 +114,20 @@ class LogElement(UserGraph):
 
 @populate_graph
 class Log(GraphFactory):
+    '''A factory class of log function element.
+    Log operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(1, 7).reshape(2, 3)
+        >>> layer = rmg.Log()
+        >>> print(layer(x1))
+        Log (F):
+        [[0.        0.6931472 1.0986123]
+        [1.3862944 1.609438  1.7917595]]
+    '''
 
     def connect(self, x):
         return LogElement(previous_element=[x])
@@ -89,6 +136,14 @@ class Log(GraphFactory):
 @populate_graph
 @populate_basics
 def log(self):
+    '''A function style factory of log operation element.
+
+    Args:
+        self (UserGraph): Input array.
+
+    For more information, please refer :py:class:`~renom.graph.basics.log_element.Log`.
+    '''
+
     ret = Log()(self)
     return ret
 

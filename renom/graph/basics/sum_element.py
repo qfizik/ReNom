@@ -200,6 +200,7 @@ def sum(self, axis=None, keepdims=False):
     '''A function style factory of sum function element.
 
     Args:
+        self (UserGraph, ndarray): Input array.
         axis (int, tuple, None): Summation will be performed along given axis.
         keepdims (bool): If Ture is given, the original axis will be remained as 1.
 

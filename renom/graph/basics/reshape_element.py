@@ -8,12 +8,15 @@
 
 import numpy as np
 
-from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
+from renom.graph.core import operation, operational_element, \
+    UserGraph, GraphMultiStorage, GraphFactory
 import renom as rm
 from renom.graph import populate_graph
 
 
 class reshape_forward(operation):
+    '''Reshape forward operation class.
+    '''
 
     name = 'Reshape (F)'
 
@@ -21,6 +24,20 @@ class reshape_forward(operation):
         self._new_shape = shape
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        reshape_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         self._inputs = inputs[0]['y']
         new_shape = [self._inputs.shape[0]]
         new_shape.extend(self._new_shape)
@@ -28,12 +45,15 @@ class reshape_forward(operation):
         gpus = self._inputs.gpus
         self._outputs = GraphMultiStorage(shape=new_shape, gpus=gpus, ptrs=self._inputs)
         self._vars = {'y': self._outputs}
+        print(self._inputs)
 
     def perform(self):
         pass
 
 
 class reshape_backward(operation):
+    '''Reshape backward operation class.
+    '''
 
     name = 'Reshape (B)'
 
@@ -41,6 +61,20 @@ class reshape_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        reshape_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self._inputs = inputs[0]['y']
         shape = self._fwd_op._inputs.shape
         gpus = self._inputs.gpus
@@ -66,6 +100,17 @@ class ReshapeElement(UserGraph):
 
 @populate_graph
 class Reshape(GraphFactory):
+    '''A factory class of reshape function element.
+    Reshape operation of the UserGraph object will call this factory class.
+
+    Example:
+
+
+
+
+
+    '''
+
 
     def __init__(self, shape):
         super().__init__()
@@ -77,5 +122,16 @@ class Reshape(GraphFactory):
 
 
 @populate_graph
-def reshape(x, shape):
-    return Reshape(shape)(x)
+def reshape(self, shape):
+    '''A function style factory of reshape operation element.
+
+    Args:
+        self (UserGraph, ndarray): Input array.
+        shape (list, int, None): Indices.
+
+    For more information, please refer :py:class:`~renom.graph.basics.reshape_element.ReshapeElement`.
+    '''
+
+    return Reshape(shape)(self)
+
+UserGraph.reshape = reshape

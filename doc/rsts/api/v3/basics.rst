@@ -20,3 +20,13 @@ you can use to create the graph.
     Exp
     GetItem
     Log
+    Max
+    Mean
+    Min
+    Mul
+    Pow
+    Reshape
+    Sqrt
+    Square
+    Sub
+    Sum

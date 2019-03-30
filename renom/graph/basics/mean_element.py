@@ -16,6 +16,8 @@ from renom.graph.basics import populate_basics
 
 
 class mean_forward(operation):
+    '''Mean forward operation class.
+    '''
 
     name = 'Mean (F)'
 
@@ -24,6 +26,20 @@ class mean_forward(operation):
         self.keepdims = keepdims
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        mean_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         self._inputs = inputs
         gpus = inputs.gpus
@@ -53,6 +69,8 @@ class mean_forward_cpu(mean_forward):
 
 
 class mean_backward(operation):
+    '''Mean backward operation class.
+    '''
 
     name = 'Mean (B)'
 
@@ -60,6 +78,20 @@ class mean_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        mean_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         out_shape = self._fwd_op._inputs.shape
@@ -128,7 +160,19 @@ class MeanElement(UserGraph):
 
 @populate_graph
 class Mean(GraphFactory):
-    '''Mean function
+    '''A factory class of mean function element.
+    Mean operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(1, 7).reshape(2, 3)
+        >>> layer = rmg.Mean()
+        >>> print(layer(x1))
+        Mean (F):
+        3.5
+
     '''
 
     def __init__(self, axis=None, keepdims=False):
@@ -144,6 +188,16 @@ class Mean(GraphFactory):
 @populate_graph
 @populate_basics
 def mean(self, axis=None, keepdims=False):
+    '''A function style factory of mean operation element.
+
+    Args:
+        self (UserGraph, ndarray): Input array.
+        axis (int, tuple, None): Summation will be performed along given axis.
+        keepdims (bool): If Ture is given, the original axis will be remained as 1.
+
+    For more information, please refer :py:class:`~renom.graph.basics.mean_element.Mean`.
+    '''
+
     return MeanElement([self], axis=axis, keepdims=keepdims)
 
 

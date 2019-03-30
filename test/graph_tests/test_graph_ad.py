@@ -409,7 +409,7 @@ def test_lstm(test_shape, use_gpu, num_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.Lstm(output_size=4)
-    c = rm.graph.Concat()
+    c = rm.graph.Concatenate()
     l = rm.graph.ConstantLoss()
 
     def func():
@@ -451,7 +451,7 @@ def test_peephole_lstm(test_shape, use_gpu, num_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.PeepholeLstm(output_size=1)
-    c = rm.graph.Concat()
+    c = rm.graph.Concatenate()
     l = rm.graph.ConstantLoss()
 
     def func():
@@ -495,7 +495,7 @@ def test_peephole_lstm(test_shape, use_gpu, num_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.PeepholeLstm(output_size=1)
-    c = rm.graph.Concat()
+    c = rm.graph.Concatenate()
     l = rm.graph.ConstantLoss()
 
     def func():
@@ -539,7 +539,7 @@ def test_gru(test_shape, use_gpu, num_gpu):
     v = rand(*test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
     model = rm.graph.Gru(output_size=4)
-    c = rm.graph.Concat()
+    c = rm.graph.Concatenate()
     l = rm.graph.ConstantLoss()
 
     def func():

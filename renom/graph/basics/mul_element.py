@@ -15,6 +15,8 @@ from renom.graph import populate_graph
 
 
 class mul_forward(operation):
+    '''Mul forward operation class.
+    '''
 
     name = 'Mul (F)'
 
@@ -23,6 +25,20 @@ class mul_forward(operation):
         self._b = None
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        mul_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         a = inputs[0]['y']
         b = inputs[1]['y']
         assert len(a) == len(b)
@@ -47,6 +63,8 @@ class mul_forward_cpu(mul_forward):
 
 
 class mul_backward(operation):
+    '''Mul backward operation class.
+    '''
 
     name = 'Mul (B)'
 
@@ -55,6 +73,20 @@ class mul_backward(operation):
         self._key = key
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        mul_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self._inputs = inputs[0]['y']
         key = self._key
         key_value = self._fwd_op.get_key(key)
@@ -111,13 +143,41 @@ class MulElement(UserGraph):
 
 @populate_graph
 class Mul(GraphFactory):
+    '''A factory class of mul function element.
+    Mul operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x1 = np.arange(1, 7).reshape(2, 3)
+        >>> x2 = np.arange(1, 4).reshape(1, 3)
+        >>> 
+        >>> v1 = rmg.StaticVariable(x1)
+        >>> v2 = rmg.StaticVariable(x2)
+        >>> 
+        >>> print(v1 * v2)
+        Mul (F):
+        [[ 1.  4.  9.]
+        [ 4. 10. 18.]]
+
+    '''
 
     def connect(self, lhs, rhs):
         return MulElement([lhs, rhs])
 
 
 def _mul(self, other):
-    ret = MulElement([self, other])
+    '''A function style factory of add operation element.
+
+    Args:
+        self (UserGraph): Left hand input.
+        other (UserGraph): Right hand input.
+
+    For more information, please refer :py:class:`~renom.graph.basics.mul_element.Mul`.
+    '''
+
+    ret = Mul()(self, other)
     return ret
 
 

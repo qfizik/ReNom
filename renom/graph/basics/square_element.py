@@ -66,6 +66,20 @@ class square_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        square_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         fwd_inputs = self._fwd_op._inputs
         shape = fwd_inputs.shape
@@ -101,6 +115,22 @@ class SquareElement(UserGraph):
 @populate_graph
 @populate_basics
 class Square(GraphFactory):
+    '''A factory class of square function element.
+    Square operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(1, 7).reshape(2, 3)
+        >>> layer = rmg.Square()
+        >>> print(layer(x1))
+        Square (F):
+        [[ 1.  4.  9.]
+        [16. 25. 36.]]
+
+    '''
+
 
     def connect(self, x):
         return SquareElement(previous_element=[x])
@@ -109,6 +139,14 @@ class Square(GraphFactory):
 @populate_graph
 @populate_basics
 def square(self):
+    '''A function style factory of square operation element.
+
+    Args:
+        self (UserGraph, ndarray): Input array.
+
+    For more information, please refer :py:class:`~renom.graph.basics.square_element.Square`.
+    '''
+
     ret = Square()(self)
     return ret
 
