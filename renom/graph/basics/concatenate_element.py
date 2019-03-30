@@ -16,6 +16,8 @@ from renom.graph.basics import populate_basics
 
 
 class concatenate_forward(operation):
+    '''Concatenate forward operation class.
+    '''
 
     name = 'Concatenate (F)'
 
@@ -23,6 +25,20 @@ class concatenate_forward(operation):
         self.axis = axis
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        concatenate_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   n   |  y  | Output of nth previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         assert isinstance(inputs, (list, tuple)), \
             "Concatenate accepts only list or tuple of array."
         inputs = [a['y'] for a in inputs]
@@ -55,6 +71,8 @@ class concatenate_forward_cpu(concatenate_forward):
 
 
 class concatenate_backward(operation):
+    '''Concatenate backward operation class.
+    '''
 
     name = 'Concatenate (B)'
 
@@ -63,6 +81,20 @@ class concatenate_backward(operation):
         self._nth_input = nth_input
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        concatenate_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         n = self._nth_input
         inputs = inputs[0]['y']
         gpus = inputs.gpus
@@ -98,7 +130,7 @@ class concatenate_backward_cpu(concatenate_backward):
 
 class ConcatenateElement(UserGraph):
 
-    name = 'Concatenate'
+    _name = 'Concatenate'
 
     def __init__(self, previous_elements=None, axis=0):
         fwd_op = concatenate_forward(axis=axis) if rm.is_cuda_active() \
@@ -109,7 +141,21 @@ class ConcatenateElement(UserGraph):
 
 
 @populate_graph
-class Concat(GraphFactory):
+class Concatenate(GraphFactory):
+    '''A factory class of concatenate function element.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>>
+        >>> m1 = np.arange(4).reshape(2, 2)
+        >>> m2 = np.arange(2).reshape(2, 1)
+        >>> print(rmg.concatenate([m1, m2], axis=1))
+        Concatenate (F):
+        [[0. 1. 0.]
+         [2. 3. 1.]]
+
+    '''
 
     def __init__(self, axis=0):
         super().__init__()
@@ -124,6 +170,15 @@ class Concat(GraphFactory):
 @populate_graph
 @populate_basics
 def concatenate(elems, axis=0):
+    '''A function style factory of concatenate function element.
+
+    Args:
+        elems (list, tuple): Array to concatenated.
+        axis (int): Concatenation will be performed along this axis.
+
+    For more information, please refer :py:class:`~renom.graph.basics.concatenate_element.Concatenate`.
+    '''
+
     assert isinstance(elems, (list, tuple)), \
         "Concatenate accepts only list or tuple of array."
-    return ConcatenateElement([*elems], axis=axis)
+    return Concatenate(axis=axis)(elems)

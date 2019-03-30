@@ -8,39 +8,39 @@ import warnings
 
 class operation(abc.ABC):
     '''
-          The 'implementation' of the graph.
+    The 'implementation' of the graph.
 
-          The operation is responsible for implementing the actual graph, disjointing the
-          graph structure from the implementatin of its components. The operation should
-          be implemented using a two-part system, setup and perform. Any memory allocation
-          should be done during setup.
+    The operation is responsible for implementing the actual graph, disjointing the
+    graph structure from the implementatin of its components. The operation should
+    be implemented using a two-part system, setup and perform. Any memory allocation
+    should be done during setup.
 
-          In order to coordinate between different operations, as well as allow the graph to understand
-          the operations, the class implements several variables.
+    In order to coordinate between different operations, as well as allow the graph to understand
+    the operations, the class implements several variables.
 
-          _vars:
-              Any key memory regions should be defined in this dict. Memory regions defined in the class,
-              but not inserted into the _vars dict will not be considered by the overlaying graph.
+    _vars:
+        Any key memory regions should be defined in this dict. Memory regions defined in the class,
+        but not inserted into the _vars dict will not be considered by the overlaying graph.
 
-                        Note:   Operations designed for backward graphs should alias any gradients to
-                                the ID of the location to which the gradient is associated.
+                  Note:   Operations designed for backward graphs should alias any gradients to
+                          the ID of the location to which the gradient is associated.
 
-          produces, consumes:
-              These variables are responsible for defining the relationship between different operations.
-              When a UserGraph is created, the graph defines a single forward operations and up todo
-              several backward operations. The graph proceeds to look into produces and consumes to find
-              any relationships between the operations.
+    produces, consumes:
+        These variables are responsible for defining the relationship between different operations.
+        When a UserGraph is created, the graph defines a single forward operations and up todo
+        several backward operations. The graph proceeds to look into produces and consumes to find
+        any relationships between the operations.
 
-              If the forward operation defines a key value in consumes, the graph will look in the consumes
-              lists of the backward operations for the same key. If found, it is assumed that the forward
-              operation contains a key memory region, found in _vars, that should be updated with the
-              value defined in the backward operation for the same key.
+        If the forward operation defines a key value in consumes, the graph will look in the consumes
+        lists of the backward operations for the same key. If found, it is assumed that the forward
+        operation contains a key memory region, found in _vars, that should be updated with the
+        value defined in the backward operation for the same key.
 
-          roles:
-              The roles field allows the operation to mark itself as serving special functions. When creating
-              the executor, the executor uses these roles to determine important operations, such as the input
-              operations or the loss operation. This in turn allows it to perform more independently, as it
-              knows where the loss should be found.
+    roles:
+        The roles field allows the operation to mark itself as serving special functions. When creating
+        the executor, the executor uses these roles to determine important operations, such as the input
+        operations or the loss operation. This in turn allows it to perform more independently, as it
+        knows where the loss should be found.
 
     '''
     # Tuples are immutable lists.

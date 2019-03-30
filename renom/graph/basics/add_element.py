@@ -124,7 +124,7 @@ class add_backward_cpu(add_backward):
 
 class AddElement(UserGraph):
 
-    _name = 'Add Element'
+    _name = 'Add'
 
     def __init__(self, previous_elements=None):
 
@@ -161,6 +161,15 @@ class Add(GraphFactory):
 
 
 def _add(self, other):
+    '''A function style factory of add operation element.
+
+    Args:
+        self (UserGraph): Left hand input.
+        other (UserGraph): Right hand input.
+
+    For more information, please refer :py:class:`~renom.graph.basics.add_element.Add`.
+    '''
+
     ret = Add()(self, other)
     return ret
 

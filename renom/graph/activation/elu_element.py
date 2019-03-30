@@ -82,7 +82,7 @@ class elu_backward(operation):
         Args:
             inputs (list of GraphMultiStorage): Input data to this operation.
 
-        elu_forward class requires inputs to contain following keys.
+        elu_backward class requires inputs to contain following keys.
 
         +-------+-----+--------------------------------+
         | Index | Key |              Role              |

@@ -8,17 +8,34 @@
 
 import numpy as np
 
-from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
+from renom.graph.core import operation, operational_element, \
+    UserGraph, GraphMultiStorage, GraphFactory
 import renom as rm
 from renom.graph import populate_graph
 from renom.graph.basics import populate_basics
 
 
 class exp_forward(operation):
+    '''Exp forward operation class.
+    '''
 
     name = 'Exp (F)'
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        exp_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         output_shape = inputs.shape
         gpus = inputs.gpus
@@ -40,6 +57,8 @@ class exp_forward_cpu(exp_forward):
 
 
 class exp_backward(operation):
+    '''Exp backward operation class.
+    '''
 
     name = 'Exp (B)'
 
@@ -47,6 +66,20 @@ class exp_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        exp_backward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         fwd_inputs = self._fwd_op._inputs
         shape = fwd_inputs.shape
@@ -71,7 +104,7 @@ class exp_backward_cpu(exp_backward):
 
 class ExpElement(UserGraph):
 
-    _name = 'Exp Element'
+    _name = 'Exp'
 
     def __init__(self, previous_element=None):
         fwd_op = exp_forward() if rm.is_cuda_active() else exp_forward_cpu()
@@ -83,7 +116,19 @@ class ExpElement(UserGraph):
 @populate_graph
 @populate_basics
 class Exp(GraphFactory):
-    '''Exponential 
+    '''A factory class of exp function element.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.arange(1, 7).reshape(2, 3)
+        >>> layer = rmg.Exp()
+        >>> print(layer(x1))
+        Exp (F):
+        [[  2.7182817   7.389056   20.085537 ]
+        [ 54.59815   148.41316   403.4288   ]]
+
     '''
     def connect(self, x):
         return ExpElement([x])
@@ -92,6 +137,14 @@ class Exp(GraphFactory):
 @populate_graph
 @populate_basics
 def exp(self):
+    '''A function style factory of exp function element.
+
+    Args:
+        self (UserGraph): Input array.
+
+    For more information, please refer :py:class:`~renom.graph.basics.exp_element.Exp`.
+    '''
+
     ret = Exp()(self)
     return ret
 
