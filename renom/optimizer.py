@@ -1,7 +1,16 @@
-import renom as rm
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
+
+import renom as rm
 from renom.graph.core import GraphMultiStorage
-import renom.utility.initializer as init
+from renom.graph.train import initializer as init
 
 
 class optimizer_factory:
@@ -30,6 +39,20 @@ F = False
 
 
 class Sgd(optimizer_factory):
+    '''Stochastic gradient descent optimizer.
+
+    ..math::
+        dw = learning_rate * w + momentum * dw
+        w <- w + dw
+
+    Args:
+        learning_rate (float): Coefficient multiplied to gradient.
+        momentum (float): Coefficient multiplied to momentum term.
+
+    Example:
+        
+
+    '''
 
     class gpu_op:
 
