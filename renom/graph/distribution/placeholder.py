@@ -64,27 +64,27 @@ class placeholder_op(operation):
 
 @populate_graph
 class Placeholder(UserGraph):
+    '''A simple placeholder object.
+
+    This graph tries to allow establishing connections between graphs,
+    by forcing the output of what is it to replace with its own output.
+
+    To use the placeholder object, either use the UserGraph.feed method
+    or give the executor a feed_dict with this as a key.
+
+    Args:
+        Shape(Iterative): The shape of the Placeholder object. This is
+        used by the placeholder to feed dummy data to the graph, so that
+        following elements will know what to connect with.
+        Note that the shape expects a batch size as well, as the batch
+        size is necessary to determine the maximum required memory for
+        each operation.
+        num_gpus(int): The number of gpus to spread the Placeholder
+        object on. If Cuda has not been activated, the argument is
+        ignored and the object is placed on the CPU instead.
+    '''
 
     def __init__(self, shape, num_gpus=1):
-        '''A simple placeholder object.
-
-        This graph tries to allow establishing connections between graphs,
-        by forcing the output of what is it to replace with its own output.
-
-        To use the placeholder object, either use the UserGraph.feed method
-        or give the executor a feed_dict with this as a key.
-
-        Args:
-            Shape(Iterative): The shape of the Placeholder object. This is
-            used by the placeholder to feed dummy data to the graph, so that
-            following elements will know what to connect with.
-            Note that the shape expects a batch size as well, as the batch
-            size is necessary to determine the maximum required memory for
-            each operation.
-            num_gpus(int): The number of gpus to spread the Placeholder
-            object on. If Cuda has not been activated, the argument is
-            ignored and the object is placed on the CPU instead.
-        '''
         if rm.is_cuda_active():
             gpus = [gpu for gpu in range(num_gpus)]
         else:

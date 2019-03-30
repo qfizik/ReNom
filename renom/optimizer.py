@@ -41,16 +41,39 @@ F = False
 class Sgd(optimizer_factory):
     '''Stochastic gradient descent optimizer.
 
-    ..math::
-        dw = learning_rate * w + momentum * dw
-        w <- w + dw
+    .. math::
+        dw = learning_rate * w + momentum * dw \\\\
+        w \\leftarrow w + dw
 
     Args:
         learning_rate (float): Coefficient multiplied to gradient.
         momentum (float): Coefficient multiplied to momentum term.
 
     Example:
-        
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> from renom.optimizer import Sgd
+        >>>
+        >>> m = np.arange(4).reshape(2, 2)
+        >>> layer = rmg.Dense(1)
+        >>> out = layer(m)
+        >>> weight = layer.params['w'].output
+        >>>
+        >>> optimizer = Sgd(learning_rate=1.0, momentum=0.0)
+        >>>
+        >>> print("Gradient", out.backward().get_gradient(weight))
+        Gradient
+        [[1.]
+        [2.]]
+        >>> print("Before update", weight)
+        Before update
+        [[-1.4366457 ]
+        [ 0.78338516]]
+        >>> out.update(optimizer)
+        >>> print("After update", weight)
+        After update
+        [[-2.4366457]
+        [-1.2166148]]
 
     '''
 

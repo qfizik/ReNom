@@ -8,17 +8,34 @@
 
 import numpy as np
 
-from renom.graph.core import operation, operational_element, UserGraph, GraphMultiStorage, GraphFactory
 import renom as rm
+from renom.graph.core import operation, operational_element, \
+    UserGraph, GraphMultiStorage, GraphFactory
 from renom.graph import populate_graph
 from renom.graph.basics import populate_basics
 
 
 class square_forward(operation):
+    '''Square forward operation class.
+    '''
 
     name = 'Square (F)'
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        square_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         output_shape = inputs.shape
         gpus = inputs.gpus
@@ -40,6 +57,8 @@ class square_forward_cpu(square_forward):
 
 
 class square_backward(operation):
+    '''Square backward operation class.
+    '''
 
     name = 'Square (B)'
 
