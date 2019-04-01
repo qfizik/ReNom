@@ -228,7 +228,7 @@ class Executor:
                         orig_inf = call._inference
                         call._inference = True
                     if rm.logging_level >= 10:
-                        call.logged_perform()
+                        call._logged_perform()
                     else:
                         call.perform()
                     if mode == 'step' or mode == 'inference':

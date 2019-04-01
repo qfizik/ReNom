@@ -94,9 +94,14 @@ class operation(abc.ABC):
         pass
 
     def get_output_signature(self):
+        '''Returns a signature for the operation.
+
+            This simply returns the self._vars object for now, but is made into a method for possible easier
+            refactoring later, if the signature type should change.
+        '''
         return self._vars
 
-    def logged_perform(self):
+    def _logged_perform(self):
         if rm.logging_level >= 50:
             print('{time!s}: performing {0.name}'.format(self, time=time.ctime()))
         self.perform()
@@ -110,50 +115,38 @@ class operation(abc.ABC):
         return self.name + ':\n' + self._vars['y'].__repr__()
 
     def as_ndarray(self):
+        '''Returns an ndarray representation.
+
+            Currently, the value stored under the 'y' key is defined to represent the output value.
+            This decision is arbitrary and may change later.
+        '''
         return self._vars['y'].as_ndarray()
 
     def get_key(self, key):
+        '''Returns a value representing the given key.
+
+            This simply returns from the self._vars object for now, but is made into a method for possible easier
+            refactoring later, if the signature type should change.
+        '''
         return self._vars.get(key, None)
 
-    def set_alias(self, key, alias):
+    def _set_alias(self, key, alias):
         self._vars[alias] = self._vars[key]
 
     def optimize(self):
+        '''Tells the operation to start optimizing.
+
+            This method will start to be called by the graph when it is finished building. Any required resources
+            should not be set here, but rather later, when the finalize method is called.
+
+            Should return False until optimize reaches the same conclusion twice in a row.
+        '''
         return True
 
     def finalize(self):
+        '''Finalizes the operation.
+
+            This method allocates required resources that were deemed necessary in optimize.
+            This method is called once all optimize calls have returned True.
+        '''
         pass
-
-
-class StateHolder:
-
-    def __init__(self, null_state=None):
-        if null_state is None:
-            null_state = {}
-        self._null_state = null_state
-        self._states = [null_state]
-        self._cur_time = 0
-
-    def get_prev(self, key):
-        state = self._states[self._cur_time]
-        if key in state:
-            return state[key]
-        else:
-            return self._null_state[key]
-
-    def set_prev(self, key, val):
-        self._states[self._cur_time][key] = val
-
-    def register(self, key, val):
-        self._null_state[key] = val
-
-    def peek(self):
-        return {**self._null_state, **self._states[self._cur_time]}
-
-    def push(self, state):
-        self._states.append(state)
-        self._cur_time += 1
-
-    def pop(self):
-        self._cur_time -= 1
-        return self._states[self._cur_time + 1]

@@ -102,7 +102,7 @@ class update_operation(operation):
         if self._regularizer is None:
             if self._consumer.get_key(self._shared_key)._weight_decay is not None:
                 self._regularizer = self._consumer.get_key(
-                    self._shared_key)._weight_decay.create_op()
+                    self._shared_key)._weight_decay._create_op()
 
         assert self._factory is not None
         #self._dy = self._producer.get_key(self._shared_key)
@@ -118,7 +118,7 @@ class update_operation(operation):
         gpus = self._outputs.gpus
         self.gpus = gpus
         if self._update_op is None:
-            self._update_op = self._factory.get_op(self._dy, self._outputs)
+            self._update_op = self._factory._get_op(self._dy, self._outputs)
             self._update_op.setup(self._dy, self._outputs)
         if self._regularizer is not None:
             self._regularizer.setup(self._outputs, self._dy)
