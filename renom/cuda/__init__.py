@@ -6,16 +6,24 @@ import subprocess
 import re
 import os
 
-if 'USE_CUDA_BACKEND' not in os.environ or os.environ['USE_CUDA_BACKEND'] != 'No':
-    from renom.cuda.base.cuda_base import *
-    from renom.cuda.cublas.cublas import *
-    from renom.cuda.thrust.thrust import *
-    from renom.cuda.curand.curand import *
-    from renom.cuda.cudnn.cudnn import *
-    from renom.cuda.renomhandler import *
-    from renom.cuda.nccl.nccl import *
-    _has_cuda = True
-else:
+try_import_cuda = 'USE_CUDA_BACKEND' not in os.environ or os.environ['USE_CUDA_BACKEND'] == 'Yes'
+cuda_load_success = False
+
+if try_import_cuda:
+    try:
+        from renom.cuda.base.cuda_base import *
+        from renom.cuda.cublas.cublas import *
+        from renom.cuda.thrust.thrust import *
+        from renom.cuda.curand.curand import *
+        from renom.cuda.cudnn.cudnn import *
+        from renom.cuda.renomhandler import *
+        from renom.cuda.nccl.nccl import *
+        _has_cuda = True
+        cuda_load_success = True
+    except ImportError:
+        pass
+
+if cuda_load_success is False:
     gpu_allocator = None
     curand_generator = None
     _has_cuda = False

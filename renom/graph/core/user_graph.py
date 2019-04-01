@@ -54,6 +54,29 @@ class UserGraph(graph_element):
     _add_clipping = None
 
     def __init__(self, forward_operation, backward_operations=None, previous_elements=None):
+        '''Creates the UserGraph using the operations specified.
+
+            Each UserGraph object must have at least one forward operation. This is
+            the function that will be run when the UserGraph object is executed.
+
+            Backward operations are optional and if not specified, will not be inserted
+            into the graph. If the backward_operations are given, each backward operation
+            will receive input from the UserGraph connected after it, according to its
+            position in the previous elements list.
+
+            If the previous elements are given, each element will first be converted to
+            an appropriate UserGraph representation and when the graph is done building,
+            it will connect to each element.
+
+
+            Args:
+                forward_operation(operation): The operation that identifies the output
+                    of the UserGraph.
+                backward_operations(list): The operations that specify how the forward
+                    operation is represented in the backwards graph.
+                previous_elements(list): The UserGraphs that should be connected to
+                    the UserGraph after creation is finished.
+        '''
         if backward_operations is None:
             backward_operations = []
 
@@ -125,26 +148,38 @@ class UserGraph(graph_element):
         self._update_graphs = updates
 
     def connect(self, previous_elements):
+        '''Connects the UserGraph object with other objects.
+
+            This method is more advanced, which allows UserGraph objects
+            to connect and reconnect after being created. Note that this
+            connect is different from the one in GraphFactory, as this
+            does not create a new UserGraph but connects the already existing
+            graph to the given elements.
+
+            Args:
+                previous_elements(list): A list of UserGraph objects to connect to.
+        '''
         self.detach()
         assert len(self._previous_elements) == 0 and len(self._fwd._previous_elements) == 0
 
         if isinstance(previous_elements, UserGraph):
             previous_elements = [previous_elements]
 
-        self.connect_forward(previous_elements)
+        self._connect_forward(previous_elements)
 
         for num, elem in enumerate(previous_elements):
-            elem.connect_back(self, pos=num)
+            elem._connect_back(self, pos=num)
         self.simple_forward()
         return self
 
-    def remove_input(self, prev_input):
-        super().remove_input(prev_input)
-
-    def remove_next(self, prev_next):
-        super().remove_next(prev_next)
-
     def detach(self):
+        '''Disconnects the UserGraph.
+
+            This methoddisconnects the UserGraph from all currently connected graphs,
+            allowing it to be reused in another part of the graph or in a new graph entirely.
+            All operations will remain the same, but variables will not be carried
+            over automatically and must be manually reconnected.
+        '''
         self._fwd.detach()
         for graph in self._bwd_graphs:
             graph.detach()
@@ -154,22 +189,27 @@ class UserGraph(graph_element):
 
     @staticmethod
     def set_gradient_clipping(use_clipping=True, floor=-1, ceil=1):
+        '''Sets gradient clipping for henceforth created elements.
+
+            This method will be replaced in the future for a more general
+            way of setting up automatic graph construction.
+        '''
         if use_clipping is True:
             UserGraph._add_clipping = (floor, ceil)
         else:
             UserGraph._add_clipping = None
 
-    def connect_forward(self, previous_elements):
+    def _connect_forward(self, previous_elements):
         for elem in previous_elements:
             self.add_input(elem)
-            prev_graph_input = elem.get_forward_output()
+            prev_graph_input = elem._get_forward_output()
             self._fwd.add_input(prev_graph_input)
 
-    def connect_back(self, previous_element, pos=0):
+    def _connect_back(self, previous_element, pos=0):
         if len(self._bwd_graphs) == 0:
             return
 
-        backward_graph_input = previous_element.get_backward_output(pos)
+        backward_graph_input = previous_element._get_backward_output(pos)
         if backward_graph_input is not None:
             for i, graph in enumerate(self._bwd_graphs):
                 if len(graph._previous_elements) > 0 and \
@@ -187,8 +227,8 @@ class UserGraph(graph_element):
                 print(graph.name, backward_graph_input.name)
                 graph.add_input(backward_graph_input)
 
-    def disconnect_back(self, previous_element, pos=0):
-        backward_graph_input = previous_element.get_backward_output(pos)
+    def _disconnect_back(self, previous_element, pos=0):
+        backward_graph_input = previous_element._get_backward_output(pos)
         for graph in self._bwd_graphs:
             graph.remove_input(backward_graph_input)
 
@@ -204,6 +244,19 @@ class UserGraph(graph_element):
         return self._fwd.__repr__()
 
     def get_executor(self, mode='inference', optimizer=None):
+        '''Returns a new Executor object with self as root.
+
+            This method allows the user to extract an Executor with self as root, or target,
+            in the returned executor. If optimizer is passed at this call, each variable
+            will be fitted with the given optimizer type, ignoring previous set values.
+
+            If the mode is set to 'training', the rest of the graph setup will also be
+            performed when this method is called.
+
+            Args:
+                mode('inference','training'): Chooses the mode for the executor on start.
+                optimizer(optimizer_factory): Sets the graph to use the given optimizer.
+        '''
         ret = Executor(self, mode)
         if mode != 'inference' and optimizer is not None:
             ups = self._fwd.get_call_dict(tag='Gradient')
@@ -291,9 +344,9 @@ class UserGraph(graph_element):
                 for elem in bwd._next_elements:
                     elem.remove_input(bwd)
             self.add_input(replace_with)
-            self._fwd.add_input(replace_with.get_forward_output())
-            replace_with.connect_back(self, 0)
-            self._fwd._op.link(replace_with.get_forward_output()._op)
+            self._fwd.add_input(replace_with._get_forward_output())
+            replace_with._connect_back(self, 0)
+            self._fwd._op.link(replace_with._get_forward_output()._op)
             prevs = len(self._bwd_graphs[0]._previous_elements)
             assert prevs <= 1
             if prevs < 0:
@@ -301,13 +354,28 @@ class UserGraph(graph_element):
                 self._bwd_graphs[0]._op.link(bbwd._op)
 
     def set_inference(self, inference=True):
+        '''Sets inference for all objects with id(self) as tag.
+
+            This tag is set by GraphFactory on construction, grouping together all
+            simultaneously built graph objects.
+
+            Args:
+                inference(bool): Whether the operation should be set to inference or not.
+        '''
         if id(self) in self._fwd._tags:
             self._fwd.set_attr('_inference', inference, tag=id(self))
         else:
-            assert False
             self._fwd._op._inference = inference
 
     def set_updatable(self, should_update=True):
+        '''Sets updatable for all objects with id(self) as tag.
+
+            This tag is set by GraphFactory on construction, grouping together all
+            simultaneously built graph objects.
+
+            Args:
+                inference(bool): Whether the variables should be allowed to update.
+        '''
         if id(self) in self._fwd._tags:
             self._fwd.set_attr('_should_update', should_update, tag=[id(self), 'Gradient'])
         else:
@@ -315,22 +383,44 @@ class UserGraph(graph_element):
             self._fwd._op._should_update = should_update
 
     def set_all_inference(self, inference=True):
+        '''Sets inference for all operations in the graph.
+
+            This method, unlike set_inference, sets the inference variable
+            indiscriminately of any tags.
+        '''
         infs = self._fwd.gather_operations_with_role('inference', flatten=True)
         for inf in infs:
             inf._inference = inference
 
     def simple_forward(self):
+        '''Calculates the forward value of only self.
+        '''
         self._fwd.forward()
         return self
 
     def forward(self):
+        '''Calculates the forward value.
+
+            Unlike simple_forward, this method calculates any dependencies that
+            self has, in addition to self.
+        '''
         self._fwd.calculate_forward()
         return self
 
     def optimize(self):
+        '''Performs an optimize pass through the graph.
+        '''
         pass
 
     def set_regularizer(self, regularizer):
+        '''Sets the regularizer for the UserGraph
+
+            If regularizer is given as a regularizer_factory, it is set indiscriminately.
+            If given as a dictionary, it searches for an appropriate key location to set
+            the regularizer.
+
+            Args(regularizer_factory, dict): The regularizer to set in the UserGraph.
+        '''
         tags = [id(self), 'Gradient']
         for graph in self._out_bwds:
             updates = graph.get_call_dict(tag=tags, flatten=True)
@@ -343,6 +433,14 @@ class UserGraph(graph_element):
                     op._regularizer = regularizer.create_op()
 
     def set_optimizer(self, optimizer):
+        '''Sets the optimizer for the UserGraph
+
+            If optimizer is given as a optimizer_factory, it is set indiscriminately.
+            If given as a dictionary, it searches for an appropriate key location to set
+            the optimizer.
+
+            Args(optimizer_factory, dict): The optimizer to set in the UserGraph.
+        '''
         tags = [id(self), 'Gradient']
         for graph in self._out_bwds:
             updates = graph.get_call_dict(tag=tags, flatten=True)
@@ -398,6 +496,17 @@ class UserGraph(graph_element):
         raise AttributeError('Could not find {}'.format(search_id))
 
     def update(self, optimizer=None):
+        '''Applies the updates calculated in backward.
+
+            This method should be called after backward is called to
+            update the gradients.
+
+            If optimizer is passed at this call, each variable
+            will be fitted with the given optimizer type, ignoring previous set values.
+
+            Args:
+                optimizer(optimizer_factory): The optimizer to set the graph to.
+        '''
         if optimizer is not None:
             ups = self._fwd.get_call_dict(tag='Gradient')
             for d in ups:
@@ -407,12 +516,14 @@ class UserGraph(graph_element):
         self._fwd.continue_forward(tag='Gradient')
 
     def print_tree(self):
+        '''Prints the current calculation graph.
+        '''
         self._fwd.print_tree()
 
-    def get_forward_output(self):
+    def _get_forward_output(self):
         return self._fwd
 
-    def get_backward_output(self, num=0):
+    def _get_backward_output(self, num=0):
         if len(self._bwd_graphs) <= num:
             return None
         else:
@@ -437,11 +548,11 @@ class UserLossGraph(UserGraph):
         A special case of the UserGraph where we
     '''
 
-    def connect_back(self, previous_element, pos=0):
+    def _connect_back(self, previous_element, pos=0):
         if len(self._bwd_graphs) == 0:
             return
 
-        backward_graph_input = previous_element.get_backward_output(pos)
+        backward_graph_input = previous_element._get_backward_output(pos)
         if backward_graph_input is not None:
             for graph in self._bwd_graphs:
                 graph.add_input(backward_graph_input)
@@ -451,7 +562,7 @@ class UserLossGraph(UserGraph):
             previous_elements = [previous_elements]
         super().connect(previous_elements)
         for elem in previous_elements:
-            prev = elem.get_forward_output()
+            prev = elem._get_forward_output()
             self._bwd_graphs[0].add_input(prev)
         self._bwd_graphs[0].add_input(self._fwd)
         return self

@@ -13,13 +13,13 @@ class optimizer_factory:
         self.args = ()
         self.kwargs = {}
 
-    def get_op(self, grad, out):
+    def _get_op(self, grad, out):
         key = "{}{}".format(id(grad), id(out))
         if key not in self._ops:
-            self._ops[key] = self.create_op()
+            self._ops[key] = self._create_op()
         return self._ops[key]
 
-    def create_op(self):
+    def _create_op(self):
         if rm.is_cuda_active():
             ret = self.gpu_op(*self.args, **self.kwargs)
         else:
@@ -33,6 +33,14 @@ F = False
 
 @populate_graph
 class Sgd(optimizer_factory):
+    '''Stochastic Gradient Descent.
+
+    Args:
+        lr (float): Learning rate.
+        momentum (float): Momentum coefficient of optimization.
+        nesterov (bool): If true, applies nesterov's accelerated gradient.
+    '''
+
 
     class gpu_op:
 
@@ -77,6 +85,15 @@ class Sgd(optimizer_factory):
 
 
 class Adagrad(optimizer_factory):
+    '''Adaptive gradient algorithm. [Adagrad]_
+
+    Args:
+        lr (float): Learning rate.
+        epsilon (float): Small number in the equation for avoiding zero division.
+
+    .. [Adagrad] Duchi, J., Hazan, E., & Singer, Y. Adaptive Subgradient Methods for
+        Online Learning and Stochastic Optimization. Journal of Machine Learning Research, 12, 2121–2159.
+    '''
 
     class gpu_op:
 
@@ -120,6 +137,15 @@ class Adagrad(optimizer_factory):
 
 
 class Adadelta(optimizer_factory):
+    '''Adaptive gradient algorithm. [Adagrad]_
+
+    Args:
+        dr (float): Decay rate.
+        epsilon (float): Small number in the equation for avoiding zero division.
+
+    .. [Adagrad] Duchi, J., Hazan, E., & Singer, Y. Adaptive Subgradient Methods for
+        Online Learning and Stochastic Optimization. Journal of Machine Learning Research, 12, 2121–2159.
+    '''
 
     class gpu_op:
 
@@ -171,7 +197,14 @@ class Adadelta(optimizer_factory):
 
 
 class Adamax(optimizer_factory):
+    '''Adamax optimizer for Adam using two running averages.
 
+    Args:
+        alpha (float): The effective learning rate.
+        beta1 (float): Persistence for first running average.
+        beta2 (float): Persistence for second running average.
+        epsilon (float): Small value to avoid division by zero.
+    '''
     class gpu_op:
 
         def __init__(self, alpha, beta1, beta2, epsilon):
@@ -235,6 +268,21 @@ class Adamax(optimizer_factory):
 
 
 class Rmsprop(optimizer_factory):
+    '''Rmsprop described by following formula. [Rmsprop]_
+
+    .. math::
+
+        m_{t+1} &=& gm_{t} + (1-g)\\nabla E^2 \\\\
+        r_{t} &=& \\frac{lr}{\sqrt{m_{t+1}}+\epsilon} \\\\
+        w_{t+1} &=& w_{t} - r_{t}\\nabla E
+
+    Args:
+        lr (float): Learning rate.
+        g (float):
+        epsilon (float): Small number in the equation for avoiding zero division.
+
+    .. [Rmsprop] Nitish Srivastava, Kevin Swersky, Geoffrey Hinton. Neural Networks for Machine Learning.
+    '''
 
     class gpu_op:
 
@@ -286,6 +334,26 @@ class Rmsprop(optimizer_factory):
 
 
 class Adam(optimizer_factory):
+    '''Adaptive moment estimation described by following formula. [Adam]_
+
+    .. math::
+
+        m_{t+1} &=& bm_t + \\nabla E \\\\
+        n_{t+1} &=& gn_t + \\nabla E^2 \\\\
+        \\hat{m}_{t+1} &=& \\frac{m_{t+1}}{1-b^{t+1}} \\\\
+        \\hat{n}_{t+1} &=& \\frac{n_{t+1}}{1-g^{t+1}} \\\\
+        w_{t+1} &=& w_{t} - \\frac{\\alpha \hat{m}_{t+1}}{\sqrt{\hat{n}_{t+1}}+\epsilon}
+
+    Args:
+        lr (float): Learning rate.
+        g (float): Coefficient
+        b (float): Coefficient
+        epsilon (float): Small number in the equation for avoiding zero division.
+
+
+    .. [Adam] Diederik P. Kingma, Jimmy Ba. ADAM: A METHOD FOR STOCHASTIC OPTIMIZATION(2014)
+        https://arxiv.org/pdf/1412.6980.pdf
+    '''
 
     class gpu_op:
 

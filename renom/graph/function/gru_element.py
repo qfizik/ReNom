@@ -9,7 +9,7 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage, StateHolder
+from renom.graph.core import UserGraph, operation, GraphFactory, graph_variable, GraphMultiStorage
 from renom.graph.train import initializer as init
 from renom.graph import populate_graph
 
@@ -263,11 +263,11 @@ class GruElement(UserGraph):
         bwd_ops = [gru_backward(fwd_op) if rm.is_cuda_active() else gru_backward_cpu(fwd_op)]
         super().__init__(forward_operation=fwd_op, backward_operations=bwd_ops, previous_elements=previous_elements)
 
-    def connect_back(self, previous_element, pos=0):
+    def _connect_back(self, previous_element, pos=0):
         if len(self._bwd_graphs) == 0:
             return
         pos = 0
-        backward_graph_input = previous_element.get_backward_output(pos)
+        backward_graph_input = previous_element._get_backward_output(pos)
         if backward_graph_input is not None:
             for graph in self._bwd_graphs:
                 graph.add_input(backward_graph_input)
