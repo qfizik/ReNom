@@ -1,4 +1,11 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 """
 ReNom
 
@@ -42,7 +49,7 @@ ReNom (Top Level)
 """
 from __future__ import absolute_import
 
-__version__ = "3.0.0"
+__version__ = "3.0a0"
 
 import argparse
 import numpy as np
@@ -111,5 +118,4 @@ def console_scripts():
     if hasattr(args, 'handler'):
         args.handler(args)
     else:
-        # 未知のサブコマンドの場合はヘルプを表示
         parser.print_help()

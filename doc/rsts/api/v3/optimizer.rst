@@ -1,18 +1,16 @@
 renom.optimizer
-================
+===============
 
-.. automodule:: renom.optimizer
+.. currentmodule:: renom.optimizer
 
 .. autosummary::
     :template: template.rst
     :toctree: autosum/
     :nosignatures:
 
-    Adadelta
-    Adagrad
-    Adam
-    Adamax
-    ClampedSgd
-    Rmsprop
     Sgd
-
+    Adagrad
+    Adadelta
+    Adamax
+    Rmsprop
+    Adam

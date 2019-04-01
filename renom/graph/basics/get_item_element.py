@@ -9,10 +9,15 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
+from renom.graph.core import operation, operational_element, UserGraph, \
+    GraphMultiStorage, GraphFactory
+from renom.graph import populate_graph
+from renom.graph.basics import populate_basics
 
 
 class get_item_forward(operation):
+    '''GetItem forward operation class.
+    '''
 
     name = 'Get Item (F)'
 
@@ -20,6 +25,20 @@ class get_item_forward(operation):
         self._index = index
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        get_item_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         a = inputs[0]['y']
         self.gpus = a.gpus
         self._a = a
@@ -70,6 +89,8 @@ def _is_advanced_indexing(index):
 
 
 class get_item_backward(operation):
+    '''GetItem backward operation class.
+    '''
 
     name = 'Get Item (B)'
 
@@ -77,6 +98,20 @@ class get_item_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        get_item_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         self.gpus = gpus
@@ -112,7 +147,7 @@ class get_item_backward_cpu(get_item_backward):
 
 class GetItemElement(UserGraph):
 
-    _name = 'Add Element'
+    _name = 'Add'
 
     def __init__(self, index, previous_elements=None):
 
@@ -121,9 +156,38 @@ class GetItemElement(UserGraph):
                    else get_item_backward_cpu(fwd_op)]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
+@populate_graph
+@populate_basics
+class GetItem(GraphFactory):
+    '''A factory class of getitem function element.
+    Add operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.arange(1, 7).reshape(2, 3)
+        >>> layer = rmg.GetItem()
+        >>> print(layer(x1, 0))
+        Get Item (F):
+        [1. 2. 3.]
+    '''
+
+    def connect(self, x, index):
+        return GetItemElement(index, previous_elements=[x])
+
 
 def _get_item(self, index):
-    ret = GetItemElement(index, self)
+    '''A function style factory of getitem operation element.
+
+    Args:
+        self (UserGraph): Input array.
+        index (UserGraph): Getitem indices.
+
+    For more information, please refer :py:class:`~renom.graph.basics.get_item_element.GetItem`.
+    '''
+
+    ret = GetItem()(self, index)
     return ret
 
 

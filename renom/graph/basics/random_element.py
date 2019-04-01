@@ -14,6 +14,8 @@ from renom.graph import populate_graph
 
 
 class random_uniform(operation):
+    '''Random forward operation class.
+    '''
 
     name = 'Random Uniform (F)'
     roles = ['static']

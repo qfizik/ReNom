@@ -9,12 +9,15 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph, GraphFactory
+from renom.graph.core import operation, GraphMultiStorage, \
+    operational_element, UserGraph, GraphFactory
 from renom.graph.utils import broad_cast, cu_broad_cast
 from renom.graph import populate_graph
 
 
 class sub_forward(operation):
+    '''Sub forward operation class.
+    '''
 
     name = 'Sub (F)'
 
@@ -23,6 +26,20 @@ class sub_forward(operation):
         self._b = None
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        sub_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         a = inputs[0]['y']
         b = inputs[1]['y']
         assert len(a) == len(b)
@@ -47,6 +64,8 @@ class sub_forward_cpu(sub_forward):
 
 
 class sub_backward(operation):
+    '''Sub backward operation class.
+    '''
 
     name = 'Sub (B)'
 
@@ -55,6 +74,20 @@ class sub_backward(operation):
         self._key = key
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        sub_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self._inputs = inputs[0]['y']
         key = self._key
         key_value = self._fwd_op.get_key(key)
@@ -114,13 +147,41 @@ class SubElement(UserGraph):
 
 @populate_graph
 class Sub(GraphFactory):
+    '''A factory class of sub function element.
+    Sub operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x1 = np.arange(1, 7).reshape(2, 3)
+        >>> x2 = np.arange(1, 4).reshape(1, 3)
+        >>> 
+        >>> v1 = rmg.StaticVariable(x1)
+        >>> v2 = rmg.StaticVariable(x2)
+        >>> 
+        >>> print(v1 - v2)
+        Sub (F):
+        [[0. 0. 0.]
+        [3. 3. 3.]]
+
+    '''
 
     def connect(self, lhs, rhs):
-        return SubElement([lhs, rhs])
+        return SubElement(previous_elements=[lhs, rhs])
 
 
 def _sub(self, other):
-    ret = SubElement([self, other])
+    '''A function style factory of sub operation element.
+
+    Args:
+        self (UserGraph): Left hand input.
+        other (UserGraph): Right hand input.
+
+    For more information, please refer :py:class:`~renom.graph.basics.sub_element.Sub`.
+    '''
+
+    ret = Sub()(self, other)
     return ret
 
 

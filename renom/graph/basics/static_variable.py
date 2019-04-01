@@ -14,6 +14,8 @@ from renom.graph import populate_graph
 
 
 class static_value(operation):
+    '''Static value operation class.
+    '''
 
     name = 'Static Variable'
     roles = ['static']
@@ -59,6 +61,7 @@ class static_value(operation):
 
 @populate_graph
 class StaticVariable(UserGraph):
+
 
     _name = 'Static Element'
 

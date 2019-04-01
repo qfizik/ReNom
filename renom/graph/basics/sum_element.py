@@ -16,6 +16,13 @@ from renom.graph.basics import populate_basics
 
 
 class sum_forward(operation):
+    '''Sum forward operation class.
+
+    Args:
+        axis (int, tuple, None): Summation will be performed along given axis.
+        keepdims (bool): If Ture is given, the original axis will be remained as 1.
+
+    '''
 
     name = 'Sum (F)'
 
@@ -24,6 +31,20 @@ class sum_forward(operation):
         self.keepdims = keepdims
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        sum_forward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         self._inputs = inputs
         gpus = inputs.gpus
@@ -53,6 +74,8 @@ class sum_forward_cpu(sum_forward):
 
 
 class sum_backward(operation):
+    '''Sum backward operation class.
+    '''
 
     name = 'Sum (B)'
 
@@ -60,6 +83,20 @@ class sum_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        sum_backward class requires inputs to contain following keys.
+
+        +-------+-----+--------------------------------+
+        | Index | Key |              Role              |
+        +=======+=====+================================+
+        |   0   |  y  | Output of previous operation.  |
+        +-------+-----+--------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         gpus = inputs.gpus
         out_shape = self._fwd_op._inputs.shape
@@ -124,21 +161,52 @@ class SumElement(UserGraph):
 
 @populate_graph
 class Sum(GraphFactory):
+    '''A factory class of sum function element.
 
-    def __init__(self, axis=None, keepdims=False):
-        super().__init__()
+    Args:
+        axis (int, tuple, None): Summation will be performed along given axis.
+        keepdims (bool): If Ture is given, the original axis will be remained as 1.
+
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>>
+        >>> x = np.arange(6).reshape(2, 3)
+        >>> rmg.sum(x)
+        Sum (F):
+        15.0
+        >>> rmg.sum(x, axis=1)
+        Sum (F):
+        [ 3. 12.]
+        >>> rmg.sum(x, axis=0) 
+        Sum (F):
+        [3. 5. 7.]
+
+    '''
+
+    def prepare(self, axis=None, keepdims=False):
         self.axis = axis
         self.keepdims = keepdims
 
     def connect(self, other):
-        ret = SumElement(other, axis=self.axis, keepdims=self.keepdims)
+        ret = SumElement(previous_elements=[other], axis=self.axis, keepdims=self.keepdims)
         return ret
 
 
 @populate_graph
 @populate_basics
 def sum(self, axis=None, keepdims=False):
-    return SumElement([self], axis=axis, keepdims=keepdims)
+    '''A function style factory of sum function element.
+
+    Args:
+        self (UserGraph, ndarray): Input array.
+        axis (int, tuple, None): Summation will be performed along given axis.
+        keepdims (bool): If Ture is given, the original axis will be remained as 1.
+
+    For more information, please refer :py:class:`~renom.graph.basics.sum_element.Sum`.
+    '''
+    return Sum(axis=axis, keepdims=keepdims)(self)
 
 
 UserGraph.sum = sum

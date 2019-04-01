@@ -1,5 +1,5 @@
 renom.cuda
-================
+==========
 
 .. automodule:: renom.cuda
 

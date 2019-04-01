@@ -9,12 +9,14 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph
+from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph, GraphFactory
 from renom.graph.utils import broad_cast, cu_broad_cast
 from renom.graph import populate_graph
 
 
 class pow_forward(operation):
+    '''Pow forward operation class.
+    '''
 
     name = 'Pow (F)'
 
@@ -48,6 +50,8 @@ class pow_forward_cpu(pow_forward):
 
 
 class pow_backward(operation):
+    '''Pow backward operation class.
+    '''
 
     name = 'Pow (B)'
 
@@ -56,6 +60,20 @@ class pow_backward(operation):
         self._key = key
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        pow_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self._inputs = inputs[0]['y']
         key = self._key
         key_value = self._fwd_op.get_key(key)
@@ -121,9 +139,43 @@ class PowElement(UserGraph):
                    pow_backward(fwd_op, 'a') if rm.is_cuda_active() else pow_backward_cpu(fwd_op, 'a')]
         super().__init__(fwd_op, bwd_ops, previous_elements)
 
+@populate_graph
+class Pow(GraphFactory):
+    '''A factory class of pow function element.
+    Pow operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x1 = np.arange(1, 7).reshape(2, 3)
+        >>> x2 = np.arange(1, 4).reshape(1, 3)
+        >>> 
+        >>> v1 = rmg.StaticVariable(x1)
+        >>> v2 = rmg.StaticVariable(x2)
+        >>> 
+        >>> print(v1 ** v2)
+        Pow (F):
+        [[  1.   4.  27.]
+        [  4.  25. 216.]]
+
+
+    '''
+
+    def connect(self, x, power):
+        return PowElement(previous_elements=[x, power])
 
 def _pow(self, other):
-    ret = PowElement([self, other])
+    '''A function style factory of pow operation element.
+
+    Args:
+        self (UserGraph): Left hand input.
+        other (UserGraph): Right hand input.
+
+    For more information, please refer :py:class:`~renom.graph.basics.pow_element.Pow`.
+    '''
+
+    ret = Pow()(self, other)
     return ret
 
 

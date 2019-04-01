@@ -59,7 +59,32 @@ def _download_files(folder, filenames, urls, verbose=True):
             _maybe_print('File exists, skipping.', verbose)
 
 
-def get_mnist(download=True, onehot=True, verbose=True, force_download=False):
+def get_mnist(onehot=True, verbose=False, force_download=False):
+    '''
+    Download mnist data from [mnist]_ Data base.
+
+    Args:
+        onehot (bool): If True is given, target will be transformed to onehot vector.
+        verbose (bool): If True is given, detail of download progress will be shown.
+        force_download (bool): If True is given, data will be downloaded 
+            even if the data already exist.
+
+    Return:
+        (tuple of ndarray): The tuple contains train_image, train_target, test_image and test_target.
+
+    Example:
+        >>> from renom.auxiliary.mnist import get_mnist
+        >>>
+        >>> train_x, train_y, test_x, test_y = get_mnist(onehot=True, verbose=False)
+        >>> print(train_x.shape, train_y.shape)
+        (60000, 1, 28, 28) (60000, 10)
+        >>> print(test_x.shape, test_y.shape)
+        (10000, 1, 28, 28) (10000, 10)
+
+
+    .. [mnist] THE MNIST DATABASE. (http://yann.lecun.com/exdb/mnist/)
+
+    '''
     cur_folder = path.realpath(path.dirname(__file__))
     data_folder = path.join(cur_folder, 'data/')
     names = [link.split('/')[-1] for link in _mnist_urls]
@@ -67,9 +92,6 @@ def get_mnist(download=True, onehot=True, verbose=True, force_download=False):
 
     files_exist = _check_files_exist(data_folder, filenames, verbose)
     if not files_exist:
-        if not download:
-            _maybe_print('Files not found and set to now download. Exiting.', verbose)
-            return
         _download_files(data_folder, filenames, _mnist_urls, verbose)
     else:
         _maybe_print('Data exists.', verbose)

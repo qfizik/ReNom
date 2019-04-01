@@ -1,14 +1,12 @@
-renom.core
-===========
+renom.auxiliary
+================
 
-.. automodule:: renom.core
+.. currentmodule:: renom.auxiliary
+
 
 .. autosummary::
     :template: template.rst
     :toctree: autosum/
     :nosignatures:
 
-    Node
-    Variable
-    Grads
-
+    mnist.get_mnist

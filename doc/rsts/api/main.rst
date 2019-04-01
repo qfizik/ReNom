@@ -2,11 +2,9 @@ APIs
 ====
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
-    v2/main
-
-.. toctree::
-    :maxdepth: 2
-
-    v3/main
+    v3/graph
+    v3/optimizer
+    v3/cuda
+    v3/auxiliary

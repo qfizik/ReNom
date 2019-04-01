@@ -9,12 +9,15 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import operation, GraphMultiStorage, operational_element, UserGraph, GraphFactory
+from renom.graph.core import operation, GraphMultiStorage, \
+    operational_element, UserGraph, GraphFactory
 from renom.graph.utils import broad_cast, cu_broad_cast
 from renom.graph import populate_graph
 
 
 class div_forward(operation):
+    '''Div forward operation class.
+    '''
 
     name = 'Div (F)'
 
@@ -23,6 +26,22 @@ class div_forward(operation):
         self._b = None
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        div_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of 1st previous operation.  |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Output of 2nd previous operation.  |
+        +-------+-----+------------------------------------+
+        '''
+
         a = inputs[0]['y']
         b = inputs[1]['y']
         assert len(a) == len(b)
@@ -47,7 +66,8 @@ class div_forward_cpu(div_forward):
 
 
 class div_backward(operation):
-
+    '''Div backward operation class.
+    '''
     name = 'Div (B)'
 
     def __init__(self, associated_forward, key):
@@ -55,6 +75,20 @@ class div_backward(operation):
         self._key = key
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        div_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self._inputs = inputs[0]['y']
         key = self._key
         key_value = self._fwd_op.get_key(key)
@@ -121,13 +155,41 @@ class DivElement(UserGraph):
 
 @populate_graph
 class Div(GraphFactory):
+    '''A factory class of div function element.
+    Div operation of the UserGraph object will call this factory class.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>>
+        >>> x1 = np.arange(1, 7).reshape(2, 3)
+        >>> x2 = np.arange(1, 4).reshape(1, 3)
+        >>>
+        >>> v1 = rmg.StaticVariable(x1)
+        >>> v2 = rmg.StaticVariable(x2)
+        >>>
+        >>> print(v1 / v2)
+        Div (F):
+        [[1.  1.  1. ]
+        [4.  2.5 2. ]]
+
+    '''
 
     def connect(self, lhs, rhs):
         return DivElement([lhs, rhs])
 
 
 def _div(self, other):
-    ret = DivElement([self, other])
+    '''A function style factory of div operation element.
+
+    Args:
+        self (UserGraph): Left hand input.
+        other (UserGraph): Right hand input.
+
+    For more information, please refer :py:class:`~renom.graph.basics.div_element.Div`.
+    '''
+
+    ret = Div()(self, other)
     return ret
 
 

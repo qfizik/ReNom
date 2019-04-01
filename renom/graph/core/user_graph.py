@@ -353,14 +353,32 @@ class UserGraph(graph_element):
                     op._factory = optimizer
 
     def backward(self):
+        '''This function performs back propagation.
+
+        Returns:
+            (UserGraph): Returns object itself.
+        '''
         if len(self._bwd_graphs[0]._previous_elements) == 0:
             rm.graph.ConstantLossElement(previous_element=self)
         self._fwd.continue_forward(tag='Backward')
         return self
 
-    def get_gradient(self, some_variable):
-        assert isinstance(some_variable, rm.graph.core.GraphMultiStorage)
-        search_id = id(some_variable)
+    def get_gradient(self, variable):
+        '''This function returns gradient according to given object.
+
+        Args:
+            variable (GraphMultiStorage, UserGraph): Gradient of given variable will be returned.
+
+        Returns:
+            (ndarray): Numpy ndarray.
+        '''
+        assert isinstance(variable, (rm.graph.core.GraphMultiStorage, UserGraph))
+
+        if isinstance(variable, rm.graph.core.GraphMultiStorage):
+            search_id = id(variable)
+        elif isinstance(variable, UserGraph):
+            search_id = id(variable.output)
+
         backs = self._fwd.get_call_dict(tag='Backward', flatten=True)
         found_grad = False
         cum_grad = 0
@@ -404,6 +422,11 @@ class UserGraph(graph_element):
         return self._fwd.output
 
     def as_ndarray(self):
+        '''This function returns ndarray.
+
+        Returns:
+            (ndarray): Numpy ndarray object.
+        '''
         return self._fwd.as_ndarray()
 
 
