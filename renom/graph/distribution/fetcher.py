@@ -1,6 +1,14 @@
-import numpy as np
-from renom import precision
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
+import numpy as np
+
+from renom import precision
 
 class Fetcher:
 
