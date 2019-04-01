@@ -142,13 +142,13 @@ class Add(GraphFactory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> x1 = np.arange(6).reshape(2, 3)
         >>> x2 = np.arange(3).reshape(1, 3)
-        >>> 
+        >>>
         >>> v1 = rmg.StaticVariable(x1)
         >>> v2 = rmg.StaticVariable(x2)
-        >>> 
+        >>>
         >>> v1 + v2
         Add (F):
         [[0. 2. 4.]

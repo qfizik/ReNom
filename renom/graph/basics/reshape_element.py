@@ -106,7 +106,7 @@ class Reshape(GraphFactory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> x = rmg.StaticVariable(np.arange(6).reshape(1, 2, 6))
         >>> layer = rmg.Reshape([-1])
         >>> print(layer(x1))

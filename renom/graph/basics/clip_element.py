@@ -139,9 +139,9 @@ class Clip(GraphFactory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> x = np.arange(6).reshape(2, 3)
-        >>> 
+        >>>
         >>> rmg.clip(x, 0, 1)
         Clip (F):
         [[0. 1. 1.]

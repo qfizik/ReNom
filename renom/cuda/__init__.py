@@ -4,8 +4,9 @@ import contextlib
 import warnings
 import subprocess
 import re
+import os
 
-try:
+if 'USE_CUDA_BACKEND' not in os.environ or os.environ['USE_CUDA_BACKEND'] != 'No':
     from renom.cuda.base.cuda_base import *
     from renom.cuda.cublas.cublas import *
     from renom.cuda.thrust.thrust import *
@@ -14,7 +15,7 @@ try:
     from renom.cuda.renomhandler import *
     from renom.cuda.nccl.nccl import *
     _has_cuda = True
-except ImportError:
+else:
     gpu_allocator = None
     curand_generator = None
     _has_cuda = False

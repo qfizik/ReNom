@@ -1,5 +1,5 @@
 import numpy as np
-from renom.cuda.thrust import cubinarize
+from renom.cuda.thrust import thrust 
 from renom.config import precision
 from libc.stdint cimport uintptr_t
 
@@ -50,7 +50,7 @@ class CuRandGen(object):
 
     def rand_bernoulli(self, gpu_value, prob=0.5):
         self.rand_uniform(gpu_value)
-        cubinarize(gpu_value, prob, gpu_value)
+        thrust.cubinarize(gpu_value, prob, gpu_value)
         return
 
     def set_generator(self):

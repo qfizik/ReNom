@@ -24,6 +24,48 @@ class DataInput:
 
     This method interfaces the normal Dataset/Distributor/Generator/etc. type
     interface for the ReNom graph.
+
+    The DataInput class serves as an intermediary between the fetchers, which are responsible
+    for producing data, and put graphs, which put the fetched data into the graphs.
+
+    DataInput serves the basic idea of a pipeline, which is then finalized into a number of graphs
+    that can be inserted into the ReNom graph.
+
+    Example:
+        >>> import renom as rm
+        >>> import numpy as np
+        >>> A = np.arange(6).reshape(3,2)
+        >>> B = np.arange(6)[::-1].reshape(3,2)
+        >>> A
+        array([[0, 1],
+               [2, 3],
+               [4, 5]])
+        >>> B
+        array([[5, 4],
+               [3, 2],
+               [1, 0]])
+        >>> x, y = rm.graph.DataInput([A, B]).index().batch(2).get_output_graphs()
+        >>> try:
+        ...     while(True):
+        ...             print(x, y)
+        ... except StopIteration:
+        ...     print('Finished')
+        ...
+        Put Operation (0):
+        [[0. 1.]
+         [2. 3.]] Put Operation (1):
+        [[5. 4.]
+         [3. 2.]]
+        Put Operation (0):
+        [[4. 5.]] Put Operation (1):
+        [[1. 0.]]
+        Put Operation (0):
+        [] Put Operation (1):
+        []
+        Finished
+        >>>
+
+
     '''
 
     def __init__(self, inputs):

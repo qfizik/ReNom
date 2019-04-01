@@ -235,7 +235,7 @@ class GraphFactory(abc.ABC):
             >>> # Update will "not" be performed.
             >>> with layer2.no_updates():
             ...     out2 = layer2(m)
-            ...        
+            ...
             >>> print("Before update2", weight2)
             Before update2 Variable:
             [[-0.22761208]

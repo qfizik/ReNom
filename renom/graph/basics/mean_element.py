@@ -166,7 +166,7 @@ class Mean(GraphFactory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> x = np.arange(1, 7).reshape(2, 3)
         >>> layer = rmg.Mean()
         >>> print(layer(x1))
