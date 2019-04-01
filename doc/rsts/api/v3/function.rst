@@ -15,7 +15,6 @@ you can use to create the graph.
     :nosignatures:
 
     AvgPool
-    AvgUnPool
     BatchNormalize
     Bias
     Conv
@@ -29,5 +28,5 @@ you can use to create the graph.
     Lrn
     Lstm
     MaxPool
-    MaxUnPool
+    UnPool
     WeightNormalize

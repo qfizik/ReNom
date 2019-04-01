@@ -109,7 +109,7 @@ def test_distributor_test_split(use_gpu):
 
 class BadSgd(rm.graph.train.optimizer.optimizer_factory):
 
-    class gpu_op:
+    class _gpu_op:
 
         def setup(self, grad, val):
             self._dy = grad
@@ -120,7 +120,7 @@ class BadSgd(rm.graph.train.optimizer.optimizer_factory):
             for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
                 self._outputs[gpu] += self._dy[gpu]
 
-    class cpu_op(gpu_op):
+    class _cpu_op(_gpu_op):
 
         def update(self):
             dy = self._dy['cpu']

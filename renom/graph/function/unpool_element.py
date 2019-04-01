@@ -14,7 +14,7 @@ from renom.graph.core import operation, UserGraph, GraphMultiStorage, GraphFacto
 from renom.graph import populate_graph
 
 
-class MaxUnPoolElement(UserGraph):
+class UnPoolElement(UserGraph):
 
     def __init__(self, prev_pool, previous_element=None):
         fwd_op = unpool_forward(prev_pool) if rm.is_cuda_active() else unpool_forward_cpu(prev_pool)
@@ -23,13 +23,21 @@ class MaxUnPoolElement(UserGraph):
 
 
 @populate_graph
-class MaxUnPool(GraphFactory):
+class UnPool(GraphFactory):
+    '''General initializer for unpooling functions.
+
+    Args:
+        prev_pool (UserGraph): Output of this pool layer which 
+            associated to this object.
+
+    '''
+
 
     def prepare(self, prev_pool):
         self._prev_pool = prev_pool._fwd._op
 
     def connect(self, other):
-        ret = MaxUnPoolElement(self._prev_pool, previous_element=[other])
+        ret = UnPoolElement(self._prev_pool, previous_element=[other])
         return ret
 
 

@@ -866,7 +866,7 @@ def test_unpool(test_shape, use_gpu, num_gpu):
     model1 = rm.graph.MaxPool(kernel=3, padding=0, stride=1)
     loss = rm.graph.ConstantLoss()
     m = model1(val)
-    model2 = rm.graph.MaxUnPool(m)
+    model2 = rm.graph.UnPool(m)
     m2 = model2(m)
     l = loss(m2)
 
