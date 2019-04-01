@@ -28,6 +28,9 @@ class regularizer_factory:
 
 @populate_graph
 class L2(regularizer_factory):
+    '''
+
+    '''
 
     class gpu_op:
 

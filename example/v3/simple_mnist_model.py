@@ -6,10 +6,11 @@ import numpy as np
 
 import renom as rm
 import renom.graph as rmg
+from renom.auxiliary.mnist import get_mnist
 
 rm.set_cuda_active(rm.has_cuda())
 
-mnist = rm.utility.get_mnist(onehot=True, verbose=True)
+mnist = get_mnist(onehot=True, verbose=True)
 
 X = mnist[0]
 y = mnist[1]
@@ -20,25 +21,20 @@ X /= X.max()
 X = X.reshape(-1, 28 * 28)
 
 model = rmg.Sequential([
-    rmg.Dense(1000),
+    rmg.Dense(2000, ignore_bias=True),
     rmg.Relu(),
-    rmg.Dense(1000),
-    rmg.Relu(),
-    rmg.Dense(1000),
-    rmg.Relu(),
-    rmg.Dense(10),
+    rmg.Dense(10, ignore_bias=True),
 ])
 
 
 epochs = 10
-batch = 32
 
-opt = rmg.Sgd()
-x_in, y_in = rmg.Distro(X, y, batch_size=batch, test_split=0.9).get_output_graphs()
+opt = rmg.Rmsprop()
+x_in, y_in = rmg.DataInput([X, y]).index().batch(1024).get_output_graphs()
 loss = rmg.SoftmaxCrossEntropy()
-exe = loss(model(x_in), y_in).get_executor(mode='training', with_validation=True)
+exe = loss(model(x_in), y_in).get_executor(mode='training', optimizer=opt)
 
-exe.execute(epochs)
+exe.execute(epochs=epochs)
 
 #print(confusion_matrix(y_test, predictions))
 #print(classification_report(y_test, predictions))

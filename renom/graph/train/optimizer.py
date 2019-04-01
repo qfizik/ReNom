@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 import numpy as np
 
 import renom as rm
@@ -21,14 +29,10 @@ class optimizer_factory:
 
     def _create_op(self):
         if rm.is_cuda_active():
-            ret = self.gpu_op(*self.args, **self.kwargs)
+            ret = self._gpu_op(*self.args, **self.kwargs)
         else:
-            ret = self.cpu_op(*self.args, **self.kwargs)
+            ret = self._cpu_op(*self.args, **self.kwargs)
         return ret
-
-
-T = True
-F = False
 
 
 @populate_graph
@@ -38,11 +42,35 @@ class Sgd(optimizer_factory):
     Args:
         lr (float): Learning rate.
         momentum (float): Momentum coefficient of optimization.
-        nesterov (bool): If true, applies nesterov's accelerated gradient.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> m = np.arange(4).reshape(2, 2)
+        >>> layer = rmg.Dense(1)
+        >>> 
+        >>> out = layer(m)
+        >>> weight = layer.params['w']
+        >>> optimizer = rmg.Sgd()
+        >>> 
+        >>> print("Before update\n", weight)
+        Before update
+        Variable
+        [[ 0.3224739]
+        [-0.4718471]]
+        >>> 
+        >>> print("Before update\n", weight)
+        >>> out.update(optimizer)
+        >>> print("After update\n", weight)
+        After update
+        Variable
+        [[ 0.31247392]
+        [-0.4918471 ]]
+
     '''
 
-
-    class gpu_op:
+    class _gpu_op:
 
         def __init__(self, learning_rate, momentum):
             self.learning_rate = learning_rate
@@ -67,7 +95,7 @@ class Sgd(optimizer_factory):
                 rm.cuda.cusub(self._outputs[gpu], self._ndy[gpu], self._outputs[gpu], handle)
                 self._run_avg[gpu] = self._ndy[gpu]
 
-    class cpu_op(gpu_op):
+    class _cpu_op(_gpu_op):
 
         def update(self):
             dy = self._dy['cpu']
@@ -84,6 +112,7 @@ class Sgd(optimizer_factory):
         self.args = (learning_rate, momentum)
 
 
+@populate_graph
 class Adagrad(optimizer_factory):
     '''Adaptive gradient algorithm. [Adagrad]_
 
@@ -95,7 +124,7 @@ class Adagrad(optimizer_factory):
         Online Learning and Stochastic Optimization. Journal of Machine Learning Research, 12, 2121–2159.
     '''
 
-    class gpu_op:
+    class _gpu_op:
 
         def __init__(self, learning_rate, epsilon):
             self.learning_rate = learning_rate
@@ -118,7 +147,7 @@ class Adagrad(optimizer_factory):
                     self.learning_rate, self.epsilon, self._dy[gpu], self._prev[gpu], ndy, self._prev[gpu])
                 self._outputs[gpu] -= ndy
 
-    class cpu_op(gpu_op):
+    class _cpu_op(_gpu_op):
 
         def update(self):
             dy = self._dy['cpu']
@@ -136,6 +165,7 @@ class Adagrad(optimizer_factory):
         self.args = (learning_rate, epsilon)
 
 
+@populate_graph
 class Adadelta(optimizer_factory):
     '''Adaptive gradient algorithm. [Adagrad]_
 
@@ -147,7 +177,7 @@ class Adadelta(optimizer_factory):
         Online Learning and Stochastic Optimization. Journal of Machine Learning Research, 12, 2121–2159.
     '''
 
-    class gpu_op:
+    class _gpu_op:
 
         def __init__(self, dr, epsilon):
             self.dr = dr
@@ -173,7 +203,7 @@ class Adadelta(optimizer_factory):
                     dr, self.epsilon, self._pdy[gpu], self._pdx[gpu], self._dy[gpu], ndy)
                 self._outputs[gpu] -= ndy
 
-    class cpu_op(gpu_op):
+    class _cpu_op(_gpu_op):
 
         def update(self):
             dr = self.dr
@@ -196,6 +226,7 @@ class Adadelta(optimizer_factory):
         self.args = (dr, epsilon)
 
 
+@populate_graph
 class Adamax(optimizer_factory):
     '''Adamax optimizer for Adam using two running averages.
 
@@ -205,7 +236,7 @@ class Adamax(optimizer_factory):
         beta2 (float): Persistence for second running average.
         epsilon (float): Small value to avoid division by zero.
     '''
-    class gpu_op:
+    class _gpu_op:
 
         def __init__(self, alpha, beta1, beta2, epsilon):
             self.alpha = alpha
@@ -239,7 +270,7 @@ class Adamax(optimizer_factory):
             self.rb1 = rb1 * self.beta1
             self.rb2 = rb2 * self.beta2
 
-    class cpu_op(gpu_op):
+    class _cpu_op(_gpu_op):
 
         def update(self):
             alpha = self.alpha
@@ -267,6 +298,7 @@ class Adamax(optimizer_factory):
         self.args = (alpha, beta1, beta2, epsilon)
 
 
+@populate_graph
 class Rmsprop(optimizer_factory):
     '''Rmsprop described by following formula. [Rmsprop]_
 
@@ -284,7 +316,7 @@ class Rmsprop(optimizer_factory):
     .. [Rmsprop] Nitish Srivastava, Kevin Swersky, Geoffrey Hinton. Neural Networks for Machine Learning.
     '''
 
-    class gpu_op:
+    class _gpu_op:
 
         def __init__(self, lr, g, eps, r_avg):
             self.lr = lr
@@ -301,38 +333,33 @@ class Rmsprop(optimizer_factory):
             self._outputs = val
             self._pmse = GraphMultiStorage(
                 shape=grad.shape, gpus=grad.gpus, initializer=init.Constant(0))
-            self._prav = GraphMultiStorage(
-                shape=grad.shape, gpus=grad.gpus, initializer=init.Constant(0))
 
         def update(self):
             for gpu, handle in rm.cuda.RenomHandlers(self.gpus):
                 lr, g, eps, r_avg = (self.lr, self.g, self.eps, self.r_avg)
-                dy, r, k = (self._dy[gpu], self._pmse[gpu], self._prav[gpu])
+                dy, r = (self._dy[gpu], self._pmse[gpu])
                 ndy = dy.empty_like_me()
-                rm.cuda.cu_optimizer_rmsprop(lr, eps, g, r_avg, dy, k, ndy, r)
+                rm.cuda.cu_optimizer_rmsprop(lr, eps, g, r_avg, dy, ndy, r)
                 self._outputs[gpu] -= ndy
 
-    class cpu_op(gpu_op):
+    class _cpu_op(_gpu_op):
 
         def update(self):
             lr, g, eps, r_avg = (self.lr, self.g, self.eps, self.r_avg)
-            dy, pmse, prav = (self._dy['cpu'], self._pmse['cpu'], self._prav['cpu'])
+            dy, pmse = (self._dy['cpu'], self._pmse['cpu'])
 
             r = g * pmse + (1 - g) * (dy ** 2)
-            k = r_avg * prav + (1 - r_avg) * dy
-            v = (r - k**2)
-            v[v < 0] = 0
-            ret = lr * dy / np.sqrt(v + eps)
+            ret = lr * dy / (np.sqrt(r) + eps)
 
             self._outputs['cpu'] -= ret
             self._pmse['cpu'] = r
-            self._prav['cpu'] = k
 
     def __init__(self, lr=0.001, g=0.9, epsilon=1e-8, running_average=1):
         super().__init__()
         self.args = (lr, g, epsilon, running_average)
 
 
+@populate_graph
 class Adam(optimizer_factory):
     '''Adaptive moment estimation described by following formula. [Adam]_
 
@@ -355,7 +382,7 @@ class Adam(optimizer_factory):
         https://arxiv.org/pdf/1412.6980.pdf
     '''
 
-    class gpu_op:
+    class _gpu_op:
 
         CHECK_ZERO_VALUE = 100
 
@@ -394,7 +421,7 @@ class Adam(optimizer_factory):
             self.rb2 = rb2 * self.beta2
             self.time += 1
 
-    class cpu_op(gpu_op):
+    class _cpu_op(_gpu_op):
 
         def update(self):
             alpha = self.alpha

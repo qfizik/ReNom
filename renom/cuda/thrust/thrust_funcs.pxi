@@ -1154,7 +1154,7 @@ def cu_optimizer_adagrad(learning_rate, epsilon, dy, previous_dy, new_dy, r):
     thrust_optimizer_adagrad(Elems, lr, ptr_dy, eps, ptr_pdy, ptr_ndy, ptr_r)
 
 
-def cu_optimizer_rmsprop(learning_rate, epsilon, gamma, eta, dy, k, new_dy, r):
+def cu_optimizer_rmsprop(learning_rate, epsilon, gamma, eta, dy, new_dy, r):
     Elem = 1
     for v in dy.shape:
         Elem *= int(v)
@@ -1164,10 +1164,9 @@ def cu_optimizer_rmsprop(learning_rate, epsilon, gamma, eta, dy, k, new_dy, r):
     cdef VALUE_TYPE g = gamma
     cdef VALUE_TYPE e = eta
     cdef VALUE_TYPE * ptr_dy = <VALUE_TYPE * > < uintptr_t > dy._ptr
-    cdef VALUE_TYPE * ptr_k = <VALUE_TYPE * > < uintptr_t > k._ptr
     cdef VALUE_TYPE * ptr_ndy = <VALUE_TYPE * > < uintptr_t > new_dy._ptr
     cdef VALUE_TYPE * ptr_r = <VALUE_TYPE * > < uintptr_t > r._ptr
-    thrust_optimizer_rmsprop(Elems, lr, ptr_dy, eps, g, e, ptr_k, ptr_ndy, ptr_r)
+    thrust_optimizer_rmsprop(Elems, lr, ptr_dy, eps, g, e, ptr_ndy, ptr_r)
 
 
 def cu_optimizer_adam(learning_rate, epsilon, gamma, gamma_orig, beta, beta_orig, minimum, toflug, u, r, dy, new_dy):

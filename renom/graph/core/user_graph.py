@@ -224,7 +224,6 @@ class UserGraph(graph_element):
                         graph = acc_g
                     self._bwd_graphs[i] = graph
 
-                print(graph.name, backward_graph_input.name)
                 graph.add_input(backward_graph_input)
 
     def _disconnect_back(self, previous_element, pos=0):

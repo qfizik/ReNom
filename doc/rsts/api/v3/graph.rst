@@ -12,3 +12,4 @@ renom.graph
     activation
     loss
     distribution
+    train
