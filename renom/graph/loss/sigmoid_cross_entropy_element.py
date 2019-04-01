@@ -225,10 +225,10 @@ class SigmoidCrossEntropy(GraphFactory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> v1 = rmg.StaticVariable(np.random.rand(2, 2))
         >>> v2 = rmg.StaticVariable(np.random.rand(2, 2))
-        >>> 
+        >>>
         >>> rmg.sigmoid_cross_entropy(v1, v2)
         Smooth L1 (F):
         [0.30044635]

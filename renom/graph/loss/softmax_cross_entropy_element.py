@@ -224,10 +224,10 @@ class SoftmaxCrossEntropy(GraphFactory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> v1 = rmg.StaticVariable(np.random.rand(2, 2))
         >>> v2 = rmg.StaticVariable(np.random.rand(2, 2))
-        >>> 
+        >>>
         >>> rmg.softmax_cross_entropy(v1, v2)
         Softmax Cross Entropy(F):
         [0.6244223]

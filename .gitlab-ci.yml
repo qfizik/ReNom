@@ -3,7 +3,6 @@ image : python:3.6
 stages:
   - syntax 
   - cpu-test
-  - gpu-test
 
 before_script:
   - apt-get update -qq && apt-get install -y -qq python-pip pandoc
@@ -27,14 +26,3 @@ pytest:
     - export RENOM_PRECISION=64
     - USE_CUDA_BACKEND=No pytest
 
-gpus:
-  stage: gpu-test
-  tags:
-    - gpu
-  image: darkestduckster/cudnntestimg
-  script:
-    - apt-get install -y python3 python3-pip
-    - pip3 install -r requirements.txt
-    - python3 setup.py build_ext -i
-    - cd test
-    - RENOM_PRECISION=64 USE_CUDA_BACKEND=Yes pytest
