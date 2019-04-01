@@ -104,11 +104,13 @@ class Reshape(GraphFactory):
     Reshape operation of the UserGraph object will call this factory class.
 
     Example:
-
-
-
-
-
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = rmg.StaticVariable(np.arange(6).reshape(1, 2, 6))
+        >>> layer = rmg.Reshape([-1])
+        >>> print(layer(x1))
+        >>> [[0, 1, 2, 3, 4, 5]]
     '''
 
 
