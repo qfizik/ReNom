@@ -678,7 +678,7 @@ def test_share_arr():
     rm.set_cuda_active(True)
 
     storage = rmg.core.graph_storage.GraphMultiStorage
-    init = rm.utility.initializer.GlorotUniform()
+    init = rm.graph.train.initializer.GlorotUniform()
     shape = (2, 2)
 
     val = storage(shape=shape, gpus=[0, 1], initializer=init)

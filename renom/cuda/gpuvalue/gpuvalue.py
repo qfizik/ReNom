@@ -2,22 +2,22 @@ import weakref
 from numbers import Number
 import itertools
 import collections
+import sys
+
 import cython
 import numpy as np
 
-try:
-    from renom.cuda import is_cuda_active, use_device
-    from renom.cuda.thrust.thrust import *
-    from renom.cuda.base.cuda_base import *
-    from renom.cuda.base import cuda_base
-    from renom.cuda.cublas import cublas
-except ImportError:
-    pass
+
+import renom
+__import__('renom.cuda.thrust.thrust')
+thrust = sys.modules['renom.cuda.thrust.thrust']
+cuda_base = sys.modules['renom.cuda.base.cuda_base']
+from renom.cuda.cublas import cublas
 
 
 def _select_device(device_id):
-    cur = cuGetDevice()
-    cuSetDevice(device_id)  # switch device
+    cur = cuda_base.cuGetDevice()
+    cuda_base.cuSetDevice(device_id)  # switch device
     return cur
 
 
@@ -26,7 +26,7 @@ def get_gpu(array):
     if f:
         return f()
 
-    if isinstance(array, np.ndarray) or isinstance(array, PinnedMemory):
+    if isinstance(array, np.ndarray) or isinstance(array, cuda_base.PinnedMemory):
         return GPUValue(array=array)
     elif isinstance(array, Number):
         return array
@@ -146,14 +146,14 @@ def _parse_index(arr, indexes):
             # None(newaxis)
             result_shapes.append(1)
 
-    strides = calc_strides(arr.shape)
-    dest_strides = calc_strides(arr.shape)
+    strides = thrust.calc_strides(arr.shape)
+    dest_strides = thrust.calc_strides(arr.shape)
 
     return slices, strides, dest_strides, result_shapes, dest_shapes
 
 
 def build_shapes(arr, indexes):
-    strides = calc_strides(arr.shape)
+    strides = thrust.calc_strides(arr.shape)
 
     # If a list of slices, change to list of slices
     if isinstance(indexes, list):
@@ -258,12 +258,12 @@ def build_shapes(arr, indexes):
 
         if is_split_adv:
             # move adv indexes at topmost
-            indexes = ([ind for ind, stride, shape in advs]
-                       + [ind for ind, stride, shape in stds])
-            strides = ([stride for ind, stride, shape in advs]
-                       + [stride for ind, stride, shape in stds])
-            src_shape = ([shape for ind, stride, shape in advs]
-                         + [shape for ind, stride, shape in stds])
+            indexes = ([ind for ind, stride, shape in advs] +
+                       [ind for ind, stride, shape in stds])
+            strides = ([stride for ind, stride, shape in advs] +
+                       [stride for ind, stride, shape in stds])
+            src_shape = ([shape for ind, stride, shape in advs] +
+                         [shape for ind, stride, shape in stds])
 
         adv_shape = calc_broadcast_shape(*[adv.org_index for adv, stride, shape in advs])
 
@@ -273,7 +273,7 @@ def build_shapes(arr, indexes):
     result_shapes = []
     dest_shapes = []
     adv_result_shapes = adv_shape[:]
-    adv_ldxsize = calc_int_prod(adv_shape)
+    adv_ldxsize = thrust.calc_int_prod(adv_shape)
     adv_positions = []
 
     n_idx = 0
@@ -315,7 +315,7 @@ def build_shapes(arr, indexes):
         else:  # should be sequence
             adv_positions.append(len(slices))
             with renom.cuda.RenomHandler() as handle:
-                maxidx = cu_reduce_max(index.index, handle)
+                maxidx = thrust.cu_reduce_max(index.index, handle)
             if maxidx.new_array() >= shape:
                 raise IndexError()
 
@@ -328,7 +328,7 @@ def build_shapes(arr, indexes):
 
             n_idx += 1
 
-    dest_strides = calc_strides(dest_shapes)
+    dest_strides = thrust.calc_strides(dest_shapes)
     adv_dest_stride = dest_strides[adv_positions[0]] if adv_positions else None
 
     j = 0
@@ -370,7 +370,7 @@ def _build_broadcast_mask(left, right):
 class GPUValue(object):
     def __init__(self, array=None, shape=None, ptr=None, dtype=None):
         self._ptr = None
-        if not is_cuda_active():
+        if not renom.is_cuda_active():
             raise ValueError('Cuda is not active. '
                              'Use renom.cuda.set_cuda_active() to activate.')
         if shape is not None:
@@ -379,7 +379,7 @@ class GPUValue(object):
             self.shape = getattr(array, "shape", None) or ()
 
         if not dtype:
-            self.dtype = np.dtype(precision)
+            self.dtype = np.dtype(renom.precision)
         else:
             self.dtype = np.dtype(dtype)
 
@@ -393,7 +393,7 @@ class GPUValue(object):
         elif not self._ptr:
             self.alloc()
         else:
-            self.device_id = cuGetDevice()
+            self.device_id = cuda_base.cuGetDevice()
 
         assert self._ptr
         self._ptr.refcount += 1
@@ -411,7 +411,7 @@ class GPUValue(object):
         self._free()
 
         self._ptr = cuda_base.get_gpu_allocator().malloc(self.nbytes)
-        self.device_id = cuGetDevice()
+        self.device_id = cuda_base.cuGetDevice()
 
         assert self._ptr
 
@@ -441,7 +441,7 @@ class GPUValue(object):
     def batch_slice(self, num_batches):
         shp = list(self.shape)
         shp[0] = num_batches
-        sz = calc_int_prod(shp)
+        sz = thrust.calc_int_prod(shp)
         new_bytes = sz * self.itemsize
         assert new_bytes <= self.nbytes
         ret = GPUValue(ptr=self._ptr, shape=tuple(shp))
@@ -451,11 +451,11 @@ class GPUValue(object):
         return self
 
     def copy(self):
-        if cuGetDevice() == self.device_id:
+        if cuda_base.cuGetDevice() == self.device_id:
             ret = GPUValue(shape=self.shape)
             self._ptr.memcpyD2D(ret._ptr, self.nbytes)
         else:
-            with use_device(self.device_id):
+            with cuda_base.use_device(self.device_id):
                 arr = self.new_array()
             ret = GPUValue(arr)
         return ret
@@ -467,13 +467,13 @@ class GPUValue(object):
     def zeros_like_me(self):
         ret = self.empty_like_me()
         with renom.cuda.RenomHandler() as handle:
-            cufill(0., ret, handle)
+            thrust.cufill(0., ret, handle)
         return ret
 
     def ones_like_me(self):
         ret = self.empty_like_me()
         with renom.cuda.RenomHandler() as handle:
-            cufill(1., ret, handle)
+            thrust.cufill(1., ret, handle)
         return ret
 
     def __repr__(self):
@@ -502,18 +502,18 @@ class GPUValue(object):
             self.alloc()
 
         # todo: value.flatten() copies buffer
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             self._ptr.memcpyH2D(value, value.nbytes)
 
     def copy_from(self, other):
         self._ptr.copy_from(other._ptr, self.nbytes)
 
     def transpose(self, axis):
-        return cu_transpose(self, axis)
+        return thrust.cu_transpose(self, axis)
 
     @property
     def size(self):
-        return calc_int_prod(self.shape) if self.shape else 1
+        return thrust.calc_int_prod(self.shape) if self.shape else 1
 
     def split(self, indices_or_sections, axis=0):
         N = self.shape[axis]  # Raises IndexError if axis is invalid
@@ -552,13 +552,13 @@ class GPUValue(object):
     def __pos__(self):
         ret = self.empty_like_me()
         with renom.cuda.RenomHandler() as handle:
-            cumul(self, 1, ret, handle)
+            thrust.cumul(self, 1, ret, handle)
         return ret
 
     def __neg__(self):
         ret = self.empty_like_me()
         with renom.cuda.RenomHandler() as handle:
-            cumul(self, -1, ret, handle)
+            thrust.cumul(self, -1, ret, handle)
         return ret
 
     def __add__(self, other):
@@ -566,7 +566,7 @@ class GPUValue(object):
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
             # Only data type float32 is acceptable.
-            cuadd(self, other, ret, handle)
+            thrust.cuadd(self, other, ret, handle)
             return ret
 
     def dot(self, other):
@@ -579,7 +579,7 @@ class GPUValue(object):
         return ret
 
     def __iadd__(self, other):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             assert getattr(self, "shape", (1,)) == getattr(self, "shape", (1,))
             with renom.cuda.RenomHandler() as handle:
                 cublas.cublas_axpy(get_gpu(other), get_gpu(self), handle)
@@ -592,26 +592,26 @@ class GPUValue(object):
         with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cumul(self, other, ret, handle)
+            thrust.cumul(self, other, ret, handle)
             return ret
 
     def __rmul__(self, other):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             return self.__mul__(other)
 
     def __div__(self, other):
         if not isinstance(self, GPUValue):
             return other.__rdiv__(self)
 
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             return self.__truediv__(other)
 
     def __rdiv__(self, other):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             return self.__rtruediv__(other)
 
     def __idiv__(self, other):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             return self.__itruediv__(other)
 
     def __truediv__(self, other):
@@ -621,14 +621,14 @@ class GPUValue(object):
         with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cudiv(self, other, ret, handle)
+            thrust.cudiv(self, other, ret, handle)
             return ret
 
     def __rtruediv__(self, other):
         with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            curdiv(self, other, ret, handle)
+            thrust.curdiv(self, other, ret, handle)
             return ret
 
     def __itruediv__(self, other):
@@ -636,31 +636,32 @@ class GPUValue(object):
             assert getattr(self, "shape", (1,)) == getattr(self, "shape", (1,))
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cudiv(self, other, ret, handle)
+            thrust.cudiv(self, other, ret, handle)
             return ret
 
     def __sub__(self, other):
         with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cusub(self, other, ret, handle)
+            thrust.cusub(self, other, ret, handle)
             return ret
 
     def __isub__(self, other):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             assert getattr(self, "shape", (1,)) == getattr(self, "shape", (1,))
             with renom.cuda.RenomHandler() as handle:
                 cublas.cublas_axpy(-get_gpu(other), get_gpu(self), handle)
             return self
 
     def _oper_pow(self, other):
+        modulo = None
         if not isinstance(self, GPUValue):
             return other.__rpow__(self, modulo)
 
         with renom.cuda.RenomHandler(self.device_id) as handle:
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            cupow(self, other, ret, handle)
+            thrust.cupow(self, other, ret, handle)
             return ret
 
     def __pow__(self, other, modulo):
@@ -670,40 +671,40 @@ class GPUValue(object):
         __pow__ = _oper_pow  # noqa
 
     def __rpow__(self, other, modulo):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             new_shape = calc_broadcast_shape(self, other)
             ret = GPUValue(shape=new_shape)
-            curpow(self, other, ret)
+            thrust.curpow(self, other, ret)
             return ret
 
     def __getitem__(self, indexes):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             slices, result_shapes, dest_shapes = build_shapes(self, indexes)
-            dest_size = calc_int_prod(dest_shapes)
-            ret = cu_get_item(self, self.size, dest_size, slices)
+            dest_size = thrust.calc_int_prod(dest_shapes)
+            ret = thrust.cu_get_item(self, self.size, dest_size, slices)
             ret.shape = tuple(result_shapes)
             return ret
 
     def __setitem__(self, indexes, value):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             value = get_gpu(value)
             slices, result_shapes, dest_shapes = build_shapes(self, indexes)
-            if calc_int_prod(result_shapes) == 0:
+            if thrust.calc_int_prod(result_shapes) == 0:
                 return
 
-            dest_strides = calc_strides(dest_shapes)
+            dest_strides = thrust.calc_strides(dest_shapes)
             mask, broadcasted = _build_broadcast_mask(dest_shapes, value.shape)
 
-            broadcasted_strides = calc_strides(broadcasted)
+            broadcasted_strides = thrust.calc_strides(broadcasted)
             broadcasted_strides = [m * b for m, b in zip(mask, broadcasted_strides)]
 
-            valuesize = calc_int_prod(dest_shapes)
+            valuesize = thrust.calc_int_prod(dest_shapes)
 
-            cu_set_item(value, valuesize, self, slices, dest_strides, broadcasted_strides)
+            thrust.cu_set_item(value, valuesize, self, slices, dest_strides, broadcasted_strides)
 
     @property
     def T(self):
-        with use_device(self.device_id):
+        with cuda_base.use_device(self.device_id):
             n = len(self.shape)
             assert n < 3
             clone = self.zeros_like_me()
@@ -715,129 +716,3 @@ class GPUValue(object):
                 new_shape[1] = clone.shape[0]
                 clone.shape = tuple(new_shape)
             return clone
-
-
-try:
-    from graphviz import Digraph
-except ImportError:
-    def plot_graph(n):   # NOQA
-        pass
-
-
-ACTIVE_GPU = None
-ACTIVE_NODE = None
-
-
-def DEBUG_GRAPH_INIT(active):
-    global ACTIVE_GPU, ACTIVE_NODE
-    if active:
-        ACTIVE_GPU = weakref.WeakValueDictionary()
-        ACTIVE_NODE = weakref.WeakValueDictionary()
-    else:
-        ACTIVE_GPU = None
-        ACTIVE_NODE = None
-
-
-def DEBUG_GPU_STAT():
-    if ACTIVE_GPU is None:
-        return
-
-    print('Num of GPUValue: %d' % len(ACTIVE_GPU))
-    print('Bytes of GPU   : %d' % sum(g.nbytes for g in ACTIVE_GPU))
-
-
-def DEBUG_GET_ROOTS():
-    if ACTIVE_NODE is None:
-        return []
-
-    forwards = collections.defaultdict(set)
-    for o in ACTIVE_NODE.values():
-        for ref in o._args:
-            forwards[id(ref)].add(id(o))
-    rootids = set(ACTIVE_NODE.keys()) - set(forwards.keys())
-    roots = [ACTIVE_NODE[o] for o in rootids]
-
-    return roots
-
-
-def DEBUG_NODE_STAT():
-    if ACTIVE_NODE is None:
-        return
-
-    print('Num of Node: %d' % len(ACTIVE_NODE))
-
-    print('')
-    print('Num of Node by types:')
-
-    c = collections.Counter(str(o.__class__) for o in ACTIVE_NODE.values())
-
-    print('-----------------------------------------------------')
-    print(' #\t class')
-    print('-----------------------------------------------------')
-    for name, n in c.most_common():
-        print('%d \t%s' % (n, name))
-
-    length = collections.Counter()
-
-    def walk(o, n):
-        if not isinstance(o, Node):
-            length[n + 1] += 1
-            return
-
-        if not o.attrs:
-            return
-        attrs = o.attrs.get_attrs()
-        if not attrs:
-            length[n + 1] += 1
-        else:
-            for attr in attrs:
-                walk(attr, n + 1)
-
-    for root in DEBUG_GET_ROOTS():
-        walk(root, 0)
-
-    print('')
-    print('Num of terminal node by graph length:')
-
-    print('-----------------------------------------------------')
-    print('#\t length')
-    print('-----------------------------------------------------')
-    for length, n in length.most_common():
-        print('%d \t%s' % (n, length))
-
-
-def DEBUG_NODE_GRAPH():
-    if ACTIVE_NODE is None:
-        return
-    roots = DEBUG_GET_ROOTS()
-    _plot_graph(roots)
-
-
-def _plot_graph(objs):
-    g = Digraph('G', filename='graphviz_output')
-    s = set()
-    for n in objs:
-        g.node(str(id(n)), str(type(n)))
-        s.add(id(n))
-
-        def add_edge(node):
-            if not hasattr(node, "attrs"):
-                return
-
-            nodeid = str(id(node))
-            if not node.attrs:
-                return
-            for val in node._args:
-                valid = str(id(val))
-                name = ''
-                g.node(valid, label=str(type(val)))
-                g.edge(valid, nodeid, label=name)
-
-            for o in node._args:
-                if id(o) not in s:
-                    add_edge(o)
-                    s.add(id(o))
-
-        add_edge(n)
-
-    g.view()

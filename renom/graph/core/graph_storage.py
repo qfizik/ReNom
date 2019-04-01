@@ -99,7 +99,7 @@ class GraphMultiStorage:
         shape (tuple): The shape of array.
         gpus (int): Number of gpu.
         initializer (Initializer): Initializer object for initializing array.
-        share_init (bool): If True, each data on multiple gpus will be 
+        share_init (bool): If True, each data on multiple gpus will be
             initialized using same value.
         ptrs (GPUValue): GraphMultiStorage will be instantiated using given GPUValue object.
 
@@ -186,7 +186,7 @@ class GraphMultiStorage:
         '''Static method. This function will set share initializing flag.
 
         Args:
-            should_share (bool): If True, each data on multiple 
+            should_share (bool): If True, each data on multiple
                 gpus will be initialized using same value.
         '''
         GraphMultiStorage._should_share = should_share
@@ -266,7 +266,7 @@ class GraphMultiStorage:
 
     def as_ndarray(self):
         '''This function returns array as ndarray.
-        If the GraphMultiStorage object has array on the multiple gpus, 
+        If the GraphMultiStorage object has array on the multiple gpus,
         this function will gather all arrays and returns element wise mean.
 
         Returns:

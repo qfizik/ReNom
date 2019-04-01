@@ -66,7 +66,7 @@ def get_mnist(onehot=True, verbose=False, force_download=False):
     Args:
         onehot (bool): If True is given, target will be transformed to onehot vector.
         verbose (bool): If True is given, detail of download progress will be shown.
-        force_download (bool): If True is given, data will be downloaded 
+        force_download (bool): If True is given, data will be downloaded
             even if the data already exist.
 
     Return:

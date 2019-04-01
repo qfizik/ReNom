@@ -153,13 +153,13 @@ class Sub(GraphFactory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> x1 = np.arange(1, 7).reshape(2, 3)
         >>> x2 = np.arange(1, 4).reshape(1, 3)
-        >>> 
+        >>>
         >>> v1 = rmg.StaticVariable(x1)
         >>> v2 = rmg.StaticVariable(x2)
-        >>> 
+        >>>
         >>> print(v1 - v2)
         Sub (F):
         [[0. 0. 0.]

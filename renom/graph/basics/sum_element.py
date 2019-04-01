@@ -179,7 +179,7 @@ class Sum(GraphFactory):
         >>> rmg.sum(x, axis=1)
         Sum (F):
         [ 3. 12.]
-        >>> rmg.sum(x, axis=0) 
+        >>> rmg.sum(x, axis=0)
         Sum (F):
         [3. 5. 7.]
 

@@ -82,6 +82,54 @@ class Placeholder(UserGraph):
         num_gpus(int): The number of gpus to spread the Placeholder
         object on. If Cuda has not been activated, the argument is
         ignored and the object is placed on the CPU instead.
+
+    Note:
+        Even if a new element is fed to the placeholder through
+        the feed method, the previous connections still apply.
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> X = rmg.Placeholder(shape=(2,3))
+        >>> D = rmg.Dense(5)
+        >>> d = D(X)
+        >>> d.print_tree()
+        I am a Placeholder at depth 0 with tags: ['Forward']
+        My prevs are: []
+        I am a Variable at depth 0 with tags: ['Forward']
+        My prevs are: []
+        I am a Dense (F) at depth 1 with tags: ['Forward', 140550403884648]
+        My prevs are: ['Placeholder', 'Variable']
+        I am a Variable at depth 0 with tags: ['Forward']
+        My prevs are: []
+        I am a Bias (F) at depth 2 with tags: ['Forward', 140550403884648, 140550403884648]
+        My prevs are: ['Dense (F)', 'Variable']
+        >>> K = rmg.Dense(3)
+        >>> k = K(np.random.rand(2,4))
+        >>> d.feed(X, k)
+        >>> d.print_tree()
+        I am a Static Variable at depth 0 with tags: ['Forward', 140550403886776]
+        My prevs are: []
+        I am a Variable at depth 0 with tags: ['Forward']
+        My prevs are: []
+        I am a Dense (F) at depth 1 with tags: ['Forward', 140550403886776]
+        My prevs are: ['Static Variable', 'Variable']
+        I am a Variable at depth 0 with tags: ['Forward']
+        My prevs are: []
+        I am a Bias (F) at depth 2 with tags: ['Forward', 140550403886776, 140550403886776]
+        My prevs are: ['Dense (F)', 'Variable']
+        I am a Placeholder at depth 3 with tags: ['Forward']
+        My prevs are: ['Bias (F)']
+        I am a Variable at depth 0 with tags: ['Forward']
+        My prevs are: []
+        I am a Dense (F) at depth 4 with tags: ['Forward', 140550403884648]
+        My prevs are: ['Placeholder', 'Variable']
+        I am a Variable at depth 0 with tags: ['Forward']
+        My prevs are: []
+        I am a Bias (F) at depth 5 with tags: ['Forward', 140550403884648, 140550403884648]
+        My prevs are: ['Dense (F)', 'Variable']
+        >>>
+
     '''
 
     def __init__(self, shape, num_gpus=1):
