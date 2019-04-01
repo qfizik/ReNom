@@ -14,6 +14,8 @@ from renom.graph import populate_graph
 
 
 class mean_squared_forward(operation):
+    '''Mean squared forward operation class.
+    '''
 
     name = 'Mean Squared (F)'
     roles = ['loss']
@@ -22,6 +24,22 @@ class mean_squared_forward(operation):
         self.reduction = reduction
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        mean_squared_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target of associated input.        |
+        +-------+-----+------------------------------------+
+        '''
+
         predictions = inputs[0]['y']
         real_values = inputs[1]['y']
         self.gpus = predictions.gpus
@@ -78,6 +96,8 @@ class mean_squared_forward_cpu(mean_squared_forward):
 
 
 class mean_squared_backward(operation):
+    '''Mean squared backward operation class.
+    '''
 
     name = 'Mean Squared (B)'
 
@@ -85,6 +105,26 @@ class mean_squared_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        mean_squared_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target associated to the input.    |
+        +-------+-----+------------------------------------+
+        |   2   |  y  | Output of forward operation.       |
+        +-------+-----+------------------------------------+
+        |   3   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self.reduction = self._fwd_op.reduction
         predictions = inputs[0]['y']
         real_values = inputs[1]['y']
@@ -165,6 +205,9 @@ class MeanSquared(GraphFactory):
         target, x \in R^{N \\times D} \\\\
         y = \\frac{1}{N} \sum_{n, d}{(x_{nd} - target_{nd})^2}
 
+    Args:
+        reduction (str): Reduction method. This accepts following keywords.
+
     +-----------+-------------------------------------------------------+
     | reduction |  description                                          |
     +===========+=======================================================+
@@ -174,6 +217,17 @@ class MeanSquared(GraphFactory):
     +-----------+-------------------------------------------------------+
     |   None    | Reduction is not performed.                           |
     +-----------+-------------------------------------------------------+
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> v1 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> v2 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> 
+        >>> rmg.mean_squared(v1, v2)
+        Mean Squared (F):
+        [0.20296721]
     """
 
     def prepare(self, reduction='mean'):
@@ -182,3 +236,17 @@ class MeanSquared(GraphFactory):
     def connect(self, predictions, true_values):
         ret = MeanSquaredElement(self.reduction, previous_elements=[predictions, true_values])
         return ret
+
+
+@populate_graph
+def mean_squared(x, y, reduction='mean'):
+    '''A function style factory of mean squared operation element.
+
+    Args:
+        x (UserGraph, ndarray): Left hand input.
+        y (UserGraph, ndarray): Right hand input.
+        reduction (str, None): Reduction method.
+
+    For more information, please refer :py:class:`~renom.graph.loss.mean_squared_element.MeanSquared`.
+    '''
+    return MeanSquared(reduction=reduction)(x, y)

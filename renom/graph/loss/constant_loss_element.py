@@ -9,13 +9,16 @@
 import numpy as np
 
 import renom as rm
-from renom.graph.core import operation, operational_element, UserLossGraph, GraphMultiStorage, GraphFactory
+from renom.graph.core import operation, operational_element, UserLossGraph, \
+    GraphMultiStorage, GraphFactory
 from renom.graph.basics.sum_element import sum_forward, sum_forward_cpu
 from renom.graph.train import initializer as init
 from renom.graph import populate_graph
 
 
 class constant_loss_forward(operation):
+    '''Constant forward operation class.
+    '''
 
     name = 'Constant loss'
 
@@ -23,6 +26,20 @@ class constant_loss_forward(operation):
         self.reduction = reduction
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        constant_loss_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         inputs = inputs[0]['y']
         self.gpus = inputs.gpus
         output_shape = inputs.shape if self.reduction is None else (1, )
@@ -60,6 +77,8 @@ class constant_loss_forward_cpu(constant_loss_forward):
 
 
 class constant_loss_backward(operation):
+    '''Constant loss backward operation class.
+    '''
 
     name = 'Constant (B)'
 
@@ -67,6 +86,24 @@ class constant_loss_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        constant_loss_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target associated to the input.    |
+        +-------+-----+------------------------------------+
+        |   2   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self.reduction = self._fwd_op.reduction
 
         if len(inputs) > 2:

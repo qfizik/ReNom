@@ -14,6 +14,8 @@ from renom.graph import populate_graph
 
 
 class softmax_cross_entropy_forward(operation):
+    '''Softmax cross entropy forward operation class.
+    '''
 
     name = 'Softmax Cross Entropy(F)'
     roles = ['loss']
@@ -22,6 +24,22 @@ class softmax_cross_entropy_forward(operation):
         self.reduction = reduction
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        softmax_cross_entropy_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target of associated input.        |
+        +-------+-----+------------------------------------+
+        '''
+
         assert isinstance(inputs[1], dict)
         labels = inputs[1]['y']
         inputs = inputs[0]['y']
@@ -94,6 +112,8 @@ class softmax_cross_entropy_forward_cpu(softmax_cross_entropy_forward):
 
 
 class softmax_cross_entropy_backward(operation):
+    '''Softmax cross entropy backward operation class.
+    '''
 
     name = 'Softmax Cross Entropy(B)'
 
@@ -101,6 +121,26 @@ class softmax_cross_entropy_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        softmax_cross_entropy_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target associated to the input.    |
+        +-------+-----+------------------------------------+
+        |   2   |  y  | Output of forward operation.       |
+        +-------+-----+------------------------------------+
+        |   3   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self.reduction = self._fwd_op.reduction
         if len(inputs) > 3:
             self._dy = inputs[3]['y']
@@ -166,9 +206,10 @@ class SoftmaxCrossEntropyElement(UserLossGraph):
 
 @populate_graph
 class SoftmaxCrossEntropy(GraphFactory):
+    '''A factory class of softmax cross entropy loss function element.
 
-    '''
-    Softmax cross entropy.
+    Args:
+        reduction (str): Reduction method. This accepts following keywords.
 
     +-----------+-------------------------------------------------------+
     | reduction |  description                                          |
@@ -180,6 +221,17 @@ class SoftmaxCrossEntropy(GraphFactory):
     |   None    | Reduction is not performed.                           |
     +-----------+-------------------------------------------------------+
 
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> v1 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> v2 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> 
+        >>> rmg.softmax_cross_entropy(v1, v2)
+        Softmax Cross Entropy(F):
+        [0.6244223]
+
     '''
 
     def prepare(self, reduction='mean'):
@@ -189,3 +241,18 @@ class SoftmaxCrossEntropy(GraphFactory):
         ret = SoftmaxCrossEntropyElement(reduction=self.reduction,
                                          previous_elements=[predictions, true_values])
         return ret
+
+
+@populate_graph
+def softmax_cross_entropy(x, y, reduction='mean'):
+    '''A function style factory of softmax cross entropy operation element.
+
+    Args:
+        x (UserGraph, ndarray): Left hand input.
+        y (UserGraph, ndarray): Right hand input.
+        reduction (str, None): Reduction method.
+
+    For more information, please refer :py:class:`~renom.graph.loss.softmax_cross_entropy_element.SoftmaxCrossEntropy`.
+    '''
+
+    return SoftmaxCrossEntropy(reduction=reduction)(x, y)

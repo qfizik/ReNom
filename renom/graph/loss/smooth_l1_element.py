@@ -14,6 +14,8 @@ from renom.graph import populate_graph
 
 
 class smooth_l1_forward(operation):
+    '''Smooth L1 forward operation class.
+    '''
 
     name = 'Smooth L1 (F)'
     roles = ['loss']
@@ -23,6 +25,22 @@ class smooth_l1_forward(operation):
         self.reduction = reduction
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        smooth_l1_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target of associated input.        |
+        +-------+-----+------------------------------------+
+        '''
+
         predictions = inputs[0]['y']
         real_values = inputs[1]['y']
         self.gpus = predictions.gpus
@@ -85,6 +103,8 @@ class smooth_l1_forward_cpu(smooth_l1_forward):
 
 
 class smooth_l1_backward(operation):
+    '''Smooth L1 backward operation class.
+    '''
 
     name = 'Smooth L1 (B)'
 
@@ -93,6 +113,26 @@ class smooth_l1_backward(operation):
         self.delta = self._fwd_op.delta
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        smooth_l1_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target associated to the input.    |
+        +-------+-----+------------------------------------+
+        |   2   |  y  | Output of forward operation.       |
+        +-------+-----+------------------------------------+
+        |   3   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self.reduction = self._fwd_op.reduction
 
         if len(inputs) > 3:
@@ -177,6 +217,7 @@ class SmoothL1(GraphFactory):
 
     Args:
         delta (float):
+        reduction (str): Reduction method. This accepts following keywords.
 
     +-----------+-------------------------------------------------------+
     | reduction |  description                                          |
@@ -188,6 +229,17 @@ class SmoothL1(GraphFactory):
     |   None    | Reduction is not performed.                           |
     +-----------+-------------------------------------------------------+
 
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> v1 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> v2 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> 
+        >>> rmg.smooth_l1(v1, v2)
+        Smooth L1 (F):
+        [0.30044635]
+
     """
 
     def prepare(self, delta=1.0, reduction='mean'):
@@ -198,3 +250,19 @@ class SmoothL1(GraphFactory):
         ret = SmoothL1Element(self.delta, self.reduction,
                               previous_elements=[predictions, true_values])
         return ret
+
+
+@populate_graph
+def smooth_l1(x, y, delta=1.0, reduction='mean'):
+    '''A function style factory of smooth l1 operation element.
+
+    Args:
+        x (UserGraph, ndarray): Left hand input.
+        y (UserGraph, ndarray): Right hand input.
+        reduction (str, None): Reduction method.
+
+
+    For more information, please refer :py:class:`~renom.graph.loss.smooth_l1_element.SmoothL1`.
+    '''
+
+    return SmoothL1(delta=delta, reduction=reduction)(x, y)

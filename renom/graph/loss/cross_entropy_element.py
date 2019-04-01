@@ -14,6 +14,8 @@ from renom.graph import populate_graph
 
 
 class cross_entropy_forward(operation):
+    '''Cross Entropy forward operation class.
+    '''
 
     name = 'Cross Entropy (F)'
     roles = ['loss']
@@ -22,6 +24,22 @@ class cross_entropy_forward(operation):
         self.reduction = reduction
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        constant_loss_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target of associated input.        |
+        +-------+-----+------------------------------------+
+        '''
+
         assert isinstance(inputs[1], dict)
 
         labels = inputs[1]['y']
@@ -78,6 +96,8 @@ class cross_entropy_forward_cpu(cross_entropy_forward):
 
 
 class cross_entropy_backward(operation):
+    '''Cross Entropy backward operation class.
+    '''
 
     name = 'Cross Entropy (B)'
 
@@ -85,13 +105,35 @@ class cross_entropy_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        cross_entropy_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target associated to the input.    |
+        +-------+-----+------------------------------------+
+        |   2   |  y  | Output of forward operation.       |
+        +-------+-----+------------------------------------+
+        |   3   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self.reduction = self._fwd_op.reduction
         if len(inputs) > 3:
             self._dy = inputs[3]['y']
         else:
             self._dy = None
+
         predictions = inputs[0]['y']
         labels = inputs[1]['y']
+
         for a, b in zip(predictions.shape, labels.shape):
             assert a == b, '{} / {}'.format(a, b)
         self._N = predictions.shape[0]
@@ -158,6 +200,9 @@ class CrossEntropy(GraphFactory):
         target, x \in R^{N \\times D} \\\\
         y = -\\frac{1}{N}\sum_{n}{\sum_{d}{target_{nd} * log(x_{nd})}}
 
+    Args:
+        reduction (str): Reduction method. This accepts following keywords.
+
     +-----------+-------------------------------------------------------+
     | reduction |  description                                          |
     +===========+=======================================================+
@@ -167,6 +212,17 @@ class CrossEntropy(GraphFactory):
     +-----------+-------------------------------------------------------+
     |   None    | Reduction is not performed.                           |
     +-----------+-------------------------------------------------------+
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>>
+        >>> v1 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> v2 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>>
+        >>> rmg.cross_entropy(v1, v2)
+        Cross Entropy (F):
+        [1.1589496]
     '''
 
     def prepare(self, reduction='mean'):
@@ -175,3 +231,18 @@ class CrossEntropy(GraphFactory):
     def connect(self, predictions, true_values):
         ret = CrossEntropyElement(self.reduction, previous_elements=[predictions, true_values])
         return ret
+
+@populate_graph
+def cross_entropy(x, y, reduction='mean'):
+    '''A function style factory of cross entropy operation element.
+
+    Args:
+        x (UserGraph, ndarray): Left hand input.
+        y (UserGraph, ndarray): Right hand input.
+        reduction (str, None): Reduction method.
+
+
+    For more information, please refer :py:class:`~renom.graph.loss.cross_entropy_element.CrossEntropy`.
+    '''
+
+    return CrossEntropy(reduction=reduction)(x, y)

@@ -14,6 +14,8 @@ from renom.graph import populate_graph
 
 
 class sigmoid_forward(operation):
+    '''sigmoid cross entropy forward operation class.
+    '''
 
     name = 'Sigmoid Cross Entropy(F)'
     roles = ['loss']
@@ -22,6 +24,22 @@ class sigmoid_forward(operation):
         self.reduction = reduction
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        sigmoid_forward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target of associated input.        |
+        +-------+-----+------------------------------------+
+        '''
+
         assert isinstance(inputs[1], dict)
 
         labels = inputs[1]['y']
@@ -86,6 +104,8 @@ class sigmoid_forward_cpu(sigmoid_forward):
 
 
 class sigmoid_backward(operation):
+    '''sigmoid cross entropy backward operation class.
+    '''
 
     name = 'Sigmoid Cross Entropy(B)'
 
@@ -93,6 +113,26 @@ class sigmoid_backward(operation):
         self._fwd_op = associated_forward
 
     def setup(self, inputs):
+        '''Prepares workspaces for this operation.
+
+        Args:
+            inputs (list of GraphMultiStorage): Input data to this operation.
+
+        sigmoid_backward class requires inputs to contain following keys.
+
+        +-------+-----+------------------------------------+
+        | Index | Key |              Role                  |
+        +=======+=====+====================================+
+        |   0   |  y  | Output of forward propagation.     |
+        +-------+-----+------------------------------------+
+        |   1   |  y  | Target associated to the input.    |
+        +-------+-----+------------------------------------+
+        |   2   |  y  | Output of forward operation.       |
+        +-------+-----+------------------------------------+
+        |   3   |  y  | Output of previous operation.      |
+        +-------+-----+------------------------------------+
+        '''
+
         self.reduction = self._fwd_op.reduction
         if len(inputs) > 3:
             self._dy = inputs[3]['y']
@@ -169,6 +209,9 @@ class SigmoidCrossEntropyElement(UserLossGraph):
 class SigmoidCrossEntropy(GraphFactory):
     '''A factory class of sigmoid cross entropy loss function element.
 
+    Args:
+        reduction (str): Reduction method. This accepts following keywords.
+
     +-----------+-------------------------------------------------------+
     | reduction |  description                                          |
     +===========+=======================================================+
@@ -178,6 +221,17 @@ class SigmoidCrossEntropy(GraphFactory):
     +-----------+-------------------------------------------------------+
     |   None    | Reduction is not performed.                           |
     +-----------+-------------------------------------------------------+
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> v1 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> v2 = rmg.StaticVariable(np.random.rand(2, 2))
+        >>> 
+        >>> rmg.sigmoid_cross_entropy(v1, v2)
+        Smooth L1 (F):
+        [0.30044635]
     '''
 
     def prepare(self, reduction='mean'):
@@ -187,3 +241,19 @@ class SigmoidCrossEntropy(GraphFactory):
         ret = SigmoidCrossEntropyElement(self.reduction, previous_elements=[
                                          predictions, true_values])
         return ret
+
+
+@populate_graph
+def sigmoid_cross_entropy(x, y, reduction='mean'):
+    '''A function style factory of sigmoid cross entropy operation element.
+
+    Args:
+        x (UserGraph, ndarray): Left hand input.
+        y (UserGraph, ndarray): Right hand input.
+        reduction (str, None): Reduction method.
+
+
+    For more information, please refer :py:class:`~renom.graph.loss.sigmoid_cross_entropy_element.SigmoidCrossEntropy`.
+    '''
+
+    return SigmoidCrossEntropy(reduction=reduction)(x, y)
