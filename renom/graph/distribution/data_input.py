@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Copyright 2019, Grid.
+#
+# This source code is licensed under the ReNom Subscription Agreement, version 1.0.
+# ReNom Subscription Agreement Ver. 1.0 (https://www.renom.jp/info/license/index.html)
+
 from functools import wraps
 
 import numpy as np
@@ -90,15 +98,31 @@ class DataInput:
 
     @indexer
     def shuffle(self):
+        '''Shuffles the input sources.
+
+        This method counts as a form of indexer, transforming the indices
+        of the input sources.
+        '''
         self.fetcher = Shuffler(self.fetcher)
         return self
 
     @indexer
     def index(self):
+        '''Inserts the input sources in order.
+
+        This method counts as a form of indexer, inserting values from the
+        sources in increasing order.
+        '''
         self.fetcher = Indexer(self.fetcher)
         return self
 
     def batch(self, batch_size=32):
+        '''Batches the received data.
+
+        Each received value is gather until either the previous fetcher
+        throws a StopIteration error or the batch_size is filled out. This
+        method asserts the data was indexed.
+        '''
         fetcher = self.fetcher
         if not (isinstance(fetcher, Indexer) or isinstance(fetcher, Shuffler)):
             self.shuffle()
