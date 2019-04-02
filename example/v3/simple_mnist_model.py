@@ -22,13 +22,13 @@ X = X.reshape(-1, 28 * 28)
 
 reg = rmg.L2()
 model = rmg.Sequential([
-    rmg.Dense(1000, parameter_decay={'w':reg}),
+    rmg.Dense(1000, parameter_decay={'w': reg}),
     rmg.Relu(),
-    rmg.Dense(1000, parameter_decay={'w':reg}),
+    rmg.Dense(1000, parameter_decay={'w': reg}),
     rmg.Relu(),
-    rmg.Dense(1000, parameter_decay={'w':reg}),
+    rmg.Dense(1000, parameter_decay={'w': reg}),
     rmg.Relu(),
-    rmg.Dense(10, parameter_decay={'w':reg}),
+    rmg.Dense(10, parameter_decay={'w': reg}),
 ])
 
 
@@ -46,7 +46,7 @@ def reg_wd(info):
         info['step'] += 1
     if info['step'] == 20:
         reg.wd = 0
-exe.register_event('Step-Finish',reg_wd)
+exe.register_event('Step-Finish', reg_wd)
 
 exe.execute(epochs=epochs)
 
