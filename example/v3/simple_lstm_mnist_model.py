@@ -18,26 +18,26 @@ print(y.shape)
 
 X = X.astype(np.float32)
 X /= X.max()
-X = X.reshape(-1, 28 * 28)
+X = X.reshape(-1, 28, 28)
+
+x_in, y_in = rmg.DataInput([X, y], num_gpus=1).shuffle().batch(64).get_output_graphs()
+
 
 reg = rmg.L2()
 model = rmg.Sequential([
-    rmg.Dense(1000, parameter_decay={'w': reg}),
-    rmg.Relu(),
-    rmg.Dense(1000, parameter_decay={'w': reg}),
-    rmg.Relu(),
-    rmg.Dense(1000, parameter_decay={'w': reg}),
-    rmg.Relu(),
-    rmg.Dense(10, parameter_decay={'w': reg}),
+    rmg.Lstm(10),
 ])
+loss_func = rmg.SoftmaxCrossEntropy()
 
+for i in range(28):
+    out = model(x_in[:, :, i])
+
+loss = loss_func(out, y_in)
 
 epochs = 10
 
 opt = rmg.Rmsprop()
-x_in, y_in = rmg.DataInput([X, y], num_gpus=2).shuffle().batch(1024).get_output_graphs()
-loss = rmg.SoftmaxCrossEntropy()
-exe = loss(model(x_in), y_in).get_executor(mode='training', optimizer=opt)
+exe = loss.get_executor(mode='training', optimizer=opt)
 
 def reg_wd(info):
     if 'step' not in info:
