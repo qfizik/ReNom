@@ -130,6 +130,9 @@ class operational_element(graph_element):
 
     @check_tags
     def setup(self):
+        for elem in self._previous_elements:
+            if not hasattr(elem, '_vars'):
+                elem.setup()
         if not self.inputs_changed():
             return
         inputs = [prev.get_output() for prev in self._previous_elements]
