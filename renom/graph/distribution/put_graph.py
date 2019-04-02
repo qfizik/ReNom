@@ -32,7 +32,7 @@ class put_op(operation):
         pass
 
     def __len__(self):
-        return len(self.fetcher)
+        return np.int(np.floor(len(self.fetcher) / len(self.gpus)))
 
     def reset(self):
         if self.source == 0:
