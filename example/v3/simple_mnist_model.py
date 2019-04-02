@@ -20,19 +20,33 @@ X = X.astype(np.float32)
 X /= X.max()
 X = X.reshape(-1, 28 * 28)
 
+reg = rmg.L2()
 model = rmg.Sequential([
-    rmg.Dense(2000, ignore_bias=True),
+    rmg.Dense(1000, parameter_decay={'w': reg}),
     rmg.Relu(),
-    rmg.Dense(10, ignore_bias=True),
+    rmg.Dense(1000, parameter_decay={'w': reg}),
+    rmg.Relu(),
+    rmg.Dense(1000, parameter_decay={'w': reg}),
+    rmg.Relu(),
+    rmg.Dense(10, parameter_decay={'w': reg}),
 ])
 
 
 epochs = 10
 
 opt = rmg.Rmsprop()
-x_in, y_in = rmg.DataInput([X, y]).index().batch(1024).get_output_graphs()
+x_in, y_in = rmg.DataInput([X, y], num_gpus=1).shuffle().batch(1024).get_output_graphs()
 loss = rmg.SoftmaxCrossEntropy()
 exe = loss(model(x_in), y_in).get_executor(mode='training', optimizer=opt)
+
+def reg_wd(info):
+    if 'step' not in info:
+        info['step'] = 0
+    else:
+        info['step'] += 1
+    if info['step'] == 20:
+        reg.wd = 0
+exe.register_event('Step-Finish', reg_wd)
 
 exe.execute(epochs=epochs)
 

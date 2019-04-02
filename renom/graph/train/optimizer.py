@@ -46,20 +46,20 @@ class Sgd(optimizer_factory):
     Example:
         >>> import numpy as np
         >>> import renom.graph as rmg
-        >>> 
+        >>>
         >>> m = np.arange(4).reshape(2, 2)
         >>> layer = rmg.Dense(1)
-        >>> 
+        >>>
         >>> out = layer(m)
         >>> weight = layer.params['w']
         >>> optimizer = rmg.Sgd()
-        >>> 
+        >>>
         >>> print("Before update\n", weight)
         Before update
         Variable
         [[ 0.3224739]
         [-0.4718471]]
-        >>> 
+        >>>
         >>> print("Before update\n", weight)
         >>> out.update(optimizer)
         >>> print("After update\n", weight)
@@ -345,7 +345,7 @@ class Rmsprop(optimizer_factory):
     class _cpu_op(_gpu_op):
 
         def update(self):
-            lr, g, eps, r_avg = (self.lr, self.g, self.eps, self.r_avg)
+            lr, g, eps = (self.lr, self.g, self.eps)
             dy, pmse = (self._dy['cpu'], self._pmse['cpu'])
 
             r = g * pmse + (1 - g) * (dy ** 2)

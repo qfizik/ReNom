@@ -27,7 +27,7 @@ class UnPool(GraphFactory):
     '''General initializer for unpooling functions.
 
     Args:
-        prev_pool (UserGraph): Output of this pool layer which 
+        prev_pool (UserGraph): Output of this pool layer which
             associated to this object.
 
     '''
