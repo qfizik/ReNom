@@ -58,7 +58,7 @@ def _norm_epoch_finish(info):
     loss = info['losses']
     bar.n -= 1
 
-    epoch_loss_list.pop(-1)
+    #epoch_loss_list.pop(-1)
     # all_losses.append(np.sum(epoch_loss_list))
     cur_loss = np.mean(epoch_loss_list)
     if len(loss) == 0:
