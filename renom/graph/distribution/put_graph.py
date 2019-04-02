@@ -36,7 +36,8 @@ class put_op(operation):
             devs = len(self.gpus)
         else:
             devs = 1
-        return int(len(self.fetcher) / devs)
+        batches = len(self.fetcher)
+        return int(batches / devs - (batches // devs % devs))
 
     def reset(self):
         if self.source == 0:
