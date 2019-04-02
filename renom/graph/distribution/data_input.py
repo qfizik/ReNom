@@ -76,13 +76,14 @@ class DataInput:
 
     '''
 
-    def __init__(self, inputs):
+    def __init__(self, inputs, num_gpus=1):
         if not isinstance(inputs, list):
             inputs = [inputs]
         self.inputs = inputs
         self.fetcher = DataSources(inputs)
         self._orig_num_sources = len(inputs)
         self.indexed = False
+        self.num_gpus = num_gpus
 
     def get_output_graphs(self):
         assert self.indexed is True, 'The input sources must be indexed in ' \
@@ -91,7 +92,7 @@ class DataInput:
         ret = []
         num_sources = self.fetcher.num_sources
         for source in range(num_sources):
-            ret.append(put_graph(self.fetcher, source))
+            ret.append(put_graph(self.fetcher, source, self.num_gpus))
         if num_sources == 1:
             ret = ret[0]
         return ret
