@@ -28,7 +28,13 @@ class regularizer_factory:
 
 @populate_graph
 class L2(regularizer_factory):
-    '''
+    '''L2 Distance regularization.
+
+        This regularizer multiplies the parameter with a coefficient lambda, which it
+        applies to the gradient for the parameter each time it is to be applied.
+
+        Args:
+            wd(float): The lambda coefficient.
 
     '''
 
@@ -59,8 +65,16 @@ class L2(regularizer_factory):
         self.wd = wd
         self.args = (wd,)
 
-
+@populate_graph
 class L1(regularizer_factory):
+    '''L1 Distance Regularization
+
+        This regularization technique takes a coefficient lambda and applies
+        it to the gradient of the parameter with the sign of the parameter.
+
+        Args:
+            wd(float): The lambda to apply.
+    '''
 
     class gpu_op:
 

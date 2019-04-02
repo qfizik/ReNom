@@ -62,6 +62,16 @@ class GraphFactory(abc.ABC):
             default values instead. If the optimizer is given as a dict, it ties each variable in the
             graph factory params with a specific optimizer, given again as (optimizer_factory, string).
 
+            parameter_decay(dict, regularizer_factory, string): The regularizerto be used with a specific
+            graph factory. If the regularizeris given as a string, it is converted to a regularizer with
+            default values instead. If the regularizer is given as a dict, it ties each variable in the
+            graph factory params with a specific optimizer, given again as (optimizer_factory, string).
+
+        Example:
+            >>> import renom.graph as rmg
+            >>> opt = rmg.Sgd(0.02)
+            >>> layer = rmg.Dense(5, optimizer=opt, parameter_decay={'w' : 'l2'})
+
 
     '''
 
