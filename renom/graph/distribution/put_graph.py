@@ -45,6 +45,7 @@ class put_op(operation):
         try:
             self.fetcher.prepare(self.source)
         except StopIteration:
+            raise StopIteration()
             self._finished = True
         ret = self.fetcher.retrieve(self.source)
         self._vars['y'].shape[0].value = ret.shape[0]

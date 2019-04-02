@@ -35,7 +35,7 @@ model = rmg.Sequential([
 epochs = 10
 
 opt = rmg.Rmsprop()
-x_in, y_in = rmg.DataInput([X, y]).shuffle().batch(1024).get_output_graphs()
+x_in, y_in = rmg.DataInput([X, y], num_gpus=1).shuffle().batch(1024).get_output_graphs()
 loss = rmg.SoftmaxCrossEntropy()
 exe = loss(model(x_in), y_in).get_executor(mode='training', optimizer=opt)
 
