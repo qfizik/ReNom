@@ -173,6 +173,18 @@ class MaxPool(PoolGraphFactory):
         stride (int, tuple): The step size between the points where the \
         kernels are to be applied.
 
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(5*5*3*2).reshape(2, 3, 5, 5)
+        >>> layer1 = rmg.MaxPool()
+        >>> print(layer1(x)[0, 0])
+        Get Item (F):
+        [[12., 13., 14.],
+        [17., 18., 19.],
+        [22., 23., 24.]]
+
     '''
 
     def connect(self, other):

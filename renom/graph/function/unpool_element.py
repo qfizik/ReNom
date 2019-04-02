@@ -30,6 +30,22 @@ class UnPool(GraphFactory):
         prev_pool (UserGraph): Output of this pool layer which
             associated to this object.
 
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(5*5*3*2).reshape(2, 3, 5, 5)
+        >>> layer1 = rmg.MaxPool()
+        >>> forward_pool = layer1(x)
+        >>> 
+        >>> layer2 = rmg.UnPool(forward_pool)
+        >>> print(layer2(forward_pool)[0, 0])
+        Get Item (F):
+        [[ 0.,  0.,  0.,  0.,  0.],
+        [ 0.,  0.,  0.,  0.,  0.],
+        [ 0.,  0., 12., 13., 14.],
+        [ 0.,  0., 17., 18., 19.],
+        [ 0.,  0., 22., 23., 24.]]
     '''
 
 

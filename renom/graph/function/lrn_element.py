@@ -137,14 +137,17 @@ class Lrn(GraphFactory):
         b (float): Exponential factor.
 
     Example:
-        In [1]: import numpy as np
-        In [2]: import renom as rm
-        In [3]: x = np.random.rand(3, 3, 32, 32)
-        In [4]: layer = rm.graph.LrnGraphElement()
-        In [5]: z=layer(x).as_ndarray()
-        In [6]: z.shape
-        Out[6]:
-        (3, 3, 32, 32)
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(3*3).reshape(1, 1, 3, 3)
+        >>> layer1 = rmg.Lrn()
+        >>> print(layer1(x))
+        LRN (F):
+        [[[[0.        , 0.59459907, 1.1891713 ],
+        [1.7836902 , 2.3781288 , 2.9724603 ],
+        [3.566658  , 4.160696  , 4.754546  ]]]]
+
 
     .. [lrn] Alex Krizhevsky, Ilya Sutskever, Geoffrey E. Hinton.
         ImageNet Classification with Deep Convolutional Neural Networks. NIPS, 2012.

@@ -331,28 +331,26 @@ class Lstm(GraphFactory):
     in the __init__ function.
     Otherwise, the weight is initialized in its first forward calculation.
 
+
     Args:
         output_size (int): Output unit size.
-        input_size (int): Input unit size.
-        ignore_bias (bool): If True is given, bias will not be added.
         initializer (Initializer): Initializer object for weight initialization.
+        weight_decay (float): Weight decay ratio.
+        ignore_bias (bool): If True is given, bias will not be added.
+
 
     Example:
         >>> import numpy as np
-        >>> import renom as rm
-        >>>
-        >>> n, d, t = (2, 3, 4)
-        >>> x = rm.Variable(np.random.rand(n, d))
-        >>> layer = rm.Lstm(2)
-        >>> z = 0
-        >>> for i in range(t):
-        ...     z += rm.sum(layer(x))
-        ...
-        >>> grad = z.grad()    # Backpropagation.
-        >>> grad.get(x)    # Gradient of x.
-        Add([[-0.01853334, -0.0585249 ,  0.01290053],
-             [-0.0205425 , -0.05837972,  0.00467286]], dtype=float32)
-        >>> layer.truncate()
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(2*3).reshape(2, 3)
+        >>> layer1 = rmg.Lstm()
+        >>> print(layer1(x))
+        >>> 
+        LSTM (F):
+        [[-0.08015051, -0.07165769,  0.322052  ],
+        [-0.00159989, -0.00164642,  0.5016    ]]
+
 
     .. [lstm] Felix A. Gers, Nicol N. Schraudolph, Jürgen Schmidhuber.
         Learning Precise Timing with LSTM Recurrent Networks. JMLR, 2002.

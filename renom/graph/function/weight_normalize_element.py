@@ -173,13 +173,15 @@ class WeightNormalize(GraphFactory):
 
     Example:
         >>> import numpy as np
-        >>> import renom as rm
-        >>> x = np.random.rand(2,3)
-        >>> layer = rm.WeightNormalization(4)
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(6).reshape(2, 3)
+        >>> layer = rmg.WeightNormalize(4)
         >>> layer(x)
-        weight_normalize([[1.00133252, 1.00713646, 0.98452991, 1.0043143],
-                    [0.983392 , 1.01545942, 0.99134618, 1.01834679]],
-                    dtype=float32)
+        Weight Normalization (F):
+        [[ 0.00085666,  0.05006151, -0.03858715, -0.06568356],
+        [-0.03762836, -0.00825702, -0.17232649, -0.11398955]],
+
 
     .. [weight_norm] Tim Salimans, Diederik P. Kingma. Weight Normalization: A Simple Reparameterization
         to Accelerate Training of Deep Neural Networks. arXiv:1602.07868, 2016.

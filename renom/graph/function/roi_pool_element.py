@@ -166,18 +166,6 @@ class RoiPool(GraphFactory):
         outw (tuple,int): Size of the zero-padding around the image.
         spatial_scale (tuple,int): Stride-size of the convolution.
 
-    Example:
-        >>> import numpy as np
-        >>> import renom as rm
-        >>>
-        >>> x = np.random.rand(1, 5, 3, 3, 3)
-        >>> layer = rm.MaxPoolNd(filter=(3, 3, 3)) # This means 3d Pooling.
-        >>> z = layer(x)
-        >>> z.shape
-        (1, 5, 1, 1, 1)
-        >>> z = rm.max_poolnd(x, filter=(3, 3, 3))
-        >>> z.shape
-        (1, 5, 1, 1, 1)
     '''
 
     def prepare(self, outw=7, outh=7, spatial_scale=1 / 16.):

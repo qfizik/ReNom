@@ -206,8 +206,6 @@ class BatchNormalize(GraphFactory):
     calculated in the above mode.
 
 
-
-
     Args:
         momentum (float): Momentum coefficient for the moving average.
         epsilon (float): Small number added to avoid division by zero.

@@ -338,6 +338,56 @@ class PeepholeLstmElement(UserGraph):
 
 @populate_graph
 class PeepholeLstm(GraphFactory):
+    '''Long short term memory [lstm]_.
+    Lstm object has 8 weights and 4 biases parameters to learn.
+
+    Weights applied to the input of the input gate, forget gate and output gate.
+    :math:`W_{ij}, Wgi_{ij}, Wgf_{ij}, Wgo_{ij}`
+
+    Weights applied to the recuurent input of the input gate, forget gate and output gate.
+    :math:`R_{ij}, Rgi_{ij}, Rgf_{ij}, Rgo_{ij}`
+
+    .. math::
+        u^t_{i} &= \sum_{j = 0}^{J-1} W_{ij}x^t_{j} +
+            \sum_{k = 0}^{K-1} R_{ik}y^{t-1}_{k} + b_i \\\\
+        gi^t_{i} &= \sum_{j = 0}^{J-1} Wgi_{ij}x^t_{j} +
+                \sum_{k = 0}^{K-1} Rgi_{ik}y^{t-1}_{k} + bi_i \\\\
+        gf^t_{i} &= \sum_{j = 0}^{J-1} Wgfi_{ij}x^t_{j} +
+                \sum_{k = 0}^{K-1} Rgf_{ik}y^{t-1}_{k} + bi_f \\\\
+        go^t_{i} &= \sum_{j = 0}^{J-1} Wgo_{ij}x^t_{j} +
+                \sum_{k = 0}^{K-1} Rgo_{ik}y^{t-1}_{k} + bi_o \\\\
+        s^t_i &= sigmoid(gi^t_{i})tanh(u^t_{i}) + s^{t-1}_isigmoid(gf^t_{i}) \\\\
+        y^t_{i} &= go^t_{i}tanh(s^t_{i})
+
+    If the argument ``input_size`` is passed, this layers' weight is initialized
+    in the __init__ function.
+    Otherwise, the weight is initialized in its first forward calculation.
+
+
+    Args:
+        output_size (int): Output unit size.
+        initializer (Initializer): Initializer object for weight initialization.
+        weight_decay (float): Weight decay ratio.
+        ignore_bias (bool): If True is given, bias will not be added.
+
+
+    Example:
+        >>> import numpy as np
+        >>> import renom.graph as rmg
+        >>> 
+        >>> x = np.arange(2*3).reshape(2, 3)
+        >>> layer1 = rmg.Lstm()
+        >>> print(layer1(x))
+        >>> 
+        LSTM (F):
+        [[-0.08015051, -0.07165769,  0.322052  ],
+        [-0.00159989, -0.00164642,  0.5016    ]]
+
+
+    .. [lstm] Felix A. Gers, Nicol N. Schraudolph, Jürgen Schmidhuber.
+        Learning Precise Timing with LSTM Recurrent Networks. JMLR, 2002.
+    '''
+
 
     def prepare(self, output_size=3, initializer=None, weight_decay=None, ignore_bias=False):
         self._output_size = output_size
