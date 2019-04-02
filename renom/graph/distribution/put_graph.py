@@ -42,18 +42,25 @@ class put_op(operation):
     def perform(self):
         if self._finished is True:
             raise StopIteration()
-        try:
-            self.fetcher.prepare(self.source)
-        except StopIteration:
-            raise StopIteration()
-            self._finished = True
-            raise StopIteration()
-        ret = self.fetcher.retrieve(self.source)
-        self._vars['y'].shape[0].value = ret.shape[0]
         if rm.is_cuda_active():
             for gpu, handler in rm.cuda.RenomHandlers(self.gpus):
-                self._vars['y'][gpu] = rm.GPUValue(ret)
+                try:
+                    self.fetcher.prepare(self.source)
+                except StopIteration:
+                    self._finished = True
+                    raise StopIteration()
+                ret = self.fetcher.retrieve(self.source)
+                self._vars['y'].shape[0].value = ret.shape[0]
+                pin = handler.getPinnedMemory(ret)
+                self._vars['y'][gpu].to_gpu(pin)
         else:
+            try:
+                self.fetcher.prepare(self.source)
+            except StopIteration:
+                self._finished = True
+                raise StopIteration()
+            ret = self.fetcher.retrieve(self.source)
+            self._vars['y'].shape[0].value = ret.shape[0]
             self._vars['y']['cpu'] = ret
 
 
