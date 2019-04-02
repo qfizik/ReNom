@@ -32,7 +32,11 @@ class put_op(operation):
         pass
 
     def __len__(self):
-        return np.int(np.floor(len(self.fetcher) / len(self.gpus)))
+        if rm.is_cuda_active():
+            devs = len(self.gpus)
+        else:
+            devs = 1
+        return int(len(self.fetcher) / devs)
 
     def reset(self):
         if self.source == 0:
@@ -51,8 +55,7 @@ class put_op(operation):
                     raise StopIteration()
                 ret = self.fetcher.retrieve(self.source)
                 self._vars['y'].shape[0].value = ret.shape[0]
-                pin = handler.getPinnedMemory(ret)
-                self._vars['y'][gpu].to_gpu(pin)
+                self._vars['y'][gpu].to_gpu(ret)
         else:
             try:
                 self.fetcher.prepare(self.source)
