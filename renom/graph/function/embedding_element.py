@@ -21,7 +21,6 @@ class embedding_forward(operation):
 
     def __init__(self, output_size):
         assert isinstance(output_size, int), 'Embedding layer currently only accepts integers.'
-        print(isinstance(output_size, int), output_size)
         self._output_size = output_size
 
     def setup(self, inputs):
@@ -32,7 +31,7 @@ class embedding_forward(operation):
         self._init = init.GlorotNormal()
         self._inputs = inputs
         assert inputs.shape[1] == 1, 'Embedding layer expects an input size of 1.'
-        weight_shape = (inputs.shape[1], self._output_size)
+        weight_shape = (inputs.shape[0], self._output_size)
         weights.__init__(shape=weight_shape, gpus=self.gpus, initializer=self._init)
         output_shape = (inputs.shape[0], self._output_size)
         outputs = GraphMultiStorage(shape=output_shape, gpus=self.gpus)
@@ -138,11 +137,16 @@ class Embedding(GraphFactory):
 
     Example:
         >>> import numpy as np
-        >>> import renom as rm
-        >>> N = 4
-        >>> a = np.arange(N).reshape(N, 1)
-        >>> layer = rm.Embedding(output_size=1, input_size=8)
-        >>> out = layer(a)
+        >>> import renom.graph as rmg
+        >>> x = np.arange(3).reshape(3,1)
+        >>> layer = rmg.Embedding(5)
+        >>> y = layer(x)
+        >>> print(y)
+        Bias (F):
+        [[-0.14280303 -0.36094546  0.41559258 -0.348603   -0.07312572]
+         [-0.14054675  0.42048123 -0.04958889  0.49533582  0.9542646 ]
+         [ 1.4463897   1.0213284  -0.00866556  0.5403615  -0.4614035 ]]
+
 
     Raises:
         Assertion error when output_size is not an integer or received shape is not of

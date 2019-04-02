@@ -210,15 +210,19 @@ class LayerNormalize(GraphFactory):
 
     Example:
         >>> import numpy as np
-        >>> import renom as rm
+        >>> import renom.graph as rmg
         >>> x = np.random.rand(2,3)
-        >>> layer = rm.LayerNormalize(bias=0)
+        >>> layer = rmg.LayerNormalize(gain=0.2)
         >>> x
-        array([[0.5833913 , 0.39715111, 0.19503325],
-               [0.74007066, 0.34642472, 0.57293373]])
-        >>> layer(x)
-        layer_normalize([[ 0.12076415,  0.00333703, -0.12410118],
-                   [ 0.11587134, -0.12813905,  0.01226771]])
+        array([[0.02777768, 0.0878882 , 0.63350066],
+               [0.78073764, 0.56348782, 0.47264891]])
+        >>> y = layer(x)
+        >>> print(y)
+        Layer Normalize (F):
+        [[-0.1629072  -0.1187861   0.2816933 ]
+         [ 0.27095172 -0.06519832 -0.20575312]]
+
+
 
     .. [layer_normalize] Jimmy Lei Ba, Jamie Ryan Kiros, Geoffrey E. Hinton. Layer Normalization.
         arXiv:1607.06450, 2016.

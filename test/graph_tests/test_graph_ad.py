@@ -652,6 +652,7 @@ def test_lrn(test_shape, use_gpu, num_gpu):
 @pytest.mark.parametrize("output_size", [2, 2.5])
 def test_embedding(test_shape, output_size, use_gpu, num_gpu):
     rm.set_cuda_active(use_gpu)
+    np.random.seed(42)
 
     v = rand(test_shape)
     val = rm.graph.StaticVariable(v, num_gpus=num_gpu)
