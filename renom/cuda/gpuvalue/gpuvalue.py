@@ -275,6 +275,7 @@ def build_shapes(arr, indexes):
     adv_result_shapes = adv_shape[:]
     adv_ldxsize = thrust.calc_int_prod(adv_shape)
     adv_positions = []
+    reduce_dim = []
 
     n_idx = 0
     for index in indexes:
@@ -306,6 +307,7 @@ def build_shapes(arr, indexes):
 
             slices.append([index, index + 1, 1, None, stride])
             dest_shapes.append(1)
+            reduce_dim.append(len(dest_shapes) - 1)
             n_idx += 1
 
         elif index is None:
@@ -329,6 +331,8 @@ def build_shapes(arr, indexes):
             n_idx += 1
 
     dest_strides = thrust.calc_strides(dest_shapes)
+    dest_shapes = [d for i, d in enumerate(dest_shapes) if i not in reduce_dim]
+
     adv_dest_stride = dest_strides[adv_positions[0]] if adv_positions else None
 
     j = 0
