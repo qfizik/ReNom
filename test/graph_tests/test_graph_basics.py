@@ -93,7 +93,7 @@ def test_distributor_test_split(use_gpu):
             x = model(data)
     except StopIteration:
         pass
-    assert count == 5
+    assert count == 4
     data, target = rmg.DataInput([a[8:], b[8:]]).shuffle().batch(2).get_output_graphs()
     data.reset()
     count = 0
@@ -104,7 +104,7 @@ def test_distributor_test_split(use_gpu):
             x = model(data)
     except StopIteration:
         pass
-    assert count == 2
+    assert count == 1
 
 
 class BadSgd(rm.graph.train.optimizer.optimizer_factory):

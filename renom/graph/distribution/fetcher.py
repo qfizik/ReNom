@@ -123,7 +123,7 @@ class Batcher(Fetcher):
             prev_val = prev.retrieve(source)
             ret.append(prev_val)
         except StopIteration as e:
-            self.empty_out(source)
+            #self.empty_out(source)
             raise e
         size = self.batch_size
         for i in range(size - 1):
@@ -131,8 +131,9 @@ class Batcher(Fetcher):
                 prev.prepare(source)
                 prev_val = prev.retrieve(source)
                 ret.append(prev_val)
-            except StopIteration:
-                break
+            except StopIteration as e:
+                pass
+                #raise e 
         ret = np.array(ret)
         self.outs[source] = ret
 
