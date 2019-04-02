@@ -4,11 +4,11 @@ Documents are available on the ReNom.jp web site.
 
 - http://renom.jp/index.html
 
-## ReNom version 2.7.0
+## ReNom version 3.0b0
 
 - http://renom.jp/packages/renomdl/index.html
 
-#### Changes from 2.6
+#### Changes from version 2.
 
 Please refer to `changes` at renom.jp.
 
@@ -17,8 +17,8 @@ Please refer to `changes` at renom.jp.
 
 ## Requirements
 
-- python >= 2.7, >= 3.4
-- cuda-toolkit 8.0, 9.1, 10.0
+- python >= 3.4
+- cuda-toolkit 8.0, 9.0, 9.1, 10.0
 - cudnn 7.0 ~ 7.4
 
 For required python modules please refer to the requirements.txt.
