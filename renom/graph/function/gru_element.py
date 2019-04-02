@@ -284,8 +284,18 @@ class Gru(GraphFactory):
         ignore_bias (bool):
 
     Example:
+        >>> import renom.graph as rmg
         >>> import numpy as np
-        >>> import renom as rm
+        >>> x = np.random.rand(4,5)
+        >>> layer = rmg.Gru(output_size=2)
+        >>> y = layer(x)
+        >>> print(y)
+        Gru (F):
+        [[1.5154939 1.4803102]
+         [1.4860265 1.5508833]
+         [1.4125514 1.0850581]
+         [1.3896493 1.0640767]]
+
 
     .. [gru] Junyoung Chung, Caglar Gulcehre, KyungHyun Cho, Yoshua Bengio.
         Empirical Evaluation of Gated Recurrent Neural Networks on Sequence Modeling. NIPS, 2014.

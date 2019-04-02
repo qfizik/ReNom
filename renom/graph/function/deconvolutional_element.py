@@ -202,8 +202,13 @@ class Deconv(GraphFactory):
           ignore_bias (bool): If True is given, bias term will be ignored.
 
       Example:
-          >>> import numpy as np
           >>> import renom.graph as rmg
+          >>> import numpy as np
+          >>> img = np.random.rand(4,2,7,7)
+          >>> layer = rmg.Deconv()
+          >>> deconv_img = layer(img)
+          >>> deconv_img.as_ndarray().shape
+          (4, 3, 9, 9)
 
       Note:
           Tensor data format is **NCHW***.

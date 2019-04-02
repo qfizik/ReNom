@@ -185,15 +185,17 @@ class L2Norm(GraphFactory):
 
     Example:
         >>> import numpy as np
-        >>> import renom as rm
+        >>> import renom.graph as rmg
         >>> x = np.random.rand(2, 1, 2, 2)
-        >>> layer = rm.L2Norm(20)
-        >>> z = layer(x)
-        >>> z
-        >>> l2_norm([[[[19.99999765, 19.99999749],
-            [19.9999743 , 19.99999749]]],
-            [[[19.99999764, 19.99998478],
-            [19.99999547, 19.9999974 ]]]])
+        >>> layer = rmg.L2Norm(6)
+        >>> y = layer(x)
+        >>> print(y)
+        L2Norm (F):
+        [[[[5.999998  5.999996 ]
+           [5.999995  5.9999933]]]
+         [[[5.999999  5.999999 ]
+           [5.9999986 5.999999 ]]]]
+
 
     .. [l2norm] Wei Liu, Andrew Rabinovich, Alexander C. Berg.
         ParseNet: Looking Wider to See Better. ICLR, 2016.
