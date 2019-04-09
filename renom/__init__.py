@@ -48,7 +48,7 @@ ReNom (Top Level)
 """
 from __future__ import absolute_import
 
-__version__ = "3.0b0"
+__version__ = "3.0b1"
 
 import argparse
 import numpy as np

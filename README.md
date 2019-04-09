@@ -4,7 +4,7 @@ Documents are available on the ReNom.jp web site.
 
 - http://renom.jp/index.html
 
-## ReNom version 3.0b0
+## ReNom version 3.0b1
 
 - http://renom.jp/packages/renomdl/index.html
 
