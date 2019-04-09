@@ -45,7 +45,6 @@ class reshape_forward(operation):
         gpus = self._inputs.gpus
         self._outputs = GraphMultiStorage(shape=new_shape, gpus=gpus, ptrs=self._inputs)
         self._vars = {'y': self._outputs}
-        print(self._inputs)
 
     def perform(self):
         pass

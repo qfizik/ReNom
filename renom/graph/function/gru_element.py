@@ -65,8 +65,6 @@ class gru_forward(operation):
             w = self._weights[gpu]
             u = self._weights_r[gpu]
             hminus = p_z[gpu]
-            print(hminus.shape)
-            print(self._outputs.shape)
 
             # Perform Forward Calcuations
             dotted = rm.GPUValue(shape=(x.shape[0], w.shape[1]))
