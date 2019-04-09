@@ -282,7 +282,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 import numpy
 setup(
     name='renom',
-    version='3.0b0',
+    version='3.0b1',
     author='Grid.Inc',
     license="ReNom subscription license(http://www.renom.jp/packages/renomdl/rsts/license/main.html)",
     url="http://www.renom.jp/index.html",
