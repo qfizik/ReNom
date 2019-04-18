@@ -263,7 +263,7 @@ class Lstm(Parametrized):
         self.params = {
             "w": Variable(self._initializer((size_i, size_o * 4)), auto_update=True, weight_decay=self._weight_decay),
             "wr": Variable(self._initializer((size_o, size_o * 4)), auto_update=True, weight_decay=self._weight_decay)}
-        if self._ignore_bias:
+        if not self._ignore_bias:
             self.params["b"] = Variable(bias, auto_update=True)
 
     def forward(self, x):
