@@ -706,8 +706,9 @@ def test_deconvnd(node, use_gpu):
 
 
 @pytest.mark.parametrize("node", [
-    Variable(rand((2, 3, 3, 3))),
-    Variable(rand((2, 3, 4, 5))),
+    Variable(np.arange(2 * 3 * 3 * 3).reshape(2, 3, 3, 3)),
+    Variable(np.arange(2 * 3 * 4 * 5).reshape(2, 3, 4, 5)),
+
 ])
 def test_max_pool2d(node, use_gpu):
     node = Variable(node)
@@ -727,16 +728,16 @@ def test_max_pool2d(node, use_gpu):
 
 
 @pytest.mark.parametrize("node", [
-    Variable(rand((2, 2, 3, 3))),
-    Variable(rand((2, 3, 4, 5))),
-    Variable(rand((1, 1, 2, 3))),
-    Variable(rand((1, 1, 4, 4))),
+    Variable(np.arange(2 * 2 * 3 * 3).reshape(2, 2, 3, 3) + 1),
+    Variable(np.arange(2 * 3 * 4 * 5).reshape(2, 3, 4, 5) + 1),
+    Variable(np.arange(1 * 1 * 2 * 3).reshape(1, 1, 2, 3) + 1),
+    Variable(np.arange(1 * 1 * 4 * 4).reshape(1, 1, 4, 4) + 1),
 ])
 def test_max_unpool2d(node, use_gpu):
     assert_cuda_active(use_gpu)
     node = Variable(node)
 
-    l0 = MaxPool2d(filter=2, padding=1, stride=2)
+    l0 = MaxPool2d(filter=2, padding=1, stride=1)
     l1 = MaxUnPool2d()
     l2 = Dense(2)
     np.set_printoptions(suppress=True)
@@ -759,8 +760,10 @@ def test_max_unpool2d(node, use_gpu):
 
 
 @pytest.mark.parametrize("node", [
-    Variable(rand((2, 3, 4, 5))),
-    Variable(rand((1, 1, 4, 4))),
+    Variable(np.arange(2 * 2 * 3 * 3).reshape(2, 2, 3, 3) + 1),
+    Variable(np.arange(2 * 3 * 4 * 5).reshape(2, 3, 4, 5) + 1),
+    Variable(np.arange(1 * 1 * 2 * 3).reshape(1, 1, 2, 3) + 1),
+    Variable(np.arange(1 * 1 * 4 * 4).reshape(1, 1, 4, 4) + 1),
 ])
 def test_average_unpool2d(node, use_gpu):
     assert_cuda_active(use_gpu)
@@ -788,9 +791,7 @@ def test_average_unpool2d(node, use_gpu):
 
 
 @pytest.mark.parametrize("node", [
-    Variable(rand((1, 1, 4, 5, 3))),
-    Variable(rand((2, 3, 4, 5))),
-    Variable(rand((1, 1, 2, 3))),
+    Variable(np.arange(1 * 1 * 4 * 5 * 3).reshape(1, 1, 4, 5, 3)),
 ])
 def test_max_unpoolnd(node, use_gpu):
     assert_cuda_active(use_gpu)
@@ -820,9 +821,7 @@ def test_max_unpoolnd(node, use_gpu):
 
 
 @pytest.mark.parametrize("node", [
-    Variable(rand((1, 1, 4, 5, 3))),
-    Variable(rand((2, 3, 4, 5))),
-    Variable(rand((1, 1, 2, 3))),
+    Variable(np.arange(1 * 1 * 4 * 5 * 3).reshape(1, 1, 4, 5, 3)),
 ])
 def test_average_unpoolnd(node, use_gpu):
     assert_cuda_active(use_gpu)
@@ -839,41 +838,26 @@ def test_average_unpoolnd(node, use_gpu):
         ret = l2(ret.reshape(ret.shape[0], -1))
         return sum(ret)
 
-    # for trial in range(1):
-    #    try:
     compare(func, node, node)
-    #        return
-    #    except AssertionError:
-    #        node = Variable(rand(node.shape))
-    #raise AssertionError("Failed all three attempts.")
 
 
 @pytest.mark.parametrize("node", [
-    Variable(rand((3, 2, 4, 5, 3))),
-    Variable(rand((2, 2, 3, 3, 3))),
-    Variable(rand((2, 3, 4, 5))),
-    Variable(rand((1, 1, 2, 3))),
-    Variable(rand((1, 1, 3))),
-    Variable(rand((1, 1, 2))),
+    Variable(np.arange(1 * 1 * 4 * 5 * 3).reshape(1, 1, 4, 5, 3) + 1),
 ])
 def test_max_poolnd(node, use_gpu):
 
     node = Variable(node)
     assert_cuda_active(True)
-    layer = MaxPoolNd(kernel=2, padding=2, stride=2)
+    layer = MaxPoolNd(kernel=2, padding=1, stride=1)
 
     print('starting testing')
     np.set_printoptions(suppress=True)
 
     def func(node):
-        return sum(layer(node))
-    for trial in range(3):
-        try:
-            compare(func, node, node)
-            return
-        except AssertionError:
-            node = Variable(rand(node.shape))
-    raise AssertionError("Failed all attempts.")
+        ret = layer(node)
+        return sum(ret)
+
+    compare(func, node, node)
 
 
 @pytest.mark.parametrize("node, rois", [

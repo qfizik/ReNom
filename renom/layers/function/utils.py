@@ -208,7 +208,7 @@ def imnpool(img, kernel, stride, padding, padWith=0, mode="max", alternate_input
 
 def place_pools(img, kernel, stride, mode, offset=0, alternate_input=None):
     kernal = (np.array(img.shape) - np.array(kernel)) // np.array(stride) + 1
-    kernels = np.empty(tuple(kernal))
+    kernels = np.zeros(tuple(kernal))
 
     for pos in generate_positions(img, stride, offset, min_space=np.array(kernel) - 1):
         slices = [slice(pos[i], pos[i] + kernel[i]) for i in range(len(img.shape))]
