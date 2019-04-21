@@ -67,6 +67,7 @@ class peephole_lstm(Node):
         ret.attrs._pstate = ps
         ret.attrs._state = state
         ret.attrs._gated = gated
+        ret._state = state
 
         if isinstance(pz, Node):
             pz.attrs._pfgate = gated[:, :m]
