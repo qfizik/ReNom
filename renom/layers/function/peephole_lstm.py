@@ -67,6 +67,7 @@ class peephole_lstm(Node):
         ret.attrs._pstate = ps
         ret.attrs._state = state
         ret.attrs._gated = gated
+        ret._state = state
 
         if isinstance(pz, Node):
             pz.attrs._pfgate = gated[:, :m]
@@ -289,7 +290,7 @@ class PeepholeLstm(Parametrized):
                             self.params.wc,
                             self.params.get("b", None))
         self._z = ret
-        self._state = ret.attrs.get('_state', None)
+        self._state = ret._state
         return ret
 
     def truncate(self):
