@@ -1208,6 +1208,49 @@ namespace renom{
 		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, sigmoid_function());
 	}
 
+  // hard sigmoid forward
+	struct hard_sigmoid_forward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+              if(x < -2.5){
+                return 0.0;
+              }else if(x >= 2.5){
+                return 1.0;
+              }else{
+                return 0.2 * x + 0.5;
+              }
+
+	        }
+	};
+
+	void thrust_hard_sigmoid_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, hard_sigmoid_forward_function());
+	}
+
+	// hard sigmoid backward
+	struct hard_sigmoid_backward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+              if((x == 0.0) || (x == 1.0)){ // if x== 0 or 1 then
+                return 0.0;
+              }else{
+                return 0.2;
+              }
+	        }
+	};
+
+	void thrust_hard_sigmoid_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, hard_sigmoid_backward_function());
+	}
+
 	// Tanh
 	struct tanh_function
 	{

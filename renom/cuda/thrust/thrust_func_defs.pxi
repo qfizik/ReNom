@@ -14,6 +14,8 @@ cdef extern from * namespace "renom":
     cdef void thrust_relu_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_relu_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_sigmoid(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_hard_sigmoid_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_hard_sigmoid_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_copy_memory_stride(VALUE_TYPE *dest, VALUE_TYPE *src, const size_t src_elems,
                              const size_t size_stride, const size_t size_srcblock)

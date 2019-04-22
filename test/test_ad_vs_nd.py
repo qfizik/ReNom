@@ -19,6 +19,7 @@ import renom as rm
 from renom.core import Variable
 from renom.operation import sum
 from renom.layers.activation.sigmoid import sigmoid
+from renom.layers.activation.hard_sigmoid import hard_sigmoid
 from renom.layers.activation.tanh import tanh
 from renom.layers.activation.relu import relu
 from renom.layers.activation.maxout import maxout
@@ -289,6 +290,21 @@ def test_sigmoid_activation(node, use_gpu):
 
     def func(node):
         return sum(sigmoid(node))
+    compare(func, node, node)
+
+
+@pytest.mark.parametrize("node", [
+    Variable(rand((2, 1))),
+    Variable(rand((2, 2))),
+    Variable(rand((2,))),
+    Variable(rand((2, 2, 2, 2))),
+])
+def test_hard_sigmoid_activation(node, use_gpu):
+    node = Variable(node)
+    assert_cuda_active(use_gpu)
+
+    def func(node):
+        return sum(hard_sigmoid(node))
     compare(func, node, node)
 
 

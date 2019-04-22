@@ -34,6 +34,14 @@ namespace renom{
 	struct sigmoid_function;
 	void thrust_sigmoid(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 
+	// Hard Sigmoid Forward function
+	struct hard_sigmoid_forward_function;
+	void thrust_hard_sigmoid_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Hard Sigmoid Backward function
+	struct hard_sigmoid_backward_function;
+	void thrust_hard_sigmoid_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
 	// Tanh function
 	struct tanh_function;
 	void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size);
