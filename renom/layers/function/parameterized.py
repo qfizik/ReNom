@@ -110,6 +110,21 @@ class Model(with_metaclass(ABCMeta, object)):
 
     @abstractmethod
     def forward(self):
+        """Override this method to allow network to calculate.
+
+        Example:
+            >>> import renom as rm
+            >>> import numpy as np
+            >>>
+            >>> class Model(rm.Model):
+            ...     def __init__(self):
+            ...         self._layer1 = rm.Dense(3)
+            ...         self._layer2 = rm.Dense(2)
+            ...     def forward(self, x):  # This part
+            ...         h = rm.relu(self._layer1(x))
+            ...         z = self._layer2(h)
+            ...         return z
+        """
         pass
 
     def copy_params(self, model):
@@ -496,6 +511,9 @@ class Model(with_metaclass(ABCMeta, object)):
 
         Following example shows how to do it.
 
+        Args:
+            initializer (Initializer): Initializing Object.
+
         Example:
             >>> import renom as rm
             >>> import numpy as np
@@ -531,10 +549,6 @@ class Model(with_metaclass(ABCMeta, object)):
             dot product
             [[1. 0.]
             [0. 1.]]
-
-        Args:
-            initializer (Initializer): Initializing Object.
-
         """
         for c in self.iter_models():
             if hasattr(c, "_initializer"):
