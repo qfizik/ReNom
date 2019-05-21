@@ -134,6 +134,19 @@ msgstr "一様分布の下限値"
 msgid "Maximum limit of uniform distribution."
 msgstr "一様分布の上限値"
 
+#: of renom.utility.initializer.Orthogonal:1
+msgid ""
+"Orthogonal initializer. Initialize parameters using orthogonal "
+"initialization."
+msgstr "直行化によって重みパラメータを初期化する."
+
+#: of renom.utility.initializer.Orthogonal:4
+msgid ""
+"Andrew M. Saxe, James L. McClelland, Surya Ganguli "
+"https://arxiv.org/abs/1312.6120 Exact solutions to the nonlinear dynamics"
+" of learning in deep linear neural networks"
+msgstr ""
+
 #: ../../rsts/api/renom.utility.rst:11
 msgid "renom.utility.searcher"
 msgstr ""
