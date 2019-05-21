@@ -588,6 +588,10 @@ msgstr ""
 msgid "Abstract class of neural network model."
 msgstr "ニューラルネットワークモデルに関する抽象クラス."
 
+#: of renom.layers.function.parameterized.Model.forward:1
+msgid "Override this method to allow network to calculate."
+msgstr "フォワード計算. オーバーライドしてください."
+
 #: of renom.layers.function.parameterized.Model.train:1
 msgid ""
 "Context manager to control whether a computational graph will be created "
@@ -634,6 +638,7 @@ msgstr ""
 "saveメソッドによる保存対象に含むことができる.Modelオブジェクトが持つ重みパラメータはSERIALIZEDに登録せずとも保存される."
 
 #: of renom.layers.function.parameterized.Model.save:5
+#: renom.layers.function.parameterized.Model.set_initializer:4
 msgid "Following example shows how to do it."
 msgstr "以下にその例を示す."
 
@@ -648,6 +653,14 @@ msgstr "保存した属性値をモデルにロードする."
 #: of renom.layers.function.parameterized.Model.load:3
 msgid "File name of saved model."
 msgstr "ロードするモデルのパス"
+
+#: of renom.layers.function.parameterized.Model.set_initializer:1
+msgid "Set initializer Setting all weights to initializer."
+msgstr "前層における重みパラメータを同一条件で初期化."
+
+#: of renom.layers.function.parameterized.Model.set_initializer:6
+msgid "Initializing Object."
+msgstr "初期化オブジェクト"
 
 #: of renom.layers.function.parameterized.Sequential:1
 msgid "Sequential model."
