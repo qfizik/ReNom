@@ -22,6 +22,9 @@ class GradientClipping(object):
         threshold(float): If gradient norm is over this threshold, normalization starts.
         norm(int): Norm value.
 
+    Returns:
+        total gradient norm.
+
     Examples:
 
         >>> from **** import GradientClipping
