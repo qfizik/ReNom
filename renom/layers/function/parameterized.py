@@ -490,6 +490,56 @@ class Model(with_metaclass(ABCMeta, object)):
             for k, v in kwargs.items():
                 setattr(c, k, v)
 
+    def set_initializer(self, initializer):
+        """Set initializer
+        Setting all weights to initializer.
+
+        Following example shows how to do it.
+
+        Example:
+            >>> import renom as rm
+            >>> import numpy as np
+            >>> from renom.utility.initializer import Orthogonal
+            >>>
+            >>> class MyModel(rm.Model):
+            ...     def __init__(self):
+            ...         super(MyModel, self).__init__()
+            ...         self._l1 = rm.Dense(2)
+            ...         self._l2 = rm.Dense(1)
+            ...         self._moving_avg = 0
+            ...     def forward(self, x):
+            ...         h = self._l1(x)
+            ...         h = rm.relu(h)
+            ...         h = self._l2(h)
+            ...         return h
+            >>>
+            >>> model = MyModel()
+            >>> model.set_initializer(Orthogonal())
+            >>>
+            >>> x = np.random.random((3,4))
+            >>> y = model(x)
+            >>>
+            >>> weight=model._l1.params.w
+            >>> print("weight\\n",weight)
+            weight
+            [[-0.43140578  0.39115947]
+            [-0.53214586 -0.61308974]
+            [-0.5807101   0.5656842 ]
+            [-0.43986994 -0.3887372 ]]
+            >>>
+            >>> print("dot product\\n",np.dot(weight.T,weight))
+            dot product
+            [[1. 0.]
+            [0. 1.]]
+
+        Args:
+            initializer (Initializer): Initializing Object.
+
+        """
+        for c in self.iter_models():
+            if hasattr(c, "_initializer"):
+                setattr(c, "_initializer", initializer)
+
     def truncate(self):
         for c in self.iter_models():
             if isinstance(c, Parametrized):
