@@ -342,11 +342,67 @@ msgstr "順伝播のみを実行するメソッド."
 msgid "Input data."
 msgstr "入力データ"
 
-#: of renom.utility.trainer.Trainer.test:7
+#: of renom.utility.trainer.Trainer.test:8
 msgid "ndarray"
 msgstr ""
 
 #: ../../rsts/api/renom.utility.rst:23
+msgid "renom.utility.gradient_clipping"
+msgstr ""
+
+#: of renom.utility.gradient_clipping.GradientClipping:1
+msgid "This class is used to clip gradient."
+msgstr "このクラスは勾配をクリッピングするために使用する."
+
+#: of renom.utility.gradient_clipping.GradientClipping:3
+msgid "The calculation is dones as shown below:"
+msgstr "計算は下記のように実施される."
+
+#: of renom.utility.gradient_clipping.GradientClipping:12
+msgid ":math:`L`: Loss"
+msgstr ":math:`L`: 損失値"
+
+#: of renom.utility.gradient_clipping.GradientClipping:13
+msgid ":math:`\\omega`: weight"
+msgstr ":math:`\\omega`: 重み"
+
+#: of renom.utility.gradient_clipping.GradientClipping:14
+msgid ":math:`n`: norm"
+msgstr ":math:`n`: ノルム"
+
+#: of renom.utility.gradient_clipping.GradientClipping:16
+msgid "If gradient norm is over this threshold, normalization starts."
+msgstr "勾配ノルムが閾値を超えた場合, 勾配を抑制."
+
+#: of renom.utility.gradient_clipping.GradientClipping:18
+msgid "Norm value."
+msgstr "ノルム値"
+
+#: of renom.utility.gradient_clipping.GradientClipping:22
+msgid "total gradient norm."
+msgstr "勾配ノルムの合計値"
+
+#: of renom.utility.gradient_clipping.GradientClipping:25
+msgid "Examples"
+msgstr ""
+
+#: of renom.utility.gradient_clipping.GradientClipping:35
+msgid "References"
+msgstr ""
+
+#: of renom.utility.gradient_clipping.GradientClipping:36
+msgid "Razvan Pascanu, Tomas Mikolov, Yoshua Bengio"
+msgstr ""
+
+#: of renom.utility.gradient_clipping.GradientClipping:37
+msgid "On the difficulty of training Recurrent Neural Networks"
+msgstr ""
+
+#: of renom.utility.gradient_clipping.GradientClipping:38
+msgid "https://arxiv.org/abs/1211.5063"
+msgstr ""
+
+#: ../../rsts/api/renom.utility.rst:28
 msgid "renom.utility.distributor.distributor"
 msgstr ""
 
