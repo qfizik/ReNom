@@ -1024,10 +1024,10 @@ namespace renom{
 	{
 	    __host__ __device__
 	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
-	            if (x <= 0.0){
-                return 0.0;
-              }else if (6.0 <= x){
-                return 6.0;
+	            if (x < 0){
+                return 0;
+              }else if (6 < x){
+                return 6;
               }else{
                 return x;
               };
@@ -1046,10 +1046,10 @@ namespace renom{
 	{
 	    __host__ __device__
 	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
-            if((x <= 0.0) || (6.0 <= x)){ // if x== 0 or 1 then
-              return 0.0;
+            if((x < 0) || (6 < x)){ // if x== 0 or 1 then
+              return 0;
             }else{
-              return 1.0;
+              return 1;
             }
 	        }
 	};
