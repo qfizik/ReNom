@@ -44,6 +44,24 @@ def curelu_backard(gpu_value1, gpu_value2):
     thrust_relu_backward(ptr1, ptr2, size)
 
 
+def curelu6_foward(gpu_value1, gpu_value2):
+    cuda_base.check_heap_device(gpu_value1, gpu_value2)
+
+    cdef int size = <int > gpu_value1.size
+    cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
+    cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
+    thrust_relu6_forward(ptr1, ptr2, size)
+
+
+def curelu6_backard(gpu_value1, gpu_value2):
+    cuda_base.check_heap_device(gpu_value1, gpu_value2)
+
+    cdef int size = <int > gpu_value1.size
+    cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
+    cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
+    thrust_relu6_backward(ptr1, ptr2, size)
+
+
 def culeaky_leru_forward(s, gpu_value1, gpu_value2):
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
 

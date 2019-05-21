@@ -30,6 +30,14 @@ namespace renom{
 	struct relu_backward_function;
 	void thrust_relu_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 
+	// Relu6 Forward function
+	struct relu6_forward_function;
+	void thrust_relu6_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Relu6 Backward function
+	struct relu6_backward_function;
+	void thrust_relu6_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
 	// Sigmoid function
 	struct sigmoid_function;
 	void thrust_sigmoid(VALUE_TYPE *a, VALUE_TYPE *b, int size);

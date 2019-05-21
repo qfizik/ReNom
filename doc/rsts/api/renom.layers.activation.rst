@@ -10,6 +10,9 @@ renom.layers.activation
 .. automodule:: renom.layers.activation.relu
     :members: Relu
 
+.. automodule:: renom.layers.activation.relu6
+    :members: Relu6
+
 .. automodule:: renom.layers.activation.selu
     :members: Selu
 

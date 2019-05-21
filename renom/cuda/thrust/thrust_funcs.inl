@@ -1019,6 +1019,48 @@ namespace renom{
 		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu_backward_function());
 	}
 
+  // Relu6 forward
+	struct relu6_forward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+	            if (x <= 0.0){
+                return 0.0;
+              }else if (6.0 <= x){
+                return 6.0;
+              }else{
+                return x;
+              };
+	        }
+	};
+
+  void thrust_relu6_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu6_forward_function());
+	}
+
+	// Relu backward
+	struct relu6_backward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+            if((x <= 0.0) || (6.0 <= x)){ // if x== 0 or 1 then
+              return 0.0;
+            }else{
+              return 1.0;
+            }
+	        }
+	};
+
+	void thrust_relu6_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu6_backward_function());
+	}
+
 	// Leaky Relu forward
 	struct leaky_relu_forward_function
 	{

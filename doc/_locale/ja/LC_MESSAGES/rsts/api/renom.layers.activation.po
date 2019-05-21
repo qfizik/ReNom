@@ -95,11 +95,22 @@ msgstr "以下の式で表されるrelu活性化関数を定義したクラス."
 msgid ":math:`f(x)=max(x, 0)`"
 msgstr ""
 
-#: of renom.layers.activation.relu.Relu:5 renom.layers.activation.selu.Selu:8
+#: of renom.layers.activation.relu.Relu:5 renom.layers.activation.relu6.Relu6:5
+#: renom.layers.activation.selu.Selu:8
 #: renom.layers.activation.sigmoid.Sigmoid:5
 #: renom.layers.activation.tanh.Tanh:5
 msgid "Input numpy array or Node instance."
 msgstr "入力データ"
+
+#: of renom.layers.activation.relu6.Relu6:1
+msgid ""
+"Rectified Linear Unit (6) activation function as described by the "
+"following formula."
+msgstr "以下の式で表されるrelu(6)活性化関数を定義したクラス."
+
+#: of renom.layers.activation.relu6.Relu6:3
+msgid ":math:`f(x)=min(6,max(x, 0))`"
+msgstr ""
 
 #: of renom.layers.activation.selu.Selu:1
 msgid ""

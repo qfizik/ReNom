@@ -13,6 +13,8 @@ cdef extern from * namespace "renom":
     cdef void thrust_negate(VALUE_TYPE* first, VALUE_TYPE *last, VALUE_TYPE *output)
     cdef void thrust_relu_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_relu_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_relu6_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_relu6_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_sigmoid(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_hard_sigmoid_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_hard_sigmoid_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
