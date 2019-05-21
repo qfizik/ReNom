@@ -18,7 +18,7 @@ class relu6(UnaryOp):
     @classmethod
     def _oper_gpu(cls, arg):
         ret = get_gpu(arg).empty_like_me()
-        cu.curelu_foward(get_gpu(arg), ret)
+        cu.curelu6_foward(get_gpu(arg), ret)
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):
