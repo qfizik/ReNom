@@ -901,7 +901,7 @@ def test_l2norm(node, use_gpu):
     node = Variable(node)
     assert_cuda_active(use_gpu)
 
-    layer = L2Norm(20)
+    layer = L2Norm(5)
 
     def func(node):
         return sum(layer(node))

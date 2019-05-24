@@ -96,7 +96,7 @@ class GradientClipping(object):
                     continue
                 arr = np.abs(variables[id(i)])**norm
                 total_norm += arr.sum()
-            total_norm = total_norm ** (1/norm)
+            total_norm = total_norm ** (1 / norm)
 
         # process gradient
         if threshold < total_norm:

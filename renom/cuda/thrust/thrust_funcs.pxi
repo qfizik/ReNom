@@ -18,6 +18,7 @@ import renom.cuda
 # For debug
 import time
 
+
 def cunegate(input, result):
     cuda_base.check_heap_device(input, result)
 
@@ -25,6 +26,7 @@ def cunegate(input, result):
     cdef VALUE_TYPE * last = first + <size_t > input.size
     cdef VALUE_TYPE * output = <VALUE_TYPE * > < uintptr_t > result._ptr
     thrust_negate(first, last, output)
+
 
 def curelu_foward(gpu_value1, gpu_value2):
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
@@ -68,7 +70,7 @@ def culeaky_leru_forward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_leaky_relu_forward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_leaky_relu_forward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def culeaky_leru_backward(s, gpu_value1, gpu_value2):
@@ -77,7 +79,7 @@ def culeaky_leru_backward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_leaky_relu_backward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_leaky_relu_backward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def cueru_forward(s, gpu_value1, gpu_value2):
@@ -86,7 +88,7 @@ def cueru_forward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_elu_forward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_elu_forward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def cueru_backward(s, gpu_value1, gpu_value2):
@@ -95,7 +97,7 @@ def cueru_backward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_elu_backward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_elu_backward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def cusoftplus_forward(gpu_value1, gpu_value2):
@@ -134,6 +136,7 @@ def cusoftsign_backward(gpu_value1, gpu_value2):
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
     thrust_softsign_backward(ptr1, ptr2, size)
 
+
 def cusigmoid(gpu_value1, gpu_value2):
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
 
@@ -141,6 +144,7 @@ def cusigmoid(gpu_value1, gpu_value2):
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
     thrust_sigmoid(ptr1, ptr2, size)
+
 
 def cuhard_sigmoid_forward(gpu_value1, gpu_value2):
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
@@ -175,7 +179,7 @@ def cuswish_forward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_swish_forward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_swish_forward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 def cuswish_backward(s, gpu_value1, gpu_value2):
@@ -184,7 +188,7 @@ def cuswish_backward(s, gpu_value1, gpu_value2):
     cdef int size = <int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_swish_backward(< VALUE_TYPE > s, ptr1, ptr2, size);
+    thrust_swish_backward( < VALUE_TYPE > s, ptr1, ptr2, size);
 
 
 ctypedef void(*BINOP_FUNC)(
@@ -1082,7 +1086,7 @@ def cu_get_item(gpu_value1, size, dest_size, slices):
     cdef VALUE_TYPE * ptr_result = <VALUE_TYPE * > < uintptr_t > result._ptr
 
     cdef getitem_slice_infos infos
-    _build_slice_infos( & infos, slices)
+    _build_slice_infos(& infos, slices)
 
     cdef getitem_slice_info * info
 
@@ -1107,7 +1111,7 @@ def cu_set_item(value, valuesize, gpu_value1, slices, strides, broadcasted_strid
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
 
     cdef getitem_slice_infos infos
-    _build_slice_infos( & infos, slices)
+    _build_slice_infos(& infos, slices)
 
     infos.stride_size = len(strides)
     for i, (s, b) in enumerate(zip(strides, broadcasted_strides)):
