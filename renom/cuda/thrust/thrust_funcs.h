@@ -54,6 +54,14 @@ namespace renom{
 	struct tanh_function;
 	void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 
+	// Hard Tanh Forward function
+	struct hard_tanh_forward_function;
+	void thrust_hard_tanh_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Hard Tanh Backward function
+	struct hard_tanh_backward_function;
+	void thrust_hard_tanh_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
     const unsigned int RENOM_CUDA_MAX_STRIDES= 5;
 
     struct binop_strides {
