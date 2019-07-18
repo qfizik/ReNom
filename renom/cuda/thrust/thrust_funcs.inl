@@ -1301,6 +1301,7 @@ namespace renom{
 	            return tanh(x);
 	        }
 	};
+
 	void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size)
 	{
 		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
@@ -1313,15 +1314,16 @@ namespace renom{
 	{
 	    __host__ __device__
 	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
-	          if(x >= 1){
-                return 1.0;
-              }else if(x <= -1){
-                return -1.0;
-              }else{
-                return x;
-              }
+	            if(x >= 1){
+                    return 1.0;
+                }else if(x <= -1){
+                    return -1.0;
+                }else{
+                    return x;
+                }
 	        }
 	};
+
 	void thrust_hard_tanh_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
 	{
 		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
@@ -1334,12 +1336,14 @@ namespace renom{
 	{
 	    __host__ __device__
 	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
-            if((x == 1.0) || (x == -1.0)){ // if x== 1 or -1 then
-              return 0.0;
-            }else{
-                return 1.0;
+                if((x == 1.0) || (x == -1.0)){ // if x== 1 or -1 then
+                    return 0.0;
+                }else{
+                    return 1.0;
+                }
             }
 	};
+
 	void thrust_hard_tanh_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
 	{
 		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
