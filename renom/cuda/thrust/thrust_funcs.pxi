@@ -172,21 +172,21 @@ def cutanh(gpu_value1, gpu_value2):
     cdef VALUE_TYPE * ptr2 = <VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
     thrust_tanh(ptr1, ptr2, size)
 
-def cuhard_sigmoid_forward(gpu_value1, gpu_value2):
+def cuhard_tanh_forward(gpu_value1, gpu_value2):
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
 
     cdef int size = < int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = < VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = < VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_hard_sigmoid_forward(ptr1, ptr2, size)
+    thrust_hard_tanh_forward(ptr1, ptr2, size)
 
-def cuhard_sigmoid_backward(gpu_value1, gpu_value2):
+def cuhard_tanh_backward(gpu_value1, gpu_value2):
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
 
     cdef int size = < int > gpu_value1.size
     cdef VALUE_TYPE * ptr1 = < VALUE_TYPE * > < uintptr_t > gpu_value1._ptr
     cdef VALUE_TYPE * ptr2 = < VALUE_TYPE * > < uintptr_t > gpu_value2._ptr
-    thrust_hard_sigmoid_backward(ptr1, ptr2, size)
+    thrust_hard_tanh_backward(ptr1, ptr2, size)
 
 def cuswish_forward(s, gpu_value1, gpu_value2):
     cuda_base.check_heap_device(gpu_value1, gpu_value2)
