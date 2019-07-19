@@ -1337,8 +1337,10 @@ namespace renom{
 	    __host__ __device__
 	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
                 if((x == 1.0) || (x == -1.0)){ // if x== 1 or -1 then
+                    print("True")
                     return 0.0;
                 }else{
+                    print("False")
                     return 1.0;
                 }
             }
