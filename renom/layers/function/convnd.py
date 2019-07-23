@@ -97,9 +97,9 @@ def check_input(var, length):
             tuple([var for _ in range(length)]), dtype=np.int32)
     elif not var.dtype == np.int32:
         var = var.astype(np.int32)
-    if length < 2:
+    if length < 2 and is_cuda_active():
         length = 2
-    assert len(var) is length
+    assert len(var) is length, str(len(var)) + '/' + str(length)
     return var
 
 
@@ -143,11 +143,12 @@ class ConvNd(Parametrized):
     """
 
     def __init__(self, channel=2, filter=3, padding=0, stride=1,
-                 input_size=None, ignore_bias=False, initializer=Gaussian()):
+                 input_size=None, ignore_bias=False, initializer=GlorotUniform()):
         self._padding = padding
         self._stride = stride
         self._kernel = filter
         self._channel = channel
+        self._initial_value = [padding, stride, filter]
         self._initializer = initializer
         self._ignore_bias = ignore_bias
         super(ConvNd, self).__init__(input_size)
@@ -159,10 +160,11 @@ class ConvNd(Parametrized):
         if is_cuda_active():
             assert self._dims < 4, "GPU Version currently only supports 2 and 3 dimensions"
 
-        if self._dims == 1:
-            self._kernel = np.append(self._kernel, 1).astype(np.int32)
-            self._padding = np.append(self._padding, 0).astype(np.int32)
-            self._stride = np.append(self._stride, 1).astype(np.int32)
+        if self._dims == 1 and is_cuda_active():
+            padding, stride, filter = self._initial_value
+            self._kernel = np.append(filter, 1).astype(np.int32)
+            self._padding = np.append(padding, 0).astype(np.int32)
+            self._stride = np.append(stride, 1).astype(np.int32)
 
         def func(var):
             return check_input(var, self._dims)
@@ -180,7 +182,7 @@ class ConvNd(Parametrized):
 
         self.params = {"w": Variable(self._initializer(size_f), auto_update=True)}
         if not self._ignore_bias:
-            self.params["b"] = Variable(np.ones(size_b, dtype=precision), auto_update=True)
+            self.params["b"] = Variable(np.zeros(size_b), auto_update=True)
 
     def forward(self, x):
         assert len(
@@ -189,59 +191,5 @@ class ConvNd(Parametrized):
             "The shape of input array {} is too small. Please give an array which size is lager than 0.".format(
                 x.shape)
 
-        return convnd(x, self.params["w"], self.params.get("b", None), self._kernel,
-                      self._stride, self._padding)
-
-
-class Conv3d(Parametrized):
-
-    '''
-    Provides an interface for the ConvNd with a more familiar name
-
-    Note:
-        Tensor data format is **NCHWD**.
-    '''
-
-    def __init__(self, channel=2, filter=3, padding=0, stride=1,
-                 input_size=None, ignore_bias=False, initializer=Gaussian(), weight_decay=0):
-        self._padding = padding
-        self._stride = stride
-        self._kernel = filter
-        self._channel = channel
-        self._initializer = initializer
-        self._ignore_bias = ignore_bias
-        self._weight_decay = weight_decay
-        super(Conv3d, self).__init__(input_size)
-
-    def weight_initiallize(self, input_size):
-        # The first dimension is to allow different types of uncorrelated images as inputs, such as RGB information.
-        # After this dimension, the image data is assumed to be meaningfully correlated.
-        self._dims = len(input_size[1:])
-        assert self._dims == 3, "Conv3D expects 3 dimensions"
-
-        def func(var):
-            return check_input(var, self._dims)
-        self._kernel, self._padding, self._stride = map(
-            func, [self._kernel, self._padding, self._stride])
-
-        assert all([s >= min(self._kernel) for s in input_size[1:]]), \
-            "The shape of input array {} is too small. Please give an array which size is lager than 0.".format(
-                input_size[1:])
-
-        f_lst = [self._channel, input_size[0]]
-        f_lst.extend(self._kernel)
-        size_f = tuple(f_lst)
-        size_b = tuple([1, self._channel] + [1 for _ in range(self._dims)])
-
-        self.params = {"w": Variable(self._initializer(
-            size_f), auto_update=True, weight_decay=self._weight_decay)}
-        if not self._ignore_bias:
-            self.params["b"] = Variable(np.ones(size_b, dtype=precision), auto_update=True)
-
-    def forward(self, x):
-        assert len(x.shape) == 5, "The dimension of input array must be 5. Actual dim is {}".format(x.ndim)
-        assert all([s >= min(self._kernel) for s in x.shape[2:]]), \
-            "The shape of input array {} is too small. Please give an array which size is lager than 0.".format(
-                x.shape)
         return convnd(x, self.params["w"], self.params.get("b", None), self._kernel,
                       self._stride, self._padding)
