@@ -29,5 +29,9 @@ ignore =
     W503
     # F821 Undefined name in module being used 
     F821
+    # Line break after binary operator
+    W504
+    # Invalid escape sequence
+    W605
 
 exclude=test/*

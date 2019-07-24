@@ -32,7 +32,7 @@ class dropout(Node):
 
         ret = cls._create_node(value)
         ret.attrs._x = x
-        ret._mask = mask
+        ret.attrs._mask = mask
         return ret
 
     @classmethod
@@ -43,17 +43,17 @@ class dropout(Node):
         value = get_gpu(x) * mask
         ret = cls._create_node(value)
         ret.attrs._x = x
-        ret._mask = mask
+        ret.attrs._mask = mask
         return ret
 
     def _backward_cpu(self, context, dy, **kwargs):
         if isinstance(self.attrs._x, Node):
-            dx = self._mask * dy
+            dx = self.attrs._mask * dy
             self.attrs._x._update_diff(context, dx, **kwargs)
 
     def _backward_gpu(self, context, dy, **kwargs):
         if isinstance(self.attrs._x, Node):
-            dx = get_gpu(self._mask) * get_gpu(dy)
+            dx = get_gpu(self.attrs._mask) * get_gpu(dy)
             self.attrs._x._update_diff(context, dx, **kwargs)
 
 
@@ -73,7 +73,7 @@ class spatial_dropout(dropout):
         value = x * mask
         ret = cls._create_node(value)
         ret.attrs._x = x
-        ret._mask = mask
+        ret.attrs._mask = mask
         return ret
 
     @classmethod
@@ -86,7 +86,7 @@ class spatial_dropout(dropout):
         value = get_gpu(x) * get_gpu(mask)
         ret = cls._create_node(value)
         ret.attrs._x = x
-        ret._mask = mask
+        ret.attrs._mask = mask
         return ret
 
 

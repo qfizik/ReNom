@@ -1019,6 +1019,48 @@ namespace renom{
 		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu_backward_function());
 	}
 
+  // Relu6 forward
+	struct relu6_forward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+	            if (x < 0){
+                return 0;
+              }else if (6 < x){
+                return 6;
+              }else{
+                return x;
+              };
+	        }
+	};
+
+  void thrust_relu6_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu6_forward_function());
+	}
+
+	// Relu backward
+	struct relu6_backward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+            if((x < 0) || (6 < x)){ // if x== 0 or 1 then
+              return 0;
+            }else{
+              return 1;
+            }
+	        }
+	};
+
+	void thrust_relu6_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu6_backward_function());
+	}
+
 	// Leaky Relu forward
 	struct leaky_relu_forward_function
 	{
@@ -1206,6 +1248,49 @@ namespace renom{
 		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
 		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
 		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, sigmoid_function());
+	}
+
+  // hard sigmoid forward
+	struct hard_sigmoid_forward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+              if(x < -2.5){
+                return 0.0;
+              }else if(x >= 2.5){
+                return 1.0;
+              }else{
+                return 0.2 * x + 0.5;
+              }
+
+	        }
+	};
+
+	void thrust_hard_sigmoid_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, hard_sigmoid_forward_function());
+	}
+
+	// hard sigmoid backward
+	struct hard_sigmoid_backward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+              if((x == 0.0) || (x == 1.0)){ // if x== 0 or 1 then
+                return 0.0;
+              }else{
+                return 0.2;
+              }
+	        }
+	};
+
+	void thrust_hard_sigmoid_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, hard_sigmoid_backward_function());
 	}
 
 	// Tanh
@@ -1967,22 +2052,19 @@ namespace renom{
       }
     }
 
-    __global__ void cuda_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE epsilon, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *k, VALUE_TYPE *ndy, VALUE_TYPE *r)
+    __global__ void cuda_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE epsilon, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *ndy, VALUE_TYPE *r)
     {
       int idx = blockIdx.x * blockDim.x + threadIdx.x;
       if (idx < Elems) {
         r[idx] = gamma * r[idx] + (1.0 - gamma) * dy[idx] * dy[idx];
-        k[idx] = eta * k[idx] + (1.0 - eta) * dy[idx];
-        VALUE_TYPE v = r[idx] - k[idx] * k[idx];
-        if (v < 0) v = 0;
-        ndy[idx] = learning_rate * dy[idx] / sqrtf(v + epsilon);
+        ndy[idx] = learning_rate * dy[idx] / (sqrtf(r[idx]) + epsilon);
       }
     }
 
-    void thrust_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *k, VALUE_TYPE *ndy, VALUE_TYPE *r)
+    void thrust_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *ndy, VALUE_TYPE *r)
     {
       if(Elems) {
-        cuda_optimizer_rmsprop<<<ceil(Elems/256.0), 256, 0, GET_STREAM_NAME()>>>(Elems, learning_rate, dy, eps, gamma, eta, k, ndy, r);
+        cuda_optimizer_rmsprop<<<ceil(Elems/256.0), 256, 0, GET_STREAM_NAME()>>>(Elems, learning_rate, dy, eps, gamma, eta, ndy, r);
       }
     }
 

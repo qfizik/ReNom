@@ -24,13 +24,25 @@ class Initializer(object):
 
     """
 
+    def __init__(self, gain):
+        self.gain = gain
+
     def __call__(self, shape):
         raise NotImplementedError
 
 
+class Constant(Initializer):
+
+    def __init__(self, value):
+        self._init_value = value
+
+    def __call__(self, shape):
+        return np.full(shape, self._init_value).astype(precision)
+
+
 class GlorotUniform(Initializer):
 
-    '''Glorot uniform initializer [1]_ initializes parameters sampled by
+    '''Glorot uniform initializer [GlorotRef]_ initializes parameters sampled by
     following uniform distribution "U(max, min)".
 
     .. math::
@@ -41,8 +53,8 @@ class GlorotUniform(Initializer):
 
     '''
 
-    def __init__(self):
-        super(GlorotUniform, self).__init__()
+    def __init__(self, gain=1.0):
+        super(GlorotUniform, self).__init__(gain=gain)
 
     def __call__(self, shape):
         if len(shape) == 2:
@@ -53,12 +65,12 @@ class GlorotUniform(Initializer):
             fan_in = shape[0] * size
             fan_out = shape[1] * size
         lim = np.sqrt(6 / (fan_in + fan_out))
-        return (np.random.rand(*shape) * 2 * lim - lim).astype(precision)
+        return ((np.random.rand(*shape) * 2 * lim - lim) * self.gain).astype(precision)
 
 
 class GlorotNormal(Initializer):
 
-    '''Glorot normal initializer [1]_ initializes parameters sampled by
+    '''Glorot normal initializer [GlorotRef]_ initializes parameters sampled by
     following normal distribution "N(0, std)".
 
     .. math::
@@ -66,42 +78,42 @@ class GlorotNormal(Initializer):
         &N(0, std) \\\\
         &std = sqrt(2/(input\_size + output\_size)) \\\\
 
-    .. [1] Xavier Glorot, Yoshua Bengio.
+    .. [GlorotRef] Xavier Glorot, Yoshua Bengio.
         Understanding the difficulty of training deep feedforward neural networks.
     '''
 
-    def __init__(self):
-        super(GlorotNormal, self).__init__()
+    def __init__(self, gain=1.0):
+        super(GlorotNormal, self).__init__(gain=gain)
 
     def __call__(self, shape):
         if len(shape) == 2:
             fan_in = shape[0]
             fan_out = shape[1]
-        elif len(shape) == 4:
+        elif len(shape) > 2:
             size = np.prod(shape[2:])
             fan_in = shape[0] * size
             fan_out = shape[1] * size
         std = np.sqrt(2 / (fan_in + fan_out))
-        return (np.random.randn(*shape) * std).astype(precision)
+        return ((np.random.randn(*shape) * std) * self.gain).astype(precision)
 
 
 class HeNormal(Initializer):
 
     '''He normal initializer.
-       Initializes parameters according to [1]
+   Initializes parameters according to [HeNormRef]_
 
     .. math::
 
         &N(0, std) \\\\
         &std = sqrt(2/(input\_size)) \\\\
 
-    .. [1] https://arxiv.org/abs/1502.01852
+    .. [HeNormRef] https://arxiv.org/abs/1502.01852
        Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification
 
     '''
 
-    def __init__(self):
-        super(HeNormal, self).__init__()
+    def __init__(self, gain=1.0):
+        super(HeNormal, self).__init__(gain=gain)
 
     def __call__(self, shape):
         if len(shape) == 2:
@@ -110,13 +122,13 @@ class HeNormal(Initializer):
             size = np.prod(shape[2:])
             fan_in = shape[1] * size
         std = np.sqrt(2 / fan_in)
-        return (np.random.randn(*shape) * std).astype(precision)
+        return ((np.random.randn(*shape) * std) * self.gain).astype(precision)
 
 
 class HeUniform(Initializer):
 
     '''He uniform initializer.
-       Initializes parameters according to [1]
+   Initializes parameters according to [HeUniformRef]_
 
     .. math::
 
@@ -125,13 +137,13 @@ class HeUniform(Initializer):
         &max = sqrt(6/(input\_size)) \\\\
         &min = -sqrt(6/(input\_size))
 
-    .. [1] https://arxiv.org/abs/1502.01852
+    .. [HeUniformRef] https://arxiv.org/abs/1502.01852
        Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification
 
     '''
 
-    def __init__(self):
-        super(HeUniform, self).__init__()
+    def __init__(self, gain=1.0):
+        super(HeUniform, self).__init__(gain=gain)
 
     def __call__(self, shape):
         if len(shape) == 2:
@@ -140,7 +152,7 @@ class HeUniform(Initializer):
             size = np.prod(shape[2:])
             fan_in = shape[1] * size
         lim = np.sqrt(6 / (fan_in))
-        return (np.random.rand(*shape) * 2 * lim - lim).astype(precision)
+        return ((np.random.rand(*shape) * 2 * lim - lim) * self.gain).astype(precision)
 
 
 class Gaussian(Initializer):
@@ -154,13 +166,13 @@ class Gaussian(Initializer):
 
     '''
 
-    def __init__(self, mean=0.0, std=0.1):
-        super(Gaussian, self).__init__()
+    def __init__(self, mean=0.0, std=0.1, gain=1.0):
+        super(Gaussian, self).__init__(gain=gain)
         self._mean = mean
         self._std = std
 
     def __call__(self, shape):
-        return (np.random.randn(*shape) * self._std + self._mean).astype(precision)
+        return ((np.random.randn(*shape) * self._std + self._mean) * self.gain).astype(precision)
 
 
 class Uniform(Initializer):
@@ -174,12 +186,33 @@ class Uniform(Initializer):
 
     '''
 
-    def __init__(self, min=-1.0, max=1.0):
-        super(Uniform, self).__init__()
+    def __init__(self, min=-1.0, max=1.0, gain=1.0):
+        super(Uniform, self).__init__(gain=gain)
         self._min = min
         self._max = max
 
     def __call__(self, shape):
         shape[1:]
         delt = self._max - self._min
-        return (np.random.rand(*shape) * delt + self._min).astype(precision)
+        return ((np.random.rand(*shape) * delt + self._min) * self.gain).astype(precision)
+
+
+class Orthogonal(Initializer):
+
+    '''Orthogonal initializer.
+    Initialize parameters using orthogonal initialization.
+
+    .. [1] Andrew M. Saxe, James L. McClelland, Surya Ganguli https://arxiv.org/abs/1312.6120
+       Exact solutions to the nonlinear dynamics of learning in deep linear neural networks
+    '''
+
+    def __init__(self, gain=1.0):
+        super(Orthogonal, self).__init__(gain=gain)
+
+    def __call__(self, shape):
+        c_shape = (shape[0], np.prod(shape[1:]))
+        X = np.random.random(c_shape)
+        U, _, Vt = np.linalg.svd(X, full_matrices=False)
+        res = U if U.shape == c_shape else Vt
+
+        return (res.reshape(shape) * self.gain).astype(precision)

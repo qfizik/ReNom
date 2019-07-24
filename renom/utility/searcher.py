@@ -6,7 +6,7 @@ from future.utils import with_metaclass
 
 try:
     import GPy as gp
-except Exception as e:
+except Exception:
     gp = None
 
 

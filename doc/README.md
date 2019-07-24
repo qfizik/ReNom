@@ -1,11 +1,42 @@
-# Document of ReNomDL
+# ReNomIMG Document
 
-### Build
+### Requirements
+- sphinx
+- sphinxcontrib-versioning==2.2.1
 
-For building document, please do following step.
+You can install them using following command.
 
-1. Unzip jsmath file which is in the `_static` directory. You have to place unzipped directory to `_static`.
-2. Run build shell script `build.sh`. You have to run the shell in the directory `ReNom/doc`.
+```
+pip install -r requirements.txt
+```
 
-Then `html` directory will be created in the `ReNom/doc/_build`.
-Both Japanese and English HTML documents will be in the `html` directory.
+### Write document
+- Write documents of python module to the source.
+- Put Japanese translation \_locale/ja/.
+
+### Extract docstrings from source code using Autodoc.
+
+Following command updates rst file. **Be careful for using these commands since 
+they will override rst files. You should specify the path for create doc.**
+If you have not added any new method, you don't need to run following command.
+
+```sphinx-apidoc -o . ../renom_img/api```
+
+For initial extraction, use ```-F``` option for full reconstructing docments.
+
+```sphinx-apidoc -F -o . ../renom_img/api```
+
+### Translation files.
+For creating translation template files, use following command.
+
+This command extracts docstrings that can be translated and generates pot files.
+
+```make gettext```
+
+Then following command creates po files.
+
+```sphinx-intl update -p _build/gettext -l ja```
+
+### Build document on current branch
+
+### Build document multiple branch with sphinx-versioning

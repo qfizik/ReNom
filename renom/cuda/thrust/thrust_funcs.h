@@ -30,9 +30,25 @@ namespace renom{
 	struct relu_backward_function;
 	void thrust_relu_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 
+	// Relu6 Forward function
+	struct relu6_forward_function;
+	void thrust_relu6_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Relu6 Backward function
+	struct relu6_backward_function;
+	void thrust_relu6_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
 	// Sigmoid function
 	struct sigmoid_function;
 	void thrust_sigmoid(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Hard Sigmoid Forward function
+	struct hard_sigmoid_forward_function;
+	void thrust_hard_sigmoid_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Hard Sigmoid Backward function
+	struct hard_sigmoid_backward_function;
+	void thrust_hard_sigmoid_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 
 	// Tanh function
 	struct tanh_function;
@@ -328,8 +344,8 @@ namespace renom{
 		void thrust_optimizer_adagrad(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE *pdy, VALUE_TYPE *ndy, VALUE_TYPE *r);
     __global__ void cuda_optimizer_adagrad(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE *pdy, VALUE_TYPE *ndy, VALUE_TYPE *r);
 
-		void thrust_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *k, VALUE_TYPE *ndy, VALUE_TYPE *r);
-    __global__ void cuda_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *k, VALUE_TYPE *ndy, VALUE_TYPE *r);
+		void thrust_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *ndy, VALUE_TYPE *r);
+    __global__ void cuda_optimizer_rmsprop(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE eta, VALUE_TYPE *ndy, VALUE_TYPE *r);
 
 		void thrust_optimizer_adam(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE gamma_orig, VALUE_TYPE beta, VALUE_TYPE beta_orig, VALUE_TYPE min, bool flug, VALUE_TYPE *u, VALUE_TYPE *r, VALUE_TYPE *ndy);
     __global__ void cuda_optimizer_adam(int Elems, VALUE_TYPE learning_rate, VALUE_TYPE *dy, VALUE_TYPE eps, VALUE_TYPE gamma, VALUE_TYPE gamma_orig, VALUE_TYPE beta, VALUE_TYPE beta_orig, VALUE_TYPE min, bool flug, VALUE_TYPE *u, VALUE_TYPE *r, VALUE_TYPE *ndy);

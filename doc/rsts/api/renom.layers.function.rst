@@ -1,6 +1,11 @@
 renom.layers.function
 =====================
 
+.. autoclass:: renom.layers.function.parameterized.Model
+    :members: forward, train, prevent_update, values, join_grads, save, load, set_initializer
+
+.. autoclass:: renom.layers.function.parameterized.Sequential
+
 .. automodule:: renom.layers.function.batch_normalize
     :members: BatchNormalize
 
@@ -10,8 +15,14 @@ renom.layers.function
 .. automodule:: renom.layers.function.convnd
     :members: Conv3d, ConvNd
 
+.. automodule:: renom.layers.function.group_conv2d
+    :members: GroupConv2d
+
 .. automodule:: renom.layers.function.deconv2d
     :members: Deconv2d
+
+.. automodule:: renom.layers.function.deconvnd
+    :members: DeconvNd
 
 .. automodule:: renom.layers.function.dense
     :members: Dense
@@ -54,4 +65,3 @@ renom.layers.function
 
 .. automodule:: renom.layers.function.unpool2d
     :members: MaxUnPool2d, AverageUnPool2d
-

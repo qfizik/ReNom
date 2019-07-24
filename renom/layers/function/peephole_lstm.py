@@ -45,7 +45,7 @@ class peephole_lstm(Node):
             u += b
 
         m = u.shape[1] // 4
-        u, gate_u = np.split(u, [m, ], axis=1)
+        u, gate_u = np.split(u.as_ndarray(), [m, ], axis=1)
         u = tanh(u)
 
         fg = sigmoid(s * wc[:, :m] + gate_u[:, :m])
@@ -67,6 +67,7 @@ class peephole_lstm(Node):
         ret.attrs._pstate = ps
         ret.attrs._state = state
         ret.attrs._gated = gated
+        ret._state = state
 
         if isinstance(pz, Node):
             pz.attrs._pfgate = gated[:, :m]
@@ -100,6 +101,7 @@ class peephole_lstm(Node):
         ret.attrs._pz = pz
         ret.attrs._pstate = ps
         ret.attrs._state = s
+        ret._state = s
 
         if isinstance(pz, Node):
             pz.attrs._pfgate = u
@@ -289,7 +291,7 @@ class PeepholeLstm(Parametrized):
                             self.params.wc,
                             self.params.get("b", None))
         self._z = ret
-        self._state = ret.attrs.get('_state', None)
+        self._state = ret._state
         return ret
 
     def truncate(self):

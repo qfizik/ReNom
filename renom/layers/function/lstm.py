@@ -44,7 +44,7 @@ class lstm(Node):
         if b is not None:
             u += b
         m = u.shape[1] // 4
-        u, gated = np.split(u, [m, ], axis=1)
+        u, gated = np.split(u.as_ndarray(), [m, ], axis=1)
         u = tanh(u)
 
         gated = sigmoid(gated)
@@ -263,7 +263,7 @@ class Lstm(Parametrized):
         self.params = {
             "w": Variable(self._initializer((size_i, size_o * 4)), auto_update=True, weight_decay=self._weight_decay),
             "wr": Variable(self._initializer((size_o, size_o * 4)), auto_update=True, weight_decay=self._weight_decay)}
-        if self._ignore_bias:
+        if not self._ignore_bias:
             self.params["b"] = Variable(bias, auto_update=True)
 
     def forward(self, x):
@@ -273,7 +273,7 @@ class Lstm(Parametrized):
                    self.params.wr,
                    self.params.get("b", None))
         self._z = ret
-        self._state = ret.attrs.get('_state', None)
+        self._state = ret._state
         return ret
 
     def truncate(self):

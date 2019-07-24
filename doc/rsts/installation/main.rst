@@ -3,7 +3,7 @@ Installation
 
 You have to take following steps to use ReNom in your environment.
 
-1. Install the python(we cofirm the operation in python 2.7 and python 3.4)
+1. Install the python(we confirm the operation in python 2.7, 3.4, 3.5 and 3.6)
 2. Install the ReNom environment
 
 First, you have to install the python.

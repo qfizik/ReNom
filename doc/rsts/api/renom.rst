@@ -10,3 +10,6 @@ renom
 
 .. automodule:: renom.operation
     :members:
+
+.. automodule:: renom.utility
+    :members:

@@ -42,9 +42,11 @@ def numeric_diff(function, node, *args):
             dx = eps * node[nindex] if node[nindex] != 0 else eps
             node[nindex] += coefficients2[i] * dx
             node.to_cpu()
+
             ret_list = function(*args) * coefficients1[i]
             ret_list.to_cpu()
             node[nindex] -= coefficients2[i] * dx
+
             loss += ret_list
             loss.to_cpu()
 
