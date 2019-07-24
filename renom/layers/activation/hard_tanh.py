@@ -35,7 +35,7 @@ class hard_tanh(UnaryOp):
             dx = get_gpu(self.attrs._arg).empty_like_me()
             cu.cuhard_tanh_backward(get_gpu(self.attrs._arg), dx)
             self.attrs._arg._update_diff(context, dx * get_gpu(dy), **kwargs)
-            
+
 class Hard_Tanh(object):
     '''Hard hyperbolic tangent activation function as described by the following formula.
 
@@ -60,4 +60,3 @@ class Hard_Tanh(object):
 
     def __call__(self, x):
         return hard_tanh(x)
-
