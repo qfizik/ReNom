@@ -345,6 +345,9 @@ class dot(BinOp):
                         get_gpu(rdx))
             self.attrs._rhs._update_diff(context, rdx, **kwargs)
 
+_matmul = lambda a, b: dot(a, b)
+Node.__matmul__ = _matmul
+
 
 @showmark
 class concat(Node):

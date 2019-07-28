@@ -45,18 +45,15 @@ class gru(Node):
         hminus = Variable(np.zeros((x.shape[0], w.shape[1] // 3),
                                    dtype=precision)) if pz is None else pz
 
-        # Perform Forward Calcuations
-        if b is None:
-            A = dot(x, w_z) + hminus * u_z
-            B = dot(x, w_r) + u_r * hminus
-            C = dot(x, w_h) + sigmoid(B) * u_h * hminus
-        else:
-            b_z, b_r, b_h = np.split(b, [m, m * 2], axis=1)
-            A = dot(x, w_z) + hminus * u_z + b_z
-            B = dot(x, w_r) + u_r * hminus + b_r
-            C = dot(x, w_h) + sigmoid(B) * u_h * hminus + b_h
+        b_z, b_r, b_h = np.split(b, [m, m * 2], axis=1)
+        A = dot(x, w_z) + dot(hminus, u_z)
+        A += b_z
+        B = dot(x, w_r) + dot(hminus, u_r)
+        B += b_r
+        C = dot(x, w_h) + sigmoid(B) * dot(hminus, u_h)
+        C += b_h
 
-        h = sigmoid(A) + tanh(C)
+        h = sigmoid(A) * hminus + (1 - sigmoid(A)) * tanh(C)
 
         # Store Variables for Graph
         ret = cls._create_node(h)
@@ -87,10 +84,23 @@ class gru(Node):
         hminus = Variable(np.zeros((x.shape[0], m), dtype=precision)) if pz is None else pz
         get_gpu(hminus)
         # Perform Forward Calcuations
-        input = dot(get_gpu(x), get_gpu(w)) + get_gpu(b)
-        ABC = get_gpu(input).empty_like_me()
-        h = get_gpu(hminus).empty_like_me()
-        cu.cugru_forward(get_gpu(input), get_gpu(hminus), get_gpu(u), get_gpu(ABC), get_gpu(h))
+
+        X = get_gpu(x)
+        W = get_gpu(w)
+        U = get_gpu(u)
+        dotted = cu.gpuvalue.GPUValue(shape=(X.shape[0], W.shape[1]))
+        cu.cublas_gemm(get_gpu(X), 0, get_gpu(W), 0, dotted)
+
+        minusdotted = cu.gpuvalue.GPUValue(shape=(X.shape[0], W.shape[1]))
+        cu.cublas_gemm(get_gpu(hminus), 0, get_gpu(U), 0, minusdotted)
+
+        A = dotted[:, 0:m] + minusdotted[:, 0:m] + get_gpu(b)[:, 0:m]
+        B = dotted[:, m:2 * m] + minusdotted[:, m:2 * m] + get_gpu(b)[:, m:2 * m]
+        C = dotted[:, 2 * m:3 * m] + minusdotted[:, 2 * m:3 * m] * \
+            B.sigmoid() + get_gpu(b)[:, 2 * m:3 * m]
+
+        ones = A.ones_like_me()
+        h = A.sigmoid() * get_gpu(hminus) + (ones - A.sigmoid()) * C.tanh()
 
         # Store Variables for Graph
         ret = cls._create_node(h)
@@ -99,7 +109,9 @@ class gru(Node):
         ret.attrs._b = b
         ret.attrs._u = u
         ret.attrs._pz = hminus
-        ret.attrs._ABC = ABC
+        ret.attrs._A = A
+        ret.attrs._B = B
+        ret.attrs._C = C
 
         return ret
 
@@ -117,38 +129,38 @@ class gru(Node):
         hminus = self.attrs._pz
         y = dy
 
-        dA = sigmoid_diff(A)
-        dB = sigmoid_diff(B)
-        dC = tanh_diff(C)
+        dA = y * (hminus - tanh(C)) * sigmoid_diff(A)
+        dC = y * (1 - sigmoid(A)) * tanh_diff(C)
+        dB = dC * dot(hminus, u_h) * sigmoid_diff(B)
 
         # Calculate dx
-        dx_z = dot(y * dA, w_z.T)
-        dx_r = dot(y * dB * dC * u_h * hminus, w_r.T)
-        dx_h = dot(y * dC, w_h.T)
+        dx_z = dot(dA, w_z.T)
+        dx_r = dot(dB, w_r.T)
+        dx_h = dot(dC, w_h.T)
         dx = dx_z + dx_r + dx_h
 
         # Calculate dw
-        dw_z = dot(x.T, y * dA)
-        dw_r = dot(x.T, y * dB * dC * u_h * hminus)
-        dw_h = dot(x.T, y * dC)
+        dw_z = dot(x.T, dA)
+        dw_r = dot(x.T, dB)
+        dw_h = dot(x.T, dC)
         dw = np.concatenate([dw_z, dw_r, dw_h], axis=1)
 
         # Calculate db
-        db_z = np.sum(y * dA, axis=0, keepdims=True)
-        db_r = np.sum(y * dB * dC * u_h * hminus, axis=0, keepdims=True)
-        db_h = np.sum(y * dC, axis=0, keepdims=True)
+        db_z = np.sum(dA, axis=0, keepdims=True)
+        db_r = np.sum(dB, axis=0, keepdims=True)
+        db_h = np.sum(dC, axis=0, keepdims=True)
         db = np.concatenate([db_z, db_r, db_h], axis=1)
 
-        du_z = np.sum(dA * hminus * y, axis=0, keepdims=True)
-        du_r = np.sum(y * dC * dB * u_h * hminus * hminus, axis=0, keepdims=True)
-        du_h = np.sum(sigmoid(B) * dC * y * hminus, axis=0, keepdims=True)
+        du_z = dot(hminus.T, dA)
+        du_r = dot(hminus.T, dB)
+        du_h = dot(hminus.T, dC * sigmoid(B))
         du = np.concatenate([du_z, du_r, du_h], axis=1)
 
-        pz_z = y * dA * u_z
-        pz_r = y * dC * dB * u_h * hminus * u_r
-        pz_h = y * dC * sigmoid(B) * u_h
+        pz_z = dot(dA, u_z.T)
+        pz_r = dot(dB, u_r.T)
+        pz_h = dot(dC * sigmoid(B), u_h.T)
 
-        dpz = pz_z + pz_r + pz_h
+        dpz = pz_z + pz_r + pz_h + y * sigmoid(A)
 
         self.attrs._x._update_diff(context, dx)
         self.attrs._w._update_diff(context, dw)
@@ -163,29 +175,67 @@ class gru(Node):
         print('{:10}= {}'.format(name, h))
 
     def _backward_gpu(self, context, dy, **kwargs):
-        x = self.attrs._x
-        w = self.attrs._w
-        b = self.attrs._b
-        u = self.attrs._u
-        hminus = self.attrs._pz
-        ABC = self.attrs._ABC
+        x = get_gpu(self.attrs._x)
+        w = get_gpu(self.attrs._w)
+        b = get_gpu(self.attrs._b)
+        u = get_gpu(self.attrs._u)
+        hminus = get_gpu(self.attrs._pz)
+        A = get_gpu(self.attrs._A)
+        B = get_gpu(self.attrs._B)
+        C = get_gpu(self.attrs._C)
+        m = w.shape[1] // 3
 
-        dx = get_gpu(x).empty_like_me()
-        db = get_gpu(b).empty_like_me()
-        yconc = get_gpu(ABC).empty_like_me()
-        du = get_gpu(u).empty_like_me()
-        dpz = get_gpu(hminus).empty_like_me()
-        dxx = get_gpu(x).empty_like_me()
 
-        cu.cugru_backward(get_gpu(ABC), get_gpu(dy), yconc, get_gpu(u),
-                          get_gpu(hminus), db, du, dpz, dxx)
+        w_z, w_r, w_h = w[:, 0:m], w[:, m:2 * m], w[:, 2 * m:3 * m]
+        u_z, u_r, u_h = u[:, 0:m], u[:, m:2 * m], u[:, 2 * m:3 * m]
+
+        y = get_gpu(dy)
+
+        sig_diff = lambda x: x.sigmoid() * (-x.sigmoid() + 1)
+        tan_diff = lambda x: (-(x.tanh() ** 2) + 1)
+
+        dA = y * (hminus - C.tanh()) * sig_diff(A)
+        dC = y * (-A.sigmoid() + 1) * tan_diff(C)
+        dB = dC * (hminus @ u_h) * sig_diff(B)
+
+
         # Calculate dx
+        dx_z = dA @ w_z.T
+        dx_r = dB @ w_r.T
+        dx_h = dC @ w_h.T
+        dx = dx_z + dx_r + dx_h
 
-        dx = get_gpu(dot(yconc, w.T))
+        # Calculate dw
+        dw_z = x.T @ dA
+        dw_r = x.T @ dB
+        dw_h = x.T @ dC
+        dw = w.empty_like_me()
+        dw[:, m * 0:m * 1] = dw_z
+        dw[:, m * 1:m * 2] = dw_r
+        dw[:, m * 2:m * 3] = dw_h
 
-        xconc = get_gpu(x.T)
+        # Calculate db
+        db_z = cu.cusum(dA, axis=0, keepdims=True)
+        db_r = cu.cusum(dB, axis=0, keepdims=True)
+        db_h = cu.cusum(dC, axis=0, keepdims=True)
+        db = b.empty_like_me()
+        db[:, m * 0:m * 1] = db_z
+        db[:, m * 1:m * 2] = db_r
+        db[:, m * 2:m * 3] = db_h
 
-        dw = dot(get_gpu(xconc), get_gpu(yconc))
+        du_z = hminus.T @ dA
+        du_r = hminus.T @ dB
+        du_h = hminus.T @ (dC * B.sigmoid())
+        du = u.empty_like_me()
+        du[:, m * 0:m * 1] = du_z
+        du[:, m * 1:m * 2] = du_r
+        du[:, m * 2:m * 3] = du_h
+
+        pz_z = dA @ u_z.T
+        pz_r = dB @ u_r.T
+        pz_h = dC * B.sigmoid() @ u_h.T
+        dpz = pz_z + pz_r + pz_h + y * A.sigmoid()
+
 
         self.attrs._x._update_diff(context, dx)
         self.attrs._w._update_diff(context, dw)
@@ -244,7 +294,7 @@ class Gru(Parametrized):
         # At this point, all connected units in the same layer will use the SAME weights
         self.params = {
             "w": Variable(self._initializer((size_i, size_o * 3)), auto_update=True, weight_decay=self._weight_decay),
-            "u": Variable(self._initializer((1, size_o * 3)), auto_update=True, weight_decay=self._weight_decay),
+            "u": Variable(self._initializer((size_o, size_o * 3)), auto_update=True, weight_decay=self._weight_decay),
         }
         if not self._ignore_bias:
             self.params["b"] = Variable(bias, auto_update=True)
