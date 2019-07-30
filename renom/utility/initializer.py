@@ -24,7 +24,7 @@ class Initializer(object):
 
     """
 
-    def __init__(self, gain):
+    def __init__(self, gain=1.0):
         self.gain = gain
 
     def __call__(self, shape):
@@ -60,7 +60,7 @@ class GlorotUniform(Initializer):
         if len(shape) == 2:
             fan_in = shape[0]
             fan_out = shape[1]
-        elif len(shape) == 4:
+        elif len(shape) > 2:
             size = np.prod(shape[2:])
             fan_in = shape[0] * size
             fan_out = shape[1] * size
@@ -118,7 +118,7 @@ class HeNormal(Initializer):
     def __call__(self, shape):
         if len(shape) == 2:
             fan_in = shape[0]
-        elif len(shape) == 4:
+        elif len(shape) > 2:
             size = np.prod(shape[2:])
             fan_in = shape[1] * size
         std = np.sqrt(2 / fan_in)
@@ -148,7 +148,7 @@ class HeUniform(Initializer):
     def __call__(self, shape):
         if len(shape) == 2:
             fan_in = shape[0]
-        elif len(shape) == 4:
+        elif len(shape) > 2:
             size = np.prod(shape[2:])
             fan_in = shape[1] * size
         lim = np.sqrt(6 / (fan_in))
