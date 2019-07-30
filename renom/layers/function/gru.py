@@ -45,7 +45,8 @@ class gru(Node):
         hminus = Variable(np.zeros((x.shape[0], w.shape[1] // 3),
                                    dtype=precision)) if pz is None else pz
 
-        b_z, b_r, b_h = np.split(b, [m, m * 2], axis=1)
+
+        b_z, b_r, b_h = np.split(b, [m, m * 2], axis=1) if b is not None else 0, 0, 0
         A = dot(x, w_z) + dot(hminus, u_z)
         A += b_z
         B = dot(x, w_r) + dot(hminus, u_r)
@@ -62,10 +63,6 @@ class gru(Node):
         ret.attrs._w_z = w_z
         ret.attrs._w_r = w_r
         ret.attrs._w_h = w_h
-        ret.attrs._b = b
-        ret.attrs._b_z = b_z
-        ret.attrs._b_r = b_r
-        ret.attrs._b_h = b_h
         ret.attrs._u = u
         ret.attrs._u_z = u_z
         ret.attrs._u_h = u_h
@@ -74,6 +71,9 @@ class gru(Node):
         ret.attrs._A = A
         ret.attrs._B = B
         ret.attrs._C = C
+
+        if b is not None:
+            ret.attrs._b = b
 
         return ret
 
@@ -162,10 +162,15 @@ class gru(Node):
 
         dpz = pz_z + pz_r + pz_h + y * sigmoid(A)
 
-        self.attrs._x._update_diff(context, dx)
         self.attrs._w._update_diff(context, dw)
-        self.attrs._b._update_diff(context, db)
         self.attrs._u._update_diff(context, du)
+
+        if self.attrs._b:
+            self.attrs._b._update_diff(context, db)
+
+        if isinstance(self.attrs._x, Node):
+            self.attrs._x._update_diff(context, dx)
+
         if isinstance(self.attrs._pz, Node):
             self.attrs._pz._update_diff(context, dpz)
 
