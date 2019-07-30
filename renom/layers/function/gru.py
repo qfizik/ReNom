@@ -46,7 +46,7 @@ class gru(Node):
                                    dtype=precision)) if pz is None else pz
 
 
-        b_z, b_r, b_h = np.split(b, [m, m * 2], axis=1) if b is not None else 0, 0, 0
+        b_z, b_r, b_h = np.split(b, [m, m * 2], axis=1) if b is not None else (0, 0, 0)
         A = dot(x, w_z) + dot(hminus, u_z)
         A += b_z
         B = dot(x, w_r) + dot(hminus, u_r)
@@ -57,7 +57,9 @@ class gru(Node):
         h = sigmoid(A) * hminus + (1 - sigmoid(A)) * tanh(C)
 
         # Store Variables for Graph
+        print(h.shape)
         ret = cls._create_node(h)
+        print(ret.shape)
         ret.attrs._x = x
         ret.attrs._w = w
         ret.attrs._w_z = w_z
@@ -165,7 +167,7 @@ class gru(Node):
         self.attrs._w._update_diff(context, dw)
         self.attrs._u._update_diff(context, du)
 
-        if self.attrs._b:
+        if hasattr(self.attrs,"_b"):
             self.attrs._b._update_diff(context, db)
 
         if isinstance(self.attrs._x, Node):
