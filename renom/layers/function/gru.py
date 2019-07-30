@@ -295,7 +295,7 @@ class Gru(Parametrized):
     def weight_initiallize(self, size_i):
         size_i = size_i[0]
         size_o = self._size_o
-        bias = np.ones((1, size_o * 3), dtype=precision)
+        bias = np.zeros((1, size_o * 3), dtype=precision)
         # At this point, all connected units in the same layer will use the SAME weights
         self.params = {
             "w": Variable(self._initializer((size_i, size_o * 3)), auto_update=True, weight_decay=self._weight_decay),
