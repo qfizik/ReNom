@@ -54,9 +54,7 @@ class gru(Node):
         h = sigmoid(A) * hminus + (1 - sigmoid(A)) * tanh(C)
 
         # Store Variables for Graph
-        print(h.shape)
         ret = cls._create_node(h)
-        print(ret.shape)
         ret.attrs._x = x
         ret.attrs._w = w
         ret.attrs._w_z = w_z
@@ -92,6 +90,8 @@ class gru(Node):
 
         minusdotted = cu.gpuvalue.GPUValue(shape=(X.shape[0], W.shape[1]))
         cu.cublas_gemm(get_gpu(hminus), 0, get_gpu(U), 0, minusdotted)
+
+        b_z, b_r, b_h = (get_gpu(b)[:, 0:m], get_gpu(b)[:, m:2 * m], get_gpu(b)[:, 2 * m:3 * m]) if b is not None else (0, 0, 0)
 
         A = dotted[:, 0:m] + minusdotted[:, 0:m] + get_gpu(b)[:, 0:m]
         B = dotted[:, m:2 * m] + minusdotted[:, m:2 * m] + get_gpu(b)[:, m:2 * m]
@@ -241,10 +241,15 @@ class gru(Node):
         dpz = pz_z + pz_r + pz_h + y * A.sigmoid()
 
 
-        self.attrs._x._update_diff(context, dx)
         self.attrs._w._update_diff(context, dw)
-        self.attrs._b._update_diff(context, db)
         self.attrs._u._update_diff(context, du)
+
+        if hasattr(self.attrs,"_b"):
+            self.attrs._b._update_diff(context, db)
+
+        if isinstance(self.attrs._x, Node):
+            self.attrs._x._update_diff(context, dx)
+
         if isinstance(self.attrs._pz, Node):
             self.attrs._pz._update_diff(context, dpz)
 
