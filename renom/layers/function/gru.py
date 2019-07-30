@@ -47,12 +47,9 @@ class gru(Node):
 
 
         b_z, b_r, b_h = np.split(b, [m, m * 2], axis=1) if b is not None else (0, 0, 0)
-        A = dot(x, w_z) + dot(hminus, u_z)
-        A += b_z
-        B = dot(x, w_r) + dot(hminus, u_r)
-        B += b_r
-        C = dot(x, w_h) + sigmoid(B) * dot(hminus, u_h)
-        C += b_h
+        A = dot(x, w_z) + dot(hminus, u_z) + b_z
+        B = dot(x, w_r) + dot(hminus, u_r) + b_r
+        C = dot(x, w_h) + sigmoid(B) * dot(hminus, u_h) + b_h
 
         h = sigmoid(A) * hminus + (1 - sigmoid(A)) * tanh(C)
 
