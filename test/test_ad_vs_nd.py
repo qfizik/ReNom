@@ -292,6 +292,7 @@ def test_hard_tanh_activation(node, use_gpu):
         return sum(hard_tanh(node))
     compare(func, node, node)
 
+
 @pytest.mark.parametrize("node", [
     Variable(rand((2, 1))),
     Variable(rand((2, 2))),

@@ -45,7 +45,6 @@ class gru(Node):
         hminus = Variable(np.zeros((x.shape[0], w.shape[1] // 3),
                                    dtype=precision)) if pz is None else pz
 
-
         b_z, b_r, b_h = np.split(b, [m, m * 2], axis=1) if b is not None else (0, 0, 0)
         A = dot(x, w_z) + dot(hminus, u_z) + b_z
         B = dot(x, w_r) + dot(hminus, u_r) + b_r
@@ -91,7 +90,8 @@ class gru(Node):
         minusdotted = cu.gpuvalue.GPUValue(shape=(X.shape[0], W.shape[1]))
         cu.cublas_gemm(get_gpu(hminus), 0, get_gpu(U), 0, minusdotted)
 
-        b_z, b_r, b_h = (get_gpu(b)[:, 0:m], get_gpu(b)[:, m:2 * m], get_gpu(b)[:, 2 * m:3 * m]) if b is not None else (0, 0, 0)
+        b_z, b_r, b_h = (get_gpu(b)[:, 0:m], get_gpu(b)[:, m:2 * m],
+                         get_gpu(b)[:, 2 * m:3 * m]) if b is not None else (0, 0, 0)
 
         A = dotted[:, 0:m] + minusdotted[:, 0:m] + get_gpu(b)[:, 0:m]
         B = dotted[:, m:2 * m] + minusdotted[:, m:2 * m] + get_gpu(b)[:, m:2 * m]
@@ -164,7 +164,7 @@ class gru(Node):
         self.attrs._w._update_diff(context, dw)
         self.attrs._u._update_diff(context, du)
 
-        if hasattr(self.attrs,"_b"):
+        if hasattr(self.attrs, "_b"):
             self.attrs._b._update_diff(context, db)
 
         if isinstance(self.attrs._x, Node):
@@ -189,19 +189,18 @@ class gru(Node):
         C = get_gpu(self.attrs._C)
         m = w.shape[1] // 3
 
-
         w_z, w_r, w_h = w[:, 0:m], w[:, m:2 * m], w[:, 2 * m:3 * m]
         u_z, u_r, u_h = u[:, 0:m], u[:, m:2 * m], u[:, 2 * m:3 * m]
 
         y = get_gpu(dy)
 
-        sig_diff = lambda x: x.sigmoid() * (-x.sigmoid() + 1)
-        tan_diff = lambda x: (-(x.tanh() ** 2) + 1)
+        def sig_diff(x): return x.sigmoid() * (-x.sigmoid() + 1)
+
+        def tan_diff(x): return (-(x.tanh() ** 2) + 1)
 
         dA = y * (hminus - C.tanh()) * sig_diff(A)
         dC = y * (-A.sigmoid() + 1) * tan_diff(C)
         dB = dC * (hminus @ u_h) * sig_diff(B)
-
 
         # Calculate dx
         dx_z = dA @ w_z.T
@@ -240,11 +239,10 @@ class gru(Node):
         pz_h = dC * B.sigmoid() @ u_h.T
         dpz = pz_z + pz_r + pz_h + y * A.sigmoid()
 
-
         self.attrs._w._update_diff(context, dw)
         self.attrs._u._update_diff(context, du)
 
-        if hasattr(self.attrs,"_b"):
+        if hasattr(self.attrs, "_b"):
             self.attrs._b._update_diff(context, db)
 
         if isinstance(self.attrs._x, Node):

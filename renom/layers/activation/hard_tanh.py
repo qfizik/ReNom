@@ -14,6 +14,7 @@ import renom.cuda as cu
 if cu.has_cuda():
     from renom.cuda.gpuvalue import get_gpu
 
+
 @showmark
 class hard_tanh(UnaryOp):
     @classmethod
@@ -28,13 +29,15 @@ class hard_tanh(UnaryOp):
 
     def _backward_cpu(self, context, dy, **kwargs):
         if isinstance(self.attrs._arg, Node):
-            self.attrs._arg._update_diff(context, np.where(self == -1, 0, np.where(self == 1, 0, dy)), **kwargs)
+            self.attrs._arg._update_diff(context, np.where(
+                self == -1, 0, np.where(self == 1, 0, dy)), **kwargs)
 
     def _backward_gpu(self, context, dy, **kwargs):
         if isinstance(self.attrs._arg, Node):
             dx = get_gpu(self.attrs._arg).empty_like_me()
             cu.cuhard_tanh_backward(get_gpu(self.attrs._arg), dx)
             self.attrs._arg._update_diff(context, dx * get_gpu(dy), **kwargs)
+
 
 class Hard_Tanh(object):
     '''Hard hyperbolic tangent activation function as described by the following formula.
