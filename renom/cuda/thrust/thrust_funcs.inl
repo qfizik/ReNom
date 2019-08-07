@@ -1301,11 +1301,54 @@ namespace renom{
 	            return tanh(x);
 	        }
 	};
+
 	void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size)
 	{
 		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
 		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
 		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, tanh_function());
+	}
+
+  	// hard tanh forward
+	struct hard_tanh_forward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+	            if(x >= 1){
+                    return 1.0;
+                }else if(x <= -1){
+                    return -1.0;
+                }else{
+                    return x;
+                }
+	        }
+	};
+
+	void thrust_hard_tanh_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, hard_tanh_forward_function());
+	}
+
+	// hard tanh  backward
+	struct hard_tanh_backward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+                if((x >= 1.0) || (x <= -1.0)){
+                    return 0.0;
+                }else{
+                    return 1.0;
+                }
+            }
+	};
+
+	void thrust_hard_tanh_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, hard_tanh_backward_function());
 	}
 
 	//fill

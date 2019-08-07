@@ -346,6 +346,12 @@ class dot(BinOp):
             self.attrs._rhs._update_diff(context, rdx, **kwargs)
 
 
+def _matmul(a, b): return dot(a, b)
+
+
+Node.__matmul__ = _matmul
+
+
 @showmark
 class concat(Node):
     """
