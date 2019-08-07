@@ -1089,7 +1089,7 @@ namespace renom{
 
 	    __host__ __device__
 	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
-	            return (x > 0)? 1:0;
+	            return (x > 0)? 1:s;
 	        }
 	};
 
