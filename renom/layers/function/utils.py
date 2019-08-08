@@ -58,7 +58,7 @@ def pad_image(img, padding, stride, padWith=0.):
 def imncol(img, weight, stride, padding, padWith=0.):
     N, in_channels, in_dims = img.shape[0], img.shape[1], img.shape[2:]
     out_channels = weight.shape[0]
-    assert in_channels is weight.shape[1], "Number of feature maps is not the same for input and output"
+    assert in_channels == weight.shape[1], "Number of feature maps is not the same for input and output"
     dimensionality = len(in_dims)
 
     # Padding asks for (before, after) for each dimension or it generalizes the padding

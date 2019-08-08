@@ -551,6 +551,25 @@ class GPUValue(object):
         cumul(self, -1, ret)
         return ret
 
+    def __matmul__(self, other):
+        return self.dot(other)
+
+    def dot(self, other):
+        new_shape = self.shape[0], other.shape[1]
+        ret = GPUValue(shape=new_shape)
+        cublas.cublas_gemm(self, 0, other, 0, ret)
+        return ret
+
+    def sigmoid(self):
+        ret = self.empty_like_me()
+        cusigmoid(self, ret)
+        return ret
+
+    def tanh(self):
+        ret = self.empty_like_me()
+        cutanh(self, ret)
+        return ret
+
     def __add__(self, other):
         with use_device(self.device_id):
             new_shape = calc_broadcast_shape(self, other)
