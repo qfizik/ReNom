@@ -733,17 +733,33 @@ class mean(Node):
 
     @classmethod
     def _oper_gpu(cls, arg, axis=None, keepdims=False):
-        if isinstance(axis, (int, type(None))):
-            size = np.size(arg, axis)
+        if isinstance(axis, (int, tuple, type(None))):
+            if isinstance(axis,tuple):
+                size = 1
+                for r in range(len(arg.shape)):
+                    if r in axis:
+                        size *= arg.shape[r]
+            else:
+                size = np.size(arg, axis)
             if not keepdims:
                 if axis is None:
                     newshape = ()
+                elif isinstance(axis,tuple):
+                    temp_l = []
+                    for r in range(len(arg.shape)):
+                        if not r in axis:
+                            temp_l.append(arg.shape[r])
+                    newshape=tuple(temp_l)
                 else:
                     newshape = arg.shape[:axis] + arg.shape[axis + 1:]
             else:
                 axis_list = list(arg.shape)
                 if axis is None:
                     newshape = tuple([1 for e in list(axis_list)])
+                elif isinstance(axis,tuple):
+                    for e in axis:
+                        axis_list[e] = 1
+                    newshape = tuple(axis_list)
                 else:
                     axis_list[axis] = 1
                     newshape = tuple(axis_list)
@@ -759,6 +775,25 @@ class mean(Node):
         ret.attrs._keep = keepdims
         return ret
 
+    def new_expand_dims(self,a, axis):
+        # if int is passed, retain the same behaviour
+        if type(axis) == int:
+            return np.expand_dims(a, axis)
+        # insert axes to given indices
+        for ax in sorted(axis):
+            a = np.expand_dims(a, ax)
+        return a
+
+    def calc_size(self,a,axis):
+        ax_list = list(a.shape)
+        if isinstance(axis,int):
+            return ax_list[axis]
+        elif isinstance(axis,tuple):
+            size = 0
+            for i in axis:
+                size += ax_list[i]
+            return size
+
     def _backward_cpu(self, context, dy, **kwargs):
         if isinstance(self.attrs._arg, Node):
             arg = self.attrs._arg
@@ -767,12 +802,14 @@ class mean(Node):
                 dx = np.ones_like(arg) * dy / np.size(arg)
             else:
                 if not self.attrs._keep:
-                    if isinstance(axis, int):
-                        expanded = np.expand_dims(dy, axis)
-                        dx = np.ones_like(arg) * expanded / np.size(arg, axis)
+                    if isinstance(axis, (tuple,int)):
+                        expanded = self.new_expand_dims(dy, axis)
+                        size = self.calc_size(arg,axis)
+                        dx = np.ones_like(arg) * expanded / size
                 else:
-                    if isinstance(axis, int):
-                        dx = np.ones_like(arg) * dy / np.size(arg, axis)
+                    if isinstance(axis, (tuple,int)):
+                        size = self.calc_size(arg,axis)
+                        dx = np.ones_like(arg) * dy / size
             arg._update_diff(context, dx, **kwargs)
 
     def _backward_gpu(self, context, dy, **kwargs):
@@ -784,11 +821,11 @@ class mean(Node):
             else:
                 dy = get_gpu(dy).new_array()
                 if not self.attrs._keep:
-                    if isinstance(axis, int):
-                        expanded = np.expand_dims(dy, axis)
+                    if isinstance(axis, (tuple,int)):
+                        expanded = self.new_expand_dims(dy, axis)
                         dx = np.ones_like(arg, dtype=arg.dtype) * \
-                            expanded / get_gpu(arg.shape[axis])
+                            expanded / get_gpu(self.calc_size(arg,axis))
                 else:
-                    if isinstance(axis, int):
-                        dx = np.ones_like(arg, dtype=arg.dtype) * dy / get_gpu(arg.shape[axis])
+                    if isinstance(axis, (tuple,int)):
+                        dx = np.ones_like(arg, dtype=arg.dtype) * dy / get_gpu(self.calc_size(arg,axis))
             arg._update_diff(context, get_gpu(dx), **kwargs)
