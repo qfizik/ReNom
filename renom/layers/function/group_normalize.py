@@ -153,10 +153,11 @@ class group_normalize(Node):
 class GroupNormalize(Parametrized):
     SERIALIZED = ('_epsilon','_group')
 
-    def __init__(self,input_size=None, epsilon=1e-5, group=32,weight_decay=0):
+    def __init__(self,input_size=None, epsilon=1e-5, initializer=None,group=32,weight_decay=0):
         self._epsilon=epsilon
         self._weight_decay = weight_decay
         self._group = group
+        self._initializer = initializer
         super(GroupNormalize, self).__init__(input_size)
         
     def weight_initiallize(self,input_size):
@@ -165,7 +166,11 @@ class GroupNormalize(Parametrized):
         if len(size_i)>2:
             size_i[2] = 1
             size_i[3] = 1
-        self.params = {"w": Variable(np.ones(size_i, dtype=precision), auto_update=True,weight_decay=self._weight_decay)}
+        if self._initializer is None:
+            weights =  Variable(np.ones(size_i, dtype=precision), auto_update=True,weight_decay=self._weight_decay)
+        else:
+            weights = Variable(self._initializer(size_i).astype(precision), auto_update=True, weight_decay = self._weight_decay)
+        self.params = {"w": weights}
         self.params["b"] = Variable(np.zeros(size_i, dtype=precision), auto_update=True)
         
     def forward(self,x):
