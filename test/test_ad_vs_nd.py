@@ -14,7 +14,6 @@ from __future__ import division, print_function
 import pytest
 import warnings
 import numpy as np
-from renom.config import precision
 import renom as rm
 from renom.core import Variable
 from renom.operation import sum
@@ -46,7 +45,7 @@ from renom.layers.function.group_normalize import GroupNormalize
 from renom.layers.function.layer_normalize import LayerNormalize
 from renom.layers.function.lrn import Lrn
 from test_utility import auto_diff, numeric_diff
-
+from renom.config import precision
 from renom.cuda import is_cuda_active, set_cuda_active, curand_generator, has_cuda
 from test_utility import skipgpu
 
@@ -104,11 +103,11 @@ def compare(func, node, *args, **kwargs):
     print("difference = \n{}".format(ad - nd))
     assert np.allclose(ad, nd, atol=atol, rtol=rtol)
 
-#--------------------------------------------------------------------------
 
 @pytest.mark.parametrize("node,use_gpu",[
     [Variable(rand((2,32,7,7))),False],
     [Variable(rand((2,32,7,7))),True],
+    [Variable(rand((1,32,14,14))),True],
 ])
 
 def test_group_normalize(node, use_gpu):
@@ -122,8 +121,6 @@ def test_group_normalize(node, use_gpu):
     compare(func, node, node)
     compare(func, layer.params["w"],node)
     compare(func, layer.params["b"],node)
-
-#--------------------------------------------------------------------------
 
 @pytest.mark.parametrize("node, x, raise_error", [
     [Variable(rand((2, 2))), rand((2, 2)), False],
