@@ -18,7 +18,7 @@ Please refer to `changes` at renom.jp.
 ## Requirements
 
 - python 2.7, 3.4, 3.5, 3.6
-- cuda-toolkit 8.0, 9.1, 10.0
+- cuda-toolkit 8.0, 9.1, 9.2, 10.0
 - cudnn 7.0 ~ 7.4
 
 For required python modules please refer to the requirements.txt.
