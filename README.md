@@ -47,9 +47,9 @@ Example:
 	$ echo $CUDA_HOME
 	/usr/local/cuda-9.1
 	
-#### Wheels for linux environments.
+#### Wheels for linux environments
 
-|   OS      |Python   |cuda    |cudnn   | Wheel |
+|   OS      |Python   |Cuda    |CuDnn   | Wheel |
 |-----------|---------|--------|--------|-------|
 |Ubuntu16.04|Python3.5|cuda9.2 |cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.5/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
 |           |         |cuda10.0|cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.5/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
