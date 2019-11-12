@@ -282,6 +282,14 @@ namespace renom{
     struct swish_backward_function;
     void thrust_swish_backward(VALUE_TYPE s, VALUE_TYPE *a, VALUE_TYPE *b, int size);
 
+	// Mish Forward function
+	struct mish_forward_function;
+	void thrust_mish_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Mish Backward function
+	struct hard_sigmoid_backward_function;
+	void thrust_mish_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);    
+
 		__global__ void cuda_softplus_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 		void thrust_softplus_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 

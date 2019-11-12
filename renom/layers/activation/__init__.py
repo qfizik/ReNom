@@ -11,3 +11,4 @@ from .maxout import maxout, Maxout
 from .softplus import softplus, Softplus
 from .softsign import softsign, Softsign
 from .swish import swish, Swish
+from .mish import mish, Mish
