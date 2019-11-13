@@ -263,3 +263,25 @@ def test_multi_gpu():
                            org_l1_w + grad2.get(nn2.layer1.params.w).copy())
 
         grad1.update(models=[nn])
+
+def test_deepcopy():
+
+    class NN(rm.Model):
+        def __init__(self):
+            super(NN, self).__init__()
+            self.d1 = rm.Dense(10)
+            self.d2 = rm.Dense(2)
+
+        def forward(self, x):
+            return self.d2(self.d1(x))
+
+    model = NN()
+    x = np.random.random((3,4))
+    _ = model(x)
+    model2 = rm.deepcopy(model)
+
+    with model2.train():
+        l = rm.sum(model2(x))
+        grad = l.grad()
+
+    assert len(grad._auto_updates)>0
