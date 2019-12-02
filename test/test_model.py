@@ -8,6 +8,7 @@ from renom import DEBUG_GRAPH_INIT, DEBUG_NODE_GRAPH
 from renom.cuda import set_cuda_active
 from renom.cuda import use_device
 import test_utility
+import copy
 
 set_cuda_active(True)
 
@@ -278,7 +279,7 @@ def test_deepcopy():
     model = NN()
     x = np.random.random((3,4))
     _ = model(x)
-    model2 = rm.deepcopy(model)
+    model2 = copy.deepcopy(model)
 
     with model2.train():
         l = rm.sum(model2(x))
