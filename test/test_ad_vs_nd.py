@@ -52,6 +52,7 @@ from test_utility import skipgpu
 if precision is not np.float64:
     pytestmark = pytest.mark.skip()
 
+
 def rand(shape):
     return np.array(np.random.rand(*shape), dtype=np.float64)
 
@@ -104,12 +105,11 @@ def compare(func, node, *args, **kwargs):
     assert np.allclose(ad, nd, atol=atol, rtol=rtol)
 
 
-@pytest.mark.parametrize("node,use_gpu",[
-    [Variable(rand((2,32,7,7))),False],
-    [Variable(rand((2,32,7,7))),True],
-    [Variable(rand((1,32,14,14))),True],
+@pytest.mark.parametrize("node,use_gpu", [
+    [Variable(rand((2, 32, 7, 7))), False],
+    [Variable(rand((2, 32, 7, 7))), True],
+    [Variable(rand((1, 32, 14, 14))), True],
 ])
-
 def test_group_normalize(node, use_gpu):
     node = Variable(node)
     assert_cuda_active(use_gpu)
@@ -119,8 +119,9 @@ def test_group_normalize(node, use_gpu):
     def func(node):
         return sum(layer(node))
     compare(func, node, node)
-    compare(func, layer.params["w"],node)
-    compare(func, layer.params["b"],node)
+    compare(func, layer.params["w"], node)
+    compare(func, layer.params["b"], node)
+
 
 @pytest.mark.parametrize("node, x, raise_error", [
     [Variable(rand((2, 2))), rand((2, 2)), False],
@@ -619,6 +620,7 @@ def test_batch_normalize_featurewise(node, use_gpu):
     compare(func, node, node)
     compare(func, layer.params["w"], node)
     compare(func, layer.params["b"], node)
+
 
 @pytest.mark.parametrize("node", [
     Variable(rand((2, 2, 3, 3))),

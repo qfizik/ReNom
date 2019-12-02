@@ -1214,6 +1214,7 @@ def test_batch_normalize(a, mode):
     close(g2.attrs._mov_m.new_array(), c2.attrs._mov_m)
     close(g2.attrs._mov_v.new_array(), c2.attrs._mov_v)
 
+
 @test_utility.skipgpu
 @pytest.mark.parametrize("a", [
     arange((4, 32, 3, 3)),
@@ -1261,6 +1262,7 @@ def test_group_normalize(a):
 
     close(g2.attrs._m, c2.attrs._m)
     close(g2.attrs._v, c2.attrs._v)
+
 
 @test_utility.skipgpu
 @pytest.mark.parametrize("a", [
