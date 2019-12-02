@@ -14,7 +14,6 @@ from __future__ import division, print_function
 import pytest
 import warnings
 import numpy as np
-from renom.config import precision
 import renom as rm
 from renom.core import Variable
 from renom.operation import sum
@@ -42,16 +41,16 @@ from renom.layers.function.weight_normalize import WeightNormalize
 from renom.layers.function.gru import Gru
 from renom.layers.function.batch_normalize import BatchNormalize,\
     BATCH_NORMALIZE_FEATUREMAP
+from renom.layers.function.group_normalize import GroupNormalize
 from renom.layers.function.layer_normalize import LayerNormalize
 from renom.layers.function.lrn import Lrn
 from test_utility import auto_diff, numeric_diff
-
+from renom.config import precision
 from renom.cuda import is_cuda_active, set_cuda_active, curand_generator, has_cuda
 from test_utility import skipgpu
 
 if precision is not np.float64:
     pytestmark = pytest.mark.skip()
-
 
 def rand(shape):
     return np.array(np.random.rand(*shape), dtype=np.float64)
@@ -104,6 +103,24 @@ def compare(func, node, *args, **kwargs):
     print("difference = \n{}".format(ad - nd))
     assert np.allclose(ad, nd, atol=atol, rtol=rtol)
 
+
+@pytest.mark.parametrize("node,use_gpu",[
+    [Variable(rand((2,32,7,7))),False],
+    [Variable(rand((2,32,7,7))),True],
+    [Variable(rand((1,32,14,14))),True],
+])
+
+def test_group_normalize(node, use_gpu):
+    node = Variable(node)
+    assert_cuda_active(use_gpu)
+
+    layer = GroupNormalize()
+
+    def func(node):
+        return sum(layer(node))
+    compare(func, node, node)
+    compare(func, layer.params["w"],node)
+    compare(func, layer.params["b"],node)
 
 @pytest.mark.parametrize("node, x, raise_error", [
     [Variable(rand((2, 2))), rand((2, 2)), False],
@@ -428,6 +445,21 @@ def test_swish_activation(node, use_gpu):
 
 
 @pytest.mark.parametrize("node", [
+    Variable(rand((2, 1))),
+    Variable(rand((2, 2))),
+    Variable(rand((2,))),
+    Variable(rand((2, 2, 2, 2))),
+])
+def test_mish_activation(node, use_gpu):
+    node = Variable(node)
+    assert_cuda_active(use_gpu)
+
+    def func(node):
+        return sum(rm.mish(node))
+    compare(func, node, node)
+
+
+@pytest.mark.parametrize("node", [
     Variable(rand((2, 2))),
     Variable(rand((3, 2, 4))),
     Variable(rand((1, 3))),
@@ -587,7 +619,6 @@ def test_batch_normalize_featurewise(node, use_gpu):
     compare(func, node, node)
     compare(func, layer.params["w"], node)
     compare(func, layer.params["b"], node)
-
 
 @pytest.mark.parametrize("node", [
     Variable(rand((2, 2, 3, 3))),

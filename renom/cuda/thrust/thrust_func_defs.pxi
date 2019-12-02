@@ -160,6 +160,8 @@ cdef extern from * namespace "renom":
     cdef void thrust_softsign_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
     cdef void thrust_swish_forward(VALUE_TYPE s, VALUE_TYPE *a, VALUE_TYPE *b, int size);
     cdef void thrust_swish_backward(VALUE_TYPE s, VALUE_TYPE *a, VALUE_TYPE *b, int size);
+    cdef void thrust_mish_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_mish_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_forward_roi_pool2d(int N, VALUE_TYPE *x, float spatial_scale,
                                         int channels, int height, int width, int outh,
                                         int outw, VALUE_TYPE *rois, VALUE_TYPE *z,

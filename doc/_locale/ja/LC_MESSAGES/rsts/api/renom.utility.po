@@ -124,7 +124,7 @@ msgstr "ガウス分布の標準偏差"
 msgid ""
 "Uniform initializer. Initialize parameters using samples drawn from "
 ":math:`U(min, max)`"
-msgstr "ガウス分布 :math:`U(min, max)` に従って重みを初期化する."
+msgstr "一様分布 :math:`U(min, max)` に従って重みを初期化する."
 
 #: of renom.utility.initializer.Uniform:4
 msgid "Minimum limit of uniform distribution."
