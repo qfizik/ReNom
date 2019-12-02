@@ -560,7 +560,12 @@ class Model(with_metaclass(ABCMeta, object)):
                 c.truncate()
 
     def __deepcopy__(self, memo):
-        new_model = copy.deepcopy(self,memo)
+        cls = self.__class__
+        new_model = cls.__new__(cls)
+        memo[id(self)] = new_model
+        for k, v in self.__dict__.items():
+            setattr(new_model, k, copy.deepcopy(v, memo))
+            
         for m in new_model.iter_models():
             m.params.__dict__['model'] = weakref.proxy(m)
             for v in m.params.values():
