@@ -559,6 +559,16 @@ class Model(with_metaclass(ABCMeta, object)):
             if isinstance(c, Parametrized):
                 c.truncate()
 
+    def __deepcopy__(self, memo):
+        new_model = copy.deepcopy(self,memo)
+        for m in new_model.iter_models():
+            m.params.__dict__['model'] = weakref.proxy(m)
+            for v in m.params.values():
+                if isinstance(v, Node):
+                    v.set_model(m)
+        new_model.copy_params(self)
+        return new_model
+
 
 class Sequential(Model):
     """Sequential model.
@@ -626,37 +636,3 @@ class Parametrized(Model):
 
     def truncate(self):
         pass
-
-def deepcopy(model):
-    """
-    Args:
-        model (list): A list of layer objects.
-
-    Example:
-        >>> import renom as rm
-        >>> import numpy as np
-        >>>
-        >>> x = class NN(rm.Model):
-        >>> class NN(rm.Model):
-        ...     def __init__(self):
-        ...         self.d1 = rm.Dense(10)
-        ...         self.d2 = rm.Dense(3)
-        ...     def forward(self,x):
-        ...         h = self.d1(x)
-        ...         h = self.d2(h)
-        ...         return h
-        >>>
-        >>> model1 = NN(x)
-        >>> model2 = rm.deepcopy(model1)
-    """
-    assert isinstance(model,Model),"only Model class are accepted"
-
-    new_model = copy.deepcopy(model)
-    for m in new_model.iter_models():
-        m.params.__dict__['model'] = weakref.proxy(m)
-        for v in m.params.values():
-            if isinstance(v, Node):
-                v.set_model(m)
-    new_model.copy_params(model)
-
-    return new_model
