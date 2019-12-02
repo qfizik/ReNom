@@ -1,4 +1,4 @@
-from .parameterized import Model, Parametrized, Sequential, deepcopy
+from .parameterized import Model, Parametrized, Sequential
 from .dense import Dense
 from .conv2d import Conv2d
 from .convnd import ConvNd, Conv3d
