@@ -45,3 +45,14 @@ sphinx:
     - sh build.sh -l all
     - echo "$RENOM_JP_SSH_PRIVATE_KEY" > tmp
     - chmod 600 tmp
+    - scp -r -P "$RENOM_JP_PORT" -i tmp _build/html/* renom123@"$RENOM_JP_HOST":/home/renom123/renomdl
+  when: manual
+
+build_wheel:
+  stage: wheel
+  when: manual
+  script:
+    - python setup.py bdist_wheel
+    - echo "$RENOM_JP_SSH_PRIVATE_KEY" > tmp
+    - chmod 600 tmp
+    - scp -r -P "$RENOM_JP_PORT" -i tmp dist/* renom123@"$RENOM_JP_HOST":/home/renom123/renomdl
