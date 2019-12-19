@@ -1,18 +1,47 @@
 image : python:3.6
 
+stages:
+  - syntax
+  - cpu-test
+  - document
+  - wheel
+
 before_script:
-  - apt-get update -qq && apt-get install -y -qq python-pip pandoc
+  - apt-get update -qq && apt-get install -y -qq python-pip pandoc openssh-client
+  - pip install -r doc/requirements.txt
+  - pip install ipython
   - pip install numpy flake8 pytest pytest-flake8
   - pip install -r requirements.txt
   - pip install -e .
+  - eval $(ssh-agent -s)
+  - echo "$RENOM_JP_SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - '[[ -f /.dockerenv ]] && echo "$HOST_KEYS" > ~/.ssh/known_hosts'
+  
 
 flake8:
+  stage: syntax
+  tags:
+    - flake8
   script:
-    - export RENOM_PRECISION=64
     - flake8 .
 
 pytest:
+  stage: cpu-test
+  tags:
+    - cpu 
   script:
     - cd test
     - export RENOM_PRECISION=64
     - pytest
+
+sphinx:
+  stage: document
+  tags:
+    - cpu 
+  script:
+    - cd doc
+    - sh build.sh -l all
+    - echo "$RENOM_JP_SSH_PRIVATE_KEY" > tmp
+    - chmod 600 tmp
