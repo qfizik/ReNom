@@ -68,6 +68,24 @@ class ClippedMeanSquaredError:
         y (ndarray,Node): Target data.
         clip (float,tuple): Clipping threshold.
 
+    Example:
+        >>> import renom as rm
+        >>> import numpy as np
+        >>>
+        >>> x = np.array([[1, 1]])
+        >>> y = np.array([[-1, -1]])
+        >>> print(x.shape, y.shape)
+        ((1, 2), (1, 2))
+        >>> loss = rm.clipped_mean_squared_error(x, y)
+        >>> print(loss)
+        clipped_mean_squared_error(4.0)
+        >>>
+        >>> # Also you can call this function with alias.
+        >>> loss = rm.cmse(x, y)
+        >>> print(loss)
+        clipped_mean_squared_error(4.0)
+
+
     Raises:
         AssertionError: An assertion error will be raised if the given tensor dimension is less than 2.
 
