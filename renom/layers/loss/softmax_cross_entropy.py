@@ -72,6 +72,26 @@ class SoftmaxCrossEntropy(object):
         y (ndarray,Node): Target array.
         reduce_sum (bool): If True is given, the result array will be summed up and returns scalar value.
 
+    Example:
+        >>> import renom as rm
+        >>> import numpy as np
+        >>> 
+        >>> x = np.array([[0, 1]])
+        >>> y = np.array([[1, 0]])
+        >>> loss_func = rm.SoftmaxCrossEntropy()
+        >>> loss = loss_func(x, y)
+        >>> print(loss)
+        1.31326162815094
+        >>> loss = rm.softmax_cross_entropy(x, y)
+        >>> print(loss)
+        1.31326162815094
+        >>>
+        >>> # You can call this function with alias.
+        >>> loss = rm.smce(x, y)
+        >>> print(loss)
+        1.31326162815094
+
+
     Raises:
         AssertionError: An assertion error will be raised if the given tensor dimension is less than 2.
     """

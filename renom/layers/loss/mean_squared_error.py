@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function, division
 import numpy as np
@@ -81,6 +81,12 @@ class MeanSquaredError(object):
         >>> loss = rm.mean_squared_error(x, y, reduce_sum=False)
         >>> print(loss)
         [[ 2.  2.]]
+        mean_squared_error(4.0)
+        >>>
+        >>> # Also you can call this function with alias.
+        >>> loss = rm.mse(x, y)
+        >>> print(loss)
+        mean_squared_error(4.0)
 
     """
 

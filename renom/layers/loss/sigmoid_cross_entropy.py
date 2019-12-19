@@ -79,6 +79,27 @@ class SigmoidCrossEntropy:
     Returns:
         (Node, ndarray): Cross entropy error between sigmoid(x) and target y.
 
+    Example:
+        >>> import renom as rm
+        >>> import numpy as np
+        >>> 
+        >>> x = np.array([[0, 1]])
+        >>> y = np.array([[1, 1]])
+        >>> loss_func = rm/SigmoidCrossEntropy()
+        >>> loss = loss_func(x, y)
+        >>> print(loss)
+        1.0064088106155396
+        >>>
+        >>> loss = rm.sigmoid_cross_entropy(x, y)
+        >>> print(loss)
+        1.0064088106155396
+        >>>
+        >>> # You can also call this function with alias.
+        >>> loss = rm.sgce(x, y)
+        >>> print(loss)
+        1.0064088106155396
+
+
     Raises:
         AssertionError: An assertion error will be raised if the given tensor dimension is less than 2.
 
