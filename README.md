@@ -52,17 +52,25 @@ Example:
 You can install ReNom using following wheel packages.  
 Please download wheel for your environment and install it using pip command.
 
-
 |   OS      |Python   |Cuda    |CuDnn   | Wheel |
 |-----------|---------|--------|--------|-------|
-|Ubuntu16.04|Python3.5|cuda9.2 |cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.5/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
-|           |         |cuda10.0|cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.5/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
-|           |Python3.6|cuda9.2 |cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.6/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp36-cp36m-linux_x86_64.whl)|
-|           |         |cuda10.0|cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.6/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp36-cp36m-linux_x86_64.whl)|
-|Ubuntu18.04|Python3.5|cuda9.2 |cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.5/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
-|           |         |cuda10.0|cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.5/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
-|           |Python3.6|cuda9.2 |cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.6/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp36-cp36m-linux_x86_64.whl)|
-|           |         |cuda10.0|cudnn7.6|[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.6/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp36-cp36m-linux_x86_64.whl)|
+|Ubuntu16.04|Python3.5|cuda9.2 |cudnn7.6|[v2.7.1](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.5/cuda9.2/cudnn7.6.2.24/ReNom2.7.1/renom-2.7.1-cp35-cp35m-linux_x86_64.whl)|
+|           |         |        |        |[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.5/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
+|           |         |cuda10.0|cudnn7.6|[v2.7.1](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.5/cuda10.0/cudnn7.6.2.24/ReNom2.7.1/renom-2.7.1-cp35-cp35m-linux_x86_64.whl)|
+|           |         |        |        |[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.5/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
+|           |Python3.6|cuda9.2 |cudnn7.6|[v2.7.1](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.6/cuda9.2/cudnn7.6.2.24/ReNom2.7.1/renom-2.7.1-cp36-cp36m-linux_x86_64.whl)|
+|           |         |        |        |[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.6/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp36-cp36m-linux_x86_64.whl)|
+|           |         |cuda10.0|cudnn7.6|[v2.7.1](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.6/cuda10.0/cudnn7.6.2.24/ReNom2.7.1/renom-2.7.1-cp36-cp36m-linux_x86_64.whl)|
+|           |         |        |        |[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1604/python3.6/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp36-cp36m-linux_x86_64.whl)|
+|Ubuntu18.04|Python3.5|cuda9.2 |cudnn7.6|[v2.7.1](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.5/cuda9.2/cudnn7.6.2.24/ReNom2.7.1/renom-2.7.1-cp35-cp35m-linux_x86_64.whl)|
+|           |         |        |        |[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.5/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
+|           |         |cuda10.0|cudnn7.6|[v2.7.1](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.5/cuda10.0/cudnn7.6.2.24/ReNom2.7.1/renom-2.7.1-cp35-cp35m-linux_x86_64.whl)|
+|           |         |        |        |[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.5/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp35-cp35m-linux_x86_64.whl)|
+|           |Python3.6|cuda9.2 |cudnn7.6|[v2.7.1](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.6/cuda9.2/cudnn7.6.2.24/ReNom2.7.1/renom-2.7.1-cp36-cp36m-linux_x86_64.whl)|
+|           |         |        |        |[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.6/cuda9.2/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp36-cp36m-linux_x86_64.whl)|
+|           |         |cuda10.0|cudnn7.6|[v2.7.1](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.6/cuda10.0/cudnn7.6.2.24/ReNom2.7.1/renom-2.7.1-cp36-cp36m-linux_x86_64.whl)|
+|           |         |        |        |[v2.7.3](https://renom.jp/docs/downloads/wheels/renom_dl/ubuntu1804/python3.6/cuda10.0/cudnn7.6.2.24/ReNom2.7.3/renom-2.7.3-cp36-cp36m-linux_x86_64.whl)|
+
 
 Example: 
 
