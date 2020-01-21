@@ -58,7 +58,7 @@ class build_nvcc(build_clib):
 
 #        args = ["nvcc", "--device-c", "--ptxas-options=-v", "-c",
         args = ["nvcc", "--device-c", "-c",
-                "--compiler-options", ','.join(self.compiler.compiler_so[1:])] + arch_arg
+                "--compiler-options", ','.join(['"%s"'%s if '-Wp' in s else s for s in self.compiler.compiler_so[1:]])] + arch_arg
 
         self.compiler.set_executables(compiler_so=args)
 
