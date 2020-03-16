@@ -565,7 +565,7 @@ class Model(with_metaclass(ABCMeta, object)):
         memo[id(self)] = new_model
         for k, v in self.__dict__.items():
             setattr(new_model, k, copy.deepcopy(v, memo))
-            
+
         for m in new_model.iter_models():
             m.params.__dict__['model'] = weakref.proxy(m)
             for v in m.params.values():
