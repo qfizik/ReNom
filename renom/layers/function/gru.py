@@ -194,9 +194,11 @@ class gru(Node):
 
         y = get_gpu(dy)
 
-        def sig_diff(x): return x.sigmoid() * (-x.sigmoid() + 1)
+        def sig_diff(x):
+            return x.sigmoid() * (-x.sigmoid() + 1)
 
-        def tan_diff(x): return (-(x.tanh() ** 2) + 1)
+        def tan_diff(x):
+            return (-(x.tanh() ** 2) + 1)
 
         dA = y * (hminus - C.tanh()) * sig_diff(A)
         dC = y * (-A.sigmoid() + 1) * tan_diff(C)

@@ -55,16 +55,17 @@ class build_nvcc(build_clib):
 
         arch = self.distribution.cuda_gpu_arch
         arch_arg = ["-arch=%s" % arch] if arch else []
+        c_arg = ','.join(['"%s"' % s if ('-Wp' in s) or ('-Wl' in s) else s for s in self.compiler.compiler_so[1:]])
 
 #        args = ["nvcc", "--device-c", "--ptxas-options=-v", "-c",
         args = ["nvcc", "--device-c", "-c",
-                "--compiler-options", ','.join(self.compiler.compiler_so[1:])] + arch_arg
+                "--compiler-options", c_arg] + arch_arg
 
         self.compiler.set_executables(compiler_so=args)
 
 #        args = ["nvcc", "--device-c", "--ptxas-options=-v", "-c", "-Xptxas",  "-v"
         args = ["nvcc", "--device-c", "-c", "-Xptxas", "-v",
-                "--compiler-options", ','.join(self.compiler.compiler_so[1:])] + arch_arg
+                "--compiler-options", c_arg] + arch_arg
 
         self.compiler.set_executables(compiler_cxx=args)
 
@@ -129,7 +130,14 @@ class build_ext(orig_build_ext):
 
 
 requires = [
-    "numpy", "scikit-image", "scikit-learn", "Cython>=0.24.0", "Pillow", "future"
+    "numpy==1.15.4",
+    "scikit-image==0.14.1",
+    "scikit-learn==0.20.2",
+    "Cython==0.27.3",
+    "Pillow==5.4.1",
+    "future==0.16.0",
+    "pandas==0.21.1",
+    "h5py==2.8.0"
 ]
 
 
@@ -272,4 +280,4 @@ setup(
     name='renom',
     packages=find_packages(),
     include_dirs=[numpy.get_include()],
-    version='2.7.3')
+    version='2.7.4')

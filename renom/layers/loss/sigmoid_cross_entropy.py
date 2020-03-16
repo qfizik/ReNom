@@ -82,7 +82,7 @@ class SigmoidCrossEntropy:
     Example:
         >>> import renom as rm
         >>> import numpy as np
-        >>> 
+        >>>
         >>> x = np.array([[0, 1]])
         >>> y = np.array([[1, 1]])
         >>> loss_func = rm/SigmoidCrossEntropy()
