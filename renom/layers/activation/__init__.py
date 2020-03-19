@@ -1,4 +1,5 @@
 from .relu import Relu, relu
+from .relu6 import Relu6, relu6
 from .sigmoid import Sigmoid, sigmoid
 from .hard_sigmoid import HardSigmoid, hard_sigmoid
 from .tanh import Tanh, tanh
@@ -10,3 +11,4 @@ from .maxout import maxout, Maxout
 from .softplus import softplus, Softplus
 from .softsign import softsign, Softsign
 from .swish import swish, Swish
+from .mish import mish, Mish

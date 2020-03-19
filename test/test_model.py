@@ -8,6 +8,7 @@ from renom import DEBUG_GRAPH_INIT, DEBUG_NODE_GRAPH
 from renom.cuda import set_cuda_active
 from renom.cuda import use_device
 import test_utility
+import copy
 
 set_cuda_active(True)
 
@@ -263,3 +264,37 @@ def test_multi_gpu():
                            org_l1_w + grad2.get(nn2.layer1.params.w).copy())
 
         grad1.update(models=[nn])
+
+
+def test_deepcopy():
+
+    class NN(rm.Model):
+        def __init__(self):
+            super(NN, self).__init__()
+            self.d1 = rm.Dense(10)
+            self.d2 = rm.Dense(2)
+
+        def forward(self, x):
+            return self.d2(self.d1(x))
+
+    model1 = NN()
+    x = np.random.random((3, 4))
+    _ = model1(x)
+    model2 = copy.deepcopy(model1)
+
+    with model1.train():
+        l1 = rm.sum(model1(x))
+        grad1 = l1.grad()
+        grad1.update()
+
+    with model2.train():
+        l2 = rm.sum(model2(x))
+        grad2 = l2.grad()
+        grad2.update()
+
+    assert len(grad1._auto_updates) == len(grad2._auto_updates)
+    assert l1 == l2
+    assert np.allclose(grad1.get(model1.d1.params.w), grad2.get(model2.d1.params.w))
+    assert np.allclose(grad1.get(model1.d2.params.w), grad2.get(model2.d2.params.w))
+    assert np.allclose(model1.d1.params.w.as_ndarray(), model2.d1.params.w.as_ndarray())
+    assert np.allclose(model1.d2.params.w.as_ndarray(), model2.d2.params.w.as_ndarray())

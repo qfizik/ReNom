@@ -15,9 +15,14 @@ renom.utility.searcher
 
 renom.utility.trainer
 ---------------------
- 
+
 .. automodule:: renom.utility.trainer
     :members:
+
+renom.utility.gradient_clipping
+---------------------
+
+.. autoclass:: renom.utility.gradient_clipping.GradientClipping
 
 renom.utility.distributor.distributor
 -------------------------------------
@@ -46,4 +51,3 @@ renom.utility.image.data_augmentation.augmentation
 
 .. toctree::
     renom.utility.image
-

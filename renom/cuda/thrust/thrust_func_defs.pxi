@@ -13,10 +13,14 @@ cdef extern from * namespace "renom":
     cdef void thrust_negate(VALUE_TYPE* first, VALUE_TYPE *last, VALUE_TYPE *output)
     cdef void thrust_relu_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_relu_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_relu6_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_relu6_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_sigmoid(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_hard_sigmoid_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_hard_sigmoid_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_hard_tanh_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_hard_tanh_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_copy_memory_stride(VALUE_TYPE *dest, VALUE_TYPE *src, const size_t src_elems,
                              const size_t size_stride, const size_t size_srcblock)
     cdef void thrust_fill(VALUE_TYPE value, VALUE_TYPE *a, int size)
@@ -156,6 +160,8 @@ cdef extern from * namespace "renom":
     cdef void thrust_softsign_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
     cdef void thrust_swish_forward(VALUE_TYPE s, VALUE_TYPE *a, VALUE_TYPE *b, int size);
     cdef void thrust_swish_backward(VALUE_TYPE s, VALUE_TYPE *a, VALUE_TYPE *b, int size);
+    cdef void thrust_mish_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+    cdef void thrust_mish_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
     cdef void thrust_forward_roi_pool2d(int N, VALUE_TYPE *x, float spatial_scale,
                                         int channels, int height, int width, int outh,
                                         int outw, VALUE_TYPE *rois, VALUE_TYPE *z,

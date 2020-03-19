@@ -110,6 +110,21 @@ class Model(with_metaclass(ABCMeta, object)):
 
     @abstractmethod
     def forward(self):
+        """Override this method to allow network to calculate.
+
+        Example:
+            >>> import renom as rm
+            >>> import numpy as np
+            >>>
+            >>> class Model(rm.Model):
+            ...     def __init__(self):
+            ...         self._layer1 = rm.Dense(3)
+            ...         self._layer2 = rm.Dense(2)
+            ...     def forward(self, x):  # This part
+            ...         h = rm.relu(self._layer1(x))
+            ...         z = self._layer2(h)
+            ...         return z
+        """
         pass
 
     def copy_params(self, model):
@@ -490,10 +505,74 @@ class Model(with_metaclass(ABCMeta, object)):
             for k, v in kwargs.items():
                 setattr(c, k, v)
 
+    def set_initializer(self, initializer):
+        """Set initializer
+        Setting all weights to initializer.
+
+        Following example shows how to do it.
+
+        Args:
+            initializer (Initializer): Initializing Object.
+
+        Example:
+            >>> import renom as rm
+            >>> import numpy as np
+            >>> from renom.utility.initializer import Orthogonal
+            >>>
+            >>> class MyModel(rm.Model):
+            ...     def __init__(self):
+            ...         super(MyModel, self).__init__()
+            ...         self._l1 = rm.Dense(2)
+            ...         self._l2 = rm.Dense(1)
+            ...         self._moving_avg = 0
+            ...     def forward(self, x):
+            ...         h = self._l1(x)
+            ...         h = rm.relu(h)
+            ...         h = self._l2(h)
+            ...         return h
+            >>>
+            >>> model = MyModel()
+            >>> model.set_initializer(Orthogonal())
+            >>>
+            >>> x = np.random.random((3,4))
+            >>> y = model(x)
+            >>>
+            >>> weight=model._l1.params.w
+            >>> print("weight\\n",weight)
+            weight
+            [[-0.43140578  0.39115947]
+            [-0.53214586 -0.61308974]
+            [-0.5807101   0.5656842 ]
+            [-0.43986994 -0.3887372 ]]
+            >>>
+            >>> print("dot product\\n",np.dot(weight.T,weight))
+            dot product
+            [[1. 0.]
+            [0. 1.]]
+        """
+        for c in self.iter_models():
+            if hasattr(c, "_initializer"):
+                setattr(c, "_initializer", initializer)
+
     def truncate(self):
         for c in self.iter_models():
             if isinstance(c, Parametrized):
                 c.truncate()
+
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        new_model = cls.__new__(cls)
+        memo[id(self)] = new_model
+        for k, v in self.__dict__.items():
+            setattr(new_model, k, copy.deepcopy(v, memo))
+
+        for m in new_model.iter_models():
+            m.params.__dict__['model'] = weakref.proxy(m)
+            for v in m.params.values():
+                if isinstance(v, Node):
+                    v.set_model(m)
+        new_model.copy_params(self)
+        return new_model
 
 
 class Sequential(Model):

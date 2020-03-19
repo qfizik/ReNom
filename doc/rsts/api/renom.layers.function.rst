@@ -1,6 +1,11 @@
 renom.layers.function
 =====================
 
+.. autoclass:: renom.layers.function.parameterized.Model
+    :members: forward, train, prevent_update, values, join_grads, save, load, set_initializer
+
+.. autoclass:: renom.layers.function.parameterized.Sequential
+
 .. automodule:: renom.layers.function.batch_normalize
     :members: BatchNormalize
 
@@ -60,4 +65,3 @@ renom.layers.function
 
 .. automodule:: renom.layers.function.unpool2d
     :members: MaxUnPool2d, AverageUnPool2d
-

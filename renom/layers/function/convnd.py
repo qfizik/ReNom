@@ -148,6 +148,7 @@ class ConvNd(Parametrized):
         self._stride = stride
         self._kernel = filter
         self._channel = channel
+        self._initial_value = [padding, stride, filter]
         self._initializer = initializer
         self._ignore_bias = ignore_bias
         super(ConvNd, self).__init__(input_size)
@@ -160,9 +161,10 @@ class ConvNd(Parametrized):
             assert self._dims < 4, "GPU Version currently only supports 2 and 3 dimensions"
 
         if self._dims == 1 and is_cuda_active():
-            self._kernel = np.append(self._kernel, 1).astype(np.int32)
-            self._padding = np.append(self._padding, 0).astype(np.int32)
-            self._stride = np.append(self._stride, 1).astype(np.int32)
+            padding, stride, filter = self._initial_value
+            self._kernel = np.append(filter, 1).astype(np.int32)
+            self._padding = np.append(padding, 0).astype(np.int32)
+            self._stride = np.append(stride, 1).astype(np.int32)
 
         def func(var):
             return check_input(var, self._dims)
@@ -180,7 +182,7 @@ class ConvNd(Parametrized):
 
         self.params = {"w": Variable(self._initializer(size_f), auto_update=True)}
         if not self._ignore_bias:
-            self.params["b"] = Variable(np.ones(size_b, dtype=precision), auto_update=True)
+            self.params["b"] = Variable(np.zeros(size_b), auto_update=True)
 
     def forward(self, x):
         assert len(
@@ -236,7 +238,7 @@ class Conv3d(Parametrized):
         self.params = {"w": Variable(self._initializer(
             size_f), auto_update=True, weight_decay=self._weight_decay)}
         if not self._ignore_bias:
-            self.params["b"] = Variable(np.ones(size_b, dtype=precision), auto_update=True)
+            self.params["b"] = Variable(np.zeros(size_b, dtype=precision), auto_update=True)
 
     def forward(self, x):
         assert len(x.shape) == 5, "The dimension of input array must be 5. Actual dim is {}".format(x.ndim)

@@ -30,6 +30,14 @@ namespace renom{
 	struct relu_backward_function;
 	void thrust_relu_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 
+	// Relu6 Forward function
+	struct relu6_forward_function;
+	void thrust_relu6_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Relu6 Backward function
+	struct relu6_backward_function;
+	void thrust_relu6_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
 	// Sigmoid function
 	struct sigmoid_function;
 	void thrust_sigmoid(VALUE_TYPE *a, VALUE_TYPE *b, int size);
@@ -45,6 +53,14 @@ namespace renom{
 	// Tanh function
 	struct tanh_function;
 	void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Hard Tanh Forward function
+	struct hard_tanh_forward_function;
+	void thrust_hard_tanh_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Hard Tanh Backward function
+	struct hard_tanh_backward_function;
+	void thrust_hard_tanh_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 
     const unsigned int RENOM_CUDA_MAX_STRIDES= 5;
 
@@ -265,6 +281,14 @@ namespace renom{
     //Swish backward
     struct swish_backward_function;
     void thrust_swish_backward(VALUE_TYPE s, VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Mish Forward function
+	struct mish_forward_function;
+	void thrust_mish_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
+
+	// Mish Backward function
+	struct hard_sigmoid_backward_function;
+	void thrust_mish_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size);    
 
 		__global__ void cuda_softplus_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);
 		void thrust_softplus_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size);

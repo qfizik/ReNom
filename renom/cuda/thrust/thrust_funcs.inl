@@ -1019,6 +1019,48 @@ namespace renom{
 		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu_backward_function());
 	}
 
+  // Relu6 forward
+	struct relu6_forward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+	            if (x < 0){
+                return 0;
+              }else if (6 < x){
+                return 6;
+              }else{
+                return x;
+              };
+	        }
+	};
+
+  void thrust_relu6_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu6_forward_function());
+	}
+
+	// Relu backward
+	struct relu6_backward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+            if((x < 0) || (6 < x)){ // if x== 0 or 1 then
+              return 0;
+            }else{
+              return 1;
+            }
+	        }
+	};
+
+	void thrust_relu6_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, relu6_backward_function());
+	}
+
 	// Leaky Relu forward
 	struct leaky_relu_forward_function
 	{
@@ -1047,7 +1089,7 @@ namespace renom{
 
 	    __host__ __device__
 	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
-	            return (x > 0)? 1:0;
+	            return (x > 0)? 1:s;
 	        }
 	};
 
@@ -1168,6 +1210,48 @@ namespace renom{
     thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
     thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, swish_backward_function(s));
   }
+    
+    // mish params
+    #define MISH_THRESHOLD 20.0
+
+    // mish forward
+	struct mish_forward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+                return x * tanh(
+                    x < MISH_THRESHOLD ? log(1.0 + exp(x)) : x
+                    );
+            }
+	};
+
+	void thrust_mish_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, mish_forward_function());
+	}
+
+	// mish backward
+	struct mish_backward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+                const float sp = x < MISH_THRESHOLD ? log1p(exp(x)) : x;
+                const float grad_sp = 1 - exp(-sp);
+                const float tsp = tanh(sp);
+                const float grad_tsp = (1 - tsp*tsp) * grad_sp;
+                return x * grad_tsp + tsp;
+
+            }
+	};
+
+	void thrust_mish_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, mish_backward_function());
+	}
 
   __global__ void cuda_softplus_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
   {
@@ -1259,11 +1343,54 @@ namespace renom{
 	            return tanh(x);
 	        }
 	};
+
 	void thrust_tanh(VALUE_TYPE *a, VALUE_TYPE *b, int size)
 	{
 		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
 		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
 		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, tanh_function());
+	}
+
+  	// hard tanh forward
+	struct hard_tanh_forward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+	            if(x >= 1){
+                    return 1.0;
+                }else if(x <= -1){
+                    return -1.0;
+                }else{
+                    return x;
+                }
+	        }
+	};
+
+	void thrust_hard_tanh_forward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, hard_tanh_forward_function());
+	}
+
+	// hard tanh  backward
+	struct hard_tanh_backward_function
+	{
+	    __host__ __device__
+	        VALUE_TYPE operator()(const VALUE_TYPE& x, const VALUE_TYPE& y) const {
+                if((x >= 1.0) || (x <= -1.0)){
+                    return 0.0;
+                }else{
+                    return 1.0;
+                }
+            }
+	};
+
+	void thrust_hard_tanh_backward(VALUE_TYPE *a, VALUE_TYPE *b, int size)
+	{
+		thrust::device_ptr<VALUE_TYPE> dev_a((VALUE_TYPE*)a);
+		thrust::device_ptr<VALUE_TYPE> dev_b((VALUE_TYPE*)b);
+		thrust::transform(thrust::cuda::par.on(GET_STREAM_NAME()), dev_a, dev_a+size, dev_b, dev_b, hard_tanh_backward_function());
 	}
 
 	//fill
